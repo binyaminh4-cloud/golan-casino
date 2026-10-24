@@ -47,11 +47,11 @@ function noise(ctx, w, h, alpha, n = 9000) {
 // Table geometry: half-circle felt, radius 4, straight dealer edge at z = -2.
 const R = 4, CZ = -2;
 const SPOTS = {
-  main: { x: 0, z: 1.05, r: 0.42, label: "הימור" },
-  pp:   { x: -1.95, z: 0.55, r: 0.3, label: "זוג מושלם" },
-  ll:   { x: -1.05, z: 1.45, r: 0.3, label: "ליידיז מזל" },
-  bust: { x: 1.05, z: 1.45, r: 0.3, label: "באסטר" },
-  t3:   { x: 1.95, z: 0.55, r: 0.3, label: "21+3" },
+  main: { x: 0, z: 1.3, r: 0.4, label: "הימור" },
+  pp:   { x: -2.25, z: 0.7, r: 0.3, label: "זוג מושלם" },
+  ll:   { x: -1.25, z: 1.35, r: 0.3, label: "ליידיז מזל" },
+  bust: { x: 1.25, z: 1.35, r: 0.3, label: "באסטר" },
+  t3:   { x: 2.25, z: 0.7, r: 0.3, label: "21+3" },
 };
 const FW = 2048, FH = 2048;
 const toPx = (x, z) => [((x / R + 1) / 2) * FW, (1 - (-(z - CZ) / R + 1) / 2) * FH];  // canvas y is flipped vs UV v  // matches CircleGeometry UVs after rotation
@@ -67,8 +67,8 @@ async function buildTable() {
     const [cx, cy] = toPx(0, CZ), pr = FW / 2 / R;
     ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(cx, cy, 2.75 * pr, 0, Math.PI); ctx.stroke();
     ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx, cy, 2.62 * pr, 0, Math.PI); ctx.stroke();
-    ctx.font = '700 64px "Frank Ruhl Libre"'; let [x, y] = toPx(0, -0.15); ctx.fillText("בלאק ג׳ק משלם 3 ל־2", x, y);
-    ctx.font = '500 38px "Heebo"'; [x, y] = toPx(0, 0.18); ctx.fillText("הדילר עומד על 17 רך · ביטוח משלם 2 ל־1", x, y);
+    ctx.font = '700 64px "Frank Ruhl Libre"'; let [x, y] = toPx(0, -0.32); ctx.fillText("בלאק ג׳ק משלם 3 ל־2", x, y);
+    ctx.font = '500 38px "Heebo"'; [x, y] = toPx(0, -0.08); ctx.fillText("הדילר עומד על 17 רך · ביטוח משלם 2 ל־1", x, y);
     ctx.font = '500 30px "Heebo"'; [x, y] = toPx(0, -1.65); ctx.fillStyle = "rgba(217,181,111,.55)"; ctx.fillText("גולן קזינו · שקלים משחקיים בלבד", x, y);
     for (const [k, s] of Object.entries(SPOTS)) {
       const [sx, sy] = toPx(s.x, s.z), rr = s.r * pr;
@@ -132,17 +132,21 @@ const faceCache = {};
 function faceTex(card) {
   if (faceCache[card]) return faceCache[card];
   const r = card[0] === "T" ? "10" : card[0], s = card[1], col = RED[s] ? "#b3121c" : "#14110f";
-  return (faceCache[card] = canvasTex(256, 358, (ctx, w, h) => {
-    roundRect(ctx, 0, 0, w, h, 18); ctx.fillStyle = "#fbf7ef"; ctx.fill(); ctx.strokeStyle = "#cfc6b4"; ctx.lineWidth = 2; ctx.stroke();
-    ctx.fillStyle = col; ctx.textAlign = "center";
-    ctx.font = '700 54px "Inter", sans-serif'; ctx.fillText(r, 36, 62); ctx.font = '44px serif'; ctx.fillText(SUIT[s], 36, 106);
-    ctx.save(); ctx.translate(w, h); ctx.rotate(Math.PI); ctx.font = '700 54px "Inter", sans-serif'; ctx.fillText(r, 36, 62); ctx.font = '44px serif'; ctx.fillText(SUIT[s], 36, 106); ctx.restore();
-    if ("JQK".includes(card[0])) {
-      roundRect(ctx, 64, 74, w - 128, h - 148, 10); ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.stroke();
-      ctx.font = '700 120px "Frank Ruhl Libre", serif'; ctx.fillText(card[0], w / 2, h / 2 + 10); ctx.font = '56px serif'; ctx.fillText(SUIT[s], w / 2, h / 2 + 76);
-    } else if (card[0] === "A") { ctx.font = '150px serif'; ctx.fillText(SUIT[s], w / 2, h / 2 + 52); }
-    else { ctx.font = '130px serif'; ctx.fillText(SUIT[s], w / 2, h / 2 + 46); }
-  }));
+  const tex = canvasTex(256, 358, (ctx, w, h) => {   // quick placeholder until the real card art loads
+    roundRect(ctx, 0, 0, w, h, 18); ctx.fillStyle = "#fbf7ef"; ctx.fill();
+    ctx.fillStyle = col; ctx.textAlign = "center"; ctx.font = '700 54px "Inter", sans-serif'; ctx.fillText(r, 36, 62);
+    ctx.font = '130px serif'; ctx.fillText(SUIT[s], w / 2, h / 2 + 46);
+  });
+  // Card art: Byron Knoll's Vector Playing Cards, public domain (docs/cards/LICENSE-cards.md)
+  const img = new Image();
+  img.onload = () => {
+    const c = tex.image, ctx = c.getContext("2d"), w = c.width, h = c.height;
+    ctx.clearRect(0, 0, w, h); ctx.save(); roundRect(ctx, 0, 0, w, h, 18); ctx.clip();
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h); ctx.drawImage(img, 0, 0, w, h); ctx.restore();
+    tex.needsUpdate = true;
+  };
+  img.src = "cards/" + card + ".svg";
+  return (faceCache[card] = tex);
 }
 const CARD_W = 0.56, CARD_H = 0.8;
 const cardGeo = new THREE.BoxGeometry(CARD_W, 0.006, CARD_H);
@@ -201,7 +205,7 @@ const SHOE_POS = new THREE.Vector3(2.55, 0.42, CZ + 0.95);
 
 // ---------------- table state ----------------
 let dealerCards = [], handCards = [], handLabels = [], dealerLabel = null, activeRing = null, lastState = null, busy = false;
-const DEALER_Z = CZ + 1.35, HAND_Z = 0.15;
+const DEALER_Z = CZ + 1.05, HAND_Z = 0.42;
 function handX(i, n) { return n === 1 ? 0 : (i - (n - 1) / 2) * 1.35; }
 function cardTarget(hand, idx, n) { return new THREE.Vector3(handX(hand, n) + idx * 0.2 - 0.1, 0.012 + idx * 0.007, HAND_Z - idx * 0.12); }
 function dealerTarget(idx) { return new THREE.Vector3(idx * 0.62 - 0.31, 0.012, DEALER_Z); }
@@ -226,10 +230,10 @@ function updateLabels(st) {
     const out = st.result?.hands?.[i]?.outcome;
     const txt = out ? ({ win: "ניצחון", blackjack: "בלאק ג׳ק", push: "תיקו", lose: "הפסד", bust: "נשרף", surrender: "ויתור" })[out] : String(h.total);
     const s = label(txt, out === "win" || out === "blackjack" ? "#5fc48f" : out && out !== "push" ? "#e56b6f" : "#f5efe4");
-    s.position.set(handX(i, n), 0.06, HAND_Z + 0.62); scene.add(s); handLabels.push(s);
+    s.position.set(handX(i, n) - 0.52, 0.08, HAND_Z + 0.2); scene.add(s); handLabels.push(s);
   });
   if (dealerLabel) scene.remove(dealerLabel);
-  dealerLabel = label(String(st.dealer_total)); dealerLabel.position.set(0, 0.06, DEALER_Z + 0.62); scene.add(dealerLabel);
+  dealerLabel = label(String(st.dealer_total)); dealerLabel.position.set(-0.95, 0.08, DEALER_Z); scene.add(dealerLabel);
   if (activeRing) scene.remove(activeRing);
   if (st.status === "playing" && n > 1) {
     activeRing = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.56, 48), new THREE.MeshBasicMaterial({ color: 0xd9b56f, transparent: true, opacity: .9 }));
