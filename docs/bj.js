@@ -54,7 +54,7 @@ const SPOTS = {
   t3:   { x: 1.95, z: 0.55, r: 0.3, label: "21+3" },
 };
 const FW = 2048, FH = 2048;
-const toPx = (x, z) => [((x / R + 1) / 2) * FW, ((-(z - CZ) / R + 1) / 2) * FH];  // matches CircleGeometry UVs after rotation
+const toPx = (x, z) => [((x / R + 1) / 2) * FW, (1 - (-(z - CZ) / R + 1) / 2) * FH];  // canvas y is flipped vs UV v  // matches CircleGeometry UVs after rotation
 
 async function buildTable() {
   await document.fonts.load('700 60px "Frank Ruhl Libre"'); await document.fonts.load('500 40px "Heebo"');
@@ -92,12 +92,12 @@ async function buildTable() {
   const wood = new THREE.MeshStandardMaterial({ map: woodTex, roughness: 0.45, metalness: 0.05, color: 0xd8b89a });
   const leather = new THREE.MeshStandardMaterial({ color: 0x1b100b, roughness: 0.55 });
   const rail = new THREE.Mesh(new THREE.TorusGeometry(R + 0.12, 0.2, 24, 160, Math.PI), leather);
-  rail.rotation.x = Math.PI / 2; rail.rotation.z = Math.PI; rail.position.set(0, 0.06, CZ); rail.castShadow = rail.receiveShadow = true; scene.add(rail);
+  rail.rotation.x = Math.PI / 2; rail.position.set(0, 0.06, CZ); rail.castShadow = rail.receiveShadow = true; scene.add(rail);
   const rimW = new THREE.Mesh(new THREE.TorusGeometry(R + 0.36, 0.07, 12, 160, Math.PI), wood);
   rimW.rotation.copy(rail.rotation); rimW.position.set(0, -0.02, CZ); scene.add(rimW);
   const back = new THREE.Mesh(new THREE.BoxGeometry(2 * R + 1, 0.22, 0.5), wood);
   back.position.set(0, 0.02, CZ - 0.2); back.castShadow = back.receiveShadow = true; scene.add(back);
-  const skirt = new THREE.Mesh(new THREE.CylinderGeometry(R + 0.3, R + 0.1, 1.6, 96, 1, true, Math.PI / 2, Math.PI), wood);
+  const skirt = new THREE.Mesh(new THREE.CylinderGeometry(R + 0.3, R + 0.1, 1.6, 96, 1, true, -Math.PI / 2, Math.PI), wood);
   skirt.position.set(0, -0.85, CZ); scene.add(skirt);
 
   // Dealer chip tray and card shoe
@@ -185,7 +185,7 @@ function setStack(key, amount, x, z) {
 function label(text, color = "#f5efe4") {
   const t = canvasTex(256, 96, (ctx, w, h) => { roundRect(ctx, 8, 8, w - 16, h - 16, 40); ctx.fillStyle = "rgba(12,8,6,.82)"; ctx.fill(); ctx.strokeStyle = "rgba(217,181,111,.8)"; ctx.lineWidth = 3; ctx.stroke();
     ctx.fillStyle = color; ctx.font = '700 48px "Inter", "Heebo", sans-serif'; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(text, w / 2, h / 2 + 2); });
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: false })); s.scale.set(0.62, 0.23, 1); s.renderOrder = 10; return s;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: false })); s.scale.set(0.5, 0.19, 1); s.renderOrder = 10; return s;
 }
 
 // ---------------- tweens ----------------
@@ -226,10 +226,10 @@ function updateLabels(st) {
     const out = st.result?.hands?.[i]?.outcome;
     const txt = out ? ({ win: "ניצחון", blackjack: "בלאק ג׳ק", push: "תיקו", lose: "הפסד", bust: "נשרף", surrender: "ויתור" })[out] : String(h.total);
     const s = label(txt, out === "win" || out === "blackjack" ? "#5fc48f" : out && out !== "push" ? "#e56b6f" : "#f5efe4");
-    s.position.set(handX(i, n), 0.55, HAND_Z + 0.55); scene.add(s); handLabels.push(s);
+    s.position.set(handX(i, n), 0.06, HAND_Z + 0.62); scene.add(s); handLabels.push(s);
   });
   if (dealerLabel) scene.remove(dealerLabel);
-  dealerLabel = label(String(st.dealer_total)); dealerLabel.position.set(0, 0.55, DEALER_Z - 0.7); scene.add(dealerLabel);
+  dealerLabel = label(String(st.dealer_total)); dealerLabel.position.set(0, 0.06, DEALER_Z + 0.62); scene.add(dealerLabel);
   if (activeRing) scene.remove(activeRing);
   if (st.status === "playing" && n > 1) {
     activeRing = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.56, 48), new THREE.MeshBasicMaterial({ color: 0xd9b56f, transparent: true, opacity: .9 }));
@@ -373,9 +373,9 @@ renderer.domElement.addEventListener("pointerup", (e) => {
 function resize() {
   const w = innerWidth, h = innerHeight; renderer.setSize(w, h); camera.aspect = w / h;
   const portrait = w / h < 0.9;
-  camera.fov = portrait ? 62 : 42;
-  camera.position.set(0, portrait ? 7.2 : 5.6, portrait ? 6.6 : 5.6);
-  camera.lookAt(0, 0, portrait ? -0.2 : -0.1); camera.updateProjectionMatrix();
+  camera.fov = portrait ? 56 : 40;
+  camera.position.set(0, portrait ? 6.4 : 4.4, portrait ? 4.6 : 4.3);
+  camera.lookAt(0, 0, portrait ? 0.05 : -0.15); camera.updateProjectionMatrix();
 }
 addEventListener("resize", resize); resize();
 let t0 = performance.now();

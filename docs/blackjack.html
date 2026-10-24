@@ -9,6 +9,7 @@
 :root{--room:#120d0a;--wood:#2a1c14;--wood-2:#3a281c;--gold:#d9b56f;--gold-dim:#a8874a;--ink:#f5efe4;--ink-2:#c9bba6;--err:#e56b6f;--ok:#5fc48f;
   --f-display:"Frank Ruhl Libre","Heebo",serif;--f-body:"Heebo",system-ui,sans-serif;--f-num:"Inter","Heebo",sans-serif;color-scheme:dark}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0;height:100%;background:var(--room);color:var(--ink);font:400 15px/1.5 var(--f-body);overflow:hidden}
 #stage{position:fixed;inset:0}
 #stage canvas{display:block;touch-action:none}
@@ -48,7 +49,7 @@ dialog p{margin:4px 0;color:var(--ink-2);font-size:13px}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="config.js?v=3"></script>
+<script src="config.js?v=4"></script>
 </head>
 <body>
 <div id="stage" aria-hidden="true"></div>
@@ -104,6 +105,6 @@ dialog p{margin:4px 0;color:var(--ink-2);font-size:13px}
   <form method="dialog" style="margin-top:12px"><button class="btn" style="width:100%">סגור</button></form>
 </dialog>
 
-<script type="module" src="bj.js?v=3"></script>
+<script type="module" src="bj.js?v=4"></script>
 </body>
 </html>
