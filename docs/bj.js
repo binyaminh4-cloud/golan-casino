@@ -378,8 +378,8 @@ function resize() {
   const w = innerWidth, h = innerHeight; renderer.setSize(w, h); camera.aspect = w / h;
   const portrait = w / h < 0.9;
   camera.fov = portrait ? 56 : 40;
-  camera.position.set(0, portrait ? 6.4 : 4.4, portrait ? 4.6 : 4.3);
-  camera.lookAt(0, 0, portrait ? 0.05 : -0.15); camera.updateProjectionMatrix();
+  camera.position.set(0, portrait ? 5.7 : 4.4, portrait ? 4.5 : 4.3);
+  camera.lookAt(0, 0, portrait ? -0.35 : -0.15); camera.updateProjectionMatrix();
 }
 addEventListener("resize", resize); resize();
 let t0 = performance.now();
