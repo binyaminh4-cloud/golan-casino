@@ -151,7 +151,7 @@ begin
   end if;
   update invitations set accepted_at = now() where lower(email) = lower(new.email);
   select starting_balance into v_start from app_settings where id = 1;
-  insert into profiles (id, nickname) values (new.id, split_part(new.email, '@', 1));
+  insert into profiles (id, nickname, is_admin) values (new.id, split_part(new.email, '@', 1), not exists (select 1 from profiles));
   insert into wallets (user_id, balance) values (new.id, 0);
   perform apply_tx(new.id, 'signup', 'grant', v_start, 'signup:' || new.id);
   return new;
@@ -176,7 +176,9 @@ alter table invitations enable row level security;
 alter table app_settings enable row level security;
 
 create policy members_read_profiles on profiles for select to authenticated using (true);
-create policy own_nickname on profiles for update to authenticated using (id = auth.uid()) with check (id = auth.uid() and is_admin = (select is_admin from profiles where id = auth.uid()));
+create policy own_nickname on profiles for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
+revoke update on profiles from authenticated, anon;
+grant update (nickname, avatar_url) on profiles to authenticated;
 create policy members_read_wallets on wallets for select to authenticated using (true);
 create policy own_tx on wallet_transactions for select to authenticated using (user_id = auth.uid());
 create policy own_rounds on game_rounds for select to authenticated using (user_id = auth.uid());
@@ -188,3 +190,10 @@ create policy admin_invites on invitations for all to authenticated
 
 -- Money functions are callable only by the game server (service_role).
 revoke all on function apply_tx, open_round, settle_round, poker_buyin, poker_cashout from public, anon, authenticated;
+
+-- Belt and braces: clients never write money tables directly, even if default grants change.
+revoke insert, update, delete on wallets, wallet_transactions, game_rounds, poker_tables, poker_seats, app_settings from anon, authenticated;
+revoke all on all tables in schema public from anon;
+
+-- Owner invite (first member becomes admin).
+insert into invitations (email) values ('binyaminh4@gmail.com') on conflict do nothing;
