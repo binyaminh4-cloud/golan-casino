@@ -50,5 +50,7 @@ select set_config('request.jwt.sub','00000000-0000-0000-0000-00000000000a',false
 select t_assert(t_raises($$update wallets set balance=999999 where user_id='00000000-0000-0000-0000-00000000000a'$$,'permission denied'), 'client cannot edit wallet');
 select t_assert(t_raises($$select apply_tx('00000000-0000-0000-0000-00000000000a','x','grant',1000,'hack')$$,'permission denied'), 'client cannot call money functions');
 select t_assert((select count(*) from wallet_transactions where user_id<>'00000000-0000-0000-0000-00000000000a')=0, 'client sees only own ledger');
-select t_assert(t_raises($$update profiles set is_admin=true where id='00000000-0000-0000-0000-00000000000a'$$,'') and not (select is_admin from profiles where id='00000000-0000-0000-0000-00000000000a'), 'client cannot make self admin');
+select set_config('request.jwt.sub','00000000-0000-0000-0000-00000000000b',false);
+select t_assert(t_raises($$update profiles set is_admin=true where id='00000000-0000-0000-0000-00000000000b'$$,'permission denied') and not (select is_admin from profiles where id='00000000-0000-0000-0000-00000000000b'), 'client cannot make self admin');
+select t_assert((select is_admin from profiles where id='00000000-0000-0000-0000-00000000000a') and not (select is_admin from profiles where id='00000000-0000-0000-0000-00000000000b'), 'first member is admin, later ones are not');
 reset role;

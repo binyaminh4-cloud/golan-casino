@@ -1,0 +1,26 @@
+rounds=5000000
+main           house edge   0.42%
+perfect_pairs  house edge   5.94%
+21+3           house edge   4.55%
+lucky_ladies   house edge  17.32%
+buster         house edge  10.71%
+insurance      house edge   7.70%
+  21+3:flush                               1 in 17
+  21+3:straight                            1 in 32
+  21+3:straight_flush                      1 in 486
+  21+3:suited_trips                        1 in 4,695
+  21+3:trips                               1 in 199
+  buster:3                                 1 in 6
+  buster:4                                 1 in 12
+  buster:5                                 1 in 55
+  buster:6                                 1 in 455
+  buster:7                                 1 in 5,974
+  buster:8                                 1 in 94,340
+  lucky_ladies:any_20                      1 in 12
+  lucky_ladies:matched_20                  1 in 215
+  lucky_ladies:qh_pair                     1 in 3,253
+  lucky_ladies:qh_pair_dealer_bj           1 in 70,423
+  lucky_ladies:suited_20                   1 in 48
+  perfect_pairs:colored                    1 in 52
+  perfect_pairs:mixed                      1 in 26
+  perfect_pairs:perfect                    1 in 62
