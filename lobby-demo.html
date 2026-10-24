@@ -1,0 +1,183 @@
+<title>מועדון גולן קזינו</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@400;500;700&display=swap">
+<style>
+/* Layout: casino floor — dark walnut room, felt-green game tables, brass/gold trim. Lobby = main floor (games) + side rail (wallet, leaderboard). */
+:root{
+  --room:#120d0a; --wood:#2a1c14; --wood-2:#3a281c; --felt:#0f5a3f; --felt-deep:#0a4430;
+  --gold:#d9b56f; --gold-dim:#a8874a; --ink:#f5efe4; --ink-2:#c9bba6; --err:#e56b6f; --ok:#5fc48f;
+  --f-display:"Frank Ruhl Libre","Heebo",serif; --f-body:"Heebo",system-ui,sans-serif; --f-num:"Inter","Heebo",sans-serif;
+  --r:6px; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--room);color:var(--ink);font:400 15px/1.55 var(--f-body);
+  background-image:radial-gradient(ellipse at 50% -10%,rgba(217,181,111,.10),transparent 60%);}
+.wrap{max-width:1200px;margin:0 auto;padding-block:16px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.demo{display:inline-block;font-size:11px;letter-spacing:.06em;border:1px solid var(--gold-dim);color:var(--gold);padding:1px 6px;border-radius:3px;vertical-align:middle}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:16px;border-bottom:1px solid var(--wood-2)}
+.brand{font:700 26px/1 var(--f-display);color:var(--gold);letter-spacing:.01em}
+.brand small{display:block;font:400 12px var(--f-body);color:var(--ink-2);margin-top:6px}
+.me{display:flex;align-items:center;gap:12px}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--wood-2);border:1px solid var(--gold-dim);display:grid;place-items:center;font-weight:700;color:var(--gold);flex:none}
+.me .bal{font:700 18px var(--f-num);color:var(--gold)}
+.me .lbl{font-size:12px;color:var(--ink-2)}
+
+.notice{margin:16px 0;font-size:13px;color:var(--ink-2);background:var(--wood);border:1px solid var(--wood-2);border-radius:var(--r);padding:8px 12px}
+.notice b{color:var(--gold)}
+
+.grid{display:grid;grid-template-columns:1fr 320px;gap:24px;margin-top:8px}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+main,aside{min-width:0}
+h2{font:700 22px var(--f-display);margin:0 0 12px;color:var(--ink)}
+
+.games{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+@media (max-width:560px){.games{grid-template-columns:1fr}}
+.game{position:relative;text-align:right;color:var(--ink);font:inherit;cursor:pointer;
+  background:var(--felt);border:2px solid var(--wood-2);border-radius:10px;padding:20px;min-height:150px;
+  box-shadow:inset 0 0 0 6px var(--felt-deep),inset 0 0 40px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:8px;transition:border-color .15s,transform .15s}
+.game:hover{border-color:var(--gold-dim)}
+.game:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.game[aria-pressed="true"]{border-color:var(--gold)}
+.game .suits{font-size:22px;letter-spacing:6px;color:var(--gold);opacity:.85}
+.game h3{margin:0;font:700 20px var(--f-display)}
+.game p{margin:0;font-size:13px;color:var(--ink-2)}
+.tag{position:absolute;top:12px;left:12px;font-size:11px;padding:2px 8px;border-radius:99px;background:rgba(0,0,0,.35);color:var(--ink-2)}
+.tag.multi{color:var(--gold)}
+
+.panel{margin-top:16px;background:var(--wood);border:1px solid var(--wood-2);border-radius:var(--r);padding:16px}
+.panel[hidden]{display:none}
+.panel h3{margin:0 0 8px;font:700 18px var(--f-display)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{font:500 14px var(--f-body);border-radius:var(--r);padding:10px 16px;cursor:pointer;border:1px solid var(--gold);background:var(--gold);color:#1c140d}
+.btn.ghost{background:transparent;color:var(--gold)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.chip{width:44px;height:44px;border-radius:50%;border:3px dashed rgba(255,255,255,.7);display:grid;place-items:center;font:700 12px var(--f-num);cursor:pointer;color:#fff}
+.chip[aria-pressed="true"]{outline:2px solid var(--gold);outline-offset:2px}
+.c1{background:#8b1e2b}.c2{background:#1d4f8a}.c3{background:#1f6b3e}.c4{background:#222}
+.msg{font-size:13px;color:var(--ink-2);margin-top:8px}
+.msg.err{color:var(--err)}
+
+.table-prev{margin-top:24px}
+.felt-oval{background:var(--felt);border:10px solid var(--wood-2);border-radius:120px;padding:24px 16px;box-shadow:inset 0 0 50px rgba(0,0,0,.4);display:grid;gap:12px;justify-items:center}
+.seats{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.seat{width:72px;text-align:center;font-size:12px;padding:6px 4px;border-radius:var(--r);background:rgba(0,0,0,.3);color:var(--ink-2)}
+.seat.taken{color:var(--ink);border:1px solid var(--gold-dim)}
+.pot{font:700 16px var(--f-num);color:var(--gold)}
+
+.wallet{background:var(--wood);border:1px solid var(--gold-dim);border-radius:var(--r);padding:16px}
+.wallet .big{font:700 32px var(--f-num);color:var(--gold);margin:4px 0}
+.wallet .sub{font-size:12px;color:var(--ink-2)}
+.lb{margin-top:24px}
+.lb ol{list-style:none;margin:0;padding:0;border:1px solid var(--wood-2);border-radius:var(--r);overflow:hidden}
+.lb li{display:grid;grid-template-columns:28px 32px 1fr auto;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--wood-2);background:var(--wood)}
+.lb li:last-child{border-bottom:0}
+.lb li.you{background:var(--wood-2)}
+.lb .rk{font:700 14px var(--f-num);color:var(--ink-2)}
+.lb li:nth-child(-n+3) .rk{color:var(--gold)}
+.lb .av{width:28px;height:28px;font-size:12px}
+.lb .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb .w{font:500 14px var(--f-num)}
+.skel{height:16px;border-radius:4px;background:var(--wood-2);animation:p 1.2s infinite}
+@keyframes p{50%{opacity:.5}}
+.tabs{display:flex;gap:8px;margin-bottom:8px}
+.tabs button{font:500 12px var(--f-body);background:none;border:1px solid var(--wood-2);color:var(--ink-2);border-radius:99px;padding:4px 10px;cursor:pointer}
+.tabs button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
+footer{margin-top:32px;font-size:12px;color:var(--ink-2);text-align:center}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap" dir="rtl" lang="he">
+  <header>
+    <div class="brand">המועדון שלנו<small>קזינו פרטי לחברים · בהזמנה בלבד</small></div>
+    <div class="me">
+      <div><div class="lbl">הארנק שלי</div><div class="bal num" id="hdrBal">₪10,000</div></div>
+      <div class="avatar" aria-hidden="true">ב</div>
+    </div>
+  </header>
+
+  <p class="notice"><b>שקלים משחקיים בלבד.</b> אין כסף אמיתי, אין קניות ואין פרסים. זה מסך הדגמה: היתרה נשמרת רק בדף הזה ומתאפסת ברענון.</p>
+
+  <div class="grid">
+    <main>
+      <h2>בחר משחק</h2>
+      <div class="games" role="group" aria-label="משחקים">
+        <button class="game" data-g="poker" aria-pressed="false"><span class="tag multi">מרובה משתתפים</span><span class="suits">♠♥♦♣</span><h3>פוקר טקסס הולדם</h3><p>שולחן משותף עם החברים, עד 9 כיסאות.</p></button>
+        <button class="game" data-g="bj" aria-pressed="false"><span class="tag">מול הבית</span><span class="suits">A♠ K♥</span><h3>בלאק ג׳ק</h3><p>4 חפיסות, הדילר עומד על 17, בלאק ג׳ק משלם 3:2.</p></button>
+        <button class="game" data-g="rl" aria-pressed="false"><span class="tag">מול הבית</span><span class="suits">0 · 36</span><h3>רולטה</h3><p>רולטה אירופאית, אפס אחד.</p></button>
+        <button class="game" data-g="sl" aria-pressed="false"><span class="tag">מול הבית</span><span class="suits">7 7 7</span><h3>מכונות מזל</h3><p>3 גלגלים, 5 קווי זכייה.</p></button>
+      </div>
+
+      <section class="panel" id="panel" hidden aria-live="polite">
+        <h3 id="pTitle"></h3>
+        <div id="pBody"></div>
+      </section>
+
+      <section class="table-prev">
+        <h2>שולחן פוקר פעיל <span class="demo">הדגמה</span></h2>
+        <div class="felt-oval">
+          <div class="pot num">קופה: ₪1,240</div>
+          <div class="seats" id="seats"></div>
+          <div class="row"><button class="btn" id="joinBtn">הצטרף לשולחן</button><button class="btn ghost" id="newBtn">צור שולחן</button></div>
+          <div class="msg" id="tblMsg">פוקר חי עם החברים ייפתח אחרי שנחבר שרת ומשתמשים.</div>
+        </div>
+      </section>
+    </main>
+
+    <aside>
+      <div class="wallet">
+        <div class="sub">הארנק שלי</div>
+        <div class="big num" id="walBal">₪10,000</div>
+        <div class="sub">יתרה התחלתית ₪10,000 · מצב הדגמה</div>
+      </div>
+
+      <section class="lb">
+        <h2>טבלת העשירים <span class="demo">חברים לדוגמה</span></h2>
+        <div class="tabs"><button aria-pressed="true" data-s="ok">רגיל</button><button aria-pressed="false" data-s="load">טעינה</button><button aria-pressed="false" data-s="empty">ריק</button><button aria-pressed="false" data-s="err">שגיאה</button></div>
+        <div id="lbBox"></div>
+      </section>
+    </aside>
+  </div>
+  <footer>דמו ראשון ללובי · משחקים אמיתיים, ארנק מאובטח והתחברות יגיעו בשלבים הבאים</footer>
+</div>
+
+<script>
+const fmt=n=>'₪'+n.toLocaleString('en-US');
+let bal=10000;
+const members=[["חבר א׳",18450],["חבר ב׳",14200],["בנימין (אתה)",10000,1],["חבר ג׳",9320],["חבר ד׳ עם כינוי ארוך במיוחד",7150],["חבר ה׳",3010]];
+function setBal(v){bal=v;hdrBal.textContent=fmt(v);walBal.textContent=fmt(v);members[2][1]=v;renderLB('ok');}
+function renderLB(s){
+  const box=lbBox;
+  if(s==='load'){box.innerHTML='<ol>'+Array(4).fill('<li><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel" style="width:60px"></div></li>').join('')+'</ol>';return}
+  if(s==='empty'){box.innerHTML='<p class="msg">עוד אין חברים במועדון. מנהל המועדון שולח הזמנות.</p>';return}
+  if(s==='err'){box.innerHTML='<p class="msg err">לא הצלחנו לטעון את הטבלה. בדוק חיבור ונסה שוב.</p>';return}
+  const sorted=[...members].sort((a,b)=>b[1]-a[1]);
+  box.innerHTML='<ol>'+sorted.map((m,i)=>`<li class="${m[2]?'you':''}"><span class="rk num">${i+1}</span><span class="avatar av">${m[0][0]}</span><span class="nm">${m[0]}</span><span class="w num">${fmt(m[1])}</span></li>`).join('')+'</ol>';
+}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderLB(b.dataset.s)});
+renderLB('ok');
+
+const seatsData=["חבר א׳","חבר ג׳",null,"חבר ב׳",null,null];
+seats.innerHTML=seatsData.map((s,i)=>`<div class="seat ${s?'taken':''}">${s||'כיסא פנוי'}</div>`).join('');
+joinBtn.onclick=newBtn.onclick=()=>{tblMsg.textContent='בקרוב: שולחנות אמיתיים דורשים שרת והתחברות. כרגע זו תצוגה בלבד.'};
+
+const info={poker:"פוקר טקסס הולדם",bj:"בלאק ג׳ק",rl:"רולטה",sl:"מכונות מזל"};
+let bet=100;
+document.querySelectorAll('.game').forEach(g=>g.onclick=()=>{
+  document.querySelectorAll('.game').forEach(x=>x.setAttribute('aria-pressed',x===g));
+  panel.hidden=false;pTitle.textContent=info[g.dataset.g];
+  if(g.dataset.g==='poker'){pBody.innerHTML='<p class="msg">פוקר הוא משחק משותף. גלול לשולחן הפעיל למטה.</p>';return}
+  pBody.innerHTML=`<p class="msg">בחר סכום הימור. המשחק עצמו עוד לא מחובר; הסיבוב כאן הוא סימולציה לבדיקת הארנק.</p>
+  <div class="row" role="group" aria-label="סכום הימור">${[[50,'c1'],[100,'c2'],[500,'c3'],[1000,'c4']].map(([v,c])=>`<button class="chip ${c}" data-v="${v}" aria-pressed="${v===bet}">${v}</button>`).join('')}</div>
+  <div class="row" style="margin-top:12px"><button class="btn" id="play">שחק עכשיו</button><button class="btn ghost" id="reset">אפס יתרה</button></div>
+  <div class="msg" id="res"></div>`;
+  pBody.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{bet=+c.dataset.v;pBody.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',x===c));check()});
+  const check=()=>{play.disabled=bet>bal;if(bet>bal){res.className='msg err';res.textContent='אין מספיק שקלים משחקיים להימור הזה. בחר סכום קטן יותר.'}};
+  play.onclick=()=>{if(bet>bal)return;const win=Math.random()<0.47;setBal(bal+(win?bet:-bet));res.className='msg';res.textContent=(win?'ניצחת ':'הפסדת ')+fmt(bet)+' (סימולציה)';check()};
+  reset.onclick=()=>{setBal(10000);res.className='msg';res.textContent='היתרה אופסה ל-₪10,000'};
+  check();
+});
+</script>
