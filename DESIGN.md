@@ -30,3 +30,16 @@
 ## Graphics wishlist (ChatGPT prompts, only when owner asks)
 1. Logo: "Gold embossed logo text 'Golan Casino' in Hebrew 'גולן קזינו', art-deco casino style, dark walnut background, transparent PNG, 1024x1024"
 2. Lobby background: "Photorealistic dim luxury casino interior, walnut wood panels, green felt tables out of focus, warm brass lamps, no people, no text, 1920x1080"
+
+## Live (2026-10-24)
+- Site: https://binyaminh4-cloud.github.io/golan-casino/ (GitHub Pages from docs/), repo binyaminh4-cloud/golan-casino (public; no secrets in code).
+- Supabase project golan-casino (Frankfurt, free), migrations 0001_core + 0002_blackjack applied. Owner email pre-invited; first member = admin.
+- Owner rule: minimum involvement — Claude does everything it can (browser pane on the owner's computer), stops only for sign-ins, identity checks and passwords.
+
+## Blackjack (3D, three.js 0.160)
+- Engine fully in Postgres (bj_deal / bj_action / bj_view / bj_current); shoe and hole card never reach the browser.
+- Rules: 6 decks, S17, peek, 3:2, DAS, split to 4, split aces one card, late surrender, insurance 2:1. Bets 10–50,000; side bet ≤ main bet.
+- Side bets + house edge (5M-hand sim, sim/results.txt): 21+3 100/40/30/10/5 4.55% · Perfect Pairs 25/12/6 5.94% · Insurance 7.70% · Buster 1/2/9/50/100/250 10.71% · Lucky Ladies 1000/200/25/10/4 17.32% · main game 0.42%.
+- Card art: Byron Knoll Vector Playing Cards, public domain (docs/cards/LICENSE-cards.md). Table, chips, shoe: procedural three.js.
+- Tests: 41 local (incl. 3,000-round fuzz, zero drift) + live rollback-only smoke test (25 rounds).
+- Later: 3D avatar of the owner, then friends; Blender is available on the owner's computer.
