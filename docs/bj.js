@@ -390,6 +390,13 @@ renderer.setAnimationLoop((now) => {
 async function resume() { const { data } = await db.rpc("bj_current"); if (data) { clearTable(); await sync(data); } }
 (async () => {
   const { data: { session } } = await db.auth.getSession();
+  if (!session && location.hash === "#preview") {   // visual check only: sample hand, no server, no wallet
+    await buildTable(); $("bal").textContent = "תצוגה";
+    setStack("spot:pp", 25, SPOTS.pp.x, SPOTS.pp.z); setStack("spot:t3", 25, SPOTS.t3.x, SPOTS.t3.z);
+    await sync({ id: "preview", status: "playing", active: 1, actions: ["hit", "stand", "double"], balance: 0, dealer_total: 10,
+      dealer: ["KH", "??"], hands: [{ cards: ["8S", "8D", "3C"], bet: 100, total: 19 }, { cards: ["8H", "AS"], bet: 100, total: 19 }] });
+    return;
+  }
   if (!session) { location.href = "./"; return; }
   await buildTable(); renderBets();
   const { data: w } = await db.from("wallets").select("balance").eq("user_id", session.user.id).single();
