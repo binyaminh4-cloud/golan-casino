@@ -44,7 +44,8 @@ async function showLobby(user) {
   $("hdrName").textContent = me.nickname;
   $("hdrAv").textContent = (me.nickname || "?")[0].toUpperCase();
   $("adminPanel").hidden = !me.is_admin;
-  if (me.is_admin) loadInvites();
+  $("charPanel").hidden = !me.is_admin;
+  if (me.is_admin) { loadInvites(); loadCharacters(); }
   await refresh();
   clearInterval(timer); timer = setInterval(refresh, 15000);
 }
@@ -77,5 +78,30 @@ $("inviteForm").addEventListener("submit", async (e) => {
   msg.textContent = error ? (error.code === "23505" ? "החבר הזה כבר מוזמן." : "ההזמנה לא נשמרה. נסה שוב.") : `הוזמן. שלח לו את הקישור לאתר, והוא ייכנס עם ${email}.`;
   if (!error) { $("inviteEmail").value = ""; loadInvites(); }
 });
+
+// ---------- Admin: assign characters (stored in the private "characters" bucket) ----------
+const CHAR_KEYS = Array.from({ length: 8 }, (_, i) => "char_" + String(i).padStart(2, "0"));
+let charUrls = {};
+async function loadCharacters() {
+  if (!Object.keys(charUrls).length) {
+    const { data } = await db.storage.from("characters").createSignedUrls(CHAR_KEYS.map((k) => k + ".webp"), 3600);
+    (data || []).forEach((s, i) => { if (s.signedUrl) charUrls[CHAR_KEYS[i]] = s.signedUrl; });
+  }
+  const { data: people } = await db.from("profiles").select("id,nickname,character_key").order("created_at");
+  const taken = new Set((people || []).map((p) => p.character_key).filter(Boolean));
+  $("charList").innerHTML = (people || []).map((p) => `
+    <div class="crow">
+      <div class="cname">${esc(p.nickname)}</div>
+      <div class="cpick">${CHAR_KEYS.map((k) => `<button class="cthumb${p.character_key === k ? " on" : ""}${taken.has(k) && p.character_key !== k ? " taken" : ""}"
+        data-u="${p.id}" data-k="${k}" title="${k}" aria-pressed="${p.character_key === k}"><img src="${esc(charUrls[k] || "")}" alt="${k}"></button>`).join("")}
+        <button class="cthumb none" data-u="${p.id}" data-k="" title="בלי דמות">✕</button></div>
+    </div>`).join("") || '<p class="msg">עוד אין חברים רשומים.</p>';
+  $("charList").querySelectorAll(".cthumb").forEach((b) => b.onclick = async () => {
+    const { error } = await db.rpc("admin_set_character", { p_user: b.dataset.u, p_key: b.dataset.k || null });
+    $("charMsg").className = error ? "msg err" : "msg";
+    $("charMsg").textContent = error ? "השיבוץ לא נשמר. נסה שוב." : "נשמר.";
+    if (!error) loadCharacters();
+  });
+}
 
 boot();
