@@ -264,6 +264,7 @@ async function resume() { const { data } = await db.rpc("bj_current"); if (data)
     return;
   }
   if (!session) { location.href = "./"; return; }
+  GC_GUIDE.init({ game: "blackjack", db, mount: document.querySelector(".top"), steps: GC_STEPS.blackjack() });
   const { data: prof } = await db.from("profiles").select("id,nickname").eq("id", session.user.id).single();
   me = prof || { id: session.user.id, nickname: "אני" };
   const { data: w } = await db.from("wallets").select("balance").eq("user_id", me.id).single();

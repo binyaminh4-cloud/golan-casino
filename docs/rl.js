@@ -102,7 +102,7 @@ const chipLabel = (v) => v >= 1000 ? v / 1000 + "K" : String(v);
 const chipClass = (v) => (CHIPS.slice().reverse().find(([c]) => v >= c) || CHIPS[0])[1];
 
 let zoom = 1, VIEW = "table", NB = 2;
-try { zoom = +localStorage.getItem("rl_zoom") || 1; } catch (e) {}
+try { localStorage.removeItem("rl_zoom"); } catch (e) {}      // everyone starts from the same default layout
 const ANNOUNCED = {
   voisins: { name: "וואזן", fr: "Voisins du zéro", bets: [["0,2,3", 2], ["4,7", 1], ["12,15", 1], ["18,21", 1], ["19,22", 1], ["25,26,28,29", 2], ["32,35", 1]] },
   tiers: { name: "טייר", fr: "Tiers du cylindre", bets: [["5,8", 1], ["10,11", 1], ["13,16", 1], ["23,24", 1], ["27,30", 1], ["33,36", 1]] },
@@ -212,7 +212,7 @@ function setView(v) { VIEW = v; $("viewTable").setAttribute("aria-pressed", v ==
 $("viewTable").onclick = () => setView("table"); $("viewRace").onclick = () => setView("race");
 $("nMinus").onclick = () => { NB = Math.max(0, NB - 1); $("nVal").textContent = NB; };
 $("nPlus").onclick = () => { NB = Math.min(4, NB + 1); $("nVal").textContent = NB; };
-function setZoom(z) { zoom = Math.max(0.7, Math.min(2, Math.round(z * 10) / 10)); try { localStorage.setItem("rl_zoom", zoom); } catch (e) {} drawBoard(); layoutWheel(); }
+function setZoom(z) { zoom = Math.max(0.7, Math.min(2, Math.round(z * 10) / 10)); drawBoard(); layoutWheel(); }
 $("zIn").onclick = () => setZoom(zoom + 0.15); $("zOut").onclick = () => setZoom(zoom - 0.15);
 
 $("chips").innerHTML = CHIPS.map(([v, c]) => `<button class="chip ${c}" data-v="${v}" aria-pressed="${v === chipVal}">${chipLabel(v)}</button>`).join("");
@@ -244,13 +244,19 @@ function layoutWheel() {
 }
 const lerp = (a, b, k) => a + (b - a) * k;
 const ease = (x) => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
-function shot(t, ball) {          // target camera for time t of the spin
-  const T = R.T;
-  if (t < 0.9) return { z: lerp(1, 1.05, ease(t / 0.9)), tilt: 48, f: 0 };
-  if (t < T.drop - 0.6) return { z: lerp(1.05, 1.3, ease((t - 0.9) / (T.drop - 1.5))), tilt: lerp(48, 52, ease(t / T.drop)), f: 0 };
-  if (t < T.hit) return { z: lerp(1.3, 2.0, ease((t - T.drop + 0.6) / (T.hit - T.drop + 0.6))), tilt: 50, f: 0.55 };
-  if (t < T.settle) return { z: lerp(2.0, 2.7, ease((t - T.hit) / (T.settle - T.hit))), tilt: lerp(50, 42, ease((t - T.hit) / 2)), f: 0.8 };
-  if (t < T.settle + 2.4) return { z: lerp(2.7, 3.5, ease((t - T.settle) / 1.2)), tilt: lerp(42, 30, ease((t - T.settle) / 1.2)), f: 1 };
+// Camera: the wheel stays still in frame for the whole spin. Only at the end we zoom in on the ball,
+// and the last second plays in slow motion (see warp()).
+const SLOW_FROM = () => R.T.settle - 1.1, SLOW_TO = () => R.T.settle + 0.3, SLOW = 0.38;
+function warp(real) {                 // real seconds since launch -> animation seconds
+  const a = SLOW_FROM(), b = SLOW_TO(), span = (b - a) / SLOW;
+  if (real < a) return real;
+  if (real < a + span) return a + (real - a) * SLOW;
+  return b + (real - a - span);
+}
+function shot(t, ball) {
+  const T = R.T, z0 = SLOW_FROM() - 0.2;
+  if (t < z0) return { z: 1, tilt: 48, f: 0 };
+  if (t < T.settle + 2.4) { const p = ease((t - z0) / (T.settle + 0.4 - z0)); return { z: lerp(1, 3.3, p), tilt: lerp(48, 36, p), f: p }; }
   return { z: 1, tilt: 48, f: 0 };
 }
 function frame(now) {
@@ -258,15 +264,14 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   if (W) {
     if (plan) {
-      const t = (now - t0) / 1000, s = plan.at(t);
+      const t = warp((now - t0) / 1000), s = plan.at(t);
       W.rotor = s.rotor; W.ball = { phi: s.phi, r: s.r, lift: s.lift };
       const b = W.pose(), sh = shot(t, b), k = 1 - Math.pow(0.002, dt);   // smooth camera
       W.cam.z = lerp(W.cam.z, sh.z, k); W.cam.tilt = lerp(W.cam.tilt, sh.tilt, k);
       W.cam.fx = lerp(W.cam.fx, lerp(600, b.x, sh.f), k); W.cam.fy = lerp(W.cam.fy, lerp(600, b.y, sh.f), k);
-      if (W.is3d) { const want = sh.f >= 0.8 ? R.norm(-W.ball.phi) : 0; let d = ((want - (W.cam.az || 0)) % 360 + 540) % 360 - 180; W.cam.az = (W.cam.az || 0) + d * k * 0.6; }
       onTime(t);
     } else { W.idle(dt); W.cam.z = lerp(W.cam.z, 1, 0.1); W.cam.tilt = lerp(W.cam.tilt, 48, 0.1);
-             W.cam.fx = lerp(W.cam.fx, 600, 0.1); W.cam.fy = lerp(W.cam.fy, 600, 0.1); if (W.is3d) { let d = ((0 - (W.cam.az || 0)) % 360 + 540) % 360 - 180; W.cam.az = (W.cam.az || 0) + d * 0.06; } }
+             W.cam.fx = lerp(W.cam.fx, 600, 0.1); W.cam.fy = lerp(W.cam.fy, 600, 0.1); }
     W.camera(hostSize());
   }
   requestAnimationFrame(frame);
@@ -352,9 +357,10 @@ addEventListener("resize", () => { drawBoard(); layoutWheel(); });
 (async function boot() {
   drawBoard(); layoutWheel();
   W = await R.mount(host, "img/roulette/"); requestAnimationFrame(frame);
-  if (PREVIEW) { balance = 10000; showBal(balance); history = [17, 0, 32, 5, 26, 11, 30, 2, 19, 4, 21, 36]; drawHist(); return; }
+  if (PREVIEW) { GC_GUIDE.init({ game: "roulette", db: null, mount: document.querySelector(".top"), steps: GC_STEPS.roulette(), auto: !/noguide/.test(location.search) }); balance = 10000; showBal(balance); history = [17, 0, 32, 5, 26, 11, 30, 2, 19, 4, 21, 36]; drawHist(); return; }
   const { data: { session } } = await db.auth.getSession();
   if (!session) { location.href = "./"; return; }
+  GC_GUIDE.init({ game: "roulette", db, mount: document.querySelector(".top"), steps: GC_STEPS.roulette() });
   const [w, h, ch] = await Promise.all([db.from("wallets").select("balance").eq("user_id", session.user.id).single(), db.rpc("rl_history"), GC_CHAR(db, session.user.id)]);
   if (ch.url) { ME_URL = ch.url; $("meImg").src = ch.url; $("meName").textContent = ch.nick || ""; $("me").hidden = false; }
   if (!w.error) { balance = w.data.balance; showBal(balance); }
