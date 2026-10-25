@@ -62,7 +62,7 @@
     };
     const place = (scroll) => {
       const s = steps[i];
-      const el = s.el && [...document.querySelectorAll(s.el)].find((e) => e.getClientRects().length && e.getBoundingClientRect().width > 4);
+      const el = false && s.el && [...document.querySelectorAll(s.el)].find((e) => e.getClientRects().length && e.getBoundingClientRect().width > 4);
       if (el && scroll) { const rr = el.getBoundingClientRect(); if (rr.top < 0 || rr.bottom > innerHeight * 0.6) { el.scrollIntoView({ block: "start" }); scrollBy(0, -70); } }
       const r = el && el.getBoundingClientRect();
       if (r && r.width) { ring.hidden = false; dim.style.background = "transparent";
