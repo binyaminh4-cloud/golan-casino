@@ -288,15 +288,27 @@ function frame(now) {
 let lastLift = 0, prevLift = 0, lastTick = 0; let spinRes = null, marks = {}, ME_URL = null;
 function setCine(on) {
   cine = on; const c = $("cine");
-  if (on) { c.hidden = false; c.appendChild(host); requestAnimationFrame(() => c.classList.add("on")); }
-  else { c.classList.remove("on"); $("wheelSlot").appendChild(host); setTimeout(() => { if (!cine) c.hidden = true; }, 500); }
+  if (on) { c.hidden = false; c.appendChild(host); requestAnimationFrame(() => c.classList.add("on")); drawLuckyList(); }
+  else { $("luckyList").hidden = true; c.classList.remove("on"); $("wheelSlot").appendChild(host); setTimeout(() => { if (!cine) c.hidden = true; }, 500); }
   layoutWheel();
+}
+// lightning: the struck numbers and their multipliers, listed beside the close-up of the wheel
+function drawLuckyList() {
+  const L = $("luckyList"), e = Object.entries(LUCKY);
+  if (!LIT || !e.length) { L.hidden = true; return; }
+  const mine = new Set([...bets.keys()].filter((k) => !k.includes(",")));
+  e.sort((a, b) => b[1] - a[1]);
+  L.innerHTML = '<div class="ll-h">⚡ ברקים</div>' + e.map(([n, m], i) =>
+    `<div class="ll-row ${R.color(+n)}${mine.has(n) ? " mine" : ""}" style="animation-delay:${i * 0.12}s"><span class="ll-n num">${n}</span><b class="ll-m num${m >= 1000 ? " mega" : ""}">${m}x</b></div>`).join("");
+  L.hidden = false;
 }
 function onTime(t) {
   const T = R.T;
   if (!marks.nmb && t > T.drop - 1.2) { marks.nmb = 1; $("cineMsg").textContent = "אין עוד הימורים"; $("cineMsg").classList.add("show"); }
   if (!marks.hide && t > T.hit) { marks.hide = 1; $("cineMsg").classList.remove("show"); }
-  if (!marks.res && t > T.settle + 0.5) { marks.res = 1; showResult(); }
+  if (!marks.res && t > T.settle + 0.5) { marks.res = 1; showResult();
+    const hit = $("luckyList").querySelector(`.ll-row .ll-n`) && [...$("luckyList").querySelectorAll(".ll-row")].find((x) => x.querySelector(".ll-n").textContent === String(spinRes.result));
+    if (hit) hit.classList.add("hit"); }
   if (!marks.end && t > T.end) { marks.end = 1; finish(); }
 }
 function showResult() {

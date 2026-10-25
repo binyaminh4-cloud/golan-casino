@@ -259,3 +259,20 @@ body.m-xxx .top .back::after{content:" · XXX";color:#9fd3ff}
   animation:impact .65s ease-out forwards}
 @keyframes impact{0%{opacity:0}20%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.5)}}
 .result .rme.zc{width:150px;inset-inline-start:-110px;bottom:-20px}
+/* lightning list beside the wheel close-up */
+.luckylist{position:absolute;z-index:3;right:max(12px,env(safe-area-inset-right));top:50%;transform:translateY(-50%);
+  display:grid;gap:6px;min-width:150px;padding:10px 12px;border-radius:14px;background:rgba(8,6,5,.82);border:1px solid rgba(255,226,120,.5);
+  box-shadow:0 0 24px rgba(255,220,100,.25),0 18px 40px rgba(0,0,0,.6)}
+.luckylist[hidden]{display:none}
+.ll-h{font:800 16px Heebo,sans-serif;color:#ffe27a;text-align:center;text-shadow:0 0 10px rgba(255,220,100,.7);margin-bottom:2px}
+.ll-row{display:flex;align-items:center;justify-content:space-between;gap:10px;opacity:0;animation:llIn .35s ease-out forwards}
+@keyframes llIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+.ll-n{width:36px;height:30px;display:grid;place-items:center;border-radius:6px;font:800 16px Inter;color:#fff;border:1px solid rgba(255,255,255,.2)}
+.ll-row.red .ll-n{background:var(--red)}.ll-row.black .ll-n{background:#0d0b0a}.ll-row.green .ll-n{background:var(--green)}
+.ll-m{font:800 18px Inter;color:#ffe27a;text-shadow:0 0 10px rgba(255,220,100,.8)}
+.ll-m.mega{color:#bfe3ff;text-shadow:0 0 12px rgba(140,200,255,1)}
+.ll-row.mine .ll-n{outline:2px solid #F1D69A;outline-offset:2px}
+.ll-row.hit{animation:llHit .6s ease-out 3 alternate;opacity:1}
+@keyframes llHit{to{transform:scale(1.18);filter:brightness(1.5)}}
+@media (max-height:560px) and (orientation:landscape){.luckylist{min-width:118px;padding:7px 9px;gap:4px;max-height:80vh;overflow:hidden}
+  .ll-h{font-size:13px}.ll-n{width:30px;height:24px;font-size:13px}.ll-m{font-size:15px}}
