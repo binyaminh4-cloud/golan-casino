@@ -74,7 +74,8 @@ async function showLobby(user) {
   GC_CHAR(db, user.id).then((c) => { if (c.url) $("hdrAv").innerHTML = `<img src="${esc(c.url)}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 8%;border-radius:50%">`; });
   $("adminPanel").hidden = !me.is_admin;
   $("charPanel").hidden = !me.is_admin;
-  if (me.is_admin) { loadInvites(); loadCharacters(); }
+  $("grantPanel").hidden = !me.is_admin;
+  if (me.is_admin) { loadInvites(); loadCharacters(); loadGrantList(); }
   await refresh();
   clearInterval(timer); timer = setInterval(refresh, 15000);
 }
@@ -108,6 +109,23 @@ $("inviteForm").addEventListener("submit", async (e) => {
   const text = `הוזמנת לגולן קזינו 🎰\n${link}\nשם משתמש: ${name}\nקוד: ${data}\nלחץ "יש לי קוד", הכנס את השם והקוד ובחר סיסמה.`;
   out.innerHTML = `<div class="msg">הקוד של <b>${esc(name)}</b>:</div><div class="big">${data}</div><a href="https://wa.me/?text=${encodeURIComponent(text)}" target="_blank" rel="noopener">שלח בוואטסאפ</a>`;
   out.hidden = false; msg.textContent = ""; $("inviteName").value = ""; loadInvites();
+});
+
+// ---------- Admin: load play money ----------
+async function loadGrantList() {
+  const { data } = await db.from("profiles").select("id,nickname").order("nickname");
+  $("grantWho").innerHTML = `<option value="">כל החברים</option>` + (data || []).map((p) => `<option value="${p.id}">${esc(p.nickname)}</option>`).join("");
+}
+$("grantForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const amt = Math.floor(+$("grantAmt").value), who = $("grantWho").value || null, m = $("grantMsg");
+  if (!(amt >= 1 && amt <= 10000000)) { m.className = "msg err"; m.textContent = "סכום בין ₪1 ל־₪10,000,000."; return; }
+  const name = who ? $("grantWho").selectedOptions[0].textContent : "כל החברים";
+  if (!confirm(`לטעון ${fmt(amt)} ל${who ? "־" + name : "כל החברים"}?`)) return;
+  const { data, error } = await db.rpc("admin_grant", { p_user: who, p_amount: amt });
+  m.className = error ? "msg err" : "msg";
+  m.textContent = error ? "הטעינה נכשלה. נסה שוב." : `נטען ${fmt(amt)} ל־${data} ${data === 1 ? "חבר" : "חברים"}.`;
+  if (!error) refresh();
 });
 
 // ---------- Admin: assign characters (stored in the private "characters" bucket) ----------

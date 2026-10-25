@@ -78,10 +78,10 @@ async function mount(host, base) {
   scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
   const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 50);
 
-  const key = new THREE.DirectionalLight(0xfff1dc, 2.2); key.position.set(-1.2, 4, 1.5); key.castShadow = true;
+  const key = new THREE.DirectionalLight(0xfff1dc, 2.2); key.position.set(-2.4, 4.2, -0.6); key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024); Object.assign(key.shadow.camera, { left: -1.3, right: 1.3, top: 1.3, bottom: -1.3, near: 0.5, far: 8 });
   key.shadow.bias = -0.0004; key.shadow.radius = 4;
-  const warm = new THREE.PointLight(0xffc98a, 6, 6, 1.6); warm.position.set(1.6, 1.4, 1.8);
+  const warm = new THREE.PointLight(0xffc98a, 6, 6, 1.6); warm.position.set(1.4, 1.2, 2.0); warm.intensity = 3;
   scene.add(key, warm, new THREE.AmbientLight(0xffe6c8, 0.18));
 
   await (document.fonts ? document.fonts.load("700 28px 'Frank Ruhl Libre'").catch(() => {}) : 0);
@@ -95,9 +95,15 @@ async function mount(host, base) {
   const mRing = new THREE.MeshPhysicalMaterial({ map: ringTexture(), side: THREE.DoubleSide, roughness: 0.55, clearcoat: 0.12, clearcoatRoughness: 0.2, envMapIntensity: 0.15 });
 
   // ----- table felt -----
-  const felt = new THREE.TextureLoader().load(base + "felt.jpg"); felt.wrapS = felt.wrapT = THREE.RepeatWrapping; felt.repeat.set(6, 6); felt.colorSpace = THREE.SRGBColorSpace;
-  const table = new THREE.Mesh(new THREE.CircleGeometry(4, 64), new THREE.MeshStandardMaterial({ map: felt, color: 0x9fb8a8, roughness: 0.95 }));
+  // the table is the background photo: a transparent shadow catcher + a soft contact shadow under the base
+  const table = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), new THREE.ShadowMaterial({ opacity: 0.42 }));
   table.rotation.x = -Math.PI / 2; table.receiveShadow = true; scene.add(table);
+  const cs = document.createElement("canvas"); cs.width = cs.height = 256; const cx = cs.getContext("2d");
+  const gr = cx.createRadialGradient(128, 128, 0, 128, 128, 128);
+  gr.addColorStop(0, "rgba(0,0,0,.75)"); gr.addColorStop(0.78, "rgba(0,0,0,.62)"); gr.addColorStop(0.86, "rgba(0,0,0,.35)"); gr.addColorStop(1, "rgba(0,0,0,0)");
+  cx.fillStyle = gr; cx.fillRect(0, 0, 256, 256);
+  const contact = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 2.5), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(cs), transparent: true, depthWrite: false }));
+  contact.rotation.x = -Math.PI / 2; contact.position.y = 0.002; scene.add(contact);
 
   // ----- static bowl (outer rim, inlays, ball track) — proportions follow the reference photo -----
   const bowl = new THREE.Group(); scene.add(bowl);
@@ -155,7 +161,11 @@ async function mount(host, base) {
       renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
     }
     const c = W.cam, e = (90 - c.tilt) * Math.PI / 180, az = (c.az || 0) * Math.PI / 180;
-    const fitDist = 1.25 / Math.tan(camera.fov * Math.PI / 360) / Math.min(1, camera.aspect);
+    const wide = camera.aspect > 1.2, tv = Math.tan(camera.fov * Math.PI / 360);
+    // wide view: wheel ≈42% of the screen width, centred at 50% / 53% like the background; square view: safe margin
+    const fitDist = wide ? 2.07 / (0.42 * 2 * tv * camera.aspect) : 2.07 / (0.84 * 2 * tv * Math.min(1, camera.aspect));
+    camera.setViewOffset(w, h, 0, wide ? -0.03 * h : 0, w, h);
+    host.classList.toggle("bgwide", wide);
     const dist = fitDist / c.z;
     const tx = (c.fx - 600) * k, tz = (c.fy - 600) * k, ty = 0.05;
     // camera stands on the opposite side of the target from angle `az` (az = 0: standing at the near side, +z)

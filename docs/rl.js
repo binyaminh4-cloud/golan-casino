@@ -156,7 +156,7 @@ function drawChips(win) {
     board.querySelectorAll(".rc").forEach((c) => { const a = per[c.dataset.n]; const i = c.querySelector(".amt"); i.textContent = a ? chipLabel(Math.round(a)) : ""; c.classList.toggle("has", !!a); });
   } else layer.innerHTML = [...bets].map(([k, v]) => {
     const a = anchor(k), p = toXY(a.u, a.w), st = win ? (win.has(k) ? " won" : " lost") : "";
-    return `<div class="chip ${chipClass(v)}${st}" style="left:${p.x}px;top:${p.y}px">${chipLabel(v)}</div>`;
+    return `<div class="chip ${chipClass(v)}${st}" style="left:${p.x}px;top:${p.y}px"><b>${chipLabel(v)}</b></div>`;
   }).join("");
   const tot = [...bets.values()].reduce((s, v) => s + v, 0);
   $("total").textContent = fmt(tot);

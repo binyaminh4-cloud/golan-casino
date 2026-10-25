@@ -187,3 +187,37 @@ dialog table{width:100%;border-collapse:collapse;font-size:14px}dialog td,dialog
 }
 .me,.me img{width:108px}.controls{padding-inline-end:116px}
 @media (max-height:560px) and (orientation:landscape){.me,.me img{width:100px}.controls{padding-inline-end:106px}}
+/* backgrounds behind the 3D wheel (canvas is transparent) */
+.wheelhost{background:#0b0a08 url(img/roulette/bg_square.jpg) center/cover no-repeat;border-radius:10px;overflow:hidden}
+.wheelhost.bgwide{background-image:url(img/roulette/bg_wide.jpg);border-radius:0}
+.cine .wheelhost{position:relative;z-index:1}
+/* ===== betting table v3: printed cloth on a physical table (per the material reference) ===== */
+.rail{padding:calc(var(--u,60px)*.16);border-radius:calc(var(--u,60px)*.42);
+  background:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0 2px,transparent 2px 7px),
+    linear-gradient(180deg,#4a2f22,#2b1a12 55%,#1d110b);
+  box-shadow:0 18px 40px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,220,180,.18),inset 0 -2px 0 rgba(0,0,0,.5);
+  position:relative}
+.rail::before{content:"";position:absolute;inset:calc(var(--u,60px)*.06);border-radius:calc(var(--u,60px)*.36);
+  border:1px dashed rgba(214,180,140,.28);pointer-events:none}           /* quiet stitching in the leather */
+.board{background:#0d3a27 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.6' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:160px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 6px 14px rgba(0,0,0,.45),inset 0 0 60px rgba(0,0,0,.35);border-radius:calc(var(--u,60px)*.26)}
+.board::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:radial-gradient(ellipse at 30% 20%,rgba(255,240,200,.06),transparent 60%)}   /* gentle uneven light */
+.cell{border:1px solid rgba(236,224,196,.82);color:#f3ead6;text-shadow:none}
+.cell.num span{border-radius:22%;width:calc(var(--u)*.66);height:calc(var(--u)*.6);box-shadow:none}
+.cell.red span{background:rgba(170,22,36,.92)}.cell.black span{background:rgba(10,9,8,.9)}
+.cell.zero{background:rgba(14,96,52,.55)}
+.cell.out{color:#efe3c6;font-weight:500}
+.cell.out.red span{background:rgba(170,22,36,.92)}.cell.out.black span{background:rgba(10,9,8,.9);box-shadow:none}
+.cell.out.black{background:none}
+.cell.hl{background:rgba(241,214,154,.18)}
+/* chips with body, rim and a short contact shadow */
+.chiplayer .chip{border-width:calc(var(--u)*.055);border-style:dashed;border-color:rgba(245,240,230,.85);
+  box-shadow:0 1px 0 rgba(0,0,0,.35),0 2px 0 currentColor,0 3px 0 rgba(0,0,0,.4),0 5px 4px rgba(0,0,0,.55);color:#fff}
+.c1{background:#8d8d8d;color:#6d6d6d}.c5{background:#9b1e2a;color:#6e141d}.c25{background:#1d5e38;color:#123d24}.c100{background:#1a1a1a;color:#000}
+.c500{background:#4f2a72;color:#351c4d}.c1k{background:#a8791f;color:#7a5714}.c5k{background:#6e1b25;color:#4a1118}
+.chiplayer .chip{font-size:calc(var(--u)*.2)}
+.chiplayer .chip b{color:#fff;font:700 1em Inter;text-shadow:0 1px 1px rgba(0,0,0,.6)}
+.chips .chip{color:#fff}
+.chips .chip[aria-pressed="true"]{outline:2px solid rgba(241,214,154,.85);outline-offset:3px;box-shadow:0 3px 6px rgba(0,0,0,.6)}

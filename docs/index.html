@@ -86,6 +86,17 @@
           <ul class="msg" id="inviteList" style="padding-inline-start:16px"></ul>
         </section>
 
+        <section class="panel" id="grantPanel" hidden>
+          <h3>טעינת ארנק</h3>
+          <p class="msg">רק אתה רואה את זה. שקלים משחקיים בלבד.</p>
+          <form id="grantForm" class="row" novalidate>
+            <select id="grantWho" style="flex:1;min-width:0;font:400 15px var(--f-body);padding:10px;border-radius:6px;border:1px solid var(--wood-2);background:var(--room);color:var(--ink)"></select>
+            <input id="grantAmt" type="number" inputmode="numeric" min="1" step="1" value="10000" style="width:120px;font:400 15px var(--f-num);direction:ltr;padding:10px;border-radius:6px;border:1px solid var(--wood-2);background:var(--room);color:var(--ink)">
+            <button class="btn">טען</button>
+          </form>
+          <p class="msg" id="grantMsg" aria-live="polite"></p>
+        </section>
+
         <section class="panel" id="charPanel" hidden>
           <h3>שיבוץ דמויות</h3>
           <p class="msg">רק אתה יכול לשבץ. לחץ על דמות כדי לשבץ אותה לחבר.</p>
@@ -113,6 +124,6 @@
 
 <script src="config.js?v=7"></script>
 <script src="char.js?v=1"></script>
-<script src="app.js?v=11"></script>
+<script src="app.js?v=12"></script>
 </body>
 </html>
