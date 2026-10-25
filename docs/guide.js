@@ -27,6 +27,7 @@
   .gd-next{background:linear-gradient(180deg,#F1D69A,#C5A05A);color:#0B0908}
   .gd-prev,.gd-skip{background:transparent;color:#5a4630;border-color:#cdb58a!important}
   .gd-skip{margin-inline-start:auto;border:0!important;text-decoration:underline;padding:8px 4px!important}
+  .gd-install{margin-top:8px;font:700 14px Heebo;border-radius:8px;padding:8px 14px;border:1px solid #C5A05A;background:linear-gradient(180deg,#F1D69A,#C5A05A);color:#0B0908;cursor:pointer}
   .gd-dots{font:500 12px Inter;color:#8a7558}
   @media (max-width:560px){.gd-host{inset-inline:8px;flex-direction:column;align-items:flex-start;gap:0;max-width:none}
     .gd-ido{width:96px;margin-inline-start:6px;margin-bottom:-4px}.gd-bub{margin-bottom:0;min-width:0;width:100%;font-size:14.5px;max-height:52vh;overflow:auto}
@@ -97,6 +98,19 @@
   };
 })();
 
+// "add to home screen": Android gives us an install prompt we can trigger from a button
+let gcInstall = null;
+addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); gcInstall = e; });
+document.addEventListener("click", async (e) => { if (e.target.closest(".gd-install") && gcInstall) { gcInstall.prompt(); await gcInstall.userChoice.catch(() => {}); gcInstall = null; } });
+function installStep() {
+  if (matchMedia("(display-mode: standalone)").matches || navigator.standalone) return null;   // already an app
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const btn = gcInstall ? '<br><button class="gd-install">📲 הוסף עכשיו למסך הבית</button>' : "";
+  return { t: ios
+    ? "📲 טיפ: שמרו את הקזינו כ<b>אפליקציה במסך הבית</b>. באייפון: פתחו את האתר ב<b>ספארי</b>, לחצו על כפתור <b>השיתוף</b> (ריבוע עם חץ למעלה), גללו ובחרו <b>״הוסף למסך הבית״</b>, ואז <b>״הוסף״</b>. מעכשיו זה נפתח כמו אפליקציה, בלי שורת כתובת."
+    : "📲 טיפ: שמרו את הקזינו כ<b>אפליקציה במסך הבית</b>. באנדרואיד: בכרום לחצו על <b>שלוש הנקודות ⋮</b> למעלה, ובחרו <b>״הוספה למסך הבית״</b> או <b>״התקנת אפליקציה״</b>, ואז <b>״הוסף״</b>. מעכשיו זה נפתח כמו אפליקציה, בלי שורת כתובת." + btn };
+}
+
 window.GC_STEPS = {
   intro: (game) => `היי, אני <b>עידו</b>, מהמר מקצועי, ואני כאן כדי להסביר לכם על המשחק שהמפתח שלי, <b>בנימין בולדר</b>, בנה. בואו נתחיל ב${game}.`,
   roulette: () => [
@@ -108,7 +122,8 @@ window.GC_STEPS = {
     { el: "#spinBtn", t: "מוכנים? לוחצים <b>סובב</b>. התוצאה נקבעת בשרת ברגע הלחיצה, ואף אחד לא יכול לשנות אותה. גם לא אני 😉" },
     { el: ".btns", t: "<b>בטל</b> מוריד את הצ׳יפ האחרון, <b>הכפל</b> מכפיל את כל ההימורים, ו<b>אותו הימור</b> חוזר על הסיבוב הקודם. יתרון הבית 2.7% בכל הימור. בהצלחה!" },
   ],
-  lobby: () => [
+  lobby: () => { const s = GC_STEPS._lobby(), i = installStep(); if (i) s.splice(s.length - 1, 0, i); return s; },
+  _lobby: () => [
     { t: "היי, אני <b>עידו</b>, מהמר מקצועי, ואני כאן כדי להסביר לכם על המשחק שהמפתח שלי, <b>בנימין בולדר</b>, בנה. הוא ביקש שאגיד ״גאון״. אמרתי. עכשיו נמשיך." },
     { el: ".wallet", t: "זה <b>הארנק</b> שלכם. שקלים משחקיים בלבד, אין פה כסף אמיתי. בנימין התעקש על זה, כי הוא מכיר אותי." },
     { el: ".games", t: "כאן בוחרים <b>שולחן</b>: בלאק ג׳ק ורולטה, ובקרוב פוקר ומכונות מזל. בנימין עדיין בונה אותם. הוא אומר ״עוד שבוע״ כבר שבועיים." },
