@@ -19,10 +19,17 @@ const SEATS = [ // where characters sit; index 0 is the player
 ];
 
 // ---------- fit the stage to the screen ----------
+let PHONE = false;
 function fit() {
-  const s = Math.min(innerWidth / 1672, (innerHeight - 40) / 941) * (innerWidth < 760 ? 1 : 1);
-  $("stage").style.transform = `scale(${s})`;
-  $("fit").style.paddingTop = Math.max(0, (innerHeight - 941 * s) / 2 - 60) + "px";
+  // desktop: whole table fits; phone: zoom on the centre of the table, buttons move to the bottom bar
+  const W = innerWidth, H = innerHeight; PHONE = W / H < 1;
+  const st = $("stage"), acts = $("acts");
+  let s, left, top;
+  if (PHONE) { s = Math.min(W / 640, (H - 170) / 860); left = W / 2 - 838 * s; top = Math.max(44, (H - 120 - 900 * s) / 2); }
+  else { s = Math.min(W / 1672, (H - 150) / 941); left = (W - 1672 * s) / 2; top = Math.max(44, (H - 150 - 941 * s) / 2 + 44); }
+  st.style.transform = `scale(${s})`; st.style.left = left + "px"; st.style.top = top + "px";
+  if (PHONE && acts.parentElement !== document.body) { document.body.appendChild(acts); acts.classList.add("phone"); }
+  if (!PHONE && acts.parentElement === document.body) { st.appendChild(acts); acts.classList.remove("phone"); }
 }
 addEventListener("resize", fit); fit();
 
@@ -91,7 +98,7 @@ function clearRound() {
   $("seat0")?.classList.remove("jump", "sad"); pose("idle");
 }
 function label(txt, x, y, cls = "") { const t = el("total " + cls, x, y, esc(txt)); return t; }
-function placeActs(h) { const s = SPOTS[h] || SPOTS[0]; const a = $("acts"); a.style.left = s.x + "px"; a.style.top = (s.y + 39) + "px"; }
+function placeActs(h) { if (PHONE) return; const s = SPOTS[h] || SPOTS[0]; const a = $("acts"); a.style.left = s.x + "px"; a.style.top = (s.y + 39) + "px"; }
 
 async function render(next) {
   busy = true; lockActs();
