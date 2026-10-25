@@ -358,9 +358,7 @@ async function loadZeus() {
   if (!LIT) return;
   const poses = ["idle", "charge", "strike", "celebrate"];
   try {
-    if (PREVIEW) poses.forEach((p) => ZEUS[p] = `img/lightning/zeus_${p}.webp`);
-    else { const { data } = await db.storage.from("characters").createSignedUrls(poses.map((p) => `zeus_${p}.webp`), 3600);
-      (data || []).forEach((s, i) => { if (s.signedUrl) ZEUS[poses[i]] = s.signedUrl; }); }
+    poses.forEach((p) => ZEUS[p] = `img/lightning/zeus_${p}.webp`);   // public by the owner's choice
     Object.values(ZEUS).forEach(PRE); ["bolt", "impact"].forEach((n) => PRE(`img/lightning/${n}.webp`));
   } catch (e) {}
 }
