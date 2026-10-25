@@ -58,14 +58,19 @@
       o.querySelector(".gd-next").textContent = i === steps.length - 1 ? "יאללה, לשחק!" : "הבא";
       o.querySelector(".gd-dots").textContent = `${i + 1}/${steps.length}`;
       const ido = o.querySelector(".gd-ido"); if (ido) { ido.classList.remove("talk"); void ido.offsetWidth; ido.classList.add("talk"); }
-      const el = s.el && document.querySelector(s.el);
-      if (el) { const rr = el.getBoundingClientRect(); if (rr.top < 0 || rr.bottom > innerHeight * 0.6) el.scrollIntoView({ block: "start" }); scrollBy(0, -70); }
+      place(true);
+    };
+    const place = (scroll) => {
+      const s = steps[i];
+      const el = s.el && [...document.querySelectorAll(s.el)].find((e) => e.getClientRects().length && e.getBoundingClientRect().width > 4);
+      if (el && scroll) { const rr = el.getBoundingClientRect(); if (rr.top < 0 || rr.bottom > innerHeight * 0.6) { el.scrollIntoView({ block: "start" }); scrollBy(0, -70); } }
       const r = el && el.getBoundingClientRect();
       if (r && r.width) { ring.hidden = false; dim.style.background = "transparent";
         Object.assign(ring.style, { left: r.left - 6 + "px", top: r.top - 6 + "px", width: r.width + 12 + "px", height: r.height + 12 + "px" }); }
       else { ring.hidden = true; dim.style.background = ""; }
     };
-    const close = () => o.remove();
+    const follow = setInterval(() => { if (!document.body.contains(o)) return clearInterval(follow); place(); }, 300);
+    const close = () => { clearInterval(follow); o.remove(); };
     o.querySelector(".gd-next").onclick = () => { if (i < steps.length - 1) { i++; show(); } else close(); };
     o.querySelector(".gd-prev").onclick = () => { if (i > 0) { i--; show(); } };
     o.querySelector(".gd-skip").onclick = close;
@@ -83,7 +88,10 @@
         b.onclick = () => run(steps); mount.appendChild(b);
       }
       let seen = false; try { seen = localStorage.getItem("gc_guide_" + game) === "1"; localStorage.setItem("gc_guide_" + game, "1"); } catch (e) {}
-      if (auto && !seen) setTimeout(() => run(steps), 900);
+      if (auto && !seen) {
+        const ready = () => !document.getElementById("gcLoad") && !(game !== "lobby" && matchMedia("(pointer: coarse) and (orientation: portrait)").matches);
+        const wait = setInterval(() => { if (ready()) { clearInterval(wait); setTimeout(() => run(steps), 600); } }, 300);
+      }
     },
     run,
   };

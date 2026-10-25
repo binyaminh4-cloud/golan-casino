@@ -221,3 +221,13 @@ dialog table{width:100%;border-collapse:collapse;font-size:14px}dialog td,dialog
 .chiplayer .chip b{color:#fff;font:700 1em Inter;text-shadow:0 1px 1px rgba(0,0,0,.6)}
 .chips .chip{color:#fff}
 .chips .chip[aria-pressed="true"]{outline:2px solid rgba(241,214,154,.85);outline-offset:3px;box-shadow:0 3px 6px rgba(0,0,0,.6)}
+/* short landscape: board takes the full height of its column */
+body.short .board-slot{grid-template-rows:1fr}
+body.short .side{grid-template-rows:auto auto 1fr;gap:5px}
+body.short .side .tools{display:grid;grid-template-columns:1fr auto;gap:4px}
+body.short .side .seg{grid-column:1/-1}
+body.short .side .seg button{flex:1;padding:4px 6px;font-size:12px;min-height:30px}
+body.short .side .zoom button,body.short .side .nbr button{width:32px;min-height:30px}
+body.short .side .nbr{font-size:12px}
+body.short .room{grid-template-columns:clamp(120px,20%,200px) 1fr}
+body.short .top{padding-block:0;min-height:38px}

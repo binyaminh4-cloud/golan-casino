@@ -353,7 +353,19 @@ function errText(e) {
 }
 
 // ---------- boot ----------
-addEventListener("resize", () => { drawBoard(); layoutWheel(); });
+// phones settle their size late (rotation, address bar, loader): redraw whenever the board area really changes size
+let lastBox = "";
+function placeTools() {            // short landscape (phones): the view/zoom buttons move under the wheel so the board gets the height
+  const t = document.querySelector(".tools"), short = innerHeight < 560 && innerWidth > innerHeight;
+  const home = short ? document.querySelector(".side") : $("boardSlot");
+  if (t.parentElement !== home) { if (short) home.insertBefore(t, home.querySelector(".stats")); else home.insertBefore(t, $("boardScroll")); }
+  document.body.classList.toggle("short", short);
+}
+function relayout() { placeTools(); const b = $("boardScroll").getBoundingClientRect(), key = Math.round(b.width) + "x" + Math.round(b.height);
+  if (key !== lastBox) { lastBox = key; drawBoard(); layoutWheel(); } }
+addEventListener("resize", relayout); addEventListener("orientationchange", () => setTimeout(relayout, 350));
+if (window.ResizeObserver) new ResizeObserver(relayout).observe($("boardScroll"));
+setInterval(relayout, 1000);
 (async function boot() {
   drawBoard(); layoutWheel();
   W = await R.mount(host, "img/roulette/"); requestAnimationFrame(frame);
