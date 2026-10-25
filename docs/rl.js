@@ -177,7 +177,7 @@ function place(key, amt) {
   const tot = [...bets.values()].reduce((s, v) => s + v, 0);
   if (tot + amt > 100000) return err("מקסימום ₪100,000 לסיבוב.");
   if (!PREVIEW && tot + amt > balance) return err("אין מספיק שקלים להימור הזה.");
-  undoStack.push(new Map(bets)); bets.set(key, cur + amt); err(""); drawChips();
+  undoStack.push(new Map(bets)); bets.set(key, cur + amt); err(""); drawChips(); SFX.chip();
 }
 function placeMany(list) {             // list of [key, amount]; one undo step
   if (busy || !list.length) return;
@@ -187,7 +187,7 @@ function placeMany(list) {             // list of [key, amount]; one undo step
   const tot = [...next.values()].reduce((s, v) => s + v, 0);
   if (tot > 100000) return err("מקסימום ₪100,000 לסיבוב.");
   if (!PREVIEW && tot > balance) return err("אין מספיק שקלים להימור הזה.");
-  undoStack.push(new Map(bets)); bets = next; err(""); drawChips();
+  undoStack.push(new Map(bets)); bets = next; err(""); drawChips(); SFX.chip();
 }
 function err(t) { $("err").textContent = t; }
 
@@ -274,6 +274,8 @@ function frame(now) {
       const b = W.pose(), sh = shot(t, b), k = 1 - Math.pow(0.002, dt);   // smooth camera
       W.cam.z = lerp(W.cam.z, sh.z, k); W.cam.tilt = lerp(W.cam.tilt, sh.tilt, k);
       W.cam.fx = lerp(W.cam.fx, lerp(600, b.x, sh.f), k); W.cam.fy = lerp(W.cam.fy, lerp(600, b.y, sh.f), k);
+      if (t > R.T.hit && t < R.T.settle && lastLift <= prevLift && lastLift <= s.lift && lastLift < 0.2 && t - lastTick > 0.12) { SFX.pocket(); lastTick = t; }
+      prevLift = lastLift; lastLift = s.lift;
       onTime(t);
     } else { W.idle(dt); W.cam.z = lerp(W.cam.z, 1, 0.1); W.cam.tilt = lerp(W.cam.tilt, 48, 0.1);
              W.cam.fx = lerp(W.cam.fx, 600, 0.1); W.cam.fy = lerp(W.cam.fy, 600, 0.1); }
@@ -283,7 +285,7 @@ function frame(now) {
 }
 
 // ---------- the spin ----------
-let spinRes = null, marks = {}, ME_URL = null;
+let lastLift = 0, prevLift = 0, lastTick = 0; let spinRes = null, marks = {}, ME_URL = null;
 function setCine(on) {
   cine = on; const c = $("cine");
   if (on) { c.hidden = false; c.appendChild(host); requestAnimationFrame(() => c.classList.add("on")); }
@@ -307,6 +309,7 @@ function showResult() {
     (LUCKY[n] ? `<div class="rbolt">⚡ ברק ${LUCKY[n]}x</div>` : "") +
     (spinRes.payout > 0 ? `<div class="rw">זכית ${fmt(spinRes.payout)}</div>` : `<div class="rl">לא הפעם</div>`);
   card.hidden = false;
+  if (spinRes.payout > 0) SFX.win(spinRes.payout >= spinRes.total * 10); else SFX.lose();
   if (W.under() !== n) console.error("wheel/result mismatch", W.under(), n);   // never expected; checked by tests
 }
 function finish() {
@@ -349,7 +352,7 @@ $("spinBtn").onclick = async () => {
   spinRes = res; showBal(res.balance - res.payout);
   if (LIT) await strike(res.lucky || {});
   marks = {}; setCine(true);
-  plan = R.plan(res.result, W.rotor); t0 = performance.now();
+  plan = R.plan(res.result, W.rotor); t0 = performance.now(); SFX.roll(R.T.hit + 0.6); lastLift = prevLift = 1; lastTick = 0;
 };
 // ---------- lightning: strike the lucky numbers on the layout, then spin ----------
 // Zeus (the owner's caricature, private bucket) throws a bolt at each lucky number
@@ -380,7 +383,7 @@ async function strike(lucky) {
       const top = z ? z.getBoundingClientRect().top + 40 : -20;
       Object.assign(b.style, { left: x + "px", top: top + "px", height: Math.max(40, y - top) + "px" });
       const im = document.createElement("div"); im.className = "impact"; Object.assign(im.style, { left: x + "px", top: y + "px" });
-      document.body.append(b, im); setTimeout(() => { b.remove(); im.remove(); }, 650);
+      document.body.append(b, im); setTimeout(() => { b.remove(); im.remove(); }, 650); SFX.zap(); SFX.thunder();
     }
     fl.classList.remove("go"); void fl.offsetWidth; fl.classList.add("go");
     markLucky(k, lucky[k], true);

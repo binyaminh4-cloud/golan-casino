@@ -52,13 +52,13 @@ function el(cls, x, y, html = "") { const d = document.createElement("div"); d.c
 function faceUp(d, card) { d.classList.remove("back"); d.style.backgroundImage = `url(cards/${card}.svg)`; d.dataset.card = card; }
 async function flyCard(card, to, fromHand = true) {
   if (fromHand) { pose("deal"); await sleep(220); }
-  const d = el("card back", SHOE.x, SHOE.y);
+  const d = el("card back", SHOE.x, SHOE.y); SFX.card();
   d.style.transform = "perspective(900px) rotateX(46deg) rotate(-35deg) scale(.7)";
   d.getBoundingClientRect();                                   // commit the start position before moving
   d.style.transition = reduced ? "none" : "left .62s cubic-bezier(.25,.6,.2,1), top .62s cubic-bezier(.25,.6,.2,1), transform .62s ease-out";
   d.style.left = to.x + "px"; d.style.top = to.y + "px"; d.style.transform = "perspective(900px) rotateX(46deg)";
   await sleep(640);
-  if (card !== "??") { d.classList.add("flip"); await sleep(140); faceUp(d, card); await sleep(160); d.classList.remove("flip"); }
+  if (card !== "??") { SFX.flip(); d.classList.add("flip"); await sleep(140); faceUp(d, card); await sleep(160); d.classList.remove("flip"); }
   pose("idle"); await sleep(180);
   return d;
 }
@@ -170,14 +170,14 @@ async function finish(r) {
   if (LIT) {
     showMsg(head, sd.boost_extra > 0 ? `⚡ המכפיל ${sd.boost_used}x הוסיף ${fmt(sd.boost_extra)}` : r.result.dealer_blackjack ? "לדילרית יש בלאק ג׳ק" : "");
     setTimeout(async () => {                       // the new multiplier strikes
-      const fl = document.createElement("div"); fl.className = "bjflash"; document.body.appendChild(fl);
+      SFX.drop(); const fl = document.createElement("div"); fl.className = "bjflash"; document.body.appendChild(fl);
       BOOST = sd.earned || 0; drawBoost(); document.querySelector(".boost")?.classList.add("zap");
       showMsg(`⚡ מכפיל ${BOOST}x`, "יוכפל על הזכייה בסיבוב הבא");
       setTimeout(() => fl.remove(), 900);
     }, 1800);
   } else
   showMsg(head, r.result.dealer_blackjack ? "לדילרית יש בלאק ג׳ק" : sides.length ? "זכייה: " + sides.join(" · ") : "");
-  const won = net > 0;
+  const won = net > 0; if (won) SFX.win(net >= r.staked * 5); else if (net < 0) SFX.lose();
   $("seat0")?.classList.add(won ? "jump" : net < 0 ? "sad" : "x");
   pose(outs.includes("blackjack") ? "celebrate" : won ? "pay" : net < 0 ? "collect" : "idle");
   // chips: losers go to the tray, winners get paid next to their bet
@@ -216,7 +216,7 @@ function addBet(target) {
   const next = bets[target] + chip;
   if (target === "main" && next > 50000) return err("ההימור הראשי המקסימלי הוא ₪50,000.");
   if (target !== "main" && next > bets.main) return err("הימור צדדי לא יכול להיות גבוה מההימור הראשי. שים קודם צ׳יפ על העיגול הגדול.");
-  bets[target] = next; err(""); renderBets();
+  bets[target] = next; err(""); renderBets(); SFX.chip();
 }
 function drawBoost() {
   document.querySelectorAll(".boost").forEach((n) => n.remove()); if (!LIT) return;
@@ -274,7 +274,8 @@ function startClock() {
   $("acts").prepend(c);
   const t0 = performance.now();
   const tick = () => { if (!document.body.contains(c)) return; const left = Math.max(0, DECIDE_MS - (performance.now() - t0));
-    c.querySelector("b").textContent = Math.ceil(left / 1000); c.classList.toggle("hurry", left < 3500);
+    const sec = Math.ceil(left / 1000); if (c.dataset.s !== String(sec)) { c.dataset.s = sec; if (sec <= 9) SFX.tick(sec <= 3); }
+    c.querySelector("b").textContent = sec; c.classList.toggle("hurry", left < 3500);
     if (left > 0) requestAnimationFrame(tick); };
   c.querySelector(".fg").style.animationDuration = DECIDE_MS + "ms"; requestAnimationFrame(tick);
   clockT = setTimeout(() => {             // time's up: the house plays the safe move for you
