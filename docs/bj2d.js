@@ -305,8 +305,8 @@ function newRef() { try { return crypto.randomUUID(); } catch { return Date.now(
 $("rulesBtn").onclick = () => $("rules").showModal();
 
 if (LIT) {
-  document.body.classList.add("lit"); document.title = "בלאק ג׳ק ברקים · גולן קזינו";
-  const r = $("rules"); r.querySelector("h2").textContent = "בלאק ג׳ק ברקים · חוקים";
+  document.body.classList.add("lit"); document.title = "בלאק ג׳ק הכפולות של פישר · גולן קזינו";
+  const r = $("rules"); r.querySelector("h2").textContent = "בלאק ג׳ק הכפולות של פישר · חוקים";
   r.querySelector("h2").insertAdjacentHTML("afterend", "<p><b>⚡ איך זה עובד:</b> בכל סיבוב משלמים הימור + <b>עמלת ברק</b> באותו גובה. בסוף הסיבוב מקבלים <b>מכפיל 2x עד 25x</b>, לפי היד הסופית שלך (21 נותן הכי הרבה, שריפה הכי מעט). המכפיל מכפיל את <b>הרווח</b> של כל יד מנצחת בסיבוב הברקים הבא (עד גובה ההימור שבו הוא הושג). אין הימורים צדדיים במשחק הזה. החזר משוער לעמלה: כ־99%.</p>");
 }
 // ---------- start ----------
