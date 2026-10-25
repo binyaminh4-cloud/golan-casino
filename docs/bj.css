@@ -113,3 +113,13 @@ body.land #acts.phone .a{width:100%}
 .cstack.small .chip3{width:50px;height:50px;margin:-25px 0 0 -25px;border-width:5px}
 .cstack.small .chip3 span{font-size:14px}
 .cstack.small .camt{top:20px;font-size:14px;padding:0 7px}
+#fit{transition:transform .7s cubic-bezier(.3,.7,.2,1)}
+.clock{position:relative;width:46px;height:46px;flex:none;align-self:center}
+.clock svg{width:100%;height:100%;transform:rotate(-90deg)}
+.clock circle{fill:rgba(8,5,4,.85);stroke-width:4}
+.clock .bg{stroke:rgba(217,181,111,.25)}
+.clock .fg{fill:none;stroke:#F1D69A;stroke-dasharray:106.8;stroke-dashoffset:0;stroke-linecap:round;animation:clk linear forwards}
+.clock b{position:absolute;inset:0;display:grid;place-items:center;font:800 17px Inter;color:#F1D69A}
+.clock.hurry .fg{stroke:#e5484d}.clock.hurry b{color:#ff6b6f;animation:hurry .5s ease-in-out infinite}
+@keyframes clk{to{stroke-dashoffset:106.8}}
+@keyframes hurry{50%{transform:scale(1.18)}}

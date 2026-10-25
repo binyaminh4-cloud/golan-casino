@@ -106,7 +106,7 @@ function clearRound() {
   $("seat0")?.classList.remove("jump", "sad"); pose("idle");
 }
 function label(txt, x, y, cls = "") { const t = el("total " + cls, x, y, esc(txt)); return t; }
-function placeActs(h) { if (PHONE) return; const s = SPOTS[h] || SPOTS[0]; const a = $("acts"); a.style.left = s.x + "px"; a.style.top = (s.y + 39) + "px"; }
+function placeActs(h) { if (PHONE) return; const s = SPOTS[h] || SPOTS[0]; const a = $("acts"); a.style.left = s.x + "px"; a.style.top = (s.y + 62) + "px"; }
 
 async function render(next) {
   busy = true; lockActs();
@@ -234,11 +234,38 @@ document.querySelectorAll("#acts .a").forEach((b) => b.onclick = async () => {
   if (error) { showControls(); return err(errText(error)); }
   await render(data);
 });
-function lockActs() { document.querySelectorAll("#acts .a").forEach((b) => b.disabled = true); }
+function lockActs() { document.querySelectorAll("#acts .a").forEach((b) => b.disabled = true); stopClock(); }
+
+// ---------- your turn: zoom in on your hand + 10-second decision clock ----------
+const DECIDE_MS = 10000; let clockT = null;
+function zoomTo(h) {
+  const f = $("fit"), st2 = $("stage"), s = SPOTS[h] || SPOTS[0];
+  if (h == null) { f.style.transform = ""; return; }
+  const m = new DOMMatrix(getComputedStyle(st2).transform), x = parseFloat(st2.style.left) + s.x * m.a, y = parseFloat(st2.style.top) + (s.y - 50) * m.d;
+  f.style.transformOrigin = `${x}px ${y}px`; f.style.transform = "scale(2.1)";
+}
+function stopClock() { clearTimeout(clockT); clockT = null; const c = $("clock"); if (c) c.remove(); }
+function startClock() {
+  stopClock();
+  const c = document.createElement("div"); c.id = "clock"; c.className = "clock";
+  c.innerHTML = '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" class="bg"/><circle cx="20" cy="20" r="17" class="fg"/></svg><b>10</b>';
+  $("acts").prepend(c);
+  const t0 = performance.now();
+  const tick = () => { if (!document.body.contains(c)) return; const left = Math.max(0, DECIDE_MS - (performance.now() - t0));
+    c.querySelector("b").textContent = Math.ceil(left / 1000); c.classList.toggle("hurry", left < 3500);
+    if (left > 0) requestAnimationFrame(tick); };
+  c.querySelector(".fg").style.animationDuration = DECIDE_MS + "ms"; requestAnimationFrame(tick);
+  clockT = setTimeout(() => {             // time's up: the house plays the safe move for you
+    const pick = st && st.actions.includes("no_insurance") ? "no_insurance" : "stand";
+    const b = document.querySelector(`#acts .a[data-a="${pick}"]`); if (b && !b.hidden) { showMsg("נגמר הזמן", pick === "stand" ? "עמדת אוטומטית" : "בלי ביטוח"); b.click(); }
+  }, DECIDE_MS);
+}
 function showControls() {
   const playing = st && st.status !== "done";
   $("acts").hidden = !playing; $("betUI").hidden = !!playing; setSpotsVisible(!playing);
-  if (playing) { placeActs(st.active); document.querySelectorAll("#acts .a").forEach((b) => { b.hidden = !st.actions.includes(b.dataset.a); b.disabled = busy; }); }
+  if (playing) { placeActs(st.active); document.querySelectorAll("#acts .a").forEach((b) => { b.hidden = !st.actions.includes(b.dataset.a); b.disabled = busy; });
+    if (!busy && st.actions.length) { zoomTo(st.active); startClock(); } }
+  else { zoomTo(null); stopClock(); }
   $("rebetBtn").disabled = !lastBets; $("dealBtn").disabled = !bets.main;
 }
 function err(t) { $("err").textContent = t; }
