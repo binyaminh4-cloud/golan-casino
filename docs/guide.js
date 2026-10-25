@@ -28,6 +28,16 @@
   .gd-prev,.gd-skip{background:transparent;color:#5a4630;border-color:#cdb58a!important}
   .gd-skip{margin-inline-start:auto;border:0!important;text-decoration:underline;padding:8px 4px!important}
   .gd-install{margin-top:8px;font:700 14px Heebo;border-radius:8px;padding:8px 14px;border:1px solid #C5A05A;background:linear-gradient(180deg,#F1D69A,#C5A05A);color:#0B0908;cursor:pointer}
+  .gd-neon{position:fixed;left:50%;bottom:max(6px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5;display:grid;justify-items:center;pointer-events:none;animation:neonBob 1s ease-in-out infinite}
+  .gd-neon svg{width:70px;height:130px;fill:none;stroke:#ff3df2;stroke-width:9;stroke-linecap:round;stroke-linejoin:round;
+    filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 10px #ff3df2) drop-shadow(0 0 22px #ff3df2) drop-shadow(0 0 40px #b400ff);animation:neonFlick 1.6s infinite}
+  .gd-neon span{order:-1;font:900 22px Heebo,sans-serif;color:#fff;text-shadow:0 0 6px #fff,0 0 14px #00f0ff,0 0 28px #00f0ff,0 0 48px #0080ff;margin-bottom:2px;animation:neonFlick 1.6s infinite .3s}
+  .gd-neon.up{left:auto;right:70px;bottom:auto;top:6px;transform:none}
+  .gd-neon.up svg{transform:rotate(180deg)}.gd-neon.up span{order:2}
+  @keyframes neonBob{50%{translate:0 14px}}
+  @keyframes neonFlick{0%,18%,22%,62%,64%,100%{opacity:1}20%,63%{opacity:.25}}
+  .gd-host{z-index:2;transition:bottom .3s}
+  .gd.neon-on .gd-host{bottom:calc(175px + env(safe-area-inset-bottom))}
   .gd-dots{font:500 12px Inter;color:#8a7558}
   @media (max-width:560px){.gd-host{inset-inline:8px;flex-direction:column;align-items:flex-start;gap:0;max-width:none}
     .gd-ido{width:96px;margin-inline-start:6px;margin-bottom:-4px}.gd-bub{margin-bottom:0;min-width:0;width:100%;font-size:14.5px;max-height:52vh;overflow:auto}
@@ -60,6 +70,13 @@
       o.querySelector(".gd-dots").textContent = `${i + 1}/${steps.length}`;
       const ido = o.querySelector(".gd-ido"); if (ido) { ido.classList.remove("talk"); void ido.offsetWidth; ido.classList.add("talk"); }
       place(true);
+      o.querySelector(".gd-neon")?.remove(); o.classList.toggle("neon-on", !!s.ios);
+      if (s.ios) {
+        const ipad = /ipad/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+        const a = document.createElement("div"); a.className = "gd-neon" + (ipad ? " up" : "");
+        a.innerHTML = '<svg viewBox="0 0 60 110"><path d="M30 4 V82 M8 62 L30 100 L52 62" /></svg><span>כאן! שיתוף</span>';
+        o.appendChild(a);
+      }
     };
     const place = (scroll) => {
       const s = steps[i];
@@ -106,7 +123,7 @@ function installStep() {
   if (matchMedia("(display-mode: standalone)").matches || navigator.standalone) return null;   // already an app
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   const btn = gcInstall ? '<br><button class="gd-install">📲 הוסף עכשיו למסך הבית</button>' : "";
-  return { t: ios
+  return { ios, t: ios
     ? "📲 טיפ: שמרו את הקזינו כ<b>אפליקציה במסך הבית</b>. באייפון: פתחו את האתר ב<b>ספארי</b>, לחצו על כפתור <b>השיתוף</b> (ריבוע עם חץ למעלה), גללו ובחרו <b>״הוסף למסך הבית״</b>, ואז <b>״הוסף״</b>. מעכשיו זה נפתח כמו אפליקציה, בלי שורת כתובת."
     : "📲 טיפ: שמרו את הקזינו כ<b>אפליקציה במסך הבית</b>. באנדרואיד: בכרום לחצו על <b>שלוש הנקודות ⋮</b> למעלה, ובחרו <b>״הוספה למסך הבית״</b> או <b>״התקנת אפליקציה״</b>, ואז <b>״הוסף״</b>. מעכשיו זה נפתח כמו אפליקציה, בלי שורת כתובת." + btn };
 }
