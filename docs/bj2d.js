@@ -60,11 +60,14 @@ async function flyCard(card, to, fromHand = true) {
   return d;
 }
 function chipColor(v) { return v >= 1000 ? "#b07a1f" : v >= 500 ? "#6b2a8a" : v >= 100 ? "#222" : v >= 25 ? "#1f6b3e" : "#1d4f8a"; }
-function chipStack(x, y, amount, key) {
+// A bet on the felt: a chip centred exactly on (x,y) with the amount written under it. Left/top = centre.
+function chipStack(x, y, amount, key, small = false) {
   const old = layer.querySelector(`[data-k="${key}"]`); if (old) old.remove();
   if (!amount) return null;
-  const c = el("chip", x - 26, y - 14); c.dataset.k = key; c.style.background = c.style.color = chipColor(amount);
-  c.title = fmt(amount); return c;
+  const w = el("cstack" + (small ? " small" : ""), x, y); w.dataset.k = key;
+  const col = chipColor(amount);
+  w.innerHTML = `<div class="chip3" style="background:${col};color:${col}"><span>${amount >= 1000 ? +(amount / 1000).toFixed(1) + "K" : amount}</span></div><div class="camt">${fmt(amount)}</div>`;
+  w.title = fmt(amount); return w;
 }
 async function slide(node, x, y, ms = 500) {
   if (!node) return; node.style.transition = reduced ? "none" : `left ${ms}ms ease, top ${ms}ms ease, opacity ${ms}ms`;
@@ -170,7 +173,7 @@ async function finish(r) {
     if (o === "lose" || o === "bust") { c.style.opacity = "0"; await slide(c, TRAY.x, TRAY.y, 600); }
     else if (o === "win" || o === "blackjack") {
       const pay = chipStack(TRAY.x, TRAY.y, r.hands[i].bet, "pay" + i);
-      await slide(pay, SPOTS[i].x + 4, SPOTS[i].y - 4, 600);
+      await slide(pay, SPOTS[i].x + 70, SPOTS[i].y - 6, 600);
     }
   }));
   await sleep(1200); pose("idle");
@@ -203,7 +206,7 @@ function addBet(target) {
 }
 function renderBets() {
   chipStack(SPOTS[0].x, SPOTS[0].y, bets.main, "hand0");
-  for (const [k, p] of Object.entries(SIDE_SPOTS)) { const c = chipStack(p.x, p.y + 4, bets[k], "side_" + k); if (c) c.classList.add("small"); }
+  for (const [k, p] of Object.entries(SIDE_SPOTS)) chipStack(p.x, p.y, bets[k], "side_" + k, true);
   $("dealBtn").disabled = !bets.main; $("rebetBtn").disabled = !lastBets;
   $("betSum").textContent = Object.values(bets).some(Boolean) ? "סה״כ " + fmt(Object.values(bets).reduce((a, b) => a + b, 0)) : "בחר צ׳יפ ולחץ על העיגול הגדול. העיגולים הקטנים הם הימורים צדדיים: PP זוג מושלם · 21+3 · LL ליידיז מזל · BB באסטר";
 }

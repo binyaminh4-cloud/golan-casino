@@ -102,3 +102,14 @@ body.land .betui #dealBtn{grid-column:1/-1;order:-1;font-size:17px}
 body.land #acts.phone{position:fixed;top:40px;bottom:0;left:0;width:190px;display:grid;align-content:center;gap:8px;padding:8px;
   background:rgba(8,5,4,.92);transform:none!important}
 body.land #acts.phone .a{width:100%}
+/* bets on the felt: chip centred in its circle, amount underneath */
+.cstack{position:absolute;width:0;height:0;pointer-events:none;z-index:3}
+.cstack .chip3{position:absolute;left:0;top:0;width:74px;height:74px;margin:-37px 0 0 -37px;border-radius:50%;display:grid;place-items:center;
+  border:7px dashed rgba(255,255,255,.92);transform:perspective(900px) rotateX(52deg);
+  box-shadow:0 2px 0 rgba(0,0,0,.35),0 5px 0 currentColor,0 8px 0 rgba(0,0,0,.35),0 11px 0 currentColor,0 18px 12px rgba(0,0,0,.55)}
+.cstack .chip3 span{font:800 19px Inter;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7);transform:scaleY(1.5)}
+.cstack .camt{position:absolute;left:0;top:30px;transform:translateX(-50%);white-space:nowrap;font:700 19px Inter;color:#F1D69A;
+  background:rgba(8,5,4,.82);border:1px solid rgba(217,181,111,.7);border-radius:99px;padding:1px 10px}
+.cstack.small .chip3{width:50px;height:50px;margin:-25px 0 0 -25px;border-width:5px}
+.cstack.small .chip3 span{font-size:14px}
+.cstack.small .camt{top:20px;font-size:14px;padding:0 7px}
