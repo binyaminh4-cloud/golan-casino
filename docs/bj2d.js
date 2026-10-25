@@ -9,13 +9,13 @@ const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const sleep = (ms) => new Promise((r) => setTimeout(r, reduced ? 0 : ms));
 
 // ---------- geometry, in photo pixels (1672x941) ----------
-const SHOE = { x: 1340, y: 330 };
+const SHOE = { x: 650, y: 360 };   // cards leave from the dealer's hand
 const TRAY = { x: 846, y: 330 };
 const SPOTS = [ { x: 838, y: 613 }, { x: 1153, y: 580 }, { x: 524, y: 580 }, { x: 1375, y: 497 }, { x: 300, y: 497 } ];
 // small side-bet circles around the player's main circle (photo pixels)
 const SIDE_SPOTS = { pp: { x: 718, y: 588, t: "PP" }, t3: { x: 958, y: 588, t: "21+3" }, ll: { x: 744, y: 668, t: "LL" }, bust: { x: 932, y: 668, t: "BB" } };
-const dealerPos = (i) => ({ x: 782 + i * 60, y: 372 });
-const cardPos = (h, i) => ({ x: SPOTS[h].x - 38 + i * 24, y: SPOTS[h].y - 86 - i * 7 });
+const dealerPos = (i) => ({ x: 760 + i * 92, y: 352 });
+const cardPos = (h, i) => ({ x: SPOTS[h].x - 60 + i * 34, y: SPOTS[h].y - 140 - i * 9 });
 const SEATS = [ // where characters sit; index 0 is the player
   { x: 838, top: 700, w: 300 }, { x: 524, top: 665, w: 270 }, { x: 1153, top: 665, w: 270 }, { x: 300, top: 610, w: 230 }, { x: 1375, top: 610, w: 230 },
 ];
@@ -23,37 +23,40 @@ const SEATS = [ // where characters sit; index 0 is the player
 // ---------- fit the stage to the screen ----------
 let PHONE = false;
 function fit() {
-  // desktop: whole table fits; phone: zoom on the centre of the table, buttons move to the bottom bar
-  const W = innerWidth, H = innerHeight; PHONE = W / H < 1;
+  // landscape only on phones (portrait shows a rotate prompt). Short landscape screens get a side control panel.
+  const W = innerWidth, H = innerHeight; PHONE = W / H < 1; const LAND = !PHONE && H < 560;
+  document.body.classList.toggle("land", LAND);
   const st = $("stage"), acts = $("acts");
   let s, left, top;
   if (PHONE) { s = Math.min(W / 640, (H - 170) / 860); left = W / 2 - 838 * s; top = Math.max(44, (H - 120 - 900 * s) / 2); }
+  else if (LAND) { const side = 190, avail = W - side; s = Math.min(avail / 1400, (H - 40) / 800); left = side + (avail - 1672 * s) / 2; top = 40 + Math.max(0, (H - 40 - 860 * s) / 2) - 40 * s; }
   else { s = Math.min(W / 1672, (H - 150) / 941); left = (W - 1672 * s) / 2; top = Math.max(44, (H - 150 - 941 * s) / 2 + 44); }
   st.style.transform = `scale(${s})`; st.style.left = left + "px"; st.style.top = top + "px";
-  if (PHONE && acts.parentElement !== document.body) { document.body.appendChild(acts); acts.classList.add("phone"); }
-  if (!PHONE && acts.parentElement === document.body) { st.appendChild(acts); acts.classList.remove("phone"); }
+  const out = PHONE || LAND;
+  if (out && acts.parentElement !== document.body) { document.body.appendChild(acts); acts.classList.add("phone"); }
+  if (!out && acts.parentElement === document.body) { st.appendChild(acts); acts.classList.remove("phone"); }
 }
 addEventListener("resize", fit); fit();
 
 // ---------- dealer poses ----------
 const POSES = ["idle", "deal", "flip", "collect", "pay", "celebrate"];
-POSES.forEach((p) => { const i = new Image(); i.src = `img/dealer/${p}.webp`; });
-function pose(p) { $("dealer").src = `img/dealer/${p}.webp`; }
+POSES.forEach((p) => { const i = new Image(); i.src = `img/dealer/m_${p}.webp`; });
+function pose(p) { $("dealer").src = `img/dealer/m_${p}.webp`; }
 
 // ---------- drawing helpers ----------
 const layer = $("layer");
 function el(cls, x, y, html = "") { const d = document.createElement("div"); d.className = cls; d.style.left = x + "px"; d.style.top = y + "px"; d.innerHTML = html; layer.appendChild(d); return d; }
 function faceUp(d, card) { d.classList.remove("back"); d.style.backgroundImage = `url(cards/${card}.svg)`; d.dataset.card = card; }
 async function flyCard(card, to, fromHand = true) {
-  if (fromHand) { pose("deal"); }
+  if (fromHand) { pose("deal"); await sleep(220); }
   const d = el("card back", SHOE.x, SHOE.y);
-  d.style.transition = reduced ? "none" : "left .38s cubic-bezier(.2,.7,.2,1), top .38s cubic-bezier(.2,.7,.2,1), transform .38s";
-  d.style.transform = "perspective(900px) rotateX(46deg) rotate(-30deg)";
-  await new Promise(requestAnimationFrame);
+  d.style.transform = "perspective(900px) rotateX(46deg) rotate(-35deg) scale(.7)";
+  d.getBoundingClientRect();                                   // commit the start position before moving
+  d.style.transition = reduced ? "none" : "left .62s cubic-bezier(.25,.6,.2,1), top .62s cubic-bezier(.25,.6,.2,1), transform .62s ease-out";
   d.style.left = to.x + "px"; d.style.top = to.y + "px"; d.style.transform = "perspective(900px) rotateX(46deg)";
-  await sleep(390);
-  if (card !== "??") faceUp(d, card);
-  pose("idle");
+  await sleep(640);
+  if (card !== "??") { d.classList.add("flip"); await sleep(140); faceUp(d, card); await sleep(160); d.classList.remove("flip"); }
+  pose("idle"); await sleep(180);
   return d;
 }
 function chipColor(v) { return v >= 1000 ? "#b07a1f" : v >= 500 ? "#6b2a8a" : v >= 100 ? "#222" : v >= 25 ? "#1f6b3e" : "#1d4f8a"; }
@@ -127,13 +130,13 @@ async function render(next) {
   // new player cards
   for (let h = 0; h < n; h++) {
     handEls[h] ||= [];
-    for (let c = handEls[h].length; c < next.hands[h].cards.length; c++) { handEls[h].push(await flyCard(next.hands[h].cards[c], cardPos(h, c))); await sleep(60); }
+    for (let c = handEls[h].length; c < next.hands[h].cards.length; c++) { handEls[h].push(await flyCard(next.hands[h].cards[c], cardPos(h, c))); await sleep(250); }
   }
   // dealer reveals the hole card, then draws
   if (dealerEls[1] && !dealerEls[1].dataset.card && next.dealer[1] !== "??") {
     pose("flip"); await sleep(260); faceUp(dealerEls[1], next.dealer[1]); await sleep(420); pose("idle");
   }
-  for (let c = dealerEls.length; c < next.dealer.length; c++) { dealerEls.push(await flyCard(next.dealer[c], dealerPos(c))); await sleep(320); }
+  for (let c = dealerEls.length; c < next.dealer.length; c++) { dealerEls.push(await flyCard(next.dealer[c], dealerPos(c))); await sleep(450); }
   // totals
   totals.forEach((t) => t.remove()); totals = [];
   const OUT = { win: "ניצחון", blackjack: "בלאק ג׳ק!", push: "תיקו", lose: "הפסד", bust: "נשרף", surrender: "ויתור" };

@@ -6,24 +6,38 @@
 <title>רולטה · גולן קזינו</title>
 <link rel="icon" href="img/brand/favicon.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@500;700&display=swap">
-<link rel="stylesheet" href="rl.css?v=1">
+<link rel="stylesheet" href="rl.css?v=2">
 <link rel="preload" as="image" href="img/roulette/bowl.webp">
 <link rel="preload" as="image" href="img/roulette/rotor.webp">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
+<script src="landscape.js?v=1"></script>
 </head>
 <body>
 <header class="top">
   <a href="./" class="back">→ ללובי</a>
-  <div class="hist" id="hist" aria-label="תוצאות אחרונות"></div>
   <div class="bal">הארנק שלי <b id="bal" class="num">…</b></div>
   <button id="rulesBtn" class="rules-btn">חוקים ותשלומים</button>
 </header>
 
 <main class="room" id="room">
-  <section class="wheel-slot" id="wheelSlot"><div id="wheelHost" class="wheelhost"></div></section>
+  <aside class="side">
+    <section class="wheel-slot" id="wheelSlot"><div id="wheelHost" class="wheelhost"></div></section>
+    <section class="stats" aria-label="תוצאות אחרונות">
+      <div class="stats-h">תוצאות אחרונות</div>
+      <div class="pct" id="pct"></div>
+      <div class="marquee" id="hist"></div>
+    </section>
+  </aside>
   <section class="board-slot" id="boardSlot">
-    <div class="rail"><div id="board" class="board" aria-label="שולחן ההימורים"></div></div>
+    <div class="tools">
+      <div class="seg" role="group" aria-label="תצוגה">
+        <button id="viewTable" aria-pressed="true">שולחן</button><button id="viewRace" aria-pressed="false">מסלול · שכנים</button>
+      </div>
+      <div class="nbr" id="nbrBox" hidden>שכנים <button id="nMinus" aria-label="פחות שכנים">−</button><b id="nVal">2</b><button id="nPlus" aria-label="יותר שכנים">+</button></div>
+      <div class="zoom"><button id="zOut" aria-label="הקטן לוח">−</button><button id="zIn" aria-label="הגדל לוח">+</button></div>
+    </div>
+    <div class="board-scroll" id="boardScroll"><div class="rail"><div id="board" class="board" aria-label="שולחן ההימורים"></div></div></div>
   </section>
 </main>
 
@@ -58,11 +72,12 @@
     <tr><td>אדום/שחור · זוגי/אי־זוגי · 1‑18/19‑36</td><td class="num">18</td><td class="num">1:1</td></tr>
   </table>
   <p>איך מניחים: בוחרים צ׳יפ ולוחצים על מספר. לחיצה על הקו בין שני מספרים = ספליט, על הצומת של ארבעה = פינה, על הקו התחתון של טור = שורה, ועל הצומת בקו התחתון = שורה כפולה. על אפס כל ההימורים החיצוניים מפסידים. הימור מינימלי ₪1, מקסימום ₪50,000 לכל הימור ו־₪100,000 לסיבוב.</p>
+  <p><b>מסלול · שכנים:</b> לחיצה על מספר במסלול מניחה צ׳יפ על המספר ועל השכנים שלו בגלגל (כמה שכנים לכל צד בוחרים ב־[− +]). וואזן דו זרו = 9 צ׳יפים, טייר = 6, אורפלן = 5, זרו (ז׳ו זרו) = 4.</p>
   <p>שקלים משחקיים בלבד. אין כסף אמיתי.</p>
   <form method="dialog"><button class="btn" style="width:100%;margin-top:12px">סגור</button></form>
 </dialog>
 
-<script src="rl_wheel.js?v=1"></script>
-<script src="rl.js?v=1"></script>
+<script src="rl_wheel.js?v=2"></script>
+<script src="rl.js?v=2"></script>
 </body>
 </html>

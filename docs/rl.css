@@ -106,3 +106,63 @@ dialog table{width:100%;border-collapse:collapse;font-size:14px}dialog td,dialog
 @media (max-aspect-ratio:1/1){.room{grid-template-rows:26% 1fr;padding:4px 8px}}
 @media (prefers-reduced-motion:reduce){.result,.dolly{animation:none}}
 .cine[hidden],.result[hidden]{display:none}
+
+/* ===== v2 layout: big board, small wheel + results column, landscape only ===== */
+.room{grid-template-columns:clamp(150px,24%,360px) 1fr;grid-template-rows:none;gap:10px}
+.side{display:grid;grid-template-rows:auto 1fr;gap:8px;min-height:0;min-width:0}
+.wheel-slot{aspect-ratio:1;width:100%;max-height:52vh;justify-self:center}
+.stats{min-height:0;display:flex;flex-direction:column;background:rgba(11,9,8,.82);border:1px solid var(--line);border-radius:10px;padding:8px;overflow:hidden}
+.stats-h{font:700 15px 'Frank Ruhl Libre',serif;color:var(--champ);text-align:center;margin-bottom:6px}
+.pct{display:flex;gap:4px;justify-content:center;margin-bottom:6px}
+.p{font:700 12px Inter;padding:2px 6px;border-radius:4px}.p.red{background:var(--red)}.p.black{background:#000;border:1px solid #444}.p.green{background:var(--green)}
+.marquee{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:3px;direction:ltr}
+.mrow{display:flex;height:26px;flex:none}
+.mrow span{width:34px;height:24px;display:grid;place-items:center;border-radius:4px;font:700 14px Inter}
+.mrow.red{justify-content:flex-start}.mrow.red span{background:var(--red)}
+.mrow.black{justify-content:flex-end}.mrow.black span{background:#000;border:1px solid #444}
+.mrow.green{justify-content:center}.mrow.green span{background:var(--green)}
+.mrow.last span{outline:2px solid var(--champ);outline-offset:1px}
+.marquee .empty{color:var(--muted);text-align:center;font-size:13px}
+.board-slot{display:grid;grid-template-rows:auto 1fr;gap:6px;place-items:stretch}
+.tools{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button,.zoom button,.nbr button{background:rgba(23,18,15,.9);color:var(--ink);border:0;padding:8px 14px;font:500 14px Heebo;min-height:40px}
+.seg button[aria-pressed="true"]{background:linear-gradient(180deg,var(--champ),var(--gold));color:var(--onyx);font-weight:700}
+.zoom{display:flex;gap:6px}.zoom button,.nbr button{border:1px solid var(--line);border-radius:8px;width:44px;font:700 20px Inter;padding:0}
+.nbr{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:14px}.nbr b{color:var(--champ);font:700 18px Inter;min-width:14px;text-align:center}
+.nbr[hidden]{display:none}
+.board-scroll{min-height:0;min-width:0;overflow:hidden;display:grid;place-items:center}
+.board-scroll.zoomed{overflow:auto;place-items:start;-webkit-overflow-scrolling:touch}
+.hist{display:flex}
+/* racetrack */
+.board.race{background-color:#0b3022}
+.rc{position:absolute;border-radius:50%;display:grid;place-items:center;font:700 calc(var(--u)*.32) 'Frank Ruhl Libre',serif;
+  border:1.5px solid rgba(241,214,154,.8);cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,.5)}
+.rc.red{background:var(--red)}.rc.black{background:#0d0b0a}.rc.green{background:var(--green)}
+.rc span{pointer-events:none}
+.rc .amt{position:absolute;bottom:-28%;font:700 calc(var(--u)*.2) Inter;color:var(--onyx);background:var(--champ);border-radius:99px;padding:0 4px;font-style:normal;pointer-events:none}
+.rc .amt:empty{display:none}
+.rc.hl{box-shadow:0 0 0 3px var(--champ),0 0 14px var(--champ)}
+.rc.winner{box-shadow:0 0 0 4px #fff,0 0 22px var(--champ)}
+.zone{position:absolute;display:grid;place-content:center;gap:2px;border:1.5px solid rgba(241,214,154,.75);background:rgba(0,0,0,.18);color:var(--champ);
+  border-radius:calc(var(--u)*.3);cursor:pointer;font-family:Heebo}
+.zone b{font:700 calc(var(--u)*.36) 'Frank Ruhl Libre',serif}.zone small{font-size:calc(var(--u)*.17);color:var(--muted)}
+.zone:hover{background:rgba(241,214,154,.15)}
+/* short landscape (phones) */
+@media (max-height:560px) and (orientation:landscape){
+  .top{padding-block:2px}.top a,.rules-btn{padding:6px 10px}
+  .back{border:1px solid var(--line);border-radius:99px;color:var(--champ)!important;font-weight:700}
+  .room{padding:4px 8px;gap:6px;grid-template-columns:clamp(130px,22%,220px) 1fr}
+  .controls{grid-template-columns:auto auto 1fr;display:grid;align-items:center;gap:6px 10px;padding:4px 8px max(4px,env(safe-area-inset-bottom))}
+  .chips{flex-wrap:nowrap;gap:4px}.chips .chip{width:34px;height:34px;font-size:10px;border-width:3px}
+  .betline{flex-direction:column;gap:0;font-size:12px}
+  .btns{display:flex;flex-wrap:nowrap;gap:4px;justify-content:flex-end}.btn{height:38px;padding:0 10px;font-size:14px;min-width:0}.btn.spin{min-width:84px;font-size:16px}
+  .seg button,.zoom button,.nbr button{min-height:32px;padding:4px 10px;font-size:13px}.zoom button,.nbr button{width:36px;padding:0}
+  .stats-h{font-size:13px;margin-bottom:3px}.mrow{height:20px}.mrow span{height:19px;width:28px;font-size:12px}
+}
+.back{border:1px solid var(--line);border-radius:99px;padding:8px 16px!important;color:var(--champ)!important;font-weight:700;font-size:15px!important}
+@media (max-height:560px) and (orientation:landscape){
+  .result{bottom:auto;top:10px;inset-inline:auto 10px;margin:0;width:210px;padding:10px}
+  .result .rn{width:56px;height:56px;font-size:28px}.result .rw{font-size:18px}
+  .cine-msg{top:4%}
+}

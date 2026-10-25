@@ -101,27 +101,60 @@ const CHIPS = [[1, "c1"], [5, "c5"], [25, "c25"], [100, "c100"], [500, "c500"], 
 const chipLabel = (v) => v >= 1000 ? v / 1000 + "K" : String(v);
 const chipClass = (v) => (CHIPS.slice().reverse().find(([c]) => v >= c) || CHIPS[0])[1];
 
+let zoom = 1, VIEW = "table", NB = 2;
+try { zoom = +localStorage.getItem("rl_zoom") || 1; } catch (e) {}
+const ANNOUNCED = {
+  voisins: { name: "וואזן", fr: "Voisins du zéro", bets: [["0,2,3", 2], ["4,7", 1], ["12,15", 1], ["18,21", 1], ["19,22", 1], ["25,26,28,29", 2], ["32,35", 1]] },
+  tiers: { name: "טייר", fr: "Tiers du cylindre", bets: [["5,8", 1], ["10,11", 1], ["13,16", 1], ["23,24", 1], ["27,30", 1], ["33,36", 1]] },
+  orphelins: { name: "אורפלן", fr: "Orphelins", bets: [["1", 1], ["6,9", 1], ["14,17", 1], ["17,20", 1], ["31,34", 1]] },
+  zero: { name: "זרו", fr: "Jeu zéro", bets: [["0,3", 1], ["12,15", 1], ["26", 1], ["32,35", 1]] },
+};
+const neighbours = (n) => { const i = R.IDX[n], out = []; for (let d = -NB; d <= NB; d++) out.push(R.ORDER[(i + d + 37) % 37]); return out; };
+// racetrack: the 37 numbers in wheel order around a stadium shape
+function racePos(k) {
+  const Ls = 10 * U, r = 1.75 * U, P = 2 * Ls + 2 * Math.PI * r, x0 = 2 * U, y0 = 0.55 * U;
+  const zeroAt = Ls + Math.PI * r / 2;                         // 0 sits at the middle of the right-hand curve
+  let s = ((zeroAt + (k * P) / 37) % P + P) % P;
+  if (s < Ls) return { x: x0 + s, y: y0 };
+  s -= Ls; if (s < Math.PI * r) { const a = s / r; return { x: x0 + Ls + r * Math.sin(a), y: y0 + r - r * Math.cos(a) }; }
+  s -= Math.PI * r; if (s < Ls) return { x: x0 + Ls - s, y: y0 + 2 * r };
+  s -= Ls; const a = s / r; return { x: x0 - r * Math.sin(a), y: y0 + r + r * Math.cos(a) };
+}
 function drawBoard() {
-  const slot = $("boardSlot").getBoundingClientRect();
-  VERT = slot.height > slot.width * 1.05;
-  const gw = VERT ? 4.6 : 14, gh = VERT ? 14 : 4.6;
-  U = Math.floor(Math.min((slot.width - 24) / gw, (slot.height - 24) / gh));
-  U = Math.max(22, Math.min(U, 92));
+  const slot = $("boardScroll").getBoundingClientRect();
+  VERT = false;
+  const gw = 14, gh = 4.6;
+  const fitU = Math.floor(Math.min((slot.width - 28) / gw, (slot.height - 24) / gh));
+  U = Math.max(20, Math.min(Math.round(fitU * zoom), 140));
   board.style.width = gw * U + "px"; board.style.height = gh * U + "px";
-  board.style.setProperty("--u", U + "px"); board.classList.toggle("vert", VERT);
+  board.style.setProperty("--u", U + "px"); board.classList.toggle("race", VIEW === "race");
+  $("boardScroll").classList.toggle("zoomed", zoom > 1.01);
   let h = "";
   const cell = (r, cls, label, key, extra = "") =>
     `<div class="cell ${cls}" data-k="${key}" style="left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px" ${extra}><span>${label}</span></div>`;
-  h += cell(rect(-1, 0, 0, 3), "zero green", "0", "0");
-  for (let n = 1; n <= 36; n++) { const { c, w0 } = cellOf(n); h += cell(rect(c, c + 1, w0, w0 + 1), "num " + R.color(n), n, String(n), `data-n="${n}"`); }
-  for (const [name, o] of Object.entries(OUTSIDE)) h += cell(rect(o.u[0], o.u[1], o.w[0], o.w[1]), "out " + (o.cls || "") + " " + name, o.label, o.nums);
+  if (VIEW === "table") {
+    h += cell(rect(-1, 0, 0, 3), "zero green", "0", "0");
+    for (let n = 1; n <= 36; n++) { const { c, w0 } = cellOf(n); h += cell(rect(c, c + 1, w0, w0 + 1), "num " + R.color(n), n, String(n), `data-n="${n}"`); }
+    for (const [name, o] of Object.entries(OUTSIDE)) h += cell(rect(o.u[0], o.u[1], o.w[0], o.w[1]), "out " + (o.cls || "") + " " + name, o.label, o.nums);
+  } else {
+    const d = 0.74 * U;
+    R.ORDER.forEach((n, k) => { const p = racePos(k);
+      h += `<div class="rc ${R.color(n)}" data-n="${n}" style="left:${p.x - d / 2}px;top:${p.y - d / 2}px;width:${d}px;height:${d}px"><span>${n}</span><i class="amt"></i></div>`; });
+    const zx = [2.2, 5.0, 7.8, 10.6], zw = 2.6;
+    ["tiers", "orphelins", "voisins", "zero"].forEach((z, i) =>
+      h += `<button class="zone" data-z="${z}" style="left:${zx[i] * U - 0.2 * U}px;top:${1.35 * U}px;width:${zw * U}px;height:${1.9 * U}px"><b>${ANNOUNCED[z].name}</b><small>${ANNOUNCED[z].fr}</small></button>`);
+  }
   h += `<div id="chipLayer" class="chiplayer"></div><img id="dolly" class="dolly" src="img/roulette/marker.webp" alt="" hidden>`;
   board.innerHTML = h;
   drawChips();
 }
 function drawChips(win) {
   const layer = $("chipLayer"); if (!layer) return;
-  layer.innerHTML = [...bets].map(([k, v]) => {
+  if (VIEW === "race") {
+    layer.innerHTML = "";
+    const per = {}; for (const [k, v] of bets) if (!k.includes(",")) per[k] = v;      // straight-up amount on each number
+    board.querySelectorAll(".rc").forEach((c) => { const a = per[c.dataset.n]; const i = c.querySelector(".amt"); i.textContent = a ? chipLabel(Math.round(a)) : ""; c.classList.toggle("has", !!a); });
+  } else layer.innerHTML = [...bets].map(([k, v]) => {
     const a = anchor(k), p = toXY(a.u, a.w), st = win ? (win.has(k) ? " won" : " lost") : "";
     return `<div class="chip ${chipClass(v)}${st}" style="left:${p.x}px;top:${p.y}px">${chipLabel(v)}</div>`;
   }).join("");
@@ -141,17 +174,46 @@ function place(key, amt) {
   if (!PREVIEW && tot + amt > balance) return err("אין מספיק שקלים להימור הזה.");
   undoStack.push(new Map(bets)); bets.set(key, cur + amt); err(""); drawChips();
 }
+function placeMany(list) {             // list of [key, amount]; one undo step
+  if (busy || !list.length) return;
+  const next = new Map(bets);
+  for (const [k, a] of list) { if (!LEGAL.has(k)) return; next.set(k, (next.get(k) || 0) + a); }
+  if ([...next.values()].some((v) => v > 50000)) return err("מקסימום ₪50,000 על הימור אחד.");
+  const tot = [...next.values()].reduce((s, v) => s + v, 0);
+  if (tot > 100000) return err("מקסימום ₪100,000 לסיבוב.");
+  if (!PREVIEW && tot > balance) return err("אין מספיק שקלים להימור הזה.");
+  undoStack.push(new Map(bets)); bets = next; err(""); drawChips();
+}
 function err(t) { $("err").textContent = t; }
 
 function evPoint(e) { const r = board.getBoundingClientRect(), s = r.width / board.offsetWidth;
   return fromXY((e.clientX - r.left) / s, (e.clientY - r.top) / s); }
-board.addEventListener("click", (e) => { const p = evPoint(e); place(betAt(p.u, p.w), chipVal); });
+board.addEventListener("click", (e) => {
+  if (VIEW === "race") {
+    const z = e.target.closest(".zone"); if (z) return placeMany(ANNOUNCED[z.dataset.z].bets.map(([k, m]) => [k, m * chipVal]));
+    const c = e.target.closest(".rc"); if (c) return placeMany(neighbours(+c.dataset.n).map((n) => [String(n), chipVal]));
+    return;
+  }
+  const p = evPoint(e); place(betAt(p.u, p.w), chipVal);
+});
 board.addEventListener("pointermove", (e) => {
   if (e.pointerType !== "mouse") return;
+  if (VIEW === "race") {
+    const c = e.target.closest(".rc"), z = e.target.closest(".zone");
+    const set = new Set(c ? neighbours(+c.dataset.n).map(String) : z ? ANNOUNCED[z.dataset.z].bets.flatMap(([k]) => k.split(",")) : []);
+    board.querySelectorAll(".rc").forEach((x) => x.classList.toggle("hl", set.has(x.dataset.n))); return;
+  }
   const p = evPoint(e), k = betAt(p.u, p.w), set = new Set(k ? k.split(",") : []);
   board.querySelectorAll(".cell").forEach((c) => c.classList.toggle("hl", c.dataset.n !== undefined ? set.has(c.dataset.n) : c.dataset.k === "0" && set.has("0")));
 });
 board.addEventListener("pointerleave", () => board.querySelectorAll(".hl").forEach((c) => c.classList.remove("hl")));
+function setView(v) { VIEW = v; $("viewTable").setAttribute("aria-pressed", v === "table"); $("viewRace").setAttribute("aria-pressed", v === "race");
+  $("nbrBox").hidden = v !== "race"; drawBoard(); }
+$("viewTable").onclick = () => setView("table"); $("viewRace").onclick = () => setView("race");
+$("nMinus").onclick = () => { NB = Math.max(0, NB - 1); $("nVal").textContent = NB; };
+$("nPlus").onclick = () => { NB = Math.min(4, NB + 1); $("nVal").textContent = NB; };
+function setZoom(z) { zoom = Math.max(0.7, Math.min(2, Math.round(z * 10) / 10)); try { localStorage.setItem("rl_zoom", zoom); } catch (e) {} drawBoard(); layoutWheel(); }
+$("zIn").onclick = () => setZoom(zoom + 0.15); $("zOut").onclick = () => setZoom(zoom - 0.15);
 
 $("chips").innerHTML = CHIPS.map(([v, c]) => `<button class="chip ${c}" data-v="${v}" aria-pressed="${v === chipVal}">${chipLabel(v)}</button>`).join("");
 $("chips").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; chipVal = +b.dataset.v;
@@ -165,7 +227,11 @@ $("rebetBtn").onclick = () => { if (lastBets) { undoStack.push(new Map(bets)); b
 $("rulesBtn").onclick = () => $("rules").showModal();
 
 // ---------- history & balance ----------
-function drawHist() { $("hist").innerHTML = history.slice(0, 12).map((n, i) => `<span class="h ${R.color(n)}${i ? "" : " last"}">${n}</span>`).join(""); }
+function drawHist() {
+  $("hist").innerHTML = history.slice(0, 14).map((n, i) => `<div class="mrow ${R.color(n)}${i ? "" : " last"}"><span class="num">${n}</span></div>`).join("") || '<div class="empty">עוד אין סיבובים</div>';
+  const h = history, c = (f) => h.length ? Math.round(100 * h.filter(f).length / h.length) : 0;
+  $("pct").innerHTML = h.length ? `<span class="p red">${c((n) => R.color(n) === "red")}%</span><span class="p green">${c((n) => n === 0)}%</span><span class="p black">${c((n) => R.color(n) === "black")}%</span>` : "";
+}
 function showBal(v) { $("bal").textContent = fmt(v); }
 
 // ---------- wheel + camera ----------
@@ -173,7 +239,7 @@ let W, plan = null, t0 = 0, last = performance.now(), cine = false;
 const host = $("wheelHost");
 function hostSize() { return host.getBoundingClientRect().width || 300; }
 function layoutWheel() {
-  if (cine) { const s = Math.min(innerWidth, innerHeight) * 0.98; host.style.width = host.style.height = s + "px"; }
+  if (cine) { const s = Math.min(innerWidth * 0.98, innerHeight * 1.05); host.style.width = host.style.height = s + "px"; }
   else { const r = $("wheelSlot").getBoundingClientRect(); const s = Math.min(r.width, r.height) - 8; host.style.width = host.style.height = Math.max(120, s) + "px"; }
 }
 const lerp = (a, b, k) => a + (b - a) * k;
@@ -233,7 +299,7 @@ function finish() {
   const n = spinRes.result, win = new Set([...bets.keys()].filter((k) => k.split(",").map(Number).includes(n)));
   plan = null; $("resultCard").hidden = true; setCine(false);
   history.unshift(n); drawHist();
-  const cellEl = board.querySelector(`.cell[data-k="${n}"]`), d = $("dolly");
+  const cellEl = board.querySelector(VIEW === "table" ? `.cell[data-k="${n}"]` : `.rc[data-n="${n}"]`), d = $("dolly");
   if (cellEl) { d.style.left = cellEl.offsetLeft + cellEl.offsetWidth / 2 + "px"; d.style.top = cellEl.offsetTop + cellEl.offsetHeight / 2 + "px"; d.hidden = false;
     cellEl.classList.add("winner"); }
   drawChips(win);
@@ -281,7 +347,7 @@ addEventListener("resize", () => { drawBoard(); layoutWheel(); });
 (async function boot() {
   drawBoard(); layoutWheel();
   W = await R.mount(host, "img/roulette/"); requestAnimationFrame(frame);
-  if (PREVIEW) { balance = 10000; showBal(balance); history = [17, 0, 32, 5, 26, 11, 30, 2]; drawHist(); return; }
+  if (PREVIEW) { balance = 10000; showBal(balance); history = [17, 0, 32, 5, 26, 11, 30, 2, 19, 4, 21, 36]; drawHist(); return; }
   const { data: { session } } = await db.auth.getSession();
   if (!session) { location.href = "./"; return; }
   const [w, h] = await Promise.all([db.from("wallets").select("balance").eq("user_id", session.user.id).single(), db.rpc("rl_history")]);
@@ -289,4 +355,4 @@ addEventListener("resize", () => { drawBoard(); layoutWheel(); });
   if (!h.error && Array.isArray(h.data)) { history = h.data; drawHist(); }
   drawChips();
 })();
-window.__rl = { betAt, anchor, LEGAL, OUTSIDE, get W() { return W; }, get plan() { return plan; }, toXY, fromXY };
+window.__rl = { setView, setZoom, neighbours, ANNOUNCED, betAt, anchor, LEGAL, OUTSIDE, get W() { return W; }, get plan() { return plan; }, toXY, fromXY };
