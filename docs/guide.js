@@ -28,14 +28,15 @@
   .gd-prev,.gd-skip{background:transparent;color:#5a4630;border-color:#cdb58a!important}
   .gd-skip{margin-inline-start:auto;border:0!important;text-decoration:underline;padding:8px 4px!important}
   .gd-install{margin-top:8px;font:700 14px Heebo;border-radius:8px;padding:8px 14px;border:1px solid #C5A05A;background:linear-gradient(180deg,#F1D69A,#C5A05A);color:#0B0908;cursor:pointer}
-  .gd-neon{position:fixed;left:50%;bottom:max(6px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5;display:grid;justify-items:center;pointer-events:none;animation:neonBob 1s ease-in-out infinite}
-  .gd-neon svg{width:70px;height:130px;fill:none;stroke:#ff3df2;stroke-width:9;stroke-linecap:round;stroke-linejoin:round;
-    filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 10px #ff3df2) drop-shadow(0 0 22px #ff3df2) drop-shadow(0 0 40px #b400ff);animation:neonFlick 1.6s infinite}
-  .gd-neon span{order:-1;font:900 22px Heebo,sans-serif;color:#fff;text-shadow:0 0 6px #fff,0 0 14px #00f0ff,0 0 28px #00f0ff,0 0 48px #0080ff;margin-bottom:2px;animation:neonFlick 1.6s infinite .3s}
+  .gd-neon{position:fixed;left:50%;bottom:max(6px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5;display:grid;justify-items:center;pointer-events:none}
+  .gd-neon svg{width:64px;height:107px;filter:drop-shadow(0 0 6px rgba(241,214,154,.45))}
+  .gd-neon path{fill:none;stroke:#F1D69A;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;opacity:.2;animation:chev 1.2s infinite}
+  .gd-neon .c2{animation-delay:.2s}.gd-neon .c3{animation-delay:.4s}
+  .gd-neon .tip{fill:#C5A05A;stroke:none;opacity:1;animation:none}
+  .gd-neon span{font:700 16px Heebo,sans-serif;color:#F1D69A;letter-spacing:.05em;margin-bottom:2px;text-shadow:0 2px 6px #000}
   .gd-neon.up{left:auto;right:70px;bottom:auto;top:6px;transform:none}
   .gd-neon.up svg{transform:rotate(180deg)}.gd-neon.up span{order:2}
-  @keyframes neonBob{50%{translate:0 14px}}
-  @keyframes neonFlick{0%,18%,22%,62%,64%,100%{opacity:1}20%,63%{opacity:.25}}
+  @keyframes chev{0%,100%{opacity:.2}40%{opacity:1}}
   .gd-host{z-index:2;transition:bottom .3s}
   .gd.neon-on .gd-host{bottom:calc(175px + env(safe-area-inset-bottom))}
   .gd-dots{font:500 12px Inter;color:#8a7558}
@@ -74,7 +75,7 @@
       if (s.ios) {
         const ipad = /ipad/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
         const a = document.createElement("div"); a.className = "gd-neon" + (ipad ? " up" : "");
-        a.innerHTML = '<svg viewBox="0 0 60 110"><path d="M30 4 V82 M8 62 L30 100 L52 62" /></svg><span>כאן! שיתוף</span>';
+        a.innerHTML = '<span>שיתוף</span><svg viewBox="0 0 90 150"><path class="c1" d="M20 20 L45 45 L70 20"/><path class="c2" d="M20 55 L45 80 L70 55"/><path class="c3" d="M20 90 L45 115 L70 90"/><path class="tip" d="M30 130 l15 15 l15 -15z"/></svg>';
         o.appendChild(a);
       }
     };
