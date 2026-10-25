@@ -34,3 +34,6 @@ header{margin-bottom:14px}
 .game.lit .suits{color:#ffe27a;text-shadow:0 0 10px rgba(255,220,100,.6);letter-spacing:2px}
 .game.lit.xxx{background:radial-gradient(ellipse at 80% 0%,rgba(140,200,255,.22),transparent 55%),#0f2a3a;border-color:#6aa7d8}
 .game.lit.xxx .suits{color:#bfe3ff;text-shadow:0 0 12px rgba(140,200,255,.9)}
+.adminzone{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:24px}
+.adminzone .panel{margin-top:0}
+.adminzone:not(:has(.panel:not([hidden]))){display:none}

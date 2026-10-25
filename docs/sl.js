@@ -27,7 +27,7 @@ function buildReel(r) {
 }
 function cellH() { return reels[0].clientHeight / 3; }
 function setReel(r, idx, anim, ms) {
-  const s = reels[r].firstChild; s.style.transition = anim ? `transform ${ms}ms cubic-bezier(.15,.7,.25,1.04)` : "none";
+  const s = reels[r].firstChild; if (!s) return; s.style.transition = anim ? `transform ${ms}ms cubic-bezier(.15,.7,.25,1.04)` : "none";
   s.style.transform = `translateY(${-idx * cellH()}px)`;
 }
 function spinTo(stops) {
@@ -100,7 +100,7 @@ $("spinBtn").onclick = async () => {
 };
 
 // ---------- boot ----------
-addEventListener("resize", () => reels.forEach((el, r) => { el.style.setProperty("--ch", cellH() + "px"); setReel(r, pos[r] + N, false); }));
+addEventListener("resize", () => reels.forEach((el, r) => { if (!el.firstChild) return; el.style.setProperty("--ch", cellH() + "px"); setReel(r, pos[r] + N, false); }));
 (async function boot() {
   pos[0] = 3; pos[1] = 9; pos[2] = 17;
   // use the real symbol art if it has been added

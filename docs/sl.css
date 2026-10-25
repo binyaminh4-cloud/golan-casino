@@ -61,3 +61,4 @@ dialog table{width:100%;border-collapse:collapse}dialog td,dialog th{padding:6px
 dialog .pt{font-size:22px;letter-spacing:2px}dialog .pt img{width:26px;height:26px;vertical-align:middle}
 .btn{height:44px;border-radius:6px;border:1px solid var(--gold);background:linear-gradient(180deg,var(--champ),var(--gold));color:var(--onyx);font-weight:700}
 @media (max-height:560px){.cabinet{padding:8px 12px 10px;gap:4px}.controls{padding-block:4px}.chip{width:38px;height:38px;font-size:11px}.spin{height:48px;min-width:120px;font-size:19px}}
+body{grid-template-columns:minmax(0,1fr)}.hall,.controls,.top{min-width:0}

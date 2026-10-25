@@ -264,7 +264,11 @@ function shot(t, ball) {
   if (t < T.settle + 2.4) { const p = ease((t - z0) / (T.settle + 0.4 - z0)); return { z: lerp(1, 3.3, p), tilt: lerp(48, 36, p), f: p }; }
   return { z: 1, tilt: 48, f: 0 };
 }
+let lastIdleDraw = 0;
 function frame(now) {
+  if (document.hidden) { last = now; return requestAnimationFrame(frame); }
+  if (!plan && !cine && now - lastIdleDraw < 33) return requestAnimationFrame(frame);
+  if (!plan && !cine) lastIdleDraw = now;
   if (window.__hold && W) { W.camera(hostSize()); return requestAnimationFrame(frame); }
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   if (W) {
@@ -446,8 +450,9 @@ if (LIT) {
 (async function boot() {
   loadZeus();
   drawBoard(); layoutWheel();
-  W = await R.mount(host, "img/roulette/"); requestAnimationFrame(frame);
-  if (PREVIEW) { GC_LOADER.done(); GC_GUIDE.init({ game: LIT ? "lightning" : "roulette", db: null, mount: document.querySelector(".top"), steps: LIT ? GC_STEPS.lightning() : GC_STEPS.roulette(), auto: !/noguide/.test(location.search) }); balance = 10000; showBal(balance); history = [17, 0, 32, 5, 26, 11, 30, 2, 19, 4, 21, 36]; drawHist(); return; }
+  W = await R.mount(host, "img/roulette/"); W.pose(); W.camera(hostSize());     // one still frame; the render loop starts once the page is shown
+  const startLoop = () => { if (!startLoop.on) { startLoop.on = true; last = performance.now(); requestAnimationFrame(frame); } };
+  if (PREVIEW) { GC_LOADER.done(); setTimeout(startLoop, 650); GC_GUIDE.init({ game: LIT ? "lightning" : "roulette", db: null, mount: document.querySelector(".top"), steps: LIT ? GC_STEPS.lightning() : GC_STEPS.roulette(), auto: !/noguide/.test(location.search) }); balance = 10000; showBal(balance); history = [17, 0, 32, 5, 26, 11, 30, 2, 19, 4, 21, 36]; drawHist(); return; }
   const { data: { session } } = await db.auth.getSession();
   if (!session) { location.href = "./"; return; }
   GC_GUIDE.init({ game: LIT ? "lightning" : "roulette", db, mount: document.querySelector(".top"), steps: LIT ? GC_STEPS.lightning() : GC_STEPS.roulette() });
@@ -456,7 +461,7 @@ if (LIT) {
   if (!w.error) { balance = w.data.balance; showBal(balance); }
   if (!h.error && Array.isArray(h.data)) { history = h.data; drawHist(); }
   if (ch.url) await new Promise((res) => { const i = new Image(); i.onload = i.onerror = res; i.src = ch.url; });
-  GC_LOADER.done();
+  GC_LOADER.done(); setTimeout(startLoop, 650);
   drawChips();
 })();
 window.__rl = { shot, setCine, setView, setZoom, neighbours, ANNOUNCED, betAt, anchor, LEGAL, OUTSIDE, get W() { return W; }, get plan() { return plan; }, toXY, fromXY };

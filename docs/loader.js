@@ -43,7 +43,8 @@
   function done() {
     if (finished || !o) return; finished = true; const el = o;
     clearInterval(progT); bar.style.width = "100%";
-    setTimeout(() => { d.classList.remove("gc-loading"); el.classList.add("out"); clearInterval(tipT); setTimeout(() => el.remove(), 600); }, 250);
+    d.classList.remove("gc-loading"); el.classList.add("out"); clearInterval(tipT);
+    el.addEventListener("transitionend", () => el.remove(), { once: true }); setTimeout(() => el.remove(), 700);
   }
   // show the loader again (page change, login): stays until the new page takes over, or done() is called
   function show() { if (o && !finished) return; build(); }
@@ -66,5 +67,11 @@
     const t = b && setTimeout(() => b.classList.add("gc-busy"), 250);
     return f0.apply(this, arguments).finally(() => { inflight--; clearTimeout(t); if (b) b.classList.remove("gc-busy"); });
   };
-  addEventListener("pageshow", (e) => { if (e.persisted) done(); });   // back button from cache
+  addEventListener("pageshow", (e) => { if (e.persisted) { finished = false; done(); if (o) o.remove(); d.classList.remove("gc-loading"); } });   // back/forward from cache
+  // "to lobby" goes BACK in history when we came from the lobby, so the phone's Back button doesn't return into the game
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest('a[href="./"], a[href="index.html"]'); if (!a) return;
+    let ref = ""; try { ref = new URL(document.referrer); } catch (x) {}
+    if (ref && ref.origin === location.origin && /\/(index\.html)?$/.test(ref.pathname) && window.history.length > 1) { e.preventDefault(); show(); window.history.back(); }
+  });
 })();
