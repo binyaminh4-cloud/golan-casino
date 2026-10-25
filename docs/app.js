@@ -50,9 +50,12 @@ $("loginForm").addEventListener("submit", async (e) => {
       if (!r.data) throw new Error("no_user");
       email = r.data;
     }
+    GC_LOADER.show();
     const { error } = await db.auth.signInWithPassword({ email, password });
+    if (error) GC_LOADER.done();
     if (error) throw new Error(/invalid/i.test(error.message) ? "bad_password" : error.message);
   } catch (err) {
+    GC_LOADER.done();
     const m = err.message || "";
     loginMsg(m.includes("code_format") ? "הקוד הוא 6 ספרות." :
       m.includes("wrong_code") || m.includes("bad_code") ? "הקוד לא נכון או שפג תוקפו. בדוק את הקוד שקיבלת." :
@@ -63,7 +66,7 @@ $("loginForm").addEventListener("submit", async (e) => {
       "הכניסה נכשלה. נסה שוב בעוד רגע.", true);
   } finally { $("loginBtn").disabled = false; }
 });
-$("logout").onclick = () => db.auth.signOut();
+$("logout").onclick = () => { GC_LOADER.show(); db.auth.signOut().finally(() => setTimeout(GC_LOADER.done, 400)); };
 
 // ---------- Lobby ----------
 async function showLobby(user) {
