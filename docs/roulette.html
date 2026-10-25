@@ -6,9 +6,7 @@
 <title>רולטה · גולן קזינו</title>
 <link rel="icon" href="img/brand/favicon.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@500;700&display=swap">
-<link rel="stylesheet" href="rl.css?v=2">
-<link rel="preload" as="image" href="img/roulette/bowl.webp">
-<link rel="preload" as="image" href="img/roulette/rotor.webp">
+<link rel="stylesheet" href="rl.css?v=3">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
 <script src="landscape.js?v=1"></script>
@@ -77,7 +75,9 @@
   <form method="dialog"><button class="btn" style="width:100%;margin-top:12px">סגור</button></form>
 </dialog>
 
-<script src="rl_wheel.js?v=2"></script>
-<script src="rl.js?v=2"></script>
+<script type="importmap">{"imports":{"three":"./vendor/three/three.module.min.js"}}</script>
+<script src="rl_wheel.js?v=3"></script>
+<script type="module" src="rl_wheel3d.js?v=1"></script>
+<script src="rl.js?v=3"></script>
 </body>
 </html>

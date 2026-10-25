@@ -95,7 +95,7 @@
   }
 
   const RLW = { ORDER, RED, color, STEP, IDX, G, T, plan, pocketAt, norm };
-  RLW.mount = async function (host, base) {
+  RLW.mount2d = async function (host, base) {
     const el = build(host, base);
     const img = new Image(); img.src = base + "rotor.webp";
     await Promise.all([img.decode().catch(() => {}), document.fonts ? document.fonts.load("700 27px 'Frank Ruhl Libre'").catch(() => {}) : 0]);
@@ -120,6 +120,13 @@
     W.local = () => norm(W.ball.phi - W.rotor);           // ball angle in the rotor's own frame
     W.under = () => pocketAt(W.local());                  // the number of the pocket the ball is in
     return W;
+  };
+  // the 3D wheel (rl_wheel3d.js, an ES module) registers RLW.mount3d; fall back to 2D if WebGL is missing or fails
+  RLW.ready3d = new Promise((res) => { addEventListener("rlw3d", res, { once: true }); setTimeout(res, 6000); });
+  RLW.mount = async function (host, base) {
+    await RLW.ready3d;
+    if (RLW.mount3d) { try { return await RLW.mount3d(host, base); } catch (e) { console.error("3D wheel failed, using 2D", e); } }
+    return RLW.mount2d(host, base);
   };
   window.RLW = RLW;
 })();

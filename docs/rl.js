@@ -239,7 +239,7 @@ let W, plan = null, t0 = 0, last = performance.now(), cine = false;
 const host = $("wheelHost");
 function hostSize() { return host.getBoundingClientRect().width || 300; }
 function layoutWheel() {
-  if (cine) { const s = Math.min(innerWidth * 0.98, innerHeight * 1.05); host.style.width = host.style.height = s + "px"; }
+  if (cine) { if (W && W.is3d) { host.style.width = innerWidth + "px"; host.style.height = innerHeight + "px"; } else { const s = Math.min(innerWidth * 0.98, innerHeight * 1.05); host.style.width = host.style.height = s + "px"; } }
   else { const r = $("wheelSlot").getBoundingClientRect(); const s = Math.min(r.width, r.height) - 8; host.style.width = host.style.height = Math.max(120, s) + "px"; }
 }
 const lerp = (a, b, k) => a + (b - a) * k;
@@ -254,6 +254,7 @@ function shot(t, ball) {          // target camera for time t of the spin
   return { z: 1, tilt: 48, f: 0 };
 }
 function frame(now) {
+  if (window.__hold && W) { W.camera(hostSize()); return requestAnimationFrame(frame); }
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   if (W) {
     if (plan) {
@@ -262,9 +263,10 @@ function frame(now) {
       const b = W.pose(), sh = shot(t, b), k = 1 - Math.pow(0.002, dt);   // smooth camera
       W.cam.z = lerp(W.cam.z, sh.z, k); W.cam.tilt = lerp(W.cam.tilt, sh.tilt, k);
       W.cam.fx = lerp(W.cam.fx, lerp(600, b.x, sh.f), k); W.cam.fy = lerp(W.cam.fy, lerp(600, b.y, sh.f), k);
+      if (W.is3d) { const want = sh.f >= 0.8 ? R.norm(-W.ball.phi) : 0; let d = ((want - (W.cam.az || 0)) % 360 + 540) % 360 - 180; W.cam.az = (W.cam.az || 0) + d * k * 0.6; }
       onTime(t);
     } else { W.idle(dt); W.cam.z = lerp(W.cam.z, 1, 0.1); W.cam.tilt = lerp(W.cam.tilt, 48, 0.1);
-             W.cam.fx = lerp(W.cam.fx, 600, 0.1); W.cam.fy = lerp(W.cam.fy, 600, 0.1); }
+             W.cam.fx = lerp(W.cam.fx, 600, 0.1); W.cam.fy = lerp(W.cam.fy, 600, 0.1); if (W.is3d) { let d = ((0 - (W.cam.az || 0)) % 360 + 540) % 360 - 180; W.cam.az = (W.cam.az || 0) + d * 0.06; } }
     W.camera(hostSize());
   }
   requestAnimationFrame(frame);
@@ -355,4 +357,4 @@ addEventListener("resize", () => { drawBoard(); layoutWheel(); });
   if (!h.error && Array.isArray(h.data)) { history = h.data; drawHist(); }
   drawChips();
 })();
-window.__rl = { setView, setZoom, neighbours, ANNOUNCED, betAt, anchor, LEGAL, OUTSIDE, get W() { return W; }, get plan() { return plan; }, toXY, fromXY };
+window.__rl = { shot, setCine, setView, setZoom, neighbours, ANNOUNCED, betAt, anchor, LEGAL, OUTSIDE, get W() { return W; }, get plan() { return plan; }, toXY, fromXY };
