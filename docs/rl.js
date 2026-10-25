@@ -2,6 +2,10 @@
 const $ = (id) => document.getElementById(id);
 const fmt = (n) => "₪" + Number(n).toLocaleString("en-US");
 const PREVIEW = /[?#&]preview/.test(location.href);
+const MODE = (new URLSearchParams(location.search).get("mode") || "classic").replace(/[^a-z]/g, "");
+const LIT = MODE === "lightning" || MODE === "xxx";
+const BASE_STRAIGHT = MODE === "xxx" ? 20 : MODE === "lightning" ? 30 : 36;
+let LUCKY = {};
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 const R = RLW;
 
@@ -146,6 +150,7 @@ function drawBoard() {
   }
   h += `<div id="chipLayer" class="chiplayer"></div><img id="dolly" class="dolly" src="img/roulette/marker.webp" alt="" hidden>`;
   board.innerHTML = h;
+  for (const [k, m] of Object.entries(LUCKY)) markLucky(k, m, false);
   drawChips();
 }
 function drawChips(win) {
@@ -298,6 +303,7 @@ function showResult() {
   const card = $("resultCard");
   card.className = "result " + c + (spinRes.payout > 0 ? " won" : "");
   card.innerHTML = (ME_URL ? `<img class="rme" src="${ME_URL}" alt="">` : "") + `<div class="rn num">${n}</div><div class="rc">${name}${n ? " · " + (n % 2 ? "אי־זוגי" : "זוגי") + " · " + (n <= 18 ? "1–18" : "19–36") : ""}</div>` +
+    (LUCKY[n] ? `<div class="rbolt">⚡ ברק ${LUCKY[n]}x</div>` : "") +
     (spinRes.payout > 0 ? `<div class="rw">זכית ${fmt(spinRes.payout)}</div>` : `<div class="rl">לא הפעם</div>`);
   card.hidden = false;
   if (W.under() !== n) console.error("wheel/result mismatch", W.under(), n);   // never expected; checked by tests
@@ -317,7 +323,7 @@ function finish() {
   if (spinRes.payout > 0) err("");
   setTimeout(() => {                         // croupier clears the layout
     lastBets = new Map(bets); bets.clear(); undoStack.length = 0; busy = false;
-    d.hidden = true; board.querySelectorAll(".winner").forEach((x) => x.classList.remove("winner")); drawChips();
+    d.hidden = true; board.querySelectorAll(".winner").forEach((x) => x.classList.remove("winner")); clearLucky(); drawChips();
   }, 2600);
 }
 function newRef() { return (crypto.randomUUID ? crypto.randomUUID() : Date.now() + "-" + Math.random().toString(36).slice(2)); }
@@ -331,17 +337,37 @@ $("spinBtn").onclick = async () => {
       const forced = new URLSearchParams(location.search).get("n");
       const n = forced !== null ? +forced : Math.floor(Math.random() * 37);
       const total = payload.reduce((s, b) => s + b.amt, 0);
-      const payout = payload.filter((b) => b.nums.includes(n)).reduce((s, b) => s + Math.floor(b.amt * 36 / b.nums.length), 0);
-      balance = (balance || 10000); res = { result: n, total, payout, balance: balance - total + payout };
+      const lucky = {}; if (LIT) { const k = 1 + Math.floor(Math.random() * (MODE === "xxx" ? 8 : 5)); while (Object.keys(lucky).length < k) { const x = Math.floor(Math.random() * 37); lucky[x] = MODE === "xxx" && Math.random() < .2 ? [600, 800, 1000, 2000][Math.floor(Math.random() * 4)] : 50 * (1 + Math.floor(Math.random() * 10)); } if (new URLSearchParams(location.search).get("hit")) lucky[n] = +new URLSearchParams(location.search).get("hit"); }
+      const payout = payload.filter((b) => b.nums.includes(n)).reduce((s, b) => s + (b.nums.length === 1 && LIT ? b.amt * (lucky[n] ? lucky[n] + 1 : BASE_STRAIGHT) : Math.floor(b.amt * 36 / b.nums.length)), 0);
+      balance = (balance || 10000); res = { result: n, total, payout, balance: balance - total + payout, lucky };
     } else {
-      const { data, error } = await db.rpc("rl_spin", { p_bets: payload, p_ref: newRef() });
+      const { data, error } = await db.rpc("rl_spin", { p_bets: payload, p_ref: newRef(), p_mode: MODE });
       if (error) throw error; res = data;
     }
   } catch (e) { busy = false; drawChips(); return err(errText(e)); }
   spinRes = res; showBal(res.balance - res.payout);
+  if (LIT) await strike(res.lucky || {});
   marks = {}; setCine(true);
   plan = R.plan(res.result, W.rotor); t0 = performance.now();
 };
+// ---------- lightning: strike the lucky numbers on the layout, then spin ----------
+async function strike(lucky) {
+  LUCKY = lucky; const keys = Object.keys(lucky);
+  const fl = document.createElement("div"); fl.className = "flash"; document.body.appendChild(fl);
+  $("cineMsg").textContent = "";
+  for (const k of keys) {
+    fl.classList.remove("go"); void fl.offsetWidth; fl.classList.add("go");
+    markLucky(k, lucky[k], true);
+    await new Promise((r) => setTimeout(r, keys.length > 5 ? 280 : 480));
+  }
+  await new Promise((r) => setTimeout(r, 900)); fl.remove();
+}
+function markLucky(k, m, fresh) {
+  const sel = VIEW === "table" ? `.cell[data-k="${k}"]` : `.rc[data-n="${k}"]`, c = board.querySelector(sel); if (!c) return;
+  c.classList.add("lucky"); if (fresh) { c.classList.remove("zap"); void c.offsetWidth; c.classList.add("zap"); }
+  if (!c.querySelector(".mx")) { const b = document.createElement("i"); b.className = "mx" + (m >= 1000 ? " mega" : ""); b.textContent = m + "x"; c.appendChild(b); }
+}
+function clearLucky() { LUCKY = {}; board.querySelectorAll(".lucky").forEach((c) => { c.classList.remove("lucky", "zap"); c.querySelector(".mx")?.remove(); }); }
 function errText(e) {
   const m = (e && e.message) || "";
   if (m.includes("insufficient_funds")) return "אין מספיק שקלים משחקיים. הקטן את ההימור.";
@@ -366,6 +392,15 @@ function relayout() { placeTools(); const b = $("boardScroll").getBoundingClient
 addEventListener("resize", relayout); addEventListener("orientationchange", () => setTimeout(relayout, 350));
 if (window.ResizeObserver) new ResizeObserver(relayout).observe($("boardScroll"));
 setInterval(relayout, 1000);
+if (LIT) {
+  document.body.classList.add("lit", "m-" + MODE);
+  document.title = (MODE === "xxx" ? "רולטת ברקים XXX" : "רולטת ברקים") + " · גולן קזינו";
+  const r = document.querySelector("#rules"); r.querySelector("h2").textContent = MODE === "xxx" ? "רולטת ברקים XXXtreme · חוקים" : "רולטת ברקים · חוקים";
+  r.querySelector("h2").insertAdjacentHTML("afterend", MODE === "xxx"
+    ? "<p><b>⚡ ברקים:</b> לפני כל סיבוב ברקים פוגעים ב־1 עד 5 מספרים עם מכפיל 50x עד 500x. לפעמים <b>שרשרת ברקים</b> מוסיפה מספרים (עד 10), ו<b>מכה כפולה</b> מקפיצה מספר ל־600x עד <b>2,000x</b>. הימור על מספר בודד שזוכה במספר מוכה ברק משלם את המכפיל. מספר בודד רגיל משלם 19:1. שאר ההימורים כרגיל.</p>"
+    : "<p><b>⚡ ברקים:</b> לפני כל סיבוב ברקים פוגעים ב־1 עד 5 מספרים, וכל אחד מקבל מכפיל של 50x עד 500x. הימור על מספר בודד שזוכה במספר מוכה ברק משלם את המכפיל. מספר בודד רגיל משלם 29:1. שאר ההימורים כרגיל.</p>");
+  r.querySelector("table tr:nth-child(2) td:last-child").textContent = MODE === "xxx" ? "19:1 · ברק 50–2000x" : "29:1 · ברק 50–500x";
+}
 (async function boot() {
   drawBoard(); layoutWheel();
   W = await R.mount(host, "img/roulette/"); requestAnimationFrame(frame);
@@ -373,7 +408,7 @@ setInterval(relayout, 1000);
   const { data: { session } } = await db.auth.getSession();
   if (!session) { location.href = "./"; return; }
   GC_GUIDE.init({ game: "roulette", db, mount: document.querySelector(".top"), steps: GC_STEPS.roulette() });
-  const [w, h, ch] = await Promise.all([db.from("wallets").select("balance").eq("user_id", session.user.id).single(), db.rpc("rl_history"), GC_CHAR(db, session.user.id)]);
+  const [w, h, ch] = await Promise.all([db.from("wallets").select("balance").eq("user_id", session.user.id).single(), db.rpc("rl_history", { p_mode: MODE }), GC_CHAR(db, session.user.id)]);
   if (ch.url) { ME_URL = ch.url; $("meImg").src = ch.url; $("meName").textContent = ch.nick || ""; $("me").hidden = false; }
   if (!w.error) { balance = w.data.balance; showBal(balance); }
   if (!h.error && Array.isArray(h.data)) { history = h.data; drawHist(); }
