@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>רולטה · גולן קזינו</title>
+<link rel="icon" href="img/brand/favicon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@500;700&display=swap">
+<link rel="stylesheet" href="rl.css?v=1">
+<link rel="preload" as="image" href="img/roulette/bowl.webp">
+<link rel="preload" as="image" href="img/roulette/rotor.webp">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=8"></script>
+</head>
+<body>
+<header class="top">
+  <a href="./" class="back">→ ללובי</a>
+  <div class="hist" id="hist" aria-label="תוצאות אחרונות"></div>
+  <div class="bal">הארנק שלי <b id="bal" class="num">…</b></div>
+  <button id="rulesBtn" class="rules-btn">חוקים ותשלומים</button>
+</header>
+
+<main class="room" id="room">
+  <section class="wheel-slot" id="wheelSlot"><div id="wheelHost" class="wheelhost"></div></section>
+  <section class="board-slot" id="boardSlot">
+    <div class="rail"><div id="board" class="board" aria-label="שולחן ההימורים"></div></div>
+  </section>
+</main>
+
+<footer class="controls">
+  <div class="chips" role="group" aria-label="ערך צ׳יפ" id="chips"></div>
+  <div class="betline"><span>הימור כולל <b id="total" class="num">₪0</b></span><span class="err" id="err" aria-live="polite"></span></div>
+  <div class="btns">
+    <button class="btn ghost" id="undoBtn">בטל</button>
+    <button class="btn ghost" id="clearBtn">נקה</button>
+    <button class="btn ghost" id="dblBtn">הכפל</button>
+    <button class="btn ghost" id="rebetBtn">אותו הימור</button>
+    <button class="btn spin" id="spinBtn">סובב</button>
+  </div>
+</footer>
+
+<div id="cine" class="cine" hidden>
+  <div class="cine-msg" id="cineMsg"></div>
+  <div class="result" id="resultCard" hidden></div>
+</div>
+
+<dialog id="rules">
+  <h2>רולטה אירופאית · חוקים ותשלומים</h2>
+  <p>גלגל אחד עם אפס אחד: 37 מספרים, 0 עד 36. הגלגל והתוצאה נקבעים בשרת לפני שהכדור נזרק, והאנימציה רק מראה את מה שכבר נקבע. יתרון הבית בכל ההימורים: 2.70%.</p>
+  <table>
+    <tr><th>הימור</th><th>מכסה</th><th>משלם</th></tr>
+    <tr><td>מספר בודד</td><td class="num">1</td><td class="num">35:1</td></tr>
+    <tr><td>ספליט (שני מספרים צמודים)</td><td class="num">2</td><td class="num">17:1</td></tr>
+    <tr><td>שורה (סטריט) / טריו עם אפס</td><td class="num">3</td><td class="num">11:1</td></tr>
+    <tr><td>פינה / ארבעת הראשונים (0‑3)</td><td class="num">4</td><td class="num">8:1</td></tr>
+    <tr><td>שורה כפולה (סיקס ליין)</td><td class="num">6</td><td class="num">5:1</td></tr>
+    <tr><td>תריסר / טור (2:1)</td><td class="num">12</td><td class="num">2:1</td></tr>
+    <tr><td>אדום/שחור · זוגי/אי־זוגי · 1‑18/19‑36</td><td class="num">18</td><td class="num">1:1</td></tr>
+  </table>
+  <p>איך מניחים: בוחרים צ׳יפ ולוחצים על מספר. לחיצה על הקו בין שני מספרים = ספליט, על הצומת של ארבעה = פינה, על הקו התחתון של טור = שורה, ועל הצומת בקו התחתון = שורה כפולה. על אפס כל ההימורים החיצוניים מפסידים. הימור מינימלי ₪1, מקסימום ₪50,000 לכל הימור ו־₪100,000 לסיבוב.</p>
+  <p>שקלים משחקיים בלבד. אין כסף אמיתי.</p>
+  <form method="dialog"><button class="btn" style="width:100%;margin-top:12px">סגור</button></form>
+</dialog>
+
+<script src="rl_wheel.js?v=1"></script>
+<script src="rl.js?v=1"></script>
+</body>
+</html>

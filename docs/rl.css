@@ -1,0 +1,108 @@
+/* Golan Casino · roulette. Same Monte Carlo tokens as the login/lobby. */
+:root{--onyx:#0B0908;--walnut:#17120F;--gold:#C5A05A;--champ:#F1D69A;--ink:#F5ECDD;--muted:#B9AA94;--line:#80602E;
+  --red:#B3162A;--black:#151211;--green:#0F6B3A;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--onyx) url(img/roulette/room_bg.jpg) center/cover;color:var(--ink);font:400 15px Heebo,system-ui,sans-serif;
+  display:grid;grid-template-rows:auto 1fr auto;height:100dvh}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(11,9,8,.35),rgba(11,9,8,.85));pointer-events:none}
+.num{font-family:Inter,Heebo,sans-serif;font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+button{font:inherit;cursor:pointer}
+
+.top{position:relative;display:flex;align-items:center;gap:12px;padding:8px max(12px,env(safe-area-inset-right)) 8px max(12px,env(safe-area-inset-left));
+  background:linear-gradient(rgba(11,9,8,.92),rgba(11,9,8,.6));border-bottom:1px solid rgba(128,96,46,.5)}
+.top a,.rules-btn{color:var(--muted);text-decoration:none;background:none;border:0;font-size:14px;padding:6px;white-space:nowrap}
+.bal{white-space:nowrap;font-size:14px;color:var(--muted)}.bal b{color:var(--champ);font:700 18px Inter}
+.hist{flex:1;display:flex;gap:4px;justify-content:center;overflow:hidden;direction:ltr;min-width:0}
+.h{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:700 12px Inter;border:1px solid rgba(255,255,255,.15)}
+.h.red{background:var(--red)}.h.black{background:var(--black)}.h.green{background:var(--green)}
+.h.last{outline:2px solid var(--champ);outline-offset:1px;width:32px;height:32px;font-size:14px}
+
+.room{position:relative;display:grid;grid-template-columns:minmax(260px,38%) 1fr;gap:8px;min-height:0;padding:8px}
+.wheel-slot{display:grid;place-items:center;min-height:0;min-width:0}
+.board-slot{display:grid;place-items:center;min-height:0;min-width:0}
+@media (max-aspect-ratio:1/1){
+  .room{grid-template-columns:1fr;grid-template-rows:30% 1fr}
+}
+.wheelhost{position:relative;flex:none;overflow:visible}
+.rig{position:absolute;left:0;top:0;width:1200px;height:1200px;transform-origin:0 0;will-change:transform}
+.rig>*{position:absolute;left:0;top:0}
+.rotorwrap{left:228px;top:228px;width:744px;height:744px;will-change:transform}
+.rotor{width:744px;height:744px}
+.rotor,.turret{position:absolute;left:0;top:0}
+.turret{left:222px;top:222px;width:300px;height:300px}
+.bowl{width:1200px;height:1200px;pointer-events:none}
+.ball{width:30px;height:30px;will-change:transform;transform-origin:15px 15px}
+.bshadow{width:48px;height:48px;will-change:transform}
+/* the rig's own transform-origin must be the wheel centre for the camera */
+.wheelhost .rig{transform-origin:600px 600px}
+
+.rail{padding:10px;border-radius:14px;background:url(img/roulette/rail.jpg) center/cover;box-shadow:0 20px 50px rgba(0,0,0,.7)}
+.board{position:relative;direction:ltr;background:#0e3a2b url(img/roulette/felt.jpg);background-size:256px;border-radius:6px;user-select:none;touch-action:manipulation;
+  box-shadow:inset 0 0 40px rgba(0,0,0,.55);cursor:pointer}
+.cell{position:absolute;display:grid;place-items:center;border:1.5px solid rgba(241,214,154,.75);color:var(--ink);
+  font:700 calc(var(--u)*.36) 'Frank Ruhl Libre',serif;transition:background .15s, box-shadow .15s}
+.cell span{pointer-events:none}
+.cell.num span{width:calc(var(--u)*.62);height:calc(var(--u)*.62);display:grid;place-items:center;border-radius:50%}
+.cell.red span{background:var(--red)}.cell.black span{background:var(--black)}
+.cell.zero{background:rgba(15,107,58,.85);border-radius:calc(var(--u)*.9) 0 0 calc(var(--u)*.9)}
+.board.vert .cell.zero{border-radius:calc(var(--u)*.9) calc(var(--u)*.9) 0 0}
+.cell.out{font:500 calc(var(--u)*.3) Heebo,sans-serif;color:var(--champ)}
+.cell.out.red span,.cell.out.black span{font-size:0;width:calc(var(--u)*.9);height:calc(var(--u)*.55);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.cell.out.red span{background:var(--red)}.cell.out.black span{background:#050404;box-shadow:inset 0 0 0 40px #050404}
+.cell.out.black{background:radial-gradient(closest-side,rgba(241,214,154,.35),transparent)}
+.board.vert .cell.out span{transform:rotate(-90deg);white-space:nowrap}
+.cell.hl{background:rgba(241,214,154,.28)}
+.cell.winner{background:rgba(241,214,154,.45);box-shadow:inset 0 0 0 3px var(--champ)}
+.chiplayer{position:absolute;inset:0;pointer-events:none}
+.dolly{position:absolute;width:calc(var(--u)*.8);height:calc(var(--u)*.8);transform:translate(-50%,-50%);pointer-events:none;
+  filter:drop-shadow(0 4px 6px rgba(0,0,0,.6));animation:drop .4s ease-out}
+@keyframes drop{from{transform:translate(-50%,-140%);opacity:0}}
+
+.chip{border-radius:50%;display:grid;place-items:center;color:#fff;font:700 12px Inter;border:4px dashed rgba(255,255,255,.85);
+  box-shadow:0 3px 6px rgba(0,0,0,.6),inset 0 0 0 2px rgba(0,0,0,.25)}
+.chiplayer .chip{position:absolute;width:calc(var(--u)*.56);height:calc(var(--u)*.56);transform:translate(-50%,-50%);font-size:calc(var(--u)*.2);
+  border-width:calc(var(--u)*.06);transition:opacity .4s,transform .4s}
+.chip.lost{opacity:.15}.chip.won{box-shadow:0 0 0 3px var(--champ),0 0 18px var(--champ)}
+.c1{background:#9a9a9a}.c5{background:#B3162A}.c25{background:#1f6b3e}.c100{background:#151515}
+.c500{background:#5b2a86}.c1k{background:#c08a1e}.c5k{background:#7a1d27}
+
+.controls{position:relative;display:grid;gap:6px;justify-items:center;padding:8px 12px max(10px,env(safe-area-inset-bottom));
+  background:linear-gradient(rgba(11,9,8,.6),rgba(11,9,8,.95));border-top:1px solid rgba(128,96,46,.5)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.chips .chip{width:46px;height:46px}
+.chips .chip[aria-pressed="true"]{outline:3px solid var(--champ);outline-offset:3px;transform:translateY(-3px)}
+.betline{display:flex;gap:16px;font-size:14px;color:var(--muted)}.betline b{color:var(--champ)}
+.err{color:#E89A9F}
+.btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.btn{height:44px;padding:0 16px;border-radius:6px;border:1px solid var(--gold);background:linear-gradient(180deg,var(--champ),var(--gold));color:var(--onyx);font-weight:700}
+.btn.ghost{background:rgba(23,18,15,.9);color:var(--ink);font-weight:500}
+.btn.spin{min-width:120px;font-size:18px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn:focus-visible,.chip:focus-visible{outline:2px solid var(--champ);outline-offset:3px}
+
+.cine{position:fixed;inset:0;z-index:40;display:grid;place-items:center;overflow:hidden;background:#000 url(img/roulette/room_bg.jpg) center/cover;
+  opacity:0;transition:opacity .45s}
+.cine::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,0,0,.1),rgba(0,0,0,.75))}
+.cine.on{opacity:1}
+.cine-msg{position:absolute;top:8%;inset-inline:0;text-align:center;font:700 clamp(22px,4vw,38px) 'Frank Ruhl Libre',serif;color:var(--champ);
+  letter-spacing:.06em;text-shadow:0 2px 12px #000;opacity:0;transition:opacity .4s;z-index:2}
+.cine-msg.show{opacity:1}
+.result{position:absolute;z-index:3;bottom:9%;inset-inline:0;margin:auto;width:min(360px,86vw);text-align:center;padding:18px;border-radius:14px;
+  background:rgba(11,9,8,.88);border:1px solid var(--gold);box-shadow:0 20px 60px rgba(0,0,0,.8);animation:pop .35s ease-out}
+@keyframes pop{from{transform:scale(.85);opacity:0}}
+.result .rn{display:inline-grid;place-items:center;width:84px;height:84px;border-radius:50%;font:700 40px Inter;border:3px solid var(--champ)}
+.result.red .rn{background:var(--red)}.result.black .rn{background:var(--black)}.result.green .rn{background:var(--green)}
+.result .rc{margin-top:8px;color:var(--muted)}
+.result .rw{margin-top:6px;font:700 24px Heebo;color:var(--champ)}.result .rl{margin-top:6px;color:var(--muted)}
+
+dialog{background:var(--walnut);color:var(--ink);border:1px solid var(--gold);border-radius:12px;max-width:560px;width:92vw;max-height:86vh}
+dialog::backdrop{background:rgba(0,0,0,.7)}
+dialog h2{font:700 22px 'Frank Ruhl Libre',serif;color:var(--champ);margin-top:0}
+dialog table{width:100%;border-collapse:collapse;font-size:14px}dialog td,dialog th{padding:6px;border-bottom:1px solid rgba(128,96,46,.4);text-align:right}
+@media (max-width:560px){.top{flex-wrap:wrap;gap:4px 8px}.hist{order:5;flex-basis:100%;justify-content:flex-start}.h{width:24px;height:24px;font-size:11px}.h.last{width:28px;height:28px}
+  .rules-btn{font-size:13px}.chips{gap:5px;flex-wrap:nowrap}.chips .chip{width:38px;height:38px;font-size:11px;border-width:3px}
+  .btns{display:grid;grid-template-columns:repeat(4,1fr) 1.4fr;width:100%;gap:5px}.btn{height:42px;padding:0 4px;font-size:14px;min-width:0}.btn.spin{min-width:0;font-size:16px}}
+@media (max-aspect-ratio:1/1){.room{grid-template-rows:26% 1fr;padding:4px 8px}}
+@media (prefers-reduced-motion:reduce){.result,.dolly{animation:none}}
+.cine[hidden],.result[hidden]{display:none}
