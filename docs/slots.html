@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="loader.js?v=2"></script>
+<title>מכונות מזל · גולן קזינו</title>
+<link rel="icon" href="img/brand/favicon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@500;700;800&display=swap">
+<link rel="stylesheet" href="sl.css?v=1">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=8"></script>
+<script src="landscape.js?v=1"></script>
+</head>
+<body>
+<header class="top">
+  <a href="./" class="back">→ ללובי</a>
+  <div class="bal">הארנק שלי <b id="bal" class="num">…</b></div>
+  <button id="rulesBtn" class="rules-btn">טבלת תשלומים</button>
+</header>
+
+<main class="hall">
+  <section class="cabinet" aria-label="מכונת מזל">
+    <div class="marquee-top"><span>GOLAN</span> <b>777</b> <span>CASINO</span></div>
+    <div class="window">
+      <div class="lines-l" aria-hidden="true"><i data-l="1">2</i><i data-l="3">4</i><i data-l="0">1</i><i data-l="4">5</i><i data-l="2">3</i></div>
+      <div class="reels" id="reels"><div class="reel"></div><div class="reel"></div><div class="reel"></div>
+        <svg class="paylines" id="paylines" viewBox="0 0 300 300" preserveAspectRatio="none" aria-hidden="true"></svg></div>
+      <div class="lines-r" aria-hidden="true"><i data-l="1">2</i><i data-l="3">4</i><i data-l="0">1</i><i data-l="4">5</i><i data-l="2">3</i></div>
+    </div>
+    <div class="winbar" id="winbar" aria-live="polite">5 קווי זכייה · בהצלחה</div>
+  </section>
+</main>
+
+<footer class="controls">
+  <div class="betsel">
+    <span class="lbl">הימור לקו</span>
+    <div class="chips" id="chips" role="group" aria-label="הימור לקו"></div>
+    <span class="tot">סה״כ לסיבוב <b id="total" class="num">₪50</b></span>
+  </div>
+  <button class="spin" id="spinBtn">סובב</button>
+  <div class="err" id="err" aria-live="polite"></div>
+</footer>
+
+<dialog id="rules">
+  <h2>מכונות מזל · טבלת תשלומים</h2>
+  <p>3 גלגלים, 3 שורות, 5 קווי זכייה קבועים: אמצע, למעלה, למטה ושני האלכסונים. ההימור הוא לכל קו, כך שסיבוב עולה פי 5 מההימור לקו. התשלום הוא לכל קו בנפרד (פי ההימור לקו). התוצאה נקבעת בשרת. החזר לשחקן: 96.24%.</p>
+  <table id="paytable"></table>
+  <p>דובדבנים נספרים משמאל: דובדבן אחד בתחילת קו משלם 1, שניים משלמים 3.</p>
+  <p>שקלים משחקיים בלבד. אין כסף אמיתי.</p>
+  <form method="dialog"><button class="btn" style="width:100%;margin-top:12px">סגור</button></form>
+</dialog>
+
+<script src="sfx.js?v=1"></script>
+<script src="char.js?v=1"></script>
+<script src="guide.js?v=12"></script>
+<script src="sl.js?v=1"></script>
+</body>
+</html>
