@@ -357,7 +357,7 @@ addEventListener("resize", () => { drawBoard(); layoutWheel(); });
 (async function boot() {
   drawBoard(); layoutWheel();
   W = await R.mount(host, "img/roulette/"); requestAnimationFrame(frame);
-  if (PREVIEW) { GC_GUIDE.init({ game: "roulette", db: null, mount: document.querySelector(".top"), steps: GC_STEPS.roulette(), auto: !/noguide/.test(location.search) }); balance = 10000; showBal(balance); history = [17, 0, 32, 5, 26, 11, 30, 2, 19, 4, 21, 36]; drawHist(); return; }
+  if (PREVIEW) { GC_LOADER.done(); GC_GUIDE.init({ game: "roulette", db: null, mount: document.querySelector(".top"), steps: GC_STEPS.roulette(), auto: !/noguide/.test(location.search) }); balance = 10000; showBal(balance); history = [17, 0, 32, 5, 26, 11, 30, 2, 19, 4, 21, 36]; drawHist(); return; }
   const { data: { session } } = await db.auth.getSession();
   if (!session) { location.href = "./"; return; }
   GC_GUIDE.init({ game: "roulette", db, mount: document.querySelector(".top"), steps: GC_STEPS.roulette() });
@@ -365,6 +365,8 @@ addEventListener("resize", () => { drawBoard(); layoutWheel(); });
   if (ch.url) { ME_URL = ch.url; $("meImg").src = ch.url; $("meName").textContent = ch.nick || ""; $("me").hidden = false; }
   if (!w.error) { balance = w.data.balance; showBal(balance); }
   if (!h.error && Array.isArray(h.data)) { history = h.data; drawHist(); }
+  if (ch.url) await new Promise((res) => { const i = new Image(); i.onload = i.onerror = res; i.src = ch.url; });
+  GC_LOADER.done();
   drawChips();
 })();
 window.__rl = { shot, setCine, setView, setZoom, neighbours, ANNOUNCED, betAt, anchor, LEGAL, OUTSIDE, get W() { return W; }, get plan() { return plan; }, toXY, fromXY };

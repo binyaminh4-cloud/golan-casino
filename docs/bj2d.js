@@ -258,7 +258,7 @@ async function resume() { const { data } = await db.rpc("bj_current"); if (data)
   const { data: { session } } = await db.auth.getSession();
   if (!session && location.hash === "#preview") {   // visual check only: no server, no wallet, no member images
     me = { id: "p", nickname: "שחקן לדוגמה" }; members = [{ id: "p", nickname: "שחקן לדוגמה", wealth: 10250 }, { id: "a", nickname: "חבר", wealth: 8900 }, { id: "b", nickname: "חבר", wealth: 12400 }];
-    drawSeats(); setMyBalance(10250); drawBetSpots(); renderBets(); if (location.search.includes("bet")) { showControls(); return; } $("betUI").hidden = true; setSpotsVisible(false);
+    GC_LOADER.done(); drawSeats(); setMyBalance(10250); drawBetSpots(); renderBets(); if (location.search.includes("bet")) { showControls(); return; } $("betUI").hidden = true; setSpotsVisible(false);
     await render({ id: "x", status: "playing", active: 0, actions: ["hit", "stand", "double"], balance: 10250, dealer_total: 10,
       dealer: ["KH", "??"], hands: [{ cards: ["AS", "9D"], bet: 100, total: 20 }] });
     return;
@@ -271,4 +271,6 @@ async function resume() { const { data } = await db.rpc("bj_current"); if (data)
   await loadSeats();
   if (w) setMyBalance(w.balance);
   drawBetSpots(); renderBets(); await resume(); showControls();
+  await Promise.all([...document.querySelectorAll("#stage img, #seats img")].map((im) => im.complete ? 0 : new Promise((r) => { im.onload = im.onerror = r; })));
+  GC_LOADER.done();
 })();

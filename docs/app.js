@@ -15,6 +15,8 @@ db.auth.onAuthStateChange((_e, session) => { session ? showLobby(session.user) :
 function showLogin() {
   clearInterval(timer); me = null;
   $("lobbyView").hidden = true; $("loginView").hidden = false;
+  const bg = new Image(); bg.onload = bg.onerror = () => GC_LOADER.done();
+  bg.src = innerWidth < innerHeight ? "img/brand/login_bg_mobile.jpg" : "img/brand/login_bg_desktop.jpg";
 }
 function loginMsg(t, bad) { const m = $("loginMsg"); m.className = bad ? "g-msg err" : "g-msg"; m.textContent = t; }
 let codeMode = false;
@@ -77,6 +79,7 @@ async function showLobby(user) {
   $("grantPanel").hidden = !me.is_admin;
   if (me.is_admin) { loadInvites(); loadCharacters(); loadGrantList(); }
   await refresh();
+  GC_LOADER.done();
   if (!document.querySelector(".top-guide")) { const m = document.createElement("div"); m.className = "top-guide"; document.querySelector("#lobbyView header .me").prepend(m);
     GC_GUIDE.init({ game: "lobby", db, mount: m, steps: GC_STEPS.lobby() }); }
   clearInterval(timer); timer = setInterval(refresh, 15000);
