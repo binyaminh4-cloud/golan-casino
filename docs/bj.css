@@ -133,3 +133,16 @@ body.land #acts.phone .a{width:100%}
 @keyframes bzap{0%{transform:translate(-50%,-50%) scale(1.6);filter:brightness(2.5)}100%{transform:translate(-50%,-50%) scale(1)}}
 .bjflash{position:fixed;inset:0;z-index:40;pointer-events:none;background:radial-gradient(ellipse at 50% 55%,rgba(255,244,200,.6),rgba(140,180,255,.15) 45%,transparent 75%);animation:flash .7s ease-out forwards}
 @keyframes flash{0%{opacity:0}12%{opacity:1}28%{opacity:.2}40%{opacity:.9}100%{opacity:0}}
+/* DJ Fisher at the multiplier table */
+.dj{position:absolute;left:70px;top:430px;width:330px;z-index:3;pointer-events:none;filter:drop-shadow(0 14px 16px rgba(0,0,0,.6))}
+.dj img{display:block;width:100%;transform-origin:50% 100%}
+.dj.p-idle img{animation:djnod .5s ease-in-out infinite alternate}
+@keyframes djnod{to{transform:translateY(3px)}}
+.dj.p-drop img,.dj.p-celebrate img{animation:djjump .35s ease-out 3 alternate}
+@keyframes djjump{to{transform:translateY(-14px) scale(1.03)}}
+.dj .waves{position:absolute;left:8%;right:8%;bottom:-6px;height:44px;background:url(img/lightning/waves.webp) center/100% 100% no-repeat;opacity:.85;
+  animation:wave .45s ease-in-out infinite alternate;transform-origin:50% 50%}
+@keyframes wave{to{transform:scaleY(.45);opacity:.6}}
+.djburst{position:absolute;left:50%;top:-12%;width:340px;height:340px;transform:translate(-50%,-50%) scale(.2);background:url(img/lightning/burst.webp) center/contain no-repeat;
+  animation:djb .9s ease-out forwards;mix-blend-mode:screen}
+@keyframes djb{30%{transform:translate(-50%,-50%) scale(1.25);opacity:1}100%{transform:translate(-50%,-50%) scale(1.6);opacity:0}}

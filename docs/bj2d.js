@@ -169,7 +169,9 @@ async function finish(r) {
   const sd = r.result.side || {};
   if (LIT) {
     showMsg(head, sd.boost_extra > 0 ? `⚡ המכפיל ${sd.boost_used}x הוסיף ${fmt(sd.boost_extra)}` : r.result.dealer_blackjack ? "לדילרית יש בלאק ג׳ק" : "");
-    setTimeout(async () => {                       // the new multiplier strikes
+    if (sd.boost_used > 1) djPose(sd.boost_extra > 0 ? "celebrate" : "shrug", 1500);
+    setTimeout(async () => {                       // DJ Fisher builds up... and drops the new multiplier
+      if (DJ.idle) { djPose("build"); SFX.riser(0.9); await new Promise((r) => setTimeout(r, 900)); djPose("drop", 1600); djBurst(); }
       SFX.drop(); const fl = document.createElement("div"); fl.className = "bjflash"; document.body.appendChild(fl);
       BOOST = sd.earned || 0; drawBoost(); document.querySelector(".boost")?.classList.add("zap");
       showMsg(`⚡ מכפיל ${BOOST}x`, "יוכפל על הזכייה בסיבוב הבא");
@@ -218,6 +220,22 @@ function addBet(target) {
   if (target !== "main" && next > bets.main) return err("הימור צדדי לא יכול להיות גבוה מההימור הראשי. שים קודם צ׳יפ על העיגול הגדול.");
   bets[target] = next; err(""); renderBets(); SFX.chip();
 }
+// DJ Fisher (multiplier game): his poses come from the private "characters" bucket
+const DJ = {}; let djEl = null, djT = null;
+async function loadDJ() {
+  if (!LIT) return;
+  const poses = ["idle", "build", "drop", "shrug", "celebrate"];
+  try { const { data } = await db.storage.from("characters").createSignedUrls(poses.map((p) => `dj_${p}.webp`), 3600);
+    (data || []).forEach((s, i) => { if (s.signedUrl) DJ[poses[i]] = s.signedUrl; }); } catch (e) {}
+  if (!DJ.celebrate) DJ.celebrate = DJ.drop;
+  if (!DJ.idle) return;
+  Object.values(DJ).forEach((u) => { const i = new Image(); i.src = u; });
+  djEl = document.createElement("div"); djEl.className = "dj";
+  djEl.innerHTML = `<img alt="די־ג׳יי פישר" src="${DJ.idle}"><div class="waves"></div>`; $("stage").appendChild(djEl);
+}
+function djPose(p, back) { if (!djEl || !DJ[p]) return; djEl.querySelector("img").src = DJ[p]; djEl.className = "dj p-" + p;
+  clearTimeout(djT); if (back) djT = setTimeout(() => djPose("idle"), back); }
+function djBurst() { if (!djEl) return; const b = document.createElement("div"); b.className = "djburst"; djEl.appendChild(b); setTimeout(() => b.remove(), 1000); }
 function drawBoost() {
   document.querySelectorAll(".boost").forEach((n) => n.remove()); if (!LIT) return;
   const b = document.createElement("div"); b.className = "boost" + (BOOST > 1 ? " on" : "");
@@ -328,7 +346,7 @@ async function resume() { const { data } = await db.rpc("bj_current"); if (data)
   const { data: w } = await db.from("wallets").select("balance").eq("user_id", me.id).single();
   await loadSeats();
   if (w) setMyBalance(w.balance);
-  if (LIT) { const { data: bst } = await db.rpc("bj_my_boost"); BOOST = bst || 0; }
+  if (LIT) { const { data: bst } = await db.rpc("bj_my_boost"); BOOST = bst || 0; await loadDJ(); }
   drawBetSpots(); renderBets(); await resume(); showControls();
   await Promise.all([...document.querySelectorAll("#stage img, #seats img")].map((im) => im.complete ? 0 : new Promise((r) => { im.onload = im.onerror = r; })));
   GC_LOADER.done();
