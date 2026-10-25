@@ -5,7 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>גולן קזינו</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=7">
+<link rel="stylesheet" href="styles.css?v=8">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="גולן קזינו">
+<meta name="theme-color" content="#120d0a">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 </head>
 <body>
@@ -18,7 +23,11 @@
     <form id="loginForm" novalidate>
       <label for="email" class="msg">האימייל שלך</label>
       <input id="email" type="email" autocomplete="email" required placeholder="name@gmail.com" style="width:100%;margin-top:4px">
-      <button class="btn" style="width:100%;margin-top:12px" id="sendBtn">שלח לי קישור כניסה</button>
+      <label for="pass" class="msg" style="display:block;margin-top:10px">סיסמה</label>
+      <input id="pass" type="password" autocomplete="current-password" required minlength="6" placeholder="לפחות 6 תווים" style="width:100%;margin-top:4px">
+      <button class="btn" style="width:100%;margin-top:12px" id="loginBtn">כניסה</button>
+      <button class="btn ghost" type="button" style="width:100%;margin-top:8px" id="signupBtn">פעם ראשונה? הירשם עם סיסמה</button>
+      <button class="linkbtn" type="button" style="margin-top:10px" id="sendBtn">שכחתי סיסמה · שלח לי קישור כניסה למייל</button>
     </form>
     <p class="msg" id="loginMsg" aria-live="polite"></p>
   </section>
@@ -69,6 +78,15 @@
           <div class="big num" id="walBal">…</div>
           <div class="sub" id="walSub"></div>
         </div>
+        <section class="panel" id="passPanel" hidden>
+          <h3>קבע סיסמה</h3>
+          <p class="msg">כדי להיכנס בפעם הבאה בלי מייל.</p>
+          <form id="passForm" class="row" novalidate>
+            <input id="newPass" type="password" autocomplete="new-password" minlength="6" placeholder="סיסמה חדשה" style="flex:1;min-width:0;font:400 15px var(--f-num);direction:ltr;padding:10px;border-radius:6px;border:1px solid var(--wood-2);background:var(--room);color:var(--ink)">
+            <button class="btn">שמור</button>
+          </form>
+          <p class="msg" id="passMsg" aria-live="polite"></p>
+        </section>
         <section class="lb">
           <h2>טבלת העשירים</h2>
           <div id="lbBox"><ol><li><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel" style="width:60px"></div></li></ol></div>
@@ -80,6 +98,6 @@
 </div>
 
 <script src="config.js?v=7"></script>
-<script src="app.js?v=7"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>

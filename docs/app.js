@@ -16,23 +16,40 @@ function showLogin() {
   clearInterval(timer); me = null;
   $("lobbyView").hidden = true; $("loginView").hidden = false;
 }
+function loginMsg(t, bad) { const m = $("loginMsg"); m.className = bad ? "msg err" : "msg"; m.textContent = t; }
+function creds() {
+  const email = $("email").value.trim(), password = $("pass").value;
+  if (!/^\S+@\S+\.\S+$/.test(email)) { loginMsg("כתובת האימייל לא תקינה. בדוק ונסה שוב.", true); return null; }
+  return { email, password };
+}
 $("loginForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const email = $("email").value.trim();
-  const msg = $("loginMsg");
-  if (!/^\S+@\S+\.\S+$/.test(email)) { msg.className = "msg err"; msg.textContent = "כתובת האימייל לא תקינה. בדוק ונסה שוב."; return; }
-  $("sendBtn").disabled = true; msg.className = "msg"; msg.textContent = "שולח…";
-  const { error } = await db.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
-  $("sendBtn").disabled = false;
-  if (error) {
-    msg.className = "msg err";
-    msg.textContent = /database error|not_invited/i.test(error.message)
-      ? "האימייל הזה לא הוזמן למועדון. בקש הזמנה ממנהל המועדון."
-      : /rate|seconds/i.test(error.message) ? "ביקשת קישור לפני רגע. חכה דקה ונסה שוב." : "משהו השתבש בשליחה. נסה שוב בעוד רגע.";
-    return;
-  }
-  msg.textContent = "שלחנו לך קישור כניסה למייל. פתח אותו מהמכשיר הזה.";
+  e.preventDefault(); const c = creds(); if (!c) return;
+  if (c.password.length < 6) return loginMsg("הסיסמה צריכה להיות לפחות 6 תווים.", true);
+  $("loginBtn").disabled = true; loginMsg("נכנס…");
+  const { error } = await db.auth.signInWithPassword(c);
+  $("loginBtn").disabled = false;
+  if (error) loginMsg(/invalid/i.test(error.message) ? "האימייל או הסיסמה לא נכונים. אם זו הפעם הראשונה, לחץ \"הירשם עם סיסמה\"." : "הכניסה נכשלה. נסה שוב.", true);
 });
+$("signupBtn").onclick = async () => {
+  const c = creds(); if (!c) return;
+  if (c.password.length < 6) return loginMsg("בחר סיסמה של לפחות 6 תווים.", true);
+  $("signupBtn").disabled = true; loginMsg("נרשם…");
+  const { data, error } = await db.auth.signUp({ ...c, options: { data: { has_password: true } } });
+  $("signupBtn").disabled = false;
+  if (error) return loginMsg(/database error|not_invited/i.test(error.message) ? "האימייל הזה לא הוזמן למועדון. בקש הזמנה ממנהל המועדון."
+    : /registered|exists/i.test(error.message) ? "האימייל הזה כבר רשום. לחץ \"כניסה\", או \"שכחתי סיסמה\"." : "ההרשמה נכשלה. נסה שוב.", true);
+  if (data.session) return;
+  if (data.user && (!data.user.identities || data.user.identities.length === 0))
+    return loginMsg("האימייל הזה כבר רשום. לחץ \"כניסה\", או \"שכחתי סיסמה\" כדי לקבל קישור.", true);
+  loginMsg("שלחנו מייל אישור חד־פעמי. לחץ על הקישור שבו, ואחר כך תיכנס כאן עם האימייל והסיסמה. מעכשיו בלי מיילים.");
+};
+$("sendBtn").onclick = async () => {
+  const c = creds(); if (!c) return;
+  loginMsg("שולח…");
+  const { error } = await db.auth.signInWithOtp({ email: c.email, options: { shouldCreateUser: false, emailRedirectTo: location.origin + location.pathname } });
+  if (error) return loginMsg(/rate|seconds/i.test(error.message) ? "ביקשת קישור לפני רגע. חכה דקה ונסה שוב." : "האימייל לא נמצא במועדון.", true);
+  loginMsg("שלחנו קישור למייל. אחרי שתיכנס, קבע סיסמה בלובי כדי שלא תצטרך מייל שוב.");
+};
 $("logout").onclick = () => db.auth.signOut();
 
 // ---------- Lobby ----------
@@ -43,6 +60,7 @@ async function showLobby(user) {
   me = prof || { id: user.id, nickname: user.email, is_admin: false };
   $("hdrName").textContent = me.nickname;
   $("hdrAv").textContent = (me.nickname || "?")[0].toUpperCase();
+  $("passPanel").hidden = !!user.user_metadata?.has_password;
   $("adminPanel").hidden = !me.is_admin;
   $("charPanel").hidden = !me.is_admin;
   if (me.is_admin) { loadInvites(); loadCharacters(); }
@@ -103,5 +121,13 @@ async function loadCharacters() {
     if (!error) loadCharacters();
   });
 }
+
+$("passForm").addEventListener("submit", async (e) => {
+  e.preventDefault(); const pw = $("newPass").value, m = $("passMsg");
+  if (pw.length < 6) { m.className = "msg err"; m.textContent = "לפחות 6 תווים."; return; }
+  const { error } = await db.auth.updateUser({ password: pw, data: { has_password: true } });
+  m.className = error ? "msg err" : "msg"; m.textContent = error ? "לא נשמר. נסה שוב." : "נשמר. מעכשיו נכנסים עם אימייל וסיסמה.";
+  if (!error) { $("newPass").value = ""; setTimeout(() => $("passPanel").hidden = true, 2500); }
+});
 
 boot();
