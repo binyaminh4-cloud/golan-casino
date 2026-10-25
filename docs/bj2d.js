@@ -12,6 +12,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, reduced ? 0 : ms));
 const SHOE = { x: 1340, y: 330 };
 const TRAY = { x: 846, y: 330 };
 const SPOTS = [ { x: 838, y: 613 }, { x: 1153, y: 580 }, { x: 524, y: 580 }, { x: 1375, y: 497 }, { x: 300, y: 497 } ];
+// small side-bet circles around the player's main circle (photo pixels)
+const SIDE_SPOTS = { pp: { x: 718, y: 588, t: "PP" }, t3: { x: 958, y: 588, t: "21+3" }, ll: { x: 744, y: 668, t: "LL" }, bust: { x: 932, y: 668, t: "BB" } };
 const dealerPos = (i) => ({ x: 782 + i * 60, y: 372 });
 const cardPos = (h, i) => ({ x: SPOTS[h].x - 38 + i * 24, y: SPOTS[h].y - 86 - i * 7 });
 const SEATS = [ // where characters sit; index 0 is the player
@@ -79,7 +81,7 @@ async function loadSeats() {
   drawSeats();
 }
 function drawSeats() {
-  const others = members.filter((m) => m.id !== me.id).slice(0, 4);
+  const others = [];  // solo game: only the player sits at the table
   const mine = members.find((m) => m.id === me.id) || { nickname: me.nickname, character_key: null, wealth: 0 };
   const list = [mine, ...others];
   $("seats").innerHTML = list.map((m, i) => {
@@ -172,22 +174,35 @@ async function finish(r) {
 }
 let msgT; function showMsg(t, sub) { const m = $("msg"); m.innerHTML = esc(t) + (sub ? `<small>${esc(sub)}</small>` : ""); m.classList.add("show"); clearTimeout(msgT); msgT = setTimeout(() => m.classList.remove("show"), 3600); }
 
-// ---------- betting ----------
-let chip = 25, target = "main"; const bets = { main: 0, pp: 0, t3: 0, ll: 0, bust: 0 }; let lastBets = null;
-document.querySelectorAll(".betui .chip").forEach((b) => b.onclick = () => { chip = +b.dataset.v; document.querySelectorAll(".betui .chip").forEach((x) => x.setAttribute("aria-pressed", x === b)); addBet(); });
-document.querySelectorAll(".t").forEach((b) => b.onclick = () => { target = b.dataset.k; document.querySelectorAll(".t").forEach((x) => x.setAttribute("aria-pressed", x === b)); });
-function addBet() {
+// ---------- betting: pick a chip, then tap the main circle or a side-bet circle ----------
+let chip = 25; const bets = { main: 0, pp: 0, t3: 0, ll: 0, bust: 0 }; let lastBets = null;
+document.querySelectorAll(".betui .chip").forEach((b) => b.onclick = () => { chip = +b.dataset.v; document.querySelectorAll(".betui .chip").forEach((x) => x.setAttribute("aria-pressed", x === b)); });
+function drawBetSpots() {
+  document.querySelectorAll(".spot").forEach((n) => n.remove());
+  const stage = $("stage");
+  const mk = (k, x, y, w, h, label) => {
+    const b = document.createElement("button"); b.className = "spot" + (k === "main" ? " main" : ""); b.dataset.k = k;
+    b.style.left = x - w / 2 + "px"; b.style.top = y - h / 2 + "px"; b.style.width = w + "px"; b.style.height = h + "px";
+    b.innerHTML = label ? `<span>${label}</span>` : ""; b.setAttribute("aria-label", k === "main" ? "הימור ראשי" : SIDE_NAME[k]);
+    b.onclick = () => addBet(k); stage.appendChild(b);
+  };
+  mk("main", SPOTS[0].x, SPOTS[0].y, 170, 92, "");
+  for (const [k, p] of Object.entries(SIDE_SPOTS)) mk(k, p.x, p.y, 76, 48, p.t);
+}
+function setSpotsVisible(v) { document.querySelectorAll(".spot").forEach((n) => n.hidden = !v); }
+function addBet(target) {
   if (st && st.status !== "done") return;
-  if (st?.status === "done") clearRound();
+  if (st?.status === "done") { clearRound(); }
   const next = bets[target] + chip;
   if (target === "main" && next > 50000) return err("ההימור הראשי המקסימלי הוא ₪50,000.");
-  if (target !== "main" && next > bets.main) return err("הימור צדדי לא יכול להיות גבוה מההימור הראשי. הנח קודם הימור ראשי.");
+  if (target !== "main" && next > bets.main) return err("הימור צדדי לא יכול להיות גבוה מההימור הראשי. שים קודם צ׳יפ על העיגול הגדול.");
   bets[target] = next; err(""); renderBets();
 }
 function renderBets() {
-  document.querySelectorAll("[data-sum]").forEach((b) => b.textContent = bets[b.dataset.sum] ? fmt(bets[b.dataset.sum]) : "");
   chipStack(SPOTS[0].x, SPOTS[0].y, bets.main, "hand0");
+  for (const [k, p] of Object.entries(SIDE_SPOTS)) { const c = chipStack(p.x, p.y + 4, bets[k], "side_" + k); if (c) c.classList.add("small"); }
   $("dealBtn").disabled = !bets.main; $("rebetBtn").disabled = !lastBets;
+  $("betSum").textContent = Object.values(bets).some(Boolean) ? "סה״כ " + fmt(Object.values(bets).reduce((a, b) => a + b, 0)) : "בחר צ׳יפ ולחץ על העיגול הגדול. העיגולים הקטנים הם הימורים צדדיים: PP זוג מושלם · 21+3 · LL ליידיז מזל · BB באסטר";
 }
 $("clearBtn").onclick = () => { Object.keys(bets).forEach((k) => bets[k] = 0); renderBets(); };
 $("rebetBtn").onclick = () => { if (!lastBets) return; if (st?.status === "done") clearRound(); Object.assign(bets, lastBets); renderBets(); };
@@ -195,12 +210,14 @@ $("dealBtn").onclick = async () => {
   if (busy || !bets.main) return;
   if (st?.status === "done") clearRound();
   err(""); busy = true; $("dealBtn").disabled = true;
-  const { data, error } = await db.rpc("bj_deal", { p_main: bets.main, p_pp: bets.pp, p_t3: bets.t3, p_ll: bets.ll, p_bust: bets.bust, p_ref: crypto.randomUUID() });
+  let data, error;
+  try { ({ data, error } = await db.rpc("bj_deal", { p_main: bets.main, p_pp: bets.pp, p_t3: bets.t3, p_ll: bets.ll, p_bust: bets.bust, p_ref: newRef() })); }
+  catch (ex) { error = { message: String(ex && ex.message || ex), code: "JS" }; }
   busy = false;
   if (error) { renderBets(); return err(errText(error)); }
   lastBets = { ...bets }; Object.keys(bets).forEach((k) => bets[k] = 0);
-  document.querySelectorAll("[data-sum]").forEach((b) => b.textContent = "");
-  $("betUI").hidden = true;
+  $("betUI").hidden = true; setSpotsVisible(false);
+  layer.querySelectorAll('[data-k^="side_"]').forEach((n) => n.remove());
   await render(data);
 };
 document.querySelectorAll("#acts .a").forEach((b) => b.onclick = async () => {
@@ -214,7 +231,7 @@ document.querySelectorAll("#acts .a").forEach((b) => b.onclick = async () => {
 function lockActs() { document.querySelectorAll("#acts .a").forEach((b) => b.disabled = true); }
 function showControls() {
   const playing = st && st.status !== "done";
-  $("acts").hidden = !playing; $("betUI").hidden = !!playing;
+  $("acts").hidden = !playing; $("betUI").hidden = !!playing; setSpotsVisible(!playing);
   if (playing) { placeActs(st.active); document.querySelectorAll("#acts .a").forEach((b) => { b.hidden = !st.actions.includes(b.dataset.a); b.disabled = busy; }); }
   $("rebetBtn").disabled = !lastBets; $("dealBtn").disabled = !bets.main;
 }
@@ -226,8 +243,10 @@ function errText(e) {
   if (m.includes("invalid_main_bet")) return "ההימור הראשי חייב להיות בין ₪10 ל־₪50,000.";
   if (m.includes("illegal_action")) return "הפעולה הזאת לא אפשרית כרגע.";
   if (m.includes("round_in_progress")) { resume(); return "יש לך יד פתוחה. ממשיכים ממנה."; }
-  return "משהו השתבש. בדוק חיבור ונסה שוב.";
+  console.error("rpc error", e);
+  return "משהו השתבש (" + (e.code || "") + " " + m.slice(0, 80) + "). צלם לי את המסך.";
 }
+function newRef() { try { return crypto.randomUUID(); } catch { return Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2); } }
 $("rulesBtn").onclick = () => $("rules").showModal();
 
 // ---------- start ----------
@@ -236,7 +255,7 @@ async function resume() { const { data } = await db.rpc("bj_current"); if (data)
   const { data: { session } } = await db.auth.getSession();
   if (!session && location.hash === "#preview") {   // visual check only: no server, no wallet, no member images
     me = { id: "p", nickname: "שחקן לדוגמה" }; members = [{ id: "p", nickname: "שחקן לדוגמה", wealth: 10250 }, { id: "a", nickname: "חבר", wealth: 8900 }, { id: "b", nickname: "חבר", wealth: 12400 }];
-    drawSeats(); setMyBalance(10250); $("betUI").hidden = true;
+    drawSeats(); setMyBalance(10250); drawBetSpots(); renderBets(); if (location.search.includes("bet")) { showControls(); return; } $("betUI").hidden = true; setSpotsVisible(false);
     await render({ id: "x", status: "playing", active: 0, actions: ["hit", "stand", "double"], balance: 10250, dealer_total: 10,
       dealer: ["KH", "??"], hands: [{ cards: ["AS", "9D"], bet: 100, total: 20 }] });
     return;
@@ -247,5 +266,5 @@ async function resume() { const { data } = await db.rpc("bj_current"); if (data)
   const { data: w } = await db.from("wallets").select("balance").eq("user_id", me.id).single();
   await loadSeats();
   if (w) setMyBalance(w.balance);
-  renderBets(); await resume(); showControls();
+  drawBetSpots(); renderBets(); await resume(); showControls();
 })();

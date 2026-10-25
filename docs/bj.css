@@ -75,3 +75,12 @@ dialog p{margin:4px 0;color:var(--ink-2);font-size:13px}
 .acts.phone{position:fixed;left:0;right:0;top:auto;bottom:0;transform:none;justify-content:center;flex-wrap:wrap;z-index:11;
   padding:14px 10px calc(14px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(8,5,4,.95) 35%)}
 .acts.phone .a{font-size:18px;padding:12px 20px}
+
+.spot{position:absolute;border-radius:50%;border:0;background:transparent;padding:0;cursor:pointer;z-index:4}
+.spot.main:hover,.spot.main:focus-visible{box-shadow:0 0 0 3px rgba(246,217,143,.6) inset}
+.spot:not(.main){border:2px solid rgba(245,239,228,.85);background:rgba(10,40,25,.35);box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.spot:not(.main) span{font:700 15px Inter;color:#f5efe4;text-shadow:0 1px 3px #000}
+.spot:not(.main):hover{border-color:var(--gold-hi)}
+.chip.small{width:38px;height:38px;border-width:4px;margin:7px 0 0 7px;pointer-events:none}
+.chip{pointer-events:none}
+#betSum{max-width:560px;text-align:center}
