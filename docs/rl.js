@@ -302,7 +302,8 @@ function showResult() {
   const net = spinRes.payout - spinRes.total;
   const card = $("resultCard");
   card.className = "result " + c + (spinRes.payout > 0 ? " won" : "");
-  card.innerHTML = (ME_URL ? `<img class="rme" src="${ME_URL}" alt="">` : "") + `<div class="rn num">${n}</div><div class="rc">${name}${n ? " · " + (n % 2 ? "אי־זוגי" : "זוגי") + " · " + (n <= 18 ? "1–18" : "19–36") : ""}</div>` +
+  const zc = LUCKY[n] && ZEUS.celebrate && [...bets.keys()].includes(String(n));
+  card.innerHTML = (zc ? `<img class="rme zc" src="${ZEUS.celebrate}" alt="">` : ME_URL ? `<img class="rme" src="${ME_URL}" alt="">` : "") + `<div class="rn num">${n}</div><div class="rc">${name}${n ? " · " + (n % 2 ? "אי־זוגי" : "זוגי") + " · " + (n <= 18 ? "1–18" : "19–36") : ""}</div>` +
     (LUCKY[n] ? `<div class="rbolt">⚡ ברק ${LUCKY[n]}x</div>` : "") +
     (spinRes.payout > 0 ? `<div class="rw">זכית ${fmt(spinRes.payout)}</div>` : `<div class="rl">לא הפעם</div>`);
   card.hidden = false;
@@ -351,16 +352,44 @@ $("spinBtn").onclick = async () => {
   plan = R.plan(res.result, W.rotor); t0 = performance.now();
 };
 // ---------- lightning: strike the lucky numbers on the layout, then spin ----------
+// Zeus (the owner's caricature, private bucket) throws a bolt at each lucky number
+const ZEUS = {}; const PRE = (src) => { const i = new Image(); i.src = src; return i; };
+async function loadZeus() {
+  if (!LIT) return;
+  const poses = ["idle", "charge", "strike", "celebrate"];
+  try {
+    if (PREVIEW) poses.forEach((p) => ZEUS[p] = `img/lightning/zeus_${p}.webp`);
+    else { const { data } = await db.storage.from("characters").createSignedUrls(poses.map((p) => `zeus_${p}.webp`), 3600);
+      (data || []).forEach((s, i) => { if (s.signedUrl) ZEUS[poses[i]] = s.signedUrl; }); }
+    Object.values(ZEUS).forEach(PRE); ["bolt", "impact"].forEach((n) => PRE(`img/lightning/${n}.webp`));
+  } catch (e) {}
+}
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 async function strike(lucky) {
   LUCKY = lucky; const keys = Object.keys(lucky);
+  let z = null;
+  if (ZEUS.idle) {
+    z = document.createElement("img"); z.className = "zeus"; z.src = ZEUS.idle; z.alt = "זאוס"; document.body.appendChild(z);
+    await wait(30); z.classList.add("in"); await wait(550);
+  }
   const fl = document.createElement("div"); fl.className = "flash"; document.body.appendChild(fl);
-  $("cineMsg").textContent = "";
   for (const k of keys) {
+    const sel = VIEW === "table" ? `.cell[data-k="${k}"]` : `.rc[data-n="${k}"]`, c = board.querySelector(sel);
+    if (z) { z.src = ZEUS.charge || ZEUS.idle; await wait(keys.length > 5 ? 160 : 300); z.src = ZEUS.strike || ZEUS.idle; }
+    if (c) {
+      const r = c.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+      const b = document.createElement("div"); b.className = "bolt";
+      const top = z ? z.getBoundingClientRect().top + 40 : -20;
+      Object.assign(b.style, { left: x + "px", top: top + "px", height: Math.max(40, y - top) + "px" });
+      const im = document.createElement("div"); im.className = "impact"; Object.assign(im.style, { left: x + "px", top: y + "px" });
+      document.body.append(b, im); setTimeout(() => { b.remove(); im.remove(); }, 650);
+    }
     fl.classList.remove("go"); void fl.offsetWidth; fl.classList.add("go");
     markLucky(k, lucky[k], true);
-    await new Promise((r) => setTimeout(r, keys.length > 5 ? 280 : 480));
+    await wait(keys.length > 5 ? 260 : 420);
   }
-  await new Promise((r) => setTimeout(r, 900)); fl.remove();
+  if (z) { z.src = ZEUS.idle; await wait(500); z.classList.remove("in"); setTimeout(() => z.remove(), 500); }
+  await wait(500); fl.remove();
 }
 function markLucky(k, m, fresh) {
   const sel = VIEW === "table" ? `.cell[data-k="${k}"]` : `.rc[data-n="${k}"]`, c = board.querySelector(sel); if (!c) return;
@@ -402,6 +431,7 @@ if (LIT) {
   r.querySelector("table tr:nth-child(2) td:last-child").textContent = MODE === "xxx" ? "19:1 · ברק 50–2000x" : "29:1 · ברק 50–500x";
 }
 (async function boot() {
+  loadZeus();
   drawBoard(); layoutWheel();
   W = await R.mount(host, "img/roulette/"); requestAnimationFrame(frame);
   if (PREVIEW) { GC_LOADER.done(); GC_GUIDE.init({ game: LIT ? "lightning" : "roulette", db: null, mount: document.querySelector(".top"), steps: LIT ? GC_STEPS.lightning() : GC_STEPS.roulette(), auto: !/noguide/.test(location.search) }); balance = 10000; showBal(balance); history = [17, 0, 32, 5, 26, 11, 30, 2, 19, 4, 21, 36]; drawHist(); return; }

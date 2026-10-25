@@ -248,3 +248,14 @@ body.m-xxx .top .back::after{content:" · XXX";color:#9fd3ff}
 .result .rc,.result .rbolt,.result .rw,.result .rl{position:static;display:block;line-height:1.35}
 .mx{transform:translate(-50%,-40%)}
 .result .rc{border:0;box-shadow:none;background:none;border-radius:0;width:auto;height:auto;font:400 15px Heebo,sans-serif;color:var(--muted);cursor:default}
+/* Zeus and his bolts */
+.zeus{position:fixed;z-index:31;left:max(8px,env(safe-area-inset-left));top:44px;height:min(48vh,300px);width:auto;pointer-events:none;
+  filter:drop-shadow(0 10px 18px rgba(0,0,0,.7));transform:translateY(-120%);opacity:0;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .4s}
+.zeus.in{transform:none;opacity:1}
+.bolt{position:fixed;z-index:32;width:90px;transform:translateX(-50%);pointer-events:none;background:url(img/lightning/bolt.webp) center/100% 100% no-repeat;
+  filter:drop-shadow(0 0 12px rgba(160,200,255,.9));animation:bolt .6s ease-out forwards}
+@keyframes bolt{0%{clip-path:inset(0 0 100% 0);opacity:1}25%{clip-path:inset(0 0 0 0);opacity:1}55%{opacity:.4}65%{opacity:1}100%{opacity:0}}
+.impact{position:fixed;z-index:33;width:130px;height:130px;transform:translate(-50%,-50%) scale(.3);pointer-events:none;background:url(img/lightning/impact.webp) center/contain no-repeat;
+  animation:impact .65s ease-out forwards}
+@keyframes impact{0%{opacity:0}20%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.5)}}
+.result .rme.zc{width:150px;inset-inline-start:-110px;bottom:-20px}
