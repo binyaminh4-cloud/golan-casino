@@ -1,0 +1,29 @@
+/* Lobby in the Monte Carlo language (same tokens as gate.css) */
+:root{--room:#0B0908;--wood:#17120F;--wood-2:#3a2a1a;--felt:#123C31;--felt-deep:#0c2a22;--gold:#C5A05A;--gold-dim:#80602E;--ink:#F5ECDD;--ink-2:#B9AA94}
+body{background:#0B0908 url(img/brand/login_bg_desktop.jpg) center/cover fixed}
+body::before{content:"";position:fixed;inset:0;background:linear-gradient(rgba(11,9,8,.86),rgba(11,9,8,.94));z-index:-1}
+header{border-bottom:0;padding-bottom:8px;position:relative}
+header::after{content:"";position:absolute;inset:auto 0 -6px;height:22px;background:url(img/brand/divider.webp) center/contain no-repeat;opacity:.8}
+.brand{display:flex;align-items:center;gap:12px}
+.b-emb{width:56px;height:auto;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6))}
+.b-word{display:block;height:34px;width:auto}
+.brand small{letter-spacing:.08em}
+.me .bal,.wallet .big{color:#F1D69A}
+.notice{background:rgba(23,18,15,.85);border-color:var(--gold-dim)}
+h2.orn{font:700 24px var(--f-display);color:#F1D69A;display:flex;align-items:center;gap:12px}
+h2.orn::after{content:"";flex:1;height:1px;background:linear-gradient(to left,transparent,var(--gold-dim))}
+.game{border:1px solid var(--gold-dim);border-radius:12px;box-shadow:inset 0 0 0 5px var(--felt-deep),inset 0 0 50px rgba(0,0,0,.45),0 14px 30px rgba(0,0,0,.5)}
+.game:not(.soon):hover{border-color:#F1D69A;transform:translateY(-2px)}
+.game.soon{filter:saturate(.6) brightness(.8);cursor:default}
+.game h3{color:#F5ECDD;font-size:22px}
+.tag.multi{color:#F1D69A;border:1px solid var(--gold-dim)}
+.panel,.wallet,.lb li{background:rgba(23,18,15,.9)}
+.panel,.wallet,.lb ol{border-color:var(--gold-dim)}
+.wallet{border-radius:12px;box-shadow:inset 0 0 0 1px rgba(241,214,154,.06)}
+.lb li.you{background:rgba(104,31,43,.55)}
+.btn{background:linear-gradient(180deg,#F1D69A,#C5A05A);color:#0B0908;border-color:#C5A05A;font-weight:700}
+.btn.ghost{background:transparent;color:#F1D69A}
+.avatar{border-color:var(--gold)}
+footer{color:var(--ink-2);text-align:center;margin-top:32px;font-size:12px;letter-spacing:.06em}
+header{margin-bottom:14px}
+@media (max-width:560px){.b-word{height:auto;width:min(56vw,230px)}.b-emb{width:44px}.brand{gap:8px}header{justify-content:center;padding-bottom:18px}}
