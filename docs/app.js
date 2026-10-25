@@ -71,6 +71,7 @@ async function showLobby(user) {
   me = prof || { id: user.id, nickname: user.email, is_admin: false };
   $("hdrName").textContent = me.nickname;
   $("hdrAv").textContent = (me.nickname || "?")[0].toUpperCase();
+  GC_CHAR(db, user.id).then((c) => { if (c.url) $("hdrAv").innerHTML = `<img src="${esc(c.url)}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 8%;border-radius:50%">`; });
   $("adminPanel").hidden = !me.is_admin;
   $("charPanel").hidden = !me.is_admin;
   if (me.is_admin) { loadInvites(); loadCharacters(); }

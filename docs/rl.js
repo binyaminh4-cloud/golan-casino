@@ -273,7 +273,7 @@ function frame(now) {
 }
 
 // ---------- the spin ----------
-let spinRes = null, marks = {};
+let spinRes = null, marks = {}, ME_URL = null;
 function setCine(on) {
   cine = on; const c = $("cine");
   if (on) { c.hidden = false; c.appendChild(host); requestAnimationFrame(() => c.classList.add("on")); }
@@ -291,8 +291,8 @@ function showResult() {
   const n = spinRes.result, c = R.color(n), name = { red: "אדום", black: "שחור", green: "ירוק" }[c];
   const net = spinRes.payout - spinRes.total;
   const card = $("resultCard");
-  card.className = "result " + c;
-  card.innerHTML = `<div class="rn num">${n}</div><div class="rc">${name}${n ? " · " + (n % 2 ? "אי־זוגי" : "זוגי") + " · " + (n <= 18 ? "1–18" : "19–36") : ""}</div>` +
+  card.className = "result " + c + (spinRes.payout > 0 ? " won" : "");
+  card.innerHTML = (ME_URL ? `<img class="rme" src="${ME_URL}" alt="">` : "") + `<div class="rn num">${n}</div><div class="rc">${name}${n ? " · " + (n % 2 ? "אי־זוגי" : "זוגי") + " · " + (n <= 18 ? "1–18" : "19–36") : ""}</div>` +
     (spinRes.payout > 0 ? `<div class="rw">זכית ${fmt(spinRes.payout)}</div>` : `<div class="rl">לא הפעם</div>`);
   card.hidden = false;
   if (W.under() !== n) console.error("wheel/result mismatch", W.under(), n);   // never expected; checked by tests
@@ -306,6 +306,9 @@ function finish() {
     cellEl.classList.add("winner"); }
   drawChips(win);
   balance = spinRes.balance; showBal(balance);
+  const me = $("me"); me.classList.remove("jump", "sad"); void me.offsetWidth;
+  if (spinRes.payout > 0) { me.classList.add("jump"); const f = document.createElement("div"); f.className = "float num"; f.textContent = "+" + fmt(spinRes.payout); me.appendChild(f); setTimeout(() => f.remove(), 2200); }
+  else me.classList.add("sad");
   if (spinRes.payout > 0) err("");
   setTimeout(() => {                         // croupier clears the layout
     lastBets = new Map(bets); bets.clear(); undoStack.length = 0; busy = false;
@@ -352,7 +355,8 @@ addEventListener("resize", () => { drawBoard(); layoutWheel(); });
   if (PREVIEW) { balance = 10000; showBal(balance); history = [17, 0, 32, 5, 26, 11, 30, 2, 19, 4, 21, 36]; drawHist(); return; }
   const { data: { session } } = await db.auth.getSession();
   if (!session) { location.href = "./"; return; }
-  const [w, h] = await Promise.all([db.from("wallets").select("balance").eq("user_id", session.user.id).single(), db.rpc("rl_history")]);
+  const [w, h, ch] = await Promise.all([db.from("wallets").select("balance").eq("user_id", session.user.id).single(), db.rpc("rl_history"), GC_CHAR(db, session.user.id)]);
+  if (ch.url) { ME_URL = ch.url; $("meImg").src = ch.url; $("meName").textContent = ch.nick || ""; $("me").hidden = false; }
   if (!w.error) { balance = w.data.balance; showBal(balance); }
   if (!h.error && Array.isArray(h.data)) { history = h.data; drawHist(); }
   drawChips();

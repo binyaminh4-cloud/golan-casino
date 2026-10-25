@@ -29,7 +29,7 @@ function fit() {
   const st = $("stage"), acts = $("acts");
   let s, left, top;
   if (PHONE) { s = Math.min(W / 640, (H - 170) / 860); left = W / 2 - 838 * s; top = Math.max(44, (H - 120 - 900 * s) / 2); }
-  else if (LAND) { const side = 190, avail = W - side; s = Math.min(avail / 1400, (H - 40) / 800); left = side + (avail - 1672 * s) / 2; top = 40 + Math.max(0, (H - 40 - 860 * s) / 2) - 40 * s; }
+  else if (LAND) { const side = 190, avail = W - side; s = Math.min(avail / 1500, (H - 40) / 900); left = side + (avail - 1672 * s) / 2; top = 40 - 30 * s; }
   else { s = Math.min(W / 1672, (H - 150) / 941); left = (W - 1672 * s) / 2; top = Math.max(44, (H - 150 - 941 * s) / 2 + 44); }
   st.style.transform = `scale(${s})`; st.style.left = left + "px"; st.style.top = top + "px";
   const out = PHONE || LAND;

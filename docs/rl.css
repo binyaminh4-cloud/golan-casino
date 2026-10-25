@@ -166,3 +166,24 @@ dialog table{width:100%;border-collapse:collapse;font-size:14px}dialog td,dialog
   .result .rn{width:56px;height:56px;font-size:28px}.result .rw{font-size:18px}
   .cine-msg{top:4%}
 }
+/* the member's own character at the table */
+.controls{padding-inline-end:96px}
+.me{position:absolute;inset-inline-end:6px;bottom:4px;width:86px;display:grid;justify-items:center;z-index:6;pointer-events:none}
+.me[hidden]{display:none}
+.me img{width:86px;height:auto;filter:drop-shadow(0 8px 10px rgba(0,0,0,.7));transform-origin:50% 100%}
+.me-n{margin-top:-6px;font:700 12px Heebo;color:var(--champ);background:rgba(11,9,8,.85);border:1px solid var(--line);border-radius:99px;padding:0 8px;white-space:nowrap}
+.me.jump img{animation:mejump .5s ease-out 3}
+@keyframes mejump{40%{transform:translateY(-22px) scale(1.05)}}
+.me.sad img{filter:drop-shadow(0 8px 10px rgba(0,0,0,.7)) saturate(.6) brightness(.85);animation:mesad .6s ease-out}
+@keyframes mesad{30%{transform:rotate(-6deg)}60%{transform:rotate(5deg)}}
+.me .float{position:absolute;bottom:100%;font:700 18px Inter;color:var(--champ);text-shadow:0 2px 8px #000;animation:floatup 2.2s ease-out forwards}
+@keyframes floatup{to{transform:translateY(-60px);opacity:0}}
+.result .rme{position:absolute;inset-inline-start:-70px;bottom:-10px;width:120px;filter:drop-shadow(0 10px 14px rgba(0,0,0,.7))}
+.result.won .rme{animation:mejump .5s ease-out 3}
+@media (max-height:560px) and (orientation:landscape){
+  .controls{padding-inline-end:84px}
+  .me{width:74px}.me img{width:74px}
+  .result .rme{inset-inline-start:-58px;width:90px}
+}
+.me,.me img{width:108px}.controls{padding-inline-end:116px}
+@media (max-height:560px) and (orientation:landscape){.me,.me img{width:100px}.controls{padding-inline-end:106px}}

@@ -6,7 +6,7 @@
 <title>רולטה · גולן קזינו</title>
 <link rel="icon" href="img/brand/favicon.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@500;700&display=swap">
-<link rel="stylesheet" href="rl.css?v=3">
+<link rel="stylesheet" href="rl.css?v=4">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
 <script src="landscape.js?v=1"></script>
@@ -40,6 +40,7 @@
 </main>
 
 <footer class="controls">
+  <div class="me" id="me" hidden><img id="meImg" alt=""><span class="me-n" id="meName"></span></div>
   <div class="chips" role="group" aria-label="ערך צ׳יפ" id="chips"></div>
   <div class="betline"><span>הימור כולל <b id="total" class="num">₪0</b></span><span class="err" id="err" aria-live="polite"></span></div>
   <div class="btns">
@@ -76,8 +77,9 @@
 </dialog>
 
 <script type="importmap">{"imports":{"three":"./vendor/three/three.module.min.js"}}</script>
+<script src="char.js?v=1"></script>
 <script src="rl_wheel.js?v=3"></script>
 <script type="module" src="rl_wheel3d.js?v=1"></script>
-<script src="rl.js?v=3"></script>
+<script src="rl.js?v=4"></script>
 </body>
 </html>
