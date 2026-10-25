@@ -28,6 +28,9 @@
   .gd-prev,.gd-skip{background:transparent;color:#5a4630;border-color:#cdb58a!important}
   .gd-skip{margin-inline-start:auto;border:0!important;text-decoration:underline;padding:8px 4px!important}
   .gd-dots{font:500 12px Inter;color:#8a7558}
+  @media (max-width:560px){.gd-host{inset-inline:8px;flex-direction:column;align-items:flex-start;gap:0;max-width:none}
+    .gd-ido{width:96px;margin-inline-start:6px;margin-bottom:-4px}.gd-bub{margin-bottom:0;min-width:0;width:100%;font-size:14.5px;max-height:52vh;overflow:auto}
+    .gd-bub::before{inset-inline-start:34px;bottom:auto;top:-9px;border:10px solid transparent;border-bottom-color:#F5ECDD;border-top:0}}
   @media (max-height:520px){.gd-bub{font-size:14px;padding:10px 12px;margin-bottom:24px}.gd-ido{width:112px}}`;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
@@ -56,6 +59,7 @@
       o.querySelector(".gd-dots").textContent = `${i + 1}/${steps.length}`;
       const ido = o.querySelector(".gd-ido"); if (ido) { ido.classList.remove("talk"); void ido.offsetWidth; ido.classList.add("talk"); }
       const el = s.el && document.querySelector(s.el);
+      if (el) { const rr = el.getBoundingClientRect(); if (rr.top < 0 || rr.bottom > innerHeight * 0.6) el.scrollIntoView({ block: "start" }); scrollBy(0, -70); }
       const r = el && el.getBoundingClientRect();
       if (r && r.width) { ring.hidden = false; dim.style.background = "transparent";
         Object.assign(ring.style, { left: r.left - 6 + "px", top: r.top - 6 + "px", width: r.width + 12 + "px", height: r.height + 12 + "px" }); }
@@ -102,6 +106,7 @@ window.GC_STEPS = {
     { el: ".games", t: "כאן בוחרים <b>שולחן</b>: בלאק ג׳ק ורולטה, ובקרוב פוקר ומכונות מזל. בנימין עדיין בונה אותם. הוא אומר ״עוד שבוע״ כבר שבועיים." },
     { el: ".lb", t: "<b>טבלת העשירים</b>. מי שבראש יכול להתרברב בקבוצה. מי שבתחתית, אני שם בשבילו." },
     { el: "#hdrAv", t: "זו <b>הדמות</b> שלכם. אחרי ההרשמה בנימין נותן לכל חבר דמות אישית משלו, והיא יושבת איתכם ליד השולחן בכל המשחקים." },
+    { t: "📱 טיפ חשוב: את הלובי רואים איך שרוצים, אבל <b>המשחקים עצמם משוחקים לרוחב</b>, כמו שולחן אמיתי. כשנכנסים לשולחן, <b>סובבו את הטלפון</b>. אם לא, אני אזכיר לכם. ואם הטלפון לא מסתובב, בדקו שנעילת הסיבוב כבויה." },
     { el: ".gd-btn", t: "בתוך כל משחק אני מחכה בכפתור <b>איך משחקים</b> ומסביר הכל. בנימין כתב את הקוד, אבל אני זה שיודע לשחק. יאללה, בהצלחה!" },
   ],
   blackjack: () => [
