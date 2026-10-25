@@ -404,10 +404,10 @@ if (LIT) {
 (async function boot() {
   drawBoard(); layoutWheel();
   W = await R.mount(host, "img/roulette/"); requestAnimationFrame(frame);
-  if (PREVIEW) { GC_LOADER.done(); GC_GUIDE.init({ game: "roulette", db: null, mount: document.querySelector(".top"), steps: GC_STEPS.roulette(), auto: !/noguide/.test(location.search) }); balance = 10000; showBal(balance); history = [17, 0, 32, 5, 26, 11, 30, 2, 19, 4, 21, 36]; drawHist(); return; }
+  if (PREVIEW) { GC_LOADER.done(); GC_GUIDE.init({ game: LIT ? "lightning" : "roulette", db: null, mount: document.querySelector(".top"), steps: LIT ? GC_STEPS.lightning() : GC_STEPS.roulette(), auto: !/noguide/.test(location.search) }); balance = 10000; showBal(balance); history = [17, 0, 32, 5, 26, 11, 30, 2, 19, 4, 21, 36]; drawHist(); return; }
   const { data: { session } } = await db.auth.getSession();
   if (!session) { location.href = "./"; return; }
-  GC_GUIDE.init({ game: "roulette", db, mount: document.querySelector(".top"), steps: GC_STEPS.roulette() });
+  GC_GUIDE.init({ game: LIT ? "lightning" : "roulette", db, mount: document.querySelector(".top"), steps: LIT ? GC_STEPS.lightning() : GC_STEPS.roulette() });
   const [w, h, ch] = await Promise.all([db.from("wallets").select("balance").eq("user_id", session.user.id).single(), db.rpc("rl_history", { p_mode: MODE }), GC_CHAR(db, session.user.id)]);
   if (ch.url) { ME_URL = ch.url; $("meImg").src = ch.url; $("meName").textContent = ch.nick || ""; $("me").hidden = false; }
   if (!w.error) { balance = w.data.balance; showBal(balance); }
