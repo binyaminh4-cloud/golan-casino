@@ -30,3 +30,7 @@ header{margin-bottom:14px}
 .codeout{margin-top:10px;padding:12px;border:1px dashed var(--gold);border-radius:8px;text-align:center}
 .codeout .big{font:700 30px Inter;letter-spacing:.3em;color:#F1D69A;direction:ltr}
 .codeout a{display:inline-block;margin-top:8px;color:#0B0908;background:#25D366;padding:8px 14px;border-radius:6px;font-weight:700;text-decoration:none}
+.game.lit{background:radial-gradient(ellipse at 80% 0%,rgba(255,226,120,.18),transparent 55%),var(--felt);border-color:#b8902f}
+.game.lit .suits{color:#ffe27a;text-shadow:0 0 10px rgba(255,220,100,.6);letter-spacing:2px}
+.game.lit.xxx{background:radial-gradient(ellipse at 80% 0%,rgba(140,200,255,.22),transparent 55%),#0f2a3a;border-color:#6aa7d8}
+.game.lit.xxx .suits{color:#bfe3ff;text-shadow:0 0 12px rgba(140,200,255,.9)}

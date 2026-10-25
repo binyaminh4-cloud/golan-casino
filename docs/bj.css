@@ -123,3 +123,13 @@ body.land #acts.phone .a{width:100%}
 .clock.hurry .fg{stroke:#e5484d}.clock.hurry b{color:#ff6b6f;animation:hurry .5s ease-in-out infinite}
 @keyframes clk{to{stroke-dashoffset:106.8}}
 @keyframes hurry{50%{transform:scale(1.18)}}
+/* ===== lightning blackjack ===== */
+.boost{position:absolute;transform:translate(-50%,-50%);display:grid;justify-items:center;line-height:1.1;z-index:4;pointer-events:none;
+  padding:6px 14px;border-radius:14px;background:rgba(8,5,4,.78);border:1px solid rgba(255,226,120,.45);color:#ffe27a;font:800 22px Inter}
+.boost b{font-size:30px;text-shadow:0 0 14px rgba(255,220,100,.9)}
+.boost small{font:500 14px Heebo;color:#e8d9b5}
+.boost.on{border-color:#ffe27a;box-shadow:0 0 22px rgba(255,220,100,.55)}
+.boost.zap{animation:bzap .9s ease-out}
+@keyframes bzap{0%{transform:translate(-50%,-50%) scale(1.6);filter:brightness(2.5)}100%{transform:translate(-50%,-50%) scale(1)}}
+.bjflash{position:fixed;inset:0;z-index:40;pointer-events:none;background:radial-gradient(ellipse at 50% 55%,rgba(255,244,200,.6),rgba(140,180,255,.15) 45%,transparent 75%);animation:flash .7s ease-out forwards}
+@keyframes flash{0%{opacity:0}12%{opacity:1}28%{opacity:.2}40%{opacity:.9}100%{opacity:0}}

@@ -6,6 +6,9 @@ const $ = (id) => document.getElementById(id);
 const fmt = (n) => "₪" + Number(n).toLocaleString("en-US");
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const MODE = new URLSearchParams(location.search).get("mode") === "lightning" ? "lightning" : "classic";
+const LIT = MODE === "lightning";
+let BOOST = 0;
 const sleep = (ms) => new Promise((r) => setTimeout(r, reduced ? 0 : ms));
 
 // ---------- geometry, in photo pixels (1672x941) ----------
@@ -163,6 +166,16 @@ async function finish(r) {
   let head = net > 0 ? `ניצחת ${fmt(net)}` : net < 0 ? `הפסדת ${fmt(-net)}` : "יצאת באפס";
   if (outs.length === 1 && outs[0] === "blackjack") head = `בלאק ג׳ק! ${fmt(net)}`;
   const sides = Object.entries(r.result.side || {}).filter(([, v]) => v && v !== 0).map(([k, v]) => `${SIDE_NAME[k]}${typeof v === "number" ? " " + v + ":1" : ""}`);
+  const sd = r.result.side || {};
+  if (LIT) {
+    showMsg(head, sd.boost_extra > 0 ? `⚡ המכפיל ${sd.boost_used}x הוסיף ${fmt(sd.boost_extra)}` : r.result.dealer_blackjack ? "לדילרית יש בלאק ג׳ק" : "");
+    setTimeout(async () => {                       // the new multiplier strikes
+      const fl = document.createElement("div"); fl.className = "bjflash"; document.body.appendChild(fl);
+      BOOST = sd.earned || 0; drawBoost(); document.querySelector(".boost")?.classList.add("zap");
+      showMsg(`⚡ מכפיל ${BOOST}x`, "יוכפל על הזכייה בסיבוב הבא");
+      setTimeout(() => fl.remove(), 900);
+    }, 1800);
+  } else
   showMsg(head, r.result.dealer_blackjack ? "לדילרית יש בלאק ג׳ק" : sides.length ? "זכייה: " + sides.join(" · ") : "");
   const won = net > 0;
   $("seat0")?.classList.add(won ? "jump" : net < 0 ? "sad" : "x");
@@ -193,7 +206,8 @@ function drawBetSpots() {
     b.onclick = () => addBet(k); stage.appendChild(b);
   };
   mk("main", SPOTS[0].x, SPOTS[0].y, 170, 92, "");
-  for (const [k, p] of Object.entries(SIDE_SPOTS)) mk(k, p.x, p.y, 76, 48, p.t);
+  if (!LIT) for (const [k, p] of Object.entries(SIDE_SPOTS)) mk(k, p.x, p.y, 76, 48, p.t);
+  drawBoost();
 }
 function setSpotsVisible(v) { document.querySelectorAll(".spot").forEach((n) => n.hidden = !v); }
 function addBet(target) {
@@ -204,10 +218,18 @@ function addBet(target) {
   if (target !== "main" && next > bets.main) return err("הימור צדדי לא יכול להיות גבוה מההימור הראשי. שים קודם צ׳יפ על העיגול הגדול.");
   bets[target] = next; err(""); renderBets();
 }
+function drawBoost() {
+  document.querySelectorAll(".boost").forEach((n) => n.remove()); if (!LIT) return;
+  const b = document.createElement("div"); b.className = "boost" + (BOOST > 1 ? " on" : "");
+  b.style.left = SPOTS[0].x - 215 + "px"; b.style.top = SPOTS[0].y + 10 + "px";
+  b.innerHTML = BOOST > 1 ? `⚡ <b>${BOOST}x</b><small>על הזכייה הבאה</small>` : `⚡<small>שחק כדי לטעון מכפיל</small>`;
+  $("stage").appendChild(b);
+}
 function renderBets() {
   chipStack(SPOTS[0].x, SPOTS[0].y, bets.main, "hand0");
   for (const [k, p] of Object.entries(SIDE_SPOTS)) chipStack(p.x, p.y, bets[k], "side_" + k, true);
   $("dealBtn").disabled = !bets.main; $("rebetBtn").disabled = !lastBets;
+  if (LIT) { $("betSum").textContent = bets.main ? `הימור ${fmt(bets.main)} + עמלת ברק ${fmt(bets.main)} = ${fmt(bets.main * 2)}` : "בחר צ׳יפ ולחץ על העיגול. כל סיבוב: הימור + עמלת ברק באותו גובה, ומכפיל 2x–25x לזכייה הבאה."; return; }
   $("betSum").textContent = Object.values(bets).some(Boolean) ? "סה״כ " + fmt(Object.values(bets).reduce((a, b) => a + b, 0)) : "בחר צ׳יפ ולחץ על העיגול הגדול. העיגולים הקטנים הם הימורים צדדיים: PP זוג מושלם · 21+3 · LL ליידיז מזל · BB באסטר";
 }
 $("clearBtn").onclick = () => { Object.keys(bets).forEach((k) => bets[k] = 0); renderBets(); };
@@ -217,7 +239,7 @@ $("dealBtn").onclick = async () => {
   if (st?.status === "done") clearRound();
   err(""); busy = true; $("dealBtn").disabled = true;
   let data, error;
-  try { ({ data, error } = await db.rpc("bj_deal", { p_main: bets.main, p_pp: bets.pp, p_t3: bets.t3, p_ll: bets.ll, p_bust: bets.bust, p_ref: newRef() })); }
+  try { ({ data, error } = await db.rpc("bj_deal", { p_main: bets.main, p_pp: bets.pp, p_t3: bets.t3, p_ll: bets.ll, p_bust: bets.bust, p_ref: newRef(), p_mode: MODE })); }
   catch (ex) { error = { message: String(ex && ex.message || ex), code: "JS" }; }
   busy = false;
   if (error) { renderBets(); return err(errText(error)); }
@@ -282,6 +304,11 @@ function errText(e) {
 function newRef() { try { return crypto.randomUUID(); } catch { return Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2); } }
 $("rulesBtn").onclick = () => $("rules").showModal();
 
+if (LIT) {
+  document.body.classList.add("lit"); document.title = "בלאק ג׳ק ברקים · גולן קזינו";
+  const r = $("rules"); r.querySelector("h2").textContent = "בלאק ג׳ק ברקים · חוקים";
+  r.querySelector("h2").insertAdjacentHTML("afterend", "<p><b>⚡ איך זה עובד:</b> בכל סיבוב משלמים הימור + <b>עמלת ברק</b> באותו גובה. בסוף הסיבוב מקבלים <b>מכפיל 2x עד 25x</b>, לפי היד הסופית שלך (21 נותן הכי הרבה, שריפה הכי מעט). המכפיל מכפיל את <b>הרווח</b> של כל יד מנצחת בסיבוב הברקים הבא (עד גובה ההימור שבו הוא הושג). אין הימורים צדדיים במשחק הזה. החזר משוער לעמלה: כ־99%.</p>");
+}
 // ---------- start ----------
 async function resume() { const { data } = await db.rpc("bj_current"); if (data) { clearRound(); $("betUI").hidden = true; await render(data); } }
 (async () => {
@@ -300,6 +327,7 @@ async function resume() { const { data } = await db.rpc("bj_current"); if (data)
   const { data: w } = await db.from("wallets").select("balance").eq("user_id", me.id).single();
   await loadSeats();
   if (w) setMyBalance(w.balance);
+  if (LIT) { const { data: bst } = await db.rpc("bj_my_boost"); BOOST = bst || 0; }
   drawBetSpots(); renderBets(); await resume(); showControls();
   await Promise.all([...document.querySelectorAll("#stage img, #seats img")].map((im) => im.complete ? 0 : new Promise((r) => { im.onload = im.onerror = r; })));
   GC_LOADER.done();
