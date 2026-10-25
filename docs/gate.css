@@ -1,0 +1,41 @@
+/* Golan Casino · login ("the gate"). Tokens from the design pack style sheet. */
+:root{--onyx:#0B0908;--walnut:#17120F;--gold:#C5A05A;--champagne:#F1D69A;--velvet:#681F2B;--felt:#123C31;--ivory:#F5ECDD;--muted:#B9AA94;--line:#80602E;
+  --f-display:"Frank Ruhl Libre","Heebo",serif;--f-body:"Heebo",system-ui,sans-serif}
+.gate{position:fixed;inset:0;z-index:50;display:grid;place-items:center;overflow-y:auto;
+  padding:max(24px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(24px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  background:var(--onyx) url(img/brand/login_bg_desktop.jpg) center/cover no-repeat;font-family:var(--f-body);color:var(--ivory)}
+.gate::before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(11,9,8,.15),rgba(11,9,8,.7) 75%);pointer-events:none}
+@media (max-aspect-ratio:1/1){.gate{background-image:url(img/brand/login_bg_mobile.jpg)}}
+.gate-card{position:relative;width:100%;max-width:440px;padding:32px;border:1px solid var(--line);border-radius:16px;
+  background:rgba(11,9,8,.9);box-shadow:0 30px 80px rgba(0,0,0,.7),inset 0 0 0 1px rgba(241,214,154,.06);text-align:center;
+  animation:gateIn .7s ease-out both}
+@keyframes gateIn{from{opacity:0;transform:translateY(14px)}}
+.corner{position:absolute;width:64px;height:64px;pointer-events:none;opacity:.95}
+.corner.tl{top:-6px;left:-6px}.corner.tr{top:-6px;right:-6px;transform:scaleX(-1)}
+.corner.bl{bottom:-6px;left:-6px;transform:scaleY(-1)}.corner.br{bottom:-6px;right:-6px;transform:scale(-1,-1)}
+.gate-emblem{width:104px;height:auto;margin:-80px auto 6px;display:block;filter:drop-shadow(0 10px 20px rgba(0,0,0,.7))}
+.gate-title{margin:0;line-height:0}
+.gate-wordmark{width:100%;max-width:330px;height:auto}
+.gate-sub{margin:10px 0 0;font:500 15px var(--f-body);letter-spacing:.08em;color:var(--muted)}
+.gate-divider{display:block;width:88%;max-width:340px;height:auto;margin:16px auto 20px;opacity:.9}
+.gate-form{display:grid;gap:14px;text-align:right}
+.field{display:grid;gap:6px}
+.field label{font:500 15px var(--f-body);color:var(--ivory)}
+.field input{height:56px;padding:0 16px;border-radius:6px;border:1px solid var(--line);background:rgba(23,18,15,.92);
+  color:var(--ivory);font:400 17px var(--f-body);text-align:left;transition:border-color .15s,box-shadow .15s}
+.field input::placeholder{color:var(--muted);opacity:.8}
+.field input:focus{outline:none;border-color:var(--champagne);box-shadow:0 0 0 3px rgba(241,214,154,.18)}
+.g-btn{height:56px;border-radius:6px;border:1px solid var(--gold);cursor:pointer;font:700 18px var(--f-body);letter-spacing:.02em;
+  background:linear-gradient(180deg,var(--champagne),var(--gold));color:var(--onyx);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -2px 0 rgba(0,0,0,.18),0 8px 20px rgba(0,0,0,.45);
+  transition:filter .15s,transform .05s}
+.g-btn:hover{filter:brightness(1.06)}.g-btn:active{transform:translateY(1px)}
+.g-btn.secondary{background:var(--walnut);color:var(--ivory);border-color:var(--gold);box-shadow:none;font-weight:500;font-size:16px}
+.g-btn:focus-visible,.g-link:focus-visible{outline:2px solid var(--champagne);outline-offset:3px}
+.g-btn:disabled{opacity:.55;cursor:wait}
+.g-link{background:none;border:0;color:var(--muted);font:400 14px var(--f-body);cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:4px}
+.g-link:hover{color:var(--champagne)}
+.g-msg{min-height:1.4em;margin:0;text-align:center;font-size:14px;color:var(--champagne)}
+.g-msg.err{color:#E89A9F}
+.gate-foot{margin:18px 0 0;font-size:12px;color:var(--muted);letter-spacing:.04em}
+@media (max-width:420px){.gate-card{padding:28px 20px}.gate-emblem{width:88px;margin-top:-66px}}
+@media (prefers-reduced-motion:reduce){.gate-card{animation:none}}

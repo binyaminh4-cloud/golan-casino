@@ -16,7 +16,7 @@ function showLogin() {
   clearInterval(timer); me = null;
   $("lobbyView").hidden = true; $("loginView").hidden = false;
 }
-function loginMsg(t, bad) { const m = $("loginMsg"); m.className = bad ? "msg err" : "msg"; m.textContent = t; }
+function loginMsg(t, bad) { const m = $("loginMsg"); m.className = bad ? "g-msg err" : "g-msg"; m.textContent = t; }
 function creds() {
   const email = $("email").value.trim(), password = $("pass").value;
   if (!/^\S+@\S+\.\S+$/.test(email)) { loginMsg("כתובת האימייל לא תקינה. בדוק ונסה שוב.", true); return null; }

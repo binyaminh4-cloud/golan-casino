@@ -5,31 +5,46 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>גולן קזינו</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=8">
+<link rel="stylesheet" href="styles.css?v=9">
+<link rel="stylesheet" href="gate.css?v=9">
+<link rel="icon" href="img/brand/favicon.png">
+<link rel="apple-touch-icon" href="img/brand/apple-touch-icon.png">
+<link rel="preload" as="image" href="img/brand/emblem.webp">
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="גולן קזינו">
-<meta name="theme-color" content="#120d0a">
+<meta name="theme-color" content="#0B0908">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 <div class="wrap">
 
-  <!-- Login -->
-  <section class="login" id="loginView" hidden>
-    <h1>המועדון שלנו</h1>
-    <p class="msg">קזינו פרטי לחברים. הכניסה רק למי שהוזמן. שקלים משחקיים בלבד.</p>
-    <form id="loginForm" novalidate>
-      <label for="email" class="msg">האימייל שלך</label>
-      <input id="email" type="email" autocomplete="email" required placeholder="name@gmail.com" style="width:100%;margin-top:4px">
-      <label for="pass" class="msg" style="display:block;margin-top:10px">סיסמה</label>
-      <input id="pass" type="password" autocomplete="current-password" required minlength="6" placeholder="לפחות 6 תווים" style="width:100%;margin-top:4px">
-      <button class="btn" style="width:100%;margin-top:12px" id="loginBtn">כניסה</button>
-      <button class="btn ghost" type="button" style="width:100%;margin-top:8px" id="signupBtn">פעם ראשונה? הירשם עם סיסמה</button>
-      <button class="linkbtn" type="button" style="margin-top:10px" id="sendBtn">שכחתי סיסמה · שלח לי קישור כניסה למייל</button>
-    </form>
-    <p class="msg" id="loginMsg" aria-live="polite"></p>
+  <!-- Login: grand entrance (art: Golan Casino login design pack) -->
+  <section class="gate" id="loginView" hidden>
+    <div class="gate-card">
+      <img class="corner tl" src="img/brand/corner.webp" alt=""><img class="corner tr" src="img/brand/corner.webp" alt="">
+      <img class="corner bl" src="img/brand/corner.webp" alt=""><img class="corner br" src="img/brand/corner.webp" alt="">
+      <img class="gate-emblem" src="img/brand/emblem.webp" alt="">
+      <h1 class="gate-title"><img src="img/brand/wordmark.webp" alt="גולן קזינו" class="gate-wordmark"></h1>
+      <p class="gate-sub">מועדון פרטי · בהזמנה בלבד</p>
+      <img class="gate-divider" src="img/brand/divider.webp" alt="">
+      <form id="loginForm" class="gate-form" novalidate>
+        <div class="field">
+          <label for="email">אימייל</label>
+          <input id="email" type="email" autocomplete="email" required placeholder="name@gmail.com" dir="ltr">
+        </div>
+        <div class="field">
+          <label for="pass">סיסמה</label>
+          <input id="pass" type="password" autocomplete="current-password" required minlength="6" placeholder="לפחות 6 תווים" dir="ltr">
+        </div>
+        <button class="g-btn" id="loginBtn">כניסה למועדון</button>
+        <button class="g-btn secondary" type="button" id="signupBtn">פעם ראשונה? הרשמה עם סיסמה</button>
+        <button class="g-link" type="button" id="sendBtn">שכחתי סיסמה · שלחו לי קישור למייל</button>
+        <p class="g-msg" id="loginMsg" aria-live="polite"></p>
+      </form>
+      <p class="gate-foot">שקלים משחקיים בלבד · אין כסף אמיתי</p>
+    </div>
   </section>
 
   <!-- Lobby -->
@@ -98,6 +113,6 @@
 </div>
 
 <script src="config.js?v=7"></script>
-<script src="app.js?v=8"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>
