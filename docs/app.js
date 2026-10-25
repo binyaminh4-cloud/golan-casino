@@ -77,6 +77,8 @@ async function showLobby(user) {
   $("grantPanel").hidden = !me.is_admin;
   if (me.is_admin) { loadInvites(); loadCharacters(); loadGrantList(); }
   await refresh();
+  if (!document.querySelector(".top-guide")) { const m = document.createElement("div"); m.className = "top-guide"; document.querySelector("#lobbyView header .me").prepend(m);
+    GC_GUIDE.init({ game: "lobby", db, mount: m, steps: GC_STEPS.lobby() }); }
   clearInterval(timer); timer = setInterval(refresh, 15000);
 }
 
