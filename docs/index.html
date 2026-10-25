@@ -6,8 +6,8 @@
 <title>גולן קזינו</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="styles.css?v=9">
-<link rel="stylesheet" href="gate.css?v=10">
-<link rel="stylesheet" href="lobby.css?v=11">
+<link rel="stylesheet" href="gate.css?v=11">
+<link rel="stylesheet" href="lobby.css?v=12">
 <link rel="icon" href="img/brand/favicon.png">
 <link rel="apple-touch-icon" href="img/brand/apple-touch-icon.png">
 <link rel="preload" as="image" href="img/brand/emblem.webp">
@@ -32,16 +32,20 @@
       <img class="gate-divider" src="img/brand/divider.webp" alt="">
       <form id="loginForm" class="gate-form" novalidate>
         <div class="field">
-          <label for="email">אימייל</label>
-          <input id="email" type="email" autocomplete="email" required placeholder="name@gmail.com" dir="ltr">
+          <label for="uname">שם משתמש</label>
+          <input id="uname" autocomplete="username" required placeholder="השם שקיבלת מבנימין" autocapitalize="off" spellcheck="false">
+        </div>
+        <div class="field" id="codeField" hidden>
+          <label for="code">קוד חד־פעמי (6 ספרות)</label>
+          <input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" dir="ltr">
         </div>
         <div class="field">
-          <label for="pass">סיסמה</label>
+          <label for="pass" id="passLabel">סיסמה</label>
           <input id="pass" type="password" autocomplete="current-password" required minlength="6" placeholder="לפחות 6 תווים" dir="ltr">
         </div>
         <button class="g-btn" id="loginBtn">כניסה למועדון</button>
-        <button class="g-btn secondary" type="button" id="signupBtn">פעם ראשונה? הרשמה עם סיסמה</button>
-        <button class="g-link" type="button" id="sendBtn">שכחתי סיסמה · שלחו לי קישור למייל</button>
+        <button class="g-btn secondary" type="button" id="codeBtn">יש לי קוד · כניסה ראשונה או סיסמה חדשה</button>
+        <p class="g-hint" id="hint">שכחת סיסמה? בקש מבנימין קוד חדש בוואטסאפ.</p>
         <p class="g-msg" id="loginMsg" aria-live="polite"></p>
       </form>
       <p class="gate-foot">שקלים משחקיים בלבד · אין כסף אמיתי</p>
@@ -71,11 +75,13 @@
         </div>
 
         <section class="panel" id="adminPanel" hidden>
-          <h3>הזמנת חבר</h3>
+          <h3>הוספת חבר / קוד חדש</h3>
+          <p class="msg">כתוב שם משתמש לחבר חדש, או שם של חבר קיים ששכח סיסמה. תקבל קוד חד־פעמי לשלוח לו בוואטסאפ (תקף 7 ימים).</p>
           <form id="inviteForm" class="row" novalidate>
-            <input id="inviteEmail" type="email" placeholder="אימייל של חבר" required style="flex:1;min-width:0;font:400 15px var(--f-num);direction:ltr;padding:10px;border-radius:6px;border:1px solid var(--wood-2);background:var(--room);color:var(--ink)">
-            <button class="btn">הזמן</button>
+            <input id="inviteName" placeholder="שם משתמש" maxlength="20" required style="flex:1;min-width:0;font:400 15px var(--f-body);padding:10px;border-radius:6px;border:1px solid var(--wood-2);background:var(--room);color:var(--ink)">
+            <button class="btn">צור קוד</button>
           </form>
+          <div id="codeOut" class="codeout" hidden></div>
           <p class="msg" id="inviteMsg" aria-live="polite"></p>
           <ul class="msg" id="inviteList" style="padding-inline-start:16px"></ul>
         </section>
@@ -94,15 +100,7 @@
           <div class="big num" id="walBal">…</div>
           <div class="sub" id="walSub"></div>
         </div>
-        <section class="panel" id="passPanel" hidden>
-          <h3>קבע סיסמה</h3>
-          <p class="msg">כדי להיכנס בפעם הבאה בלי מייל.</p>
-          <form id="passForm" class="row" novalidate>
-            <input id="newPass" type="password" autocomplete="new-password" minlength="6" placeholder="סיסמה חדשה" style="flex:1;min-width:0;font:400 15px var(--f-num);direction:ltr;padding:10px;border-radius:6px;border:1px solid var(--wood-2);background:var(--room);color:var(--ink)">
-            <button class="btn">שמור</button>
-          </form>
-          <p class="msg" id="passMsg" aria-live="polite"></p>
-        </section>
+        
         <section class="lb">
           <h2 class="orn">טבלת העשירים</h2>
           <div id="lbBox"><ol><li><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel" style="width:60px"></div></li></ol></div>
@@ -114,6 +112,6 @@
 </div>
 
 <script src="config.js?v=7"></script>
-<script src="app.js?v=9"></script>
+<script src="app.js?v=10"></script>
 </body>
 </html>

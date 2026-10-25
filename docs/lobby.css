@@ -27,3 +27,6 @@ h2.orn::after{content:"";flex:1;height:1px;background:linear-gradient(to left,tr
 footer{color:var(--ink-2);text-align:center;margin-top:32px;font-size:12px;letter-spacing:.06em}
 header{margin-bottom:14px}
 @media (max-width:560px){.b-word{height:auto;width:min(56vw,230px)}.b-emb{width:44px}.brand{gap:8px}header{justify-content:center;padding-bottom:18px}}
+.codeout{margin-top:10px;padding:12px;border:1px dashed var(--gold);border-radius:8px;text-align:center}
+.codeout .big{font:700 30px Inter;letter-spacing:.3em;color:#F1D69A;direction:ltr}
+.codeout a{display:inline-block;margin-top:8px;color:#0B0908;background:#25D366;padding:8px 14px;border-radius:6px;font-weight:700;text-decoration:none}

@@ -40,3 +40,6 @@
 @media (max-width:420px){.gate-card{padding:28px 20px}.gate-emblem{width:88px;margin-top:-66px}}
 @media (prefers-reduced-motion:reduce){.gate-card{animation:none}}
 .gate[hidden]{display:none}
+.g-hint{margin:0;text-align:center;font-size:13px;color:var(--muted)}
+.field[hidden]{display:none}
+#code{letter-spacing:.5em;text-align:center;font-family:Inter,Heebo,sans-serif}
