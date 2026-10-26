@@ -50,3 +50,8 @@ select chat_send('lobby','2'); select chat_send('lobby','3'); select chat_send('
 select t_assert(t_raises($$select chat_send('lobby','6')$$, 'slow_down'), 'rate limited');
 select t_assert(jsonb_array_length(chat_since('lobby', (chat_since('lobby',0)->0->>'id')::bigint)) = 4, 'since returns newer only');
 \echo CHAT TESTS DONE
+select set_config('gc.test_now', '96010', false);
+select t_assert(jsonb_array_length(rl_live_recent('lightning', 500)) = 500, '500 recent rounds, filled in');
+select t_assert(jsonb_array_length(rl_live_recent('classic', 5)) = 5 and (rl_live_recent('classic', 5)->0->>'x') is null, 'classic has no strikes');
+select set_config('gc.test_now', '', false);
+\echo HISTORY TESTS DONE

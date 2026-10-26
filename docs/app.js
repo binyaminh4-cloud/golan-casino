@@ -94,7 +94,7 @@ async function showLobby(user) {
     if (sal && (sal.weekly || sal.monthly)) salaryToast(sal); } catch (e) {}
   await refresh();
   GC_LOADER.done();
-  soundAsk();
+  soundAsk(); liveStrips();
   if (!document.querySelector(".top-guide")) { const m = document.createElement("div"); m.className = "top-guide"; document.querySelector("#lobbyView header .me").prepend(m);
     GC_GUIDE.init({ game: "lobby", db, mount: m, steps: GC_STEPS.lobby() }); }
   clearInterval(timer); timer = setInterval(refresh, 15000);
@@ -174,4 +174,30 @@ function soundAsk() {
       g.gain.value = 0.15; os.frequency.value = 880; os.connect(g).connect(c.destination); os.start(); os.stop(c.currentTime + 0.12); } catch (e) {} }
     o.remove();
   });
+}
+
+// live roulette: last 5 numbers on each roulette card; tap them for the last 500 (20 per row, newest first)
+const RL_RED = new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]);
+const rlCol = (n) => n === 0 ? "g" : RL_RED.has(n) ? "r" : "b";
+const ball = (h) => `<i class="rb ${rlCol(h.n)}${h.x ? " x" : ""}" title="${h.x ? "⚡ " + h.x + "x" : ""}">${h.n}</i>`;
+async function liveStrips() {
+  for (const [href, mode] of [["roulette.html", "classic"], ["roulette.html?mode=lightning", "lightning"], ["roulette.html?mode=xxx", "xxx"]]) {
+    const card = document.querySelector(`.games .game[href="${href}"]`); if (!card) continue;
+    const { data } = await db.rpc("rl_live_recent", { p_mode: mode, p_limit: 5 }); if (!data) continue;
+    let st = card.querySelector(".rstrip");
+    if (!st) { st = document.createElement("button"); st.type = "button"; st.className = "rstrip"; card.querySelector("h3").after(st);
+      st.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); rlHistory(mode, card.querySelector("h3").textContent); }); }
+    st.innerHTML = `<small>לייב · אחרונים</small>${data.map(ball).join("")}<span class="more">500 ←</span>`;
+  }
+}
+async function rlHistory(mode, title) {
+  const o = document.createElement("div"); o.className = "rlhist";
+  o.innerHTML = `<div class="box"><div class="hd"><b>${esc(title)} · 500 מספרים אחרונים</b><button type="button" aria-label="סגור">✕</button></div>
+    <p class="msg">מהחדש לישן, 20 בשורה.${mode !== "classic" ? " ⚡ מסגרת זהב = נחת על מספר שנפגע מברק." : ""}</p><div class="grid">טוען…</div></div>`;
+  document.body.appendChild(o);
+  o.querySelector("button").onclick = () => o.remove(); o.onclick = (e) => { if (e.target === o) o.remove(); };
+  const { data } = await db.rpc("rl_live_recent", { p_mode: mode, p_limit: 500 });
+  const d = data || [], c = (f) => d.filter(f).length;
+  o.querySelector(".grid").innerHTML = d.map(ball).join("");
+  o.querySelector(".msg").insertAdjacentHTML("beforeend", `<br>🔴 ${c((h) => rlCol(h.n) === "r")} · ⚫ ${c((h) => rlCol(h.n) === "b")} · 🟢 ${c((h) => h.n === 0)}${mode !== "classic" ? ` · ⚡ ${c((h) => h.x)}` : ""}`);
 }

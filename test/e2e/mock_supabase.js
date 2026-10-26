@@ -42,6 +42,7 @@
       case "gc_public": return { data: { challenges: false, games: { blackjack: true, lightning_bj: true, roulette: true, lightning: true, xxx: true, slots: true, fortune: true, poker: false, jobs: true } } };
       case "admin_settings": case "admin_set": return { data: { challenges: false, games: { poker: false }, salary_weekly: 5000, salary_monthly: 25000, starting_balance: 10000, season: null } };
       case "admin_members": return { data: [{ id: "u1", name: "בנימין", username: "בנימין", admin: true, balance: S.bal, joined: "2026-10-20" }, { id: "u2", name: "דני", username: "dani", balance: 24500, joined: "2026-10-24", seated: "חבר׳ה" }] };
+      case "rl_live_recent": return { data: Array.from({ length: a.p_limit }, () => { const n = Math.floor(Math.random() * 37); return { n, x: a.p_mode !== "classic" && Math.random() < 0.12 ? 200 : null }; }) };
       case "admin_pending_codes": return { data: [] };
       default: return { data: null };
     }
