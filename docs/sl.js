@@ -3,14 +3,17 @@ const $ = (id) => document.getElementById(id);
 const fmt = (n) => "₪" + Number(n).toLocaleString("en-US");
 const PREVIEW = /[?#&]preview/.test(location.href);
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
-const STRIP = ["CH","LE","OR","GR","BE","BAR","SEV","DIA","CH","LE","OR","GR","BE","BAR","SEV","CH","LE","OR","GR","BE","BAR","CH","LE","OR","GR","BE","CH","LE","OR","GR","CH","LE"];
+const FO = new URLSearchParams(location.search).get("m") === "fortune";      // Golan Fortune: the friends' machine with two jackpots
+const STRIP = FO
+  ? ["CH","COIN","BAR","SEV","DIA","FISHER","BIN","ZEUS","CH","COIN","BAR","SEV","DIA","FISHER","BIN","CH","COIN","BAR","SEV","DIA","CH","COIN","BAR","SEV","CH","COIN","BAR","CH","COIN","CH","COIN","CH"]
+  : ["CH","LE","OR","GR","BE","BAR","SEV","DIA","CH","LE","OR","GR","BE","BAR","SEV","CH","LE","OR","GR","BE","BAR","CH","LE","OR","GR","BE","CH","LE","OR","GR","CH","LE"];
 const N = STRIP.length;
-const PAY = { DIA: 1000, SEV: 300, BAR: 100, BE: 50, GR: 30, OR: 25, LE: 20, CH: 15 };
-const NAME = { DIA: "יהלום", SEV: "שבע", BAR: "בר", BE: "פעמון", GR: "ענבים", OR: "תפוז", LE: "לימון", CH: "דובדבן" };
+const PAY = FO ? { ZEUS: "👑", BIN: 400, FISHER: 200, DIA: 100, SEV: 50, BAR: 25, COIN: 10, CH: 5 } : { DIA: 1000, SEV: 300, BAR: 100, BE: 50, GR: 30, OR: 25, LE: 20, CH: 15 };
+const NAME = { DIA: "יהלום", SEV: "שבע", BAR: "בר", BE: "פעמון", GR: "ענבים", OR: "תפוז", LE: "לימון", CH: "דובדבן", ZEUS: "זאוס · ג׳קפוט (בקו האמצעי)", BIN: "בנימין", FISHER: "פישר", COIN: "מטבע זהב" };
 // placeholder symbols drawn in code (replaced by the ChatGPT symbol pack when it arrives: img/slots/<SYM>.webp)
 const GLYPH = { CH: "🍒", LE: "🍋", OR: "🍊", GR: "🍇", BE: "🔔", BAR: "<b class='bar'>BAR</b>", SEV: "<b class='sev'>7</b>", DIA: "💎" };
 let ART = false;
-const sym = (k) => ART ? `<img src="img/slots/${k}.webp" alt="${NAME[k]}">` : GLYPH[k];
+const sym = (k) => FO ? `<img src="img/slots/fortune/${k}.webp" alt="${NAME[k]}">` : ART ? `<img src="img/slots/${k}.webp" alt="${NAME[k]}">` : GLYPH[k];
 const LINES = [[1, 1, 1], [0, 0, 0], [2, 2, 2], [0, 1, 2], [2, 1, 0]];
 const CHIPS = [1, 5, 10, 25, 100, 500, 1000];
 let lineBet = 10, balance = 0, busy = false;
@@ -59,7 +62,7 @@ $("chips").innerHTML = CHIPS.map((v) => `<button class="chip" data-v="${v}" aria
 $("chips").onclick = (e) => { const b = e.target.closest("button"); if (!b || busy) return; lineBet = +b.dataset.v; SFX.chip();
   $("chips").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); $("total").textContent = fmt(lineBet * 5); };
 $("rulesBtn").onclick = () => $("rules").showModal();
-$("paytable").innerHTML = "<tr><th>שלושה בקו</th><th>משלם</th></tr>" + Object.entries(PAY).map(([k, v]) => `<tr><td>${sym(k)} ${sym(k)} ${sym(k)} <small>${NAME[k]}</small></td><td class="num">${v}x</td></tr>`).join("");
+$("paytable").innerHTML = "<tr><th>שלושה בקו</th><th>משלם</th></tr>" + Object.entries(PAY).map(([k, v]) => `<tr><td>${sym(k)} ${sym(k)} ${sym(k)} <small>${NAME[k]}</small></td><td class="num">${typeof v === "number" ? v + "x" : "ג׳קפוט"}</td></tr>`).join("");
 function showBal(v) { $("bal").textContent = fmt(v); }
 function err(t) { $("err").textContent = t; }
 function newRef() { try { return crypto.randomUUID(); } catch { return Date.now().toString(36) + Math.random().toString(36).slice(2); } }
@@ -74,11 +77,11 @@ $("spinBtn").onclick = async () => {
       const stops = q ? q.split(",").map(Number) : [0, 1, 2].map(() => Math.floor(Math.random() * N));
       const grid = stops.map((s) => [0, 1, 2].map((r) => STRIP[((s - 1 + r) % N + N) % N]));
       const wins = []; let mult = 0;
-      LINES.forEach((L, i) => { const [a, b, c] = L.map((row, k) => grid[k][row]); const p = a === b && b === c ? PAY[a] : a === "CH" && b === "CH" ? 3 : a === "CH" ? 1 : 0; if (p) { wins.push({ line: i, pay: p }); mult += p; } });
+      LINES.forEach((L, i) => { const [a, b, c] = L.map((row, k) => grid[k][row]); const p = a === b && b === c ? (+PAY[a] || 0) : a === "CH" && b === "CH" ? 3 : a === "CH" ? 1 : 0; if (p) { wins.push({ line: i, pay: p }); mult += p; } });
       balance = balance || 10000; balance -= lineBet * 5; balance += mult * lineBet;
       res = { stops, grid, wins, mult, total: lineBet * 5, payout: mult * lineBet, balance };
     } else {
-      const { data, error } = await db.rpc("sl_spin", { p_line_bet: lineBet, p_ref: newRef() });
+      const { data, error } = await db.rpc(FO ? "fo_spin" : "sl_spin", { p_line_bet: lineBet, p_ref: newRef() });
       if (error) throw error; res = data;
     }
   } catch (e) {
@@ -90,6 +93,7 @@ $("spinBtn").onclick = async () => {
   await spinTo(res.stops);
   showBal(res.balance); balance = res.balance;
   drawLines(res.wins);
+  if (FO) { jpState(res); if (res.jackpot) return jackpotWin(res); }
   const net = res.payout - res.total;
   if (res.payout > 0) {
     const big = res.mult >= 50;
@@ -99,6 +103,34 @@ $("spinBtn").onclick = async () => {
   busy = false; $("spinBtn").disabled = false;
 };
 
+// ---------- Golan Fortune: jackpots ----------
+let GRAND = 0, shownGrand = 0;
+function jpState(s) {
+  if (!s || s.grand == null) return;
+  GRAND = s.grand; $("mini").innerHTML = `💼 <b class="num">${fmt(s.mini)}</b><small>ג׳קפוט חייב לצאת אחת לשבועיים${s.mini_deadline ? " · עד " + new Date(s.mini_deadline).toLocaleDateString("he-IL", { day: "numeric", month: "numeric" }) : ""}</small>`;
+}
+function tickGrand() {                     // the big number creeps up smoothly toward the server value
+  const d = GRAND - shownGrand;
+  shownGrand = Math.abs(d) < 1 ? GRAND : shownGrand + d * 0.08 + Math.sign(d) * 0.4;
+  $("grand").textContent = fmt(Math.floor(shownGrand)); requestAnimationFrame(tickGrand);
+}
+async function jackpotWin(res) {
+  const j = res.jackpot, grand = j.kind === "grand";
+  const o = document.createElement("div"); o.className = "jpwin " + j.kind;
+  o.innerHTML = `<img src="img/slots/fortune/${grand ? "ZEUS" : "BIN"}.webp" alt=""><div class="t">${grand ? "⚡ ג׳קפוט של זאוס ⚡" : "💼 ג׳קפוט של בנימין"}</div><div class="a num">${fmt(j.amount)}</div>${grand && j.share < 1 ? `<small>${Math.round(j.share * 100)}% מהקופה (קופה מלאה בהימור של ₪100 לקו)</small>` : ""}<button class="spin">אסוף</button>`;
+  document.body.appendChild(o); SFX.win(true); setTimeout(() => SFX.win(true), 900);
+  $("winbar").innerHTML = `💰 ג׳קפוט! <b class="num">${fmt(res.payout)}</b>`; $("winbar").className = "winbar win big";
+  await new Promise((r) => o.querySelector("button").onclick = r); o.remove();
+  busy = false; $("spinBtn").disabled = false;
+}
+if (FO) {
+  document.body.classList.add("fortune"); document.title = "מכונת המזל של גולן · גולן קזינו";
+  document.querySelector(".marquee-top").innerHTML = `<div class="jp"><img src="img/slots/fortune/marquee.webp" alt=""><b id="grand" class="num">₪1,000,000</b></div><div class="mini" id="mini"></div>`;
+  const r = $("rules"); r.querySelector("h2").textContent = "מכונת המזל של גולן · טבלת תשלומים";
+  r.querySelector("p").innerHTML = "3 גלגלים, 3 שורות, 5 קווי זכייה. ההימור הוא לכל קו (סיבוב = פי 5). התוצאה נקבעת בשרת.<br><b>👑 ג׳קפוט זאוס:</b> מתחיל ב־₪1,000,000, ו־1% מכל סיבוב של כל השחקנים נכנס אליו. 3 זאוסים <b>בקו האמצעי</b> זוכים בו. בהימור של ₪100 לקו ומעלה זוכים בכל הקופה, בהימור קטן יותר בחלק יחסי (₪50 לקו = חצי).<br><b>💼 ג׳קפוט בנימין:</b> ₪250,000, חייב לצאת לפחות פעם בשבועיים: השרת בוחר רגע סודי, והסיבוב הראשון אחריו זוכה, לא משנה מי מסובב.";
+  setInterval(async () => { if (busy || document.hidden || PREVIEW) return; const { data } = await db.rpc("fo_state"); jpState(data); }, 6000);
+}
+
 // ---------- boot ----------
 addEventListener("resize", () => reels.forEach((el, r) => { if (!el.firstChild) return; el.style.setProperty("--ch", cellH() + "px"); setReel(r, pos[r] + N, false); }));
 (async function boot() {
@@ -106,12 +138,14 @@ addEventListener("resize", () => reels.forEach((el, r) => { if (!el.firstChild) 
   // use the real symbol art if it has been added
   ART = await new Promise((r) => { const i = new Image(); i.onload = () => r(true); i.onerror = () => r(false); i.src = "img/slots/DIA.webp"; });
   reels.forEach((_, r) => { buildReel(r); setReel(r, pos[r] + N, false); });
-  $("paytable").innerHTML = "<tr><th>שלושה בקו</th><th>משלם</th></tr>" + Object.entries(PAY).map(([k, v]) => `<tr><td><span class="pt">${sym(k)}${sym(k)}${sym(k)}</span> <small>${NAME[k]}</small></td><td class="num">${v}x</td></tr>`).join("");
+  $("paytable").innerHTML = "<tr><th>שלושה בקו</th><th>משלם</th></tr>" + Object.entries(PAY).map(([k, v]) => `<tr><td><span class="pt">${sym(k)}${sym(k)}${sym(k)}</span> <small>${NAME[k]}</small></td><td class="num">${typeof v === "number" ? v + "x" : "ג׳קפוט"}</td></tr>`).join("");
+  if (FO) { tickGrand(); if (PREVIEW) jpState({ grand: 1234567, mini: 250000, mini_deadline: new Date(Date.now() + 9 * 864e5).toISOString() }); }
   if (PREVIEW) { balance = 10000; showBal(balance); GC_LOADER.done(); return; }
   const { data: { session } } = await db.auth.getSession();
   if (!session) { location.href = "./"; return; }
   GC_GUIDE.init({ game: "slots", db, mount: document.querySelector(".top"), steps: GC_STEPS.slots() });
   const { data: w } = await db.from("wallets").select("balance").eq("user_id", session.user.id).single();
   if (w) { balance = w.balance; showBal(balance); }
+  if (FO) { const { data } = await db.rpc("fo_state"); jpState(data); }
   GC_LOADER.done();
 })();

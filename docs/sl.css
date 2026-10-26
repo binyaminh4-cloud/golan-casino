@@ -62,3 +62,24 @@ dialog .pt{font-size:22px;letter-spacing:2px}dialog .pt img{width:26px;height:26
 .btn{height:44px;border-radius:6px;border:1px solid var(--gold);background:linear-gradient(180deg,var(--champ),var(--gold));color:var(--onyx);font-weight:700}
 @media (max-height:560px){.cabinet{padding:8px 12px 10px;gap:4px}.controls{padding-block:4px}.chip{width:38px;height:38px;font-size:11px}.spin{height:48px;min-width:120px;font-size:19px}}
 body{grid-template-columns:minmax(0,1fr)}.hall,.controls,.top{min-width:0}
+/* ===== Golan Fortune ===== */
+body.fortune .cabinet{background:#120c08 url(img/slots/fortune/cabinet.webp) center/cover;aspect-ratio:1.35}
+body.fortune .marquee-top{display:flex;align-items:center;justify-content:center;gap:10px;letter-spacing:0;min-height:0}
+body.fortune .jp{position:relative;height:clamp(54px,15vh,110px);aspect-ratio:3.2}
+body.fortune .jp img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6))}
+body.fortune .jp b{position:absolute;left:39%;right:6%;top:31%;bottom:24%;display:grid;place-items:center;font:800 clamp(14px,4.2vh,30px) Inter;color:#ffe27a;
+  text-shadow:0 0 12px rgba(255,220,100,.8),0 0 2px #000;white-space:nowrap}
+body.fortune .mini{display:grid;justify-items:center;line-height:1.15;padding:4px 10px;border-radius:10px;border:1px solid var(--gold);background:rgba(11,9,8,.85);
+  box-shadow:0 0 14px rgba(197,160,90,.35);font-size:clamp(12px,2.6vh,16px);color:var(--champ)}
+body.fortune .mini b{font:800 clamp(14px,3.4vh,22px) Inter;color:#fff}body.fortune .mini small{font:500 clamp(9px,1.7vh,12px) Heebo;color:var(--muted);max-width:11em;text-align:center}
+body.fortune .reel{background:linear-gradient(180deg,#e9dfc8,#fffaf0 30%,#fffaf0 70%,#e9dfc8)}
+body.fortune .sym img{width:84%;height:84%}
+.jpwin{position:fixed;inset:0;z-index:90;display:grid;place-content:center;justify-items:center;gap:8px;background:radial-gradient(circle,rgba(40,30,8,.85),rgba(0,0,0,.94));animation:jpin .5s ease-out}
+.jpwin img{width:min(42vh,60vw);animation:jpspin 1.2s ease-out}
+.jpwin .t{font:800 clamp(22px,6vh,40px) 'Frank Ruhl Libre',serif;color:#ffe27a;text-shadow:0 0 20px rgba(255,220,100,.9)}
+.jpwin .a{font:800 clamp(30px,10vh,72px) Inter;color:#fff;text-shadow:0 0 24px rgba(255,220,100,.9)}
+.jpwin small{color:var(--muted)}
+.jpwin.grand{background:radial-gradient(circle,rgba(30,60,140,.6),rgba(0,0,0,.95))}
+@keyframes jpin{from{opacity:0}}@keyframes jpspin{from{transform:scale(.2) rotate(-200deg);opacity:0}}
+body.fortune .cabinet{min-height:0;overflow:hidden}
+@media (max-height:560px){body.fortune .jp{height:46px}body.fortune .mini{padding:2px 8px}body.fortune .mini small{display:none}body.fortune .mini b{font-size:15px}body.fortune .cabinet{padding:6px 10px 6px;gap:3px}}

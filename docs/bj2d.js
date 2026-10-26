@@ -224,7 +224,7 @@ const DJ = {}; let djEl = null, djT = null;
 async function loadDJ() {
   if (!LIT) return;
   const poses = ["idle", "build", "drop", "shrug", "celebrate"];
-  poses.forEach((p) => { if (p !== "celebrate") DJ[p] = `img/lightning/dj_${p}.webp`; });   // public by the owner's choice
+  poses.forEach((p) => { DJ[p] = `img/lightning/dj_${p}.webp`; });   // public by the owner's choice
   if (!DJ.celebrate) DJ.celebrate = DJ.drop;
   if (!DJ.idle) return;
   Object.values(DJ).forEach((u) => { const i = new Image(); i.src = u; });
