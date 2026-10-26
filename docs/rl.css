@@ -324,3 +324,4 @@ body.short .wheel-slot{width:100%!important;aspect-ratio:auto!important;height:m
 .controls{padding-inline-end:12px!important;padding-inline-start:12px!important}
 @media (max-height:560px) and (orientation:landscape){.me img{height:48px!important}}
 @media (max-height:560px) and (orientation:landscape){.controls{grid-template-columns:auto auto auto 1fr!important}}
+body.live #spinBtn{display:none}

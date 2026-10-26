@@ -172,7 +172,7 @@ function drawChips(win) {
   $("spinBtn").disabled = busy || tot === 0; $("undoBtn").disabled = busy || !undoStack.length;
   $("clearBtn").disabled = busy || !bets.size; $("dblBtn").disabled = busy || !bets.size;
   $("rebetBtn").disabled = busy || !lastBets || bets.size > 0;
-  if (LIVE) { liveButtons(tot); drawPlayers(); }
+  if (LIVE) { liveButtons(tot); drawPlayers(); autoSend(); }
 }
 const undoStack = [];
 let ERASE = false;                    // eraser: tap a bet on the layout to take it back
@@ -449,6 +449,14 @@ function liveButtons(tot) {
   const duelOff = DUEL && (!ZS || ZS.status !== "active" || !(ZS.round >= 1 && ZS.round <= ZS.rounds));
   sb.disabled = busy || !open || !pend || duelOff;
   $("clearBtn").disabled = busy || bets.size === sent.size && pend === 0;
+}
+// live table: chips are sent by themselves a moment after you stop placing them (no confirm button)
+let sendT = null;
+function autoSend() {
+  clearTimeout(sendT);
+  if (!pendingList().length || busy || !liveSt || !liveSt.open) return;
+  const left = liveSt.close - srvNow();
+  sendT = setTimeout(liveConfirm, Math.max(0, Math.min(900, left - 600)));
 }
 async function liveConfirm() {
   const list = pendingList(); if (!list.length || busy || !liveSt) return;
