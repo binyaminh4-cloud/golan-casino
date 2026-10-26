@@ -119,8 +119,8 @@
       }
       let seen = false; try { seen = localStorage.getItem("gc_guide_" + game) === "1"; localStorage.setItem("gc_guide_" + game, "1"); } catch (e) {}
       if (auto && !seen) {
-        const ready = () => !document.getElementById("gcLoad") && !(game !== "lobby" && matchMedia("(pointer: coarse) and (orientation: portrait)").matches);
-        const wait = setInterval(() => { if (ready()) { clearInterval(wait); setTimeout(() => run(steps), 600); } }, 300);
+        const ready = () => !document.getElementById("gcLoad") && !document.querySelector(".soundask, .gc-sit") && !(game !== "lobby" && matchMedia("(pointer: coarse) and (orientation: portrait)").matches);
+        const wait = setInterval(() => { if (ready()) { clearInterval(wait); setTimeout(() => run(steps), 400); } }, 300);
       }
     },
     run,
