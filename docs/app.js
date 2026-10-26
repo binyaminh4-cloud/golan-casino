@@ -174,3 +174,24 @@ function salaryToast(s) {
   document.body.appendChild(t); requestAnimationFrame(() => t.classList.add("on")); try { SFX && SFX.win && SFX.win(false); } catch (e) {}
   setTimeout(() => { t.classList.remove("on"); setTimeout(() => t.remove(), 500); }, 5000);
 }
+
+// ---------- lobby categories: tap a category, then pick a game inside it ----------
+(function cats() {
+  const NAME = { bj: "בלאק ג׳ק", rl: "רולטה", sl: "מכונות מזל", poker: "פוקר", jobs: "עבודות" };
+  const box = $("gamesBox"), cs = $("cats"); if (!box || !cs) return;
+  cs.querySelectorAll(".cat").forEach((b) => {
+    const n = box.querySelectorAll(`.game[data-cat="${b.dataset.c}"]`).length, open = box.querySelectorAll(`.game[data-cat="${b.dataset.c}"]:not(.soon)`).length;
+    b.querySelector("small").textContent = open ? (n === 1 ? "משחק אחד" : `${n} משחקים`) : "בקרוב";
+    if (!open) b.classList.add("soon");
+    b.onclick = () => show(b.dataset.c);
+  });
+  function show(c) {
+    if (c) box.querySelectorAll(".game").forEach((g) => g.hidden = g.dataset.cat !== c);
+    box.hidden = !c; cs.hidden = !!c; $("catBack").hidden = !c;
+    $("roomsH").textContent = c ? NAME[c] : "חדרי המשחק";
+    try { c ? sessionStorage.setItem("gc_cat", c) : sessionStorage.removeItem("gc_cat"); } catch (e) {}
+    if (c) $("roomsH").scrollIntoView({ block: "start", behavior: "smooth" });
+  }
+  $("catBack").onclick = () => show(null);
+  try { const c = sessionStorage.getItem("gc_cat"); if (c && NAME[c]) show(c); } catch (e) {}
+})();

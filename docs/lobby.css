@@ -41,3 +41,14 @@ header{margin-bottom:14px}
 
 .sal-toast{position:fixed;top:14px;left:50%;transform:translate(-50%,-140%);z-index:80;background:linear-gradient(180deg,#F1D69A,#C5A05A);color:#0B0908;font:700 16px Heebo,sans-serif;padding:12px 20px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.6);transition:transform .45s cubic-bezier(.2,1.4,.4,1);text-align:center;max-width:92vw}
 .sal-toast.on{transform:translate(-50%,0)}
+
+/* categories */
+.cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.cat{display:grid;justify-items:center;gap:4px;padding:18px 10px;border-radius:14px;border:1px solid var(--gold-dim,#80602E);cursor:pointer;color:#F5ECDD;font:inherit;
+  background:radial-gradient(circle at 50% 30%,rgba(29,94,56,.65),rgba(11,9,8,.92));box-shadow:inset 0 0 0 4px rgba(11,9,8,.6),0 12px 26px rgba(0,0,0,.5);transition:transform .15s}
+.cat:hover{transform:translateY(-2px);border-color:#C5A05A}.cat:active{transform:scale(.97)}
+.cat .ci{font-size:42px;line-height:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.6))}
+.cat h3{margin:0;font:700 20px 'Frank Ruhl Libre',serif;color:#F1D69A}.cat small{color:#B9AA94;font-size:13px}
+.cat.soon{opacity:.55}.cat.jobs{background:radial-gradient(circle at 50% 30%,rgba(197,160,90,.35),rgba(11,9,8,.92))}
+.catback{background:none;border:1px solid rgba(197,160,90,.7);color:#F1D69A;border-radius:99px;padding:6px 14px;margin:0 0 12px;font:600 14px Heebo,sans-serif;cursor:pointer}
+.game[hidden],.games[hidden],.cats[hidden],.catback[hidden]{display:none!important}

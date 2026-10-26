@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="styles.css?v=9">
 <link rel="stylesheet" href="gate.css?v=11">
-<link rel="stylesheet" href="lobby.css?v=14">
+<link rel="stylesheet" href="lobby.css?v=15">
 <link rel="icon" href="img/brand/favicon.png">
 <link rel="apple-touch-icon" href="img/brand/apple-touch-icon.png">
 <link rel="preload" as="image" href="img/brand/emblem.webp">
@@ -67,16 +67,24 @@
 
     <div class="grid">
       <main>
-        <h2 class="orn">חדרי המשחק</h2>
-        <div class="games">
-          <button class="game soon" disabled><span class="tag multi">בקרוב</span><span class="suits">♠♥♦♣</span><h3>פוקר טקסס הולדם</h3><p>שולחן משותף עם החברים, עד 9 כיסאות.</p></button>
-          <a class="game" href="blackjack.html" style="text-decoration:none"><span class="tag multi">פתוח עכשיו</span><span class="suits">A♠ K♥</span><h3>בלאק ג׳ק</h3><p>שולחן פרימיום עם דילרית, 6 חפיסות, 4 הימורים צדדיים וביטוח.</p></a>
-          <a class="game" href="roulette.html" style="text-decoration:none"><span class="tag multi">שולחן חי</span><span class="suits">0 · 36</span><h3>רולטה</h3><p>רולטה אירופאית, אפס אחד, גלגל אמיתי מסתובב.</p><button type="button" class="priv" data-go="roulette.html?private=1">🔒 שולחן פרטי</button></a>
-          <a class="game lit" href="roulette.html?mode=lightning" style="text-decoration:none"><span class="tag multi">שולחן חי ⚡</span><span class="suits">⚡ 500x</span><h3>רולטת ברקים</h3><p>ברקים פוגעים ב־1 עד 5 מספרים לפני כל סיבוב, עם מכפילים עד 500x.</p><button type="button" class="priv" data-go="roulette.html?mode=lightning&private=1">🔒 שולחן פרטי</button></a>
-          <a class="game lit xxx" href="roulette.html?mode=xxx" style="text-decoration:none"><span class="tag multi">שולחן חי ⚡</span><span class="suits">⚡⚡ 2000x</span><h3>רולטת ברקים XXX</h3><p>שרשרת ברקים ומכה כפולה: מכפילים עד 2,000x.</p><button type="button" class="priv" data-go="roulette.html?mode=xxx&private=1">🔒 שולחן פרטי</button></a>
-          <a class="game lit" href="blackjack.html?mode=lightning" style="text-decoration:none"><span class="tag multi">חדש ⚡</span><span class="suits">⚡ 25x</span><h3>בלאק ג׳ק הכפולות של פישר</h3><p>כל יד טוענת מכפיל 2x–25x לזכייה הבאה.</p></a>
-          <a class="game" href="slots.html" style="text-decoration:none"><span class="tag multi">פתוח עכשיו</span><span class="suits">7 7 7</span><h3>מכונות מזל</h3><p>3 גלגלים, 5 קווי זכייה, יהלום משלם 1000x.</p></a>
-          <a class="game jobs" href="jobs.html" style="text-decoration:none"><span class="tag multi">להרוויח ₪</span><span class="suits">🚐 🃏</span><h3>עבודות</h3><p>משימות קצרות שמשלמות שכר: נהג הסעות ודילר מתלמד. ככל שקשה יותר, משלם יותר.</p></a>
+        <h2 class="orn" id="roomsH">חדרי המשחק</h2>
+        <button type="button" class="catback" id="catBack" hidden>→ כל הקטגוריות</button>
+        <div class="cats" id="cats">
+          <button type="button" class="cat" data-c="bj"><span class="ci">🂡</span><h3>בלאק ג׳ק</h3><small></small></button>
+          <button type="button" class="cat" data-c="rl"><span class="ci">🎡</span><h3>רולטה</h3><small></small></button>
+          <button type="button" class="cat" data-c="sl"><span class="ci">🎰</span><h3>מכונות מזל</h3><small></small></button>
+          <button type="button" class="cat" data-c="poker"><span class="ci">♠️</span><h3>פוקר</h3><small></small></button>
+          <button type="button" class="cat jobs" data-c="jobs"><span class="ci">💼</span><h3>עבודות</h3><small></small></button>
+        </div>
+        <div class="games" id="gamesBox" hidden>
+          <button data-cat="poker" class="game soon" disabled><span class="tag multi">בקרוב</span><span class="suits">♠♥♦♣</span><h3>פוקר טקסס הולדם</h3><p>שולחן משותף עם החברים, עד 9 כיסאות.</p></button>
+          <a data-cat="bj" class="game" href="blackjack.html" style="text-decoration:none"><span class="tag multi">פתוח עכשיו</span><span class="suits">A♠ K♥</span><h3>בלאק ג׳ק</h3><p>שולחן פרימיום עם דילרית, 6 חפיסות, 4 הימורים צדדיים וביטוח.</p></a>
+          <a data-cat="rl" class="game" href="roulette.html" style="text-decoration:none"><span class="tag multi">שולחן חי</span><span class="suits">0 · 36</span><h3>רולטה</h3><p>רולטה אירופאית, אפס אחד, גלגל אמיתי מסתובב.</p><button type="button" class="priv" data-go="roulette.html?private=1">🔒 שולחן פרטי</button></a>
+          <a data-cat="rl" class="game lit" href="roulette.html?mode=lightning" style="text-decoration:none"><span class="tag multi">שולחן חי ⚡</span><span class="suits">⚡ 500x</span><h3>רולטת ברקים</h3><p>ברקים פוגעים ב־1 עד 5 מספרים לפני כל סיבוב, עם מכפילים עד 500x.</p><button type="button" class="priv" data-go="roulette.html?mode=lightning&private=1">🔒 שולחן פרטי</button></a>
+          <a data-cat="rl" class="game lit xxx" href="roulette.html?mode=xxx" style="text-decoration:none"><span class="tag multi">שולחן חי ⚡</span><span class="suits">⚡⚡ 2000x</span><h3>רולטת ברקים XXX</h3><p>שרשרת ברקים ומכה כפולה: מכפילים עד 2,000x.</p><button type="button" class="priv" data-go="roulette.html?mode=xxx&private=1">🔒 שולחן פרטי</button></a>
+          <a data-cat="bj" class="game lit" href="blackjack.html?mode=lightning" style="text-decoration:none"><span class="tag multi">חדש ⚡</span><span class="suits">⚡ 25x</span><h3>בלאק ג׳ק הכפולות של פישר</h3><p>די־ג׳יי פישר מפיל ברקים על קלפים. ניצחון עם קלף מוכה ברק מכפיל את הרווח עד ×25.</p></a>
+          <a data-cat="sl" class="game" href="slots.html" style="text-decoration:none"><span class="tag multi">פתוח עכשיו</span><span class="suits">7 7 7</span><h3>מכונות מזל</h3><p>3 גלגלים, 5 קווי זכייה, יהלום משלם 1000x.</p></a>
+          <a data-cat="jobs" class="game jobs" href="jobs.html" style="text-decoration:none"><span class="tag multi">להרוויח ₪</span><span class="suits">🚐 🃏</span><h3>עבודות</h3><p>משימות קצרות שמשלמות שכר: נהג הסעות ודילר מתלמד. ככל שקשה יותר, משלם יותר.</p></a>
         </div>
 
       </main>
@@ -132,7 +140,7 @@
 <script src="config.js?v=7"></script>
 <script src="char.js?v=1"></script>
 <script src="guide.js?v=15"></script>
-<script src="app.js?v=17"></script>
+<script src="app.js?v=18"></script>
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});</script>
 <script src="chat.js?v=1"></script>
 </body>
