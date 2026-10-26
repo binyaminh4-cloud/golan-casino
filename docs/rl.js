@@ -425,32 +425,32 @@ async function strike(lucky) {
   let z = null;
   if (ZEUS.idle) {
     z = document.createElement("img"); z.className = "zeus"; z.src = ZEUS.idle; z.alt = "זאוס"; document.body.appendChild(z);
-    await wait(30); z.classList.add("in"); await wait(550);
+    await wait(1.2 * 30); z.classList.add("in"); await wait(1.2 * 550);
   }
   const fl = document.createElement("div"); fl.className = "flash"; document.body.appendChild(fl);
   for (const k of keys) {
     const sel = VIEW === "table" ? `.cell[data-k="${k}"]` : `.rc[data-n="${k}"]`, c = board.querySelector(sel);
-    if (z) { z.src = ZEUS.charge || ZEUS.idle; await wait(keys.length > 5 ? 160 : 300); z.src = ZEUS.strike || ZEUS.idle; }
+    if (z) { z.src = ZEUS.charge || ZEUS.idle; await wait(1.2 * keys.length > 5 ? 160 : 300); z.src = ZEUS.strike || ZEUS.idle; }
     if (c) {
       const r = c.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
       if (IDO) {                                     // little Ido sits on the number... and jumps away just before the bolt
         const i = document.createElement("img"); i.className = "idorun"; i.src = IDO; i.alt = "";
         Object.assign(i.style, { left: x + "px", top: y + "px", height: Math.max(36, r.height * 1.5) + "px" }); document.body.appendChild(i);
-        await wait(keys.length > 5 ? 120 : 260);
-        i.classList.add(Math.random() < .5 ? "fl" : "fr"); setTimeout(() => i.remove(), 900); await wait(90);
+        await wait(1.2 * keys.length > 5 ? 120 : 260);
+        i.classList.add(Math.random() < .5 ? "fl" : "fr"); setTimeout(() => i.remove(), 1080); await wait(1.2 * 90);
       }
       const b = document.createElement("div"); b.className = "bolt";
       const top = z ? z.getBoundingClientRect().top + 40 : -20;
       Object.assign(b.style, { left: x + "px", top: top + "px", height: Math.max(40, y - top) + "px" });
       const im = document.createElement("div"); im.className = "impact"; Object.assign(im.style, { left: x + "px", top: y + "px" });
-      document.body.append(b, im); setTimeout(() => { b.remove(); im.remove(); }, 650); SFX.zap(); SFX.thunder();
+      document.body.append(b, im); setTimeout(() => { b.remove(); im.remove(); }, 780); SFX.zap(); SFX.thunder();
     }
     fl.classList.remove("go"); void fl.offsetWidth; fl.classList.add("go");
     markLucky(k, lucky[k], true);
-    await wait(keys.length > 5 ? 260 : 420);
+    await wait(1.2 * keys.length > 5 ? 260 : 420);
   }
-  if (z) { z.src = ZEUS.idle; await wait(500); z.classList.remove("in"); setTimeout(() => z.remove(), 500); }
-  await wait(500); fl.remove();
+  if (z) { z.src = ZEUS.idle; await wait(1.2 * 500); z.classList.remove("in"); setTimeout(() => z.remove(), 500); }
+  await wait(1.2 * 500); fl.remove();
 }
 function markLucky(k, m, fresh) {
   const sel = VIEW === "table" ? `.cell[data-k="${k}"]` : `.rc[data-n="${k}"]`, c = board.querySelector(sel); if (!c) return;
@@ -470,7 +470,7 @@ function errText(e) {
 
 
 // ---------- live shared table: one wall-clock round every 48s for all three roulettes ----------
-const NMB_MS = 3000, SPIN_AFTER = 8500;      // after betting closes: 3 s "No more bets", ~5 s of lightning, then the ball                   // ms after betting closes: lightning strikes, then the ball
+const NMB_MS = 2000, SPIN_AFTER = 8500;      // after betting closes: 2 s "No more bets", ~6 s of lightning (20% slower), then the ball                   // ms after betting closes: lightning strikes, then the ball
 const srvNow = () => Date.now() + clockOff;
 function pendingList() {
   const out = [];
