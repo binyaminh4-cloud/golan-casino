@@ -175,8 +175,10 @@ function drawChips(win) {
   if (LIVE) { liveButtons(tot); drawPlayers(); }
 }
 const undoStack = [];
+let ERASE = false;                    // eraser: tap a bet on the layout to take it back
 function place(key, amt) {
   if (!key || busy) return;
+  if (ERASE) { if (!bets.has(key) || (sent.get(key) || 0) > 0) return; undoStack.push(new Map(bets)); bets.delete(key); err(""); drawChips(); SFX.chip(); return; }
   const cur = bets.get(key) || 0;
   if (cur + amt > 50000) return err("מקסימום ₪50,000 על הימור אחד.");
   const tot = [...bets.values()].reduce((s, v) => s + v, 0);
@@ -217,7 +219,7 @@ board.addEventListener("pointermove", (e) => {
   board.querySelectorAll(".cell").forEach((c) => c.classList.toggle("hl", c.dataset.n !== undefined ? set.has(c.dataset.n) : c.dataset.k === "0" && set.has("0")));
 });
 board.addEventListener("pointerleave", () => board.querySelectorAll(".hl").forEach((c) => c.classList.remove("hl")));
-function setView(v) { VIEW = v; $("viewTable").setAttribute("aria-pressed", v === "table"); $("viewRace").setAttribute("aria-pressed", v === "race");
+function setView(v) { document.body.classList.toggle("race", v === "race"); setTimeout(() => { lastBox = ""; relayout(); }, 60); VIEW = v; $("viewTable").setAttribute("aria-pressed", v === "table"); $("viewRace").setAttribute("aria-pressed", v === "race");
   $("nbrBox").hidden = v !== "race"; drawBoard(); }
 $("viewTable").onclick = () => setView("table"); $("viewRace").onclick = () => setView("race");
 $("nMinus").onclick = () => { NB = Math.max(0, NB - 1); $("nVal").textContent = NB; };
@@ -313,7 +315,7 @@ function drawLuckyList() {
 }
 function onTime(t) {
   const T = R.T;
-  if (!marks.nmb && t > T.drop - 1.2) { marks.nmb = 1; $("cineMsg").textContent = "אין עוד הימורים"; $("cineMsg").classList.add("show"); }
+  if (!marks.nmb && t > T.drop - 1.2) { marks.nmb = 1; $("cineMsg").textContent = "אין עוד הימורים"; $("cineMsg").classList.add("show"); if (!LIVE) noMoreBets(); }
   if (!marks.hide && t > T.hit) { marks.hide = 1; $("cineMsg").classList.remove("show"); }
   if (!marks.res && t > T.settle + 0.5) { marks.res = 1; showResult();
     const hit = $("luckyList").querySelector(`.ll-row .ll-n`) && [...$("luckyList").querySelectorAll(".ll-row")].find((x) => x.querySelector(".ll-n").textContent === String(spinRes.result));
@@ -468,10 +470,10 @@ function drawPlayers() {
     : '<div class="pl empty">עוד אין הימורים בסיבוב</div>';
   // other players' bets as faint markers on the layout
   const layer = $("chipLayer"); if (!layer || VIEW !== "table") return;
-  layer.querySelectorAll(".ghost").forEach((g) => g.remove());
+  layer.querySelectorAll(".gmark").forEach((g) => g.remove());
   for (const p of ps) { if (p.id === MY_ID) continue;
     for (const nums of p.nums || []) { const k = nums.slice().sort((a, b) => a - b).join(","); if (!LEGAL.has(k)) continue;
-      const a = anchor(k), q = toXY(a.u, a.w), g = document.createElement("i"); g.className = "ghost"; g.title = p.name;
+      const a = anchor(k), q = toXY(a.u, a.w), g = document.createElement("i"); g.className = "gmark"; g.title = p.name;
       g.style.left = q.x + "px"; g.style.top = q.y + "px"; g.textContent = String(p.name).slice(0, 1); layer.appendChild(g); } }
 }
 function drawBigClock(t) {          // countdown ring over the wheel: time left to bet before the next throw
@@ -482,8 +484,16 @@ function drawBigClock(t) {          // countdown ring over the wheel: time left 
   b.querySelector("b").textContent = open ? sec : "🎲";
   b.querySelector("small").textContent = open ? "להמר" : "מסתובב";
 }
+// the dealer's call when betting closes: banner + voice
+let nmbRound = -1;
+function noMoreBets() {
+  const b = document.createElement("div"); b.className = "nmb"; b.innerHTML = "NO MORE BETS<small>אין עוד הימורים</small>"; document.body.appendChild(b);
+  setTimeout(() => b.remove(), 1900);
+  try { if (localStorage.getItem("gc_mute") !== "1" && window.speechSynthesis) { const u = new SpeechSynthesisUtterance("No more bets"); u.lang = "en-US"; u.rate = 0.95; speechSynthesis.speak(u); } } catch (e) {}
+}
 function drawClock() {
   const el = $("liveClock"); if (!el || !liveSt) return;
+  if (srvNow() >= liveSt.close && nmbRound !== liveSt.round && srvNow() < liveSt.close + 3000) { nmbRound = liveSt.round; noMoreBets(); }
   drawBigClock(srvNow());
   const t = srvNow();
   if (t < liveSt.close) { const s = Math.ceil((liveSt.close - t) / 1000); el.textContent = `הימורים פתוחים · ${s}`; el.className = "liveclock" + (s <= 5 ? " hurry" : ""); }
@@ -592,3 +602,4 @@ if (LIT) {
   drawChips();
 })();
 window.__rl = { shot, setCine, setView, setZoom, neighbours, ANNOUNCED, betAt, anchor, LEGAL, OUTSIDE, get W() { return W; }, get plan() { return plan; }, toXY, fromXY };
+$("eraseBtn").onclick = () => { ERASE = !ERASE; $("eraseBtn").setAttribute("aria-pressed", ERASE); document.body.classList.toggle("erase", ERASE); err(ERASE ? "מצב מחיקה: לחץ על הימור כדי להסיר אותו. לחץ שוב על 🧽 לסיום." : ""); };

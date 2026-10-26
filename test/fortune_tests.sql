@@ -5,25 +5,27 @@ update sl_jackpots set drop_at = now() + interval '10 days' where kind = 'mini';
 -- strip weights: exact base RTP 93.20% (weighted enumeration in SQL)
 do $$ declare s text[] := fo_strip(); tot numeric := 0; a int; b int; c int; w numeric; begin
   for a in 0..31 loop for b in 0..31 loop for c in 0..31 loop
-    w := (case when s[a+1]='ZEUS' then 3 else 4 end) * (case when s[b+1]='ZEUS' then 3 else 4 end) * (case when s[c+1]='ZEUS' then 3 else 4 end);
+    w := (case s[a+1] when 'ZEUS' then 3 when 'FREE' then 7 else 4 end) * (case s[b+1] when 'ZEUS' then 3 when 'FREE' then 7 else 4 end) * (case s[c+1] when 'ZEUS' then 3 when 'FREE' then 7 else 4 end);
     tot := tot + w * (fo_eval(array[a,b,c])->>'mult')::int;
   end loop; end loop; end loop;
-  perform t_assert(round(tot / (127.0^3) / 5 * 100, 2) = 93.20, 'base RTP 93.20% (' || round(tot / (127.0^3) / 5 * 100, 3) || ')');
+  perform t_assert(round(tot / (133.0^3) / 5 * 100, 2) = 85.31, 'base RTP 85.31% (' || round(tot / (133.0^3) / 5 * 100, 3) || ')');
 end $$;
 select t_assert((fo_eval(array[7,7,7])->>'zeus')::boolean and not (fo_eval(array[6,7,7])->>'zeus')::boolean, 'zeus detection on the middle line');
 -- spins: ledger consistent, grand grows by 1%
 do $$ declare i int; r jsonb; b0 bigint; g0 numeric; begin
   g0 := (select amount from sl_jackpots where kind='grand');
-  for i in 1..500 loop
+  for i in 1..1500 loop
     b0 := (select balance from wallets where user_id = '00000000-0000-0000-0000-00000000000a');
     r := fo_spin(20, 'F'||i);
-    if (select balance from wallets where user_id = '00000000-0000-0000-0000-00000000000a') <> b0 - 100 + (r->>'payout')::bigint then raise exception 'ledger %', r; end if;
+    if (select balance from wallets where user_id = '00000000-0000-0000-0000-00000000000a') <> b0 - (r->>'total')::bigint + (r->>'payout')::bigint then raise exception 'ledger %', r; end if;
   end loop;
   perform t_assert(true, '500 fortune spins: ledger consistent');
-  perform t_assert((select amount from sl_jackpots where kind='grand') = g0 + 500, 'grand grew by 1% of 50,000 staked');
+  perform t_assert((select amount from sl_jackpots where kind='grand') = g0 + (select sum(total) from sl_spins where ref like 'F%' and machine='fortune') * 0.01, 'grand grew by 1% of what was staked');
+  perform t_assert((select count(*) from sl_spins where ref like 'F%' and total = 0) > 0, 'free spins happened (' || (select count(*) from sl_spins where ref like 'F%' and total = 0) || ')');
 end $$;
 -- mini must-drop
 update sl_jackpots set drop_at = now() - interval '1 second' where kind = 'mini';
+delete from sl_free;
 do $$ declare r jsonb; begin
   r := fo_spin(1, 'M1');
   perform t_assert(r->'jackpot'->>'kind' = 'mini' and (r->'jackpot'->>'amount')::int = 250000, 'mini drops once its moment passed');

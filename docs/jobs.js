@@ -7,7 +7,7 @@ const PAY = { driver: [200, 600, 2000], dealer: [150, 500, 1600] };
 const LVL = ["⭐ קל", "⭐⭐ בינוני", "⭐⭐⭐ קשה"];
 const LVL_TXT = {
   driver: ["2 נוסעים, מפה קטנה", "3 נוסעים, תקציב צפוף יותר", "4 נוסעים, כמעט בלי מרווח"],
-  dealer: ["4 ידיים של 2 קלפים", "5 ידיים של 3–4 קלפים", "6 ידיים ארוכות, הרבה אסים, 25 שניות"],
+  dealer: ["4 ידיים של 2 קלפים, 15 שניות", "5 ידיים של 3–4 קלפים, 30 שניות", "6 ידיים ארוכות, הרבה אסים, 35 שניות"],
 };
 let balance = 0, earned = 0, job = null, tick = null, sending = false;
 
@@ -31,7 +31,7 @@ function fake(name, a) {          // preview only: local puzzles, no money
   if (name === "job_start") {
     const R = (n) => Math.floor(Math.random() * n);
     if (a.p_game === "dealer") { const hands = Array.from({ length: [4, 5, 6][a.p_level - 1] }, () => Array.from({ length: a.p_level === 1 ? 2 : 3 + R(2) }, () => "A23456789TJQK"[R(13)] + "SHDC"[R(4)]));
-      FAKE = { values: hands.map(handValue) }; return { id: "p", puzzle: { hands }, seconds: [30, 30, 25][a.p_level - 1], pay: PAY.dealer[a.p_level - 1] }; }
+      FAKE = { values: hands.map(handValue) }; return { id: "p", puzzle: { hands }, seconds: [15, 30, 35][a.p_level - 1], pay: PAY.dealer[a.p_level - 1] }; }
     const sz = [6, 7, 8][a.p_level - 1], n = [2, 3, 4][a.p_level - 1], used = new Set(), pt = () => { let p; do p = [R(sz), R(sz)]; while (used.has(p + "")); used.add(p + ""); return p; };
     const start = pt(), stops = Array.from({ length: 2 * n }, pt), best = bestRoute(start, stops);
     FAKE = { max: Math.floor(best * [1.5, 1.25, 1.1][a.p_level - 1]) };
@@ -67,10 +67,17 @@ function timer() {
   $("timeLeft").textContent = Math.max(0, Math.ceil(left));
   $("timeBar").style.width = Math.max(0, left / job.seconds * 100) + "%";
   $("timeBar").classList.toggle("low", left < 8);
+  // final countdown: last 10 seconds (5 on the easy level), big number + tick
+  const fin = job.level === 1 ? 5 : 10, sec = Math.ceil(left);
+  let cd = $("cd");
+  if (left > 0 && left <= fin) {
+    if (!cd) { cd = document.createElement("div"); cd.id = "cd"; cd.className = "cd"; document.body.appendChild(cd); }
+    if (cd.textContent !== String(sec)) { cd.textContent = sec; cd.classList.remove("pop"); void cd.offsetWidth; cd.classList.add("pop"); try { SFX.chip(); } catch (e) {} }
+  } else if (cd) cd.remove();
   if (left <= 0) { clearInterval(tick); finish(null); }
 }
 async function finish(answer) {
-  if (sending) return; sending = true; clearInterval(tick);
+  if (sending) return; sending = true; clearInterval(tick); $("cd")?.remove();
   let res;
   if (answer === null) res = { ok: false, paid: 0, why: "time" };
   else { const { data, error } = await rpc("job_finish", { p_id: job.id, p_answer: answer }); res = error ? { ok: false, why: "error" } : data; }

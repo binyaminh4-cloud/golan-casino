@@ -173,3 +173,6 @@ body.land #acts.zoombar .a{width:auto;padding:10px 18px;font-size:16px}
 .chend .box{width:min(360px,90vw);background:#17120F;border:1px solid #C5A05A;border-radius:14px;padding:22px;text-align:center;display:grid;gap:12px}
 .chend .t{font:700 24px 'Frank Ruhl Libre',serif;color:#F1D69A}.chend .r{font-size:17px;color:#F5ECDD}.chend .r b{color:#9fe0a8;font:800 22px Inter}
 .chend .btn{text-decoration:none;display:block;padding:12px}
+.feetag{position:absolute;transform:translate(0,-50%);z-index:5;display:grid;justify-items:center;line-height:1.15;padding:6px 14px;border-radius:12px;
+  background:rgba(8,5,4,.85);border:2px solid #ffe27a;color:#e8d9b5;font:600 20px Heebo;box-shadow:0 0 16px rgba(255,220,100,.45)}
+.feetag b{font:800 30px Inter;color:#ffe27a}.feetag small{font-size:15px;color:#B9AA94}.feetag[hidden]{display:none}

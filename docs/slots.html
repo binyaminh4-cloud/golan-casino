@@ -7,7 +7,7 @@
 <title>מכונות מזל · גולן קזינו</title>
 <link rel="icon" href="img/brand/favicon.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@500;700;800&display=swap">
-<link rel="stylesheet" href="sl.css?v=3">
+<link rel="stylesheet" href="sl.css?v=4">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
 <script src="landscape.js?v=1"></script>
@@ -34,9 +34,9 @@
 
 <footer class="controls">
   <div class="betsel">
-    <span class="lbl">הימור לקו</span>
+    <span class="lbl">הימור לסיבוב</span>
     <div class="chips" id="chips" role="group" aria-label="הימור לקו"></div>
-    <span class="tot">סה״כ לסיבוב <b id="total" class="num">₪50</b></span>
+    <span class="tot" hidden><b id="total" class="num">₪50</b></span>
   </div>
   <button class="spin" id="spinBtn">סובב</button>
   <div class="err" id="err" aria-live="polite"></div>
@@ -44,17 +44,17 @@
 
 <dialog id="rules">
   <h2>מכונות מזל · טבלת תשלומים</h2>
-  <p>3 גלגלים, 3 שורות, 5 קווי זכייה קבועים: אמצע, למעלה, למטה ושני האלכסונים. ההימור הוא לכל קו, כך שסיבוב עולה פי 5 מההימור לקו. התשלום הוא לכל קו בנפרד (פי ההימור לקו). התוצאה נקבעת בשרת. החזר לשחקן: 96.24%.</p>
+  <p>3 גלגלים, 3 שורות, 5 קווי זכייה קבועים: אמצע, למעלה, למטה ושני האלכסונים. בוחרים הימור לסיבוב, והוא מתחלק שווה בין 5 הקווים. בטבלה: כמה פעמים ההימור לסיבוב משלם כל קו (למשל ×20 בהימור ₪50 = ₪1,000). התוצאה נקבעת בשרת. החזר לשחקן: 96.24%.</p>
   <table id="paytable"></table>
-  <p>דובדבנים נספרים משמאל: דובדבן אחד בתחילת קו משלם 1, שניים משלמים 3.</p>
+  <p>דובדבנים נספרים משמאל: דובדבן אחד בתחילת קו מחזיר חמישית מההימור, שניים מחזירים ⅗.</p>
   <p>שקלים משחקיים בלבד. אין כסף אמיתי.</p>
   <form method="dialog"><button class="btn" style="width:100%;margin-top:12px">סגור</button></form>
 </dialog>
 
 <script src="sfx.js?v=1"></script>
 <script src="char.js?v=1"></script>
-<script src="guide.js?v=16"></script>
-<script src="sl.js?v=3"></script>
+<script src="guide.js?v=17"></script>
+<script src="sl.js?v=4"></script>
 <script src="chat.js?v=3"></script>
 </body>
 </html>

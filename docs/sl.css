@@ -83,3 +83,20 @@ body.fortune .sym img{width:84%;height:84%}
 @keyframes jpin{from{opacity:0}}@keyframes jpspin{from{transform:scale(.2) rotate(-200deg);opacity:0}}
 body.fortune .cabinet{min-height:0;overflow:hidden}
 @media (max-height:560px){body.fortune .jp{height:46px}body.fortune .mini{padding:2px 8px}body.fortune .mini small{display:none}body.fortune .mini b{font-size:15px}body.fortune .cabinet{padding:6px 10px 6px;gap:3px}}
+/* bet per spin, wins, free spins */
+.freesym{display:grid;place-items:center;width:78%;aspect-ratio:1;border-radius:14px;font:900 clamp(10px,2.6vh,18px)/1.05 Inter;color:#fff;text-align:center;
+  background:radial-gradient(circle at 50% 30%,#ff7ab6,#8a1fd1);border:3px solid #ffe27a;box-shadow:0 0 12px rgba(255,120,200,.6);text-shadow:0 2px 2px #000}
+.window{position:relative}
+.wintoast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;pointer-events:none;display:grid;justify-items:center;padding:8px 26px;border-radius:16px;
+  background:rgba(8,5,4,.88);border:2px solid #ffe27a;color:#F1D69A;font:700 clamp(14px,3.5vh,22px) Heebo;box-shadow:0 0 30px rgba(255,220,100,.6);animation:wt 2.4s ease-out forwards}
+.wintoast b{font:900 clamp(26px,8vh,56px) Inter;color:#9fe0a8;text-shadow:0 0 12px rgba(120,255,160,.6)}.wintoast.big b{color:#ffe27a}
+@keyframes wt{0%{transform:translate(-50%,-50%) scale(.4);opacity:0}12%{transform:translate(-50%,-50%) scale(1.06);opacity:1}85%{opacity:1}100%{opacity:0}}
+.winbar{font-size:clamp(15px,3.4vh,22px)!important;color:var(--ink)!important}
+.freewin{position:fixed;left:50%;top:45%;transform:translate(-50%,-50%);z-index:90;pointer-events:none;text-align:center;font:900 clamp(30px,9vh,64px) Inter;color:#fff;
+  background:radial-gradient(circle,#b13bd1,#3a0f52);border:3px solid #ffe27a;border-radius:20px;padding:12px 30px;box-shadow:0 0 40px rgba(255,120,220,.7);animation:wt 2.5s ease-out forwards}
+.freewin small{display:block;font:700 clamp(14px,3.4vh,22px) Heebo;color:#ffe27a}
+.spin.free{background:radial-gradient(circle at 50% 30%,#ffd1f0,#e07ad8 45%,#8a1fd1);color:#fff;border-color:#ffe27a}
+.chips.locked{opacity:.4;pointer-events:none}
+body.fortune .jp b{font-size:clamp(11px,3.1vh,24px)!important;left:40%;right:7%}
+body.fortune .mini b{font-size:clamp(12px,2.8vh,19px)}
+.wintoast b{white-space:nowrap}

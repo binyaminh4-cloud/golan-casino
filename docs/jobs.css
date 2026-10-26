@@ -68,3 +68,6 @@ h1{font:700 30px 'Frank Ruhl Libre',serif;color:var(--champ);margin:6px 0 4px;te
 .result .why{color:var(--muted);margin:6px 0 10px}.result .vals{color:var(--ink);margin-bottom:10px}
 .result .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 [hidden]{display:none!important}
+.cd{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:40;pointer-events:none;font:900 clamp(80px,26vh,180px) Inter;color:rgba(229,72,77,.85);
+  text-shadow:0 0 30px rgba(229,72,77,.6),0 4px 0 #000}
+.cd.pop{animation:cdp .9s ease-out}@keyframes cdp{0%{transform:translate(-50%,-50%) scale(1.6);opacity:1}100%{transform:translate(-50%,-50%) scale(.9);opacity:.35}}

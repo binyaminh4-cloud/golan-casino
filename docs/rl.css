@@ -102,7 +102,7 @@ dialog h2{font:700 22px 'Frank Ruhl Libre',serif;color:var(--champ);margin-top:0
 dialog table{width:100%;border-collapse:collapse;font-size:14px}dialog td,dialog th{padding:6px;border-bottom:1px solid rgba(128,96,46,.4);text-align:right}
 @media (max-width:560px){.top{flex-wrap:wrap;gap:4px 8px}.hist{order:5;flex-basis:100%;justify-content:flex-start}.h{width:24px;height:24px;font-size:11px}.h.last{width:28px;height:28px}
   .rules-btn{font-size:13px}.chips{gap:5px;flex-wrap:nowrap}.chips .chip{width:38px;height:38px;font-size:11px;border-width:3px}
-  .btns{display:grid;grid-template-columns:repeat(4,1fr) 1.4fr;width:100%;gap:5px}.btn{height:42px;padding:0 4px;font-size:14px;min-width:0}.btn.spin{min-width:0;font-size:16px}}
+  .btns{display:grid;grid-template-columns:repeat(5,1fr) 1.4fr;width:100%;gap:5px}.btn{height:42px;padding:0 4px;font-size:14px;min-width:0}.btn.spin{min-width:0;font-size:16px}}
 @media (max-aspect-ratio:1/1){.room{grid-template-rows:26% 1fr;padding:4px 8px}}
 @media (prefers-reduced-motion:reduce){.result,.dolly{animation:none}}
 .cine[hidden],.result[hidden]{display:none}
@@ -286,7 +286,7 @@ body{grid-template-columns:minmax(0,1fr)}
 .players .pl{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);background:#0b0806;border:1px solid rgba(128,96,46,.5);border-radius:99px;padding:2px 8px}
 .players .pl b{color:var(--champ);font-size:12px}.players .pl.me{border-color:var(--champ)}.players .pl.empty{border:0;background:none}
 .liveclock{font-weight:700;color:var(--champ)!important;min-width:9em}.liveclock.hurry{color:#ffb35c!important;animation:hit .5s ease-in-out infinite alternate}.liveclock.shut{color:#E89A9F!important}
-.ghost{position:absolute;width:18px;height:18px;border-radius:50%;background:rgba(197,160,90,.35);border:1px dashed var(--champ);color:#fff;font:700 10px Heebo;display:grid;place-items:center;pointer-events:none;transform:translate(-50%,-50%);z-index:1}
+.gmark{position:absolute;width:18px;height:18px;border-radius:50%;background:rgba(197,160,90,.35);border:1px dashed var(--champ);color:#fff;font:700 10px Heebo;display:grid;place-items:center;pointer-events:none;transform:translate(-50%,-50%);z-index:1}
 @keyframes hit{to{opacity:.6}}
 body.live .side{grid-template-rows:auto auto 1fr}body.live.short .side{grid-template-rows:auto auto auto 1fr}body.short .players{max-height:44px}
 
@@ -307,3 +307,12 @@ body.live .side{grid-template-rows:auto auto 1fr}body.live.short .side{grid-temp
 .duelend .box{width:min(360px,90vw);background:#17120F;border:1px solid #C5A05A;border-radius:14px;padding:22px;text-align:center;display:grid;gap:12px}
 .duelend .t{font:700 24px 'Frank Ruhl Libre',serif;color:#F1D69A}.duelend .r{font-size:17px}.duelend .r b{color:#9fe0a8;font:800 22px Inter}
 .duelend .btn{text-decoration:none;display:block;padding:12px}
+.wheel-slot{overflow:hidden}.side .tools{position:relative;z-index:3}
+.board-slot{overflow:hidden}
+body.short .wheel-slot{width:min(100%,44vh);max-width:100%;justify-self:center}body.short .side{overflow:hidden}
+body.short .wheel-slot{width:100%!important;aspect-ratio:auto!important;height:min(42vh,160px)}body.race .zoom{display:none!important}
+#eraseBtn[aria-pressed="true"]{background:#7a1c24;color:#fff;border-color:#e5484d}body.erase .board{cursor:crosshair}
+.nmb{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:80;pointer-events:none;text-align:center;font:900 clamp(30px,8vw,64px) Inter;color:#fff;letter-spacing:.06em;
+  text-shadow:0 0 18px rgba(229,72,77,.9),0 3px 0 #000;background:rgba(8,5,4,.72);border:2px solid #e5484d;border-radius:16px;padding:10px 28px;animation:nmb 1.9s ease-out forwards}
+.nmb small{display:block;font:700 clamp(14px,3vw,22px) Heebo;color:#F1D69A;letter-spacing:0}
+@keyframes nmb{0%{transform:translate(-50%,-50%) scale(.5);opacity:0}12%{transform:translate(-50%,-50%) scale(1.05);opacity:1}80%{opacity:1}100%{opacity:0}}

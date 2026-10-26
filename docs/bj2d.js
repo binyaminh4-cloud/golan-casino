@@ -267,12 +267,16 @@ function renderBets() {
   chipStack(SPOTS[0].x, SPOTS[0].y, bets.main, "hand0");
   for (const [k, p] of Object.entries(SIDE_SPOTS)) chipStack(p.x, p.y, bets[k], "side_" + k, true);
   $("dealBtn").disabled = !bets.main; $("rebetBtn").disabled = !lastBets;
+  if (LIT) { let ft = $("feeTag"); if (!ft) { ft = document.createElement("div"); ft.id = "feeTag"; ft.className = "feetag"; $("stage").appendChild(ft); }
+    ft.style.left = SPOTS[0].x + 150 + "px"; ft.style.top = SPOTS[0].y + "px"; ft.hidden = !bets.main;
+    ft.innerHTML = `⚡ עמלת ברק<b class="num">+${fmt(Math.ceil(bets.main / 2))}</b><small>חצי מההימור</small>`; }
   if (LIT) { const f = Math.ceil(bets.main / 2); $("betSum").textContent = bets.main ? `הימור ${fmt(bets.main)} + עמלת ברק ${fmt(f)} = ${fmt(bets.main + f)}` : "בחר צ׳יפ ולחץ על העיגול. פישר מפיל ברקים על 2–3 קלפים, וניצחון עם קלף כזה ביד מכפיל את הרווח ×2 עד ×25."; return; }
   $("betSum").textContent = Object.values(bets).some(Boolean) ? "סה״כ " + fmt(Object.values(bets).reduce((a, b) => a + b, 0)) : "בחר צ׳יפ ולחץ על העיגול הגדול. העיגולים הקטנים הם הימורים צדדיים: PP זוג מושלם · 21+3 · LL ליידיז מזל · BB באסטר";
 }
 $("clearBtn").onclick = () => { Object.keys(bets).forEach((k) => bets[k] = 0); renderBets(); };
 $("rebetBtn").onclick = () => { if (!lastBets) return; if (st?.status === "done") clearRound(); Object.assign(bets, lastBets); renderBets(); };
 $("dealBtn").onclick = async () => {
+  if ($("feeTag")) $("feeTag").hidden = true;
   engaged = true;
   if (busy || !bets.main) return;
   if (st?.status === "done") clearRound();
@@ -330,7 +334,7 @@ function showControls() {
   const playing = st && st.status !== "done";
   $("acts").hidden = !playing; $("betUI").hidden = !!playing; setSpotsVisible(!playing);
   if (playing) { placeActs(st.active); document.querySelectorAll("#acts .a").forEach((b) => { b.hidden = !st.actions.includes(b.dataset.a); b.disabled = busy; });
-    if (!busy && st.actions.length) { zoomTo(st.active); if (engaged) startClock(); } }
+    if (!busy && st.actions.length && engaged) { zoomTo(st.active); startClock(); } }
   else { zoomTo(null); stopClock(); }
   $("rebetBtn").disabled = !lastBets; $("dealBtn").disabled = !bets.main;
 }
