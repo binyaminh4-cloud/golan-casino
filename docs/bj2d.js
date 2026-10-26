@@ -53,7 +53,7 @@ function pose(p) { $("dealer").src = `img/dealer/m_${p}.webp`; }
 // ---------- drawing helpers ----------
 const layer = $("layer");
 function el(cls, x, y, html = "") { const d = document.createElement("div"); d.className = cls; d.style.left = x + "px"; d.style.top = y + "px"; d.innerHTML = html; layer.appendChild(d); return d; }
-function faceUp(d, card) { d.classList.remove("back"); d.style.backgroundImage = `url(cards2/${card}.svg)`; d.dataset.card = card;
+function faceUp(d, card) { d.classList.remove("back"); d.style.backgroundImage = `url(cards3/${card}.webp)`; d.dataset.card = card;
   if (LIT && STRIKES[card[0]]) { d.classList.add("struck"); d.dataset.mx = "×" + STRIKES[card[0]]; } }
 async function flyCard(card, to, fromHand = true) {
   if (fromHand) { pose("deal"); await sleep(220); }

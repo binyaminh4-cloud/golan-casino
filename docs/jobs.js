@@ -98,7 +98,7 @@ async function finish(answer) {
 
 // ---------- dealer ----------
 const SUIT = { S: "♠", H: "♥", D: "♦", C: "♣" };
-function cardHtml(c) { const r = c[0] === "T" ? "10" : c[0], s = c[1]; return `<span class="pc ${s === "H" || s === "D" ? "red" : ""}"><b>${r}</b><i>${SUIT[s]}</i></span>`; }
+function cardHtml(c) { return `<span class="pc img" style="background-image:url(cards3/${c}.webp)"></span>`; }
 function drawDealer() {
   const hands = job.puzzle.hands;
   $("stage").innerHTML = `<div class="hands">${hands.map((h, i) => `<div class="hand"><div class="cards">${h.map(cardHtml).join("")}</div>

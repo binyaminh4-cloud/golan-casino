@@ -16,7 +16,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 #layer{position:absolute;inset:0;pointer-events:none}
 
 .card{position:absolute;width:84px;height:118px;border-radius:8px;background:#fff center/cover;box-shadow:0 10px 14px rgba(0,0,0,.45);transform:perspective(900px) rotateX(46deg);will-change:left,top,transform}
-.card.back{background:repeating-linear-gradient(45deg,#7a1420 0 6px,#8f1c2a 6px 12px);border:5px solid #f4ede0}
+.card.back{background:url(cards3/back.webp) center/cover;border:0}
 .card.flip{transform:perspective(900px) rotateX(46deg) scaleX(0)!important;transition:transform .14s ease-in!important}
 .chip{position:absolute;width:52px;height:52px;border-radius:50%;transform:perspective(900px) rotateX(55deg);border:6px dashed rgba(255,255,255,.9);
   box-shadow:0 4px 0 rgba(0,0,0,.35),0 8px 0 currentColor,0 12px 0 rgba(0,0,0,.35),0 16px 0 currentColor,0 22px 14px rgba(0,0,0,.55);display:grid;place-items:center;font:700 13px Inter;color:#fff}

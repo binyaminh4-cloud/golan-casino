@@ -22,7 +22,7 @@ button{font:inherit;cursor:pointer}
 .pot{position:absolute;left:50%;top:505px;transform:translateX(-50%);font:600 38px Heebo;color:#e8d9b5;background:rgba(8,5,4,.6);border-radius:99px;padding:2px 22px}.pot:empty{display:none}.pot b{color:#ffe27a}
 .board{position:absolute;left:50%;top:560px;transform:translateX(-50%);display:flex;gap:14px;direction:ltr}
 .pc{width:100px;height:140px;border-radius:9px;background:#fff center/cover;box-shadow:0 8px 14px rgba(0,0,0,.5)}
-.pc.back{background:repeating-linear-gradient(45deg,#7d1420 0 10px,#94202d 10px 20px);border:4px solid #f5ecdd}
+.pc.back{background:url(cards3/back.webp) center/cover}
 .pc.brd{width:140px;height:196px}.pc.big{width:130px;height:182px}
 .seat{position:absolute;transform:translate(-50%,-50%);display:grid;justify-items:center;width:260px}
 .seat .cards{display:flex;direction:ltr;margin-bottom:-26px;z-index:1}.seat .cards .pc{width:90px;height:126px;margin:0 -8px}.seat .cards .pc.big{width:150px;height:210px;margin:0 -10px}

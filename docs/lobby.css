@@ -79,3 +79,14 @@ header{margin-bottom:14px}
 .rlhist .hd{display:flex;justify-content:space-between;align-items:center;color:#F1D69A;font:700 17px Heebo}.rlhist .hd button{background:none;border:0;color:#B9AA94;font-size:22px;cursor:pointer}
 .rlhist .grid{display:grid;grid-template-columns:repeat(20,1fr);gap:3px;direction:rtl}
 .rlhist .grid .rb{width:100%;height:auto;aspect-ratio:1;font-size:clamp(7px,2.2vw,11px)}
+/* lobby art pack */
+.cat{background:url(img/lobby/tile_green.webp) center/cover!important;border-color:#C5A05A!important;padding:12px 8px 14px!important}
+.cat[data-c="sl"],.cat[data-c="poker"]{background-image:url(img/lobby/tile_red.webp)!important}
+.cat.jobs{background-image:url(img/lobby/tile_gold.webp)!important}
+.cat .ci img{width:96px;height:96px;object-fit:contain;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6))}
+.cat h3{background:rgba(8,5,4,.72);border:1px solid rgba(197,160,90,.55);border-radius:8px;padding:2px 14px}
+.chbanner .ci img{width:52px;height:52px;object-fit:contain}
+.lb li .rk{display:inline-grid;place-items:center}
+.lb li .rk img{width:30px;height:30px}
+.wallet{position:relative}.wallet::after{content:"";position:absolute;inset-inline-start:auto;inset-inline-end:auto;right:14px;top:14px;width:56px;height:56px;background:url(img/lobby/wallet_icon.webp) center/contain no-repeat;pointer-events:none}
+.gc-chat-btn{background:url(img/lobby/chat_icon.webp) center/cover!important;border:0!important;color:transparent!important}

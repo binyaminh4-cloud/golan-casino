@@ -29,7 +29,7 @@ async function pick() {
 }
 
 // ---------- table ----------
-const card = (c, cls = "") => c ? `<div class="pc ${cls}" style="background-image:url(cards2/${c}.svg)"></div>` : `<div class="pc back ${cls}"></div>`;
+const card = (c, cls = "") => c ? `<div class="pc ${cls}" style="background-image:url(cards3/${c}.webp)"></div>` : `<div class="pc back ${cls}"></div>`;
 function rel(seat) { return ME == null ? seat : (seat - ME + 6) % 6; }
 async function avatar(uid) {
   if (AV[uid] !== undefined || PREVIEW) return; AV[uid] = null;
