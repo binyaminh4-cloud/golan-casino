@@ -68,3 +68,4 @@ header{margin-bottom:14px}
 .soundask .row{display:flex;gap:10px}.soundask .btn{flex:1;padding:12px;font-size:17px}
 .soundask{grid-template-rows:auto auto;align-content:center;justify-items:center}
 .soundask .dj{width:min(220px,55vw);margin-bottom:-18px;position:relative;z-index:1;filter:drop-shadow(0 10px 16px rgba(0,0,0,.6))}
+.pbtns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.pbtns .priv{margin-top:0}.priv.live{border-color:#e5484d!important}
