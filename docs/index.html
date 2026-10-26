@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="styles.css?v=9">
 <link rel="stylesheet" href="gate.css?v=11">
-<link rel="stylesheet" href="lobby.css?v=16">
+<link rel="stylesheet" href="lobby.css?v=17">
 <link rel="icon" href="img/brand/favicon.png">
 <link rel="apple-touch-icon" href="img/brand/apple-touch-icon.png">
 <link rel="preload" as="image" href="img/brand/emblem.webp">
@@ -106,11 +106,11 @@
     </div>
     <div class="adminzone">
         <section class="panel" id="adminPanel" hidden>
-          <h3>הוספת חבר / קוד חדש</h3>
-          <p class="msg">כתוב שם משתמש לחבר חדש, או שם של חבר קיים ששכח סיסמה. תקבל קוד חד־פעמי לשלוח לו בוואטסאפ (תקף 7 ימים).</p>
+          <h3>➕ הזמנת חבר</h3>
+          <p class="msg">כותבים את השם שלו ולוחצים "צור הזמנה". נוצר קישור אישי: שולחים לו בוואטסאפ, הוא לוחץ, בוחר סיסמה, ונכנס. חבר ששכח סיסמה? אותו דבר עם השם שלו.</p>
           <form id="inviteForm" class="row" novalidate>
             <input id="inviteName" placeholder="שם משתמש" maxlength="20" required style="flex:1;min-width:0;font:400 15px var(--f-body);padding:10px;border-radius:6px;border:1px solid var(--wood-2);background:var(--room);color:var(--ink)">
-            <button class="btn">צור קוד</button>
+            <button class="btn">צור הזמנה</button>
           </form>
           <div id="codeOut" class="codeout" hidden></div>
           <p class="msg" id="inviteMsg" aria-live="polite"></p>
@@ -142,7 +142,7 @@
 <script src="config.js?v=7"></script>
 <script src="char.js?v=1"></script>
 <script src="guide.js?v=16"></script>
-<script src="app.js?v=18"></script>
+<script src="app.js?v=19"></script>
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});</script>
 <script src="chat.js?v=3"></script>
 </body>

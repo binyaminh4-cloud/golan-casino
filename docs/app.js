@@ -29,6 +29,16 @@ $("codeBtn").onclick = () => {
   $("codeBtn").textContent = codeMode ? "חזרה לכניסה רגילה" : "יש לי קוד · כניסה ראשונה או סיסמה חדשה";
   loginMsg(""); if (codeMode) $("code").focus();
 };
+// a personal invite link (?join=name&code=123456): only the password is left to choose
+(function inviteLink() {
+  const q = new URLSearchParams(location.search), name = q.get("join"), code = q.get("code");
+  if (!name || !code) return;
+  if (!codeMode) $("codeBtn").click();
+  $("uname").value = name; $("code").value = code;
+  $("uname").closest(".field").hidden = true; $("codeField").hidden = true; $("codeBtn").hidden = true;
+  loginMsg(`ברוך הבא ${name}! בחר סיסמה (לפחות 6 תווים) ואתה בפנים 🎰`);
+  setTimeout(() => $("pass").focus(), 300);
+})();
 $("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const user = $("uname").value.trim(), password = $("pass").value;
@@ -52,6 +62,7 @@ $("loginForm").addEventListener("submit", async (e) => {
     }
     GC_LOADER.show();
     const { error } = await db.auth.signInWithPassword({ email, password });
+    if (!error && codeMode) history.replaceState(null, "", location.pathname);   // drop the one-time code from the address bar
     if (error) GC_LOADER.done();
     if (error) throw new Error(/invalid/i.test(error.message) ? "bad_password" : error.message);
   } catch (err) {
@@ -115,9 +126,11 @@ $("inviteForm").addEventListener("submit", async (e) => {
   if (name.length < 2) { msg.className = "msg err"; msg.textContent = "שם משתמש של 2 עד 20 תווים."; return; }
   const { data, error } = await db.rpc("admin_issue_code", { p_username: name });
   if (error) { msg.className = "msg err"; msg.textContent = /invalid_username/.test(error.message) ? "רק אותיות, ספרות, רווח, נקודה וקו תחתון. 2 עד 20 תווים." : "הקוד לא נוצר. נסה שוב."; return; }
-  const link = location.origin + location.pathname;
-  const text = `הוזמנת לגולן קזינו 🎰\n${link}\nשם משתמש: ${name}\nקוד: ${data}\nלחץ "יש לי קוד", הכנס את השם והקוד ובחר סיסמה.`;
-  out.innerHTML = `<div class="msg">הקוד של <b>${esc(name)}</b>:</div><div class="big">${data}</div><a href="https://wa.me/?text=${encodeURIComponent(text)}" target="_blank" rel="noopener">שלח בוואטסאפ</a>`;
+  const link = location.origin + location.pathname + "?join=" + encodeURIComponent(name) + "&code=" + data;
+  const text = `${name}, הוזמנת לגולן קזינו 🎰\nלחץ על הקישור, בחר סיסמה ואתה בפנים:\n${link}\n(הקישור אישי, תקף 7 ימים)`;
+  out.innerHTML = `<div class="msg">ההזמנה של <b>${esc(name)}</b> מוכנה:</div><a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(text)}" target="_blank" rel="noopener">📲 שלח בוואטסאפ</a>
+    <button type="button" class="btn ghost" id="copyInv">העתק קישור</button><div class="msg" style="direction:ltr;word-break:break-all;font-size:12px">${esc(link)}</div>`;
+  $("copyInv").onclick = async () => { try { await navigator.clipboard.writeText(text); $("copyInv").textContent = "הועתק ✓"; } catch (e) {} };
   out.hidden = false; msg.textContent = ""; $("inviteName").value = ""; loadInvites();
 });
 
