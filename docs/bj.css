@@ -146,3 +146,10 @@ body.land #acts.phone .a{width:100%}
 .djburst{position:absolute;left:50%;top:-12%;width:340px;height:340px;transform:translate(-50%,-50%) scale(.2);background:url(img/lightning/burst.webp) center/contain no-repeat;
   animation:djb .9s ease-out forwards;mix-blend-mode:screen}
 @keyframes djb{30%{transform:translate(-50%,-50%) scale(1.25);opacity:1}100%{transform:translate(-50%,-50%) scale(1.6);opacity:0}}
+/* action buttons while the table is zoomed in on your hand */
+body #acts.zoombar{position:fixed;left:0;right:0;top:auto;bottom:0;transform:none!important;z-index:20;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;
+  padding:10px max(12px,env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));
+  background:linear-gradient(transparent,rgba(8,5,4,.92) 35%)}
+body #acts.zoombar .a{font-size:18px;padding:12px 22px;min-width:96px}
+body.land #acts.zoombar{top:auto;width:auto;bottom:0;left:0;right:0;display:flex;padding-block:6px}
+body.land #acts.zoombar .a{width:auto;padding:10px 18px;font-size:16px}

@@ -36,6 +36,7 @@ function fit() {
   else { s = Math.min(W / 1672, (H - 150) / 941); left = (W - 1672 * s) / 2; top = Math.max(44, (H - 150 - 941 * s) / 2 + 44); }
   st.style.transform = `scale(${s})`; st.style.left = left + "px"; st.style.top = top + "px";
   const out = PHONE || LAND;
+  if (acts.classList.contains("zoombar")) return;
   if (out && acts.parentElement !== document.body) { document.body.appendChild(acts); acts.classList.add("phone"); }
   if (!out && acts.parentElement === document.body) { st.appendChild(acts); acts.classList.remove("phone"); }
 }
@@ -253,6 +254,7 @@ function renderBets() {
 $("clearBtn").onclick = () => { Object.keys(bets).forEach((k) => bets[k] = 0); renderBets(); };
 $("rebetBtn").onclick = () => { if (!lastBets) return; if (st?.status === "done") clearRound(); Object.assign(bets, lastBets); renderBets(); };
 $("dealBtn").onclick = async () => {
+  engaged = true;
   if (busy || !bets.main) return;
   if (st?.status === "done") clearRound();
   err(""); busy = true; $("dealBtn").disabled = true;
@@ -277,10 +279,14 @@ document.querySelectorAll("#acts .a").forEach((b) => b.onclick = async () => {
 function lockActs() { document.querySelectorAll("#acts .a").forEach((b) => b.disabled = true); stopClock(); }
 
 // ---------- your turn: zoom in on your hand + 10-second decision clock ----------
-const DECIDE_MS = 10000; let clockT = null;
+const DECIDE_MS = 20000; let clockT = null, engaged = false;   // the clock only runs for hands this visit dealt
 function zoomTo(h) {
   const f = $("fit"), st2 = $("stage"), s = SPOTS[h] || SPOTS[0];
-  if (h == null) { f.style.transform = ""; return; }
+  const a = $("acts");
+  if (h == null) { f.style.transform = ""; a.classList.remove("zoombar"); fit(); return; }
+  // while zoomed, the action buttons leave the scaled table and sit in a fixed bar at the bottom of the screen
+  if (a.parentElement !== document.body) document.body.appendChild(a);
+  a.classList.remove("phone"); a.classList.add("zoombar"); a.style.left = a.style.top = "";
   const m = new DOMMatrix(getComputedStyle(st2).transform), x = parseFloat(st2.style.left) + s.x * m.a, y = parseFloat(st2.style.top) + (s.y - 50) * m.d;
   f.style.transformOrigin = `${x}px ${y}px`; f.style.transform = "scale(2.1)";
 }
@@ -305,7 +311,7 @@ function showControls() {
   const playing = st && st.status !== "done";
   $("acts").hidden = !playing; $("betUI").hidden = !!playing; setSpotsVisible(!playing);
   if (playing) { placeActs(st.active); document.querySelectorAll("#acts .a").forEach((b) => { b.hidden = !st.actions.includes(b.dataset.a); b.disabled = busy; });
-    if (!busy && st.actions.length) { zoomTo(st.active); startClock(); } }
+    if (!busy && st.actions.length) { zoomTo(st.active); if (engaged) startClock(); } }
   else { zoomTo(null); stopClock(); }
   $("rebetBtn").disabled = !lastBets; $("dealBtn").disabled = !bets.main;
 }
