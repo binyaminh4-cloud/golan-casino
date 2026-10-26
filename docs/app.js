@@ -167,13 +167,11 @@ function soundAsk() {
   o.innerHTML = `<img class="dj" src="img/lightning/dj_idle.webp" alt="די־ג׳יי פישר"><div class="box"><h3>דיג׳יי פישר מבקש רשות</h3><p>להדליק את הסאונד, או שגם הפעם הוא ינגן לעצמו?</p>
     <div class="row"><button class="btn" data-s="on">🎧 תן בראש, פישר</button><button class="btn ghost" data-s="off">🔇 תודה, פישר</button></div></div>`;
   document.body.appendChild(o);
-  o.querySelectorAll("button").forEach((b) => b.onclick = () => {
+  o.querySelectorAll("button").forEach((b) => b.addEventListener("pointerup", () => {      // close at once: no extra audio setup on this tap
     const on = b.dataset.s === "on";
     try { localStorage.setItem("gc_sound_chosen", "1"); localStorage.setItem("gc_mute", on ? "0" : "1"); } catch (e) {}
-    if (on) { try { const C = window.AudioContext || window.webkitAudioContext, c = new C(), g = c.createGain(), os = c.createOscillator();
-      g.gain.value = 0.15; os.frequency.value = 880; os.connect(g).connect(c.destination); os.start(); os.stop(c.currentTime + 0.12); } catch (e) {} }
     o.remove();
-  });
+  }, { once: true }));
 }
 
 // live roulette: last 5 numbers on each roulette card; tap them for the last 500 (20 per row, newest first)
