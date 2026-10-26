@@ -46,7 +46,7 @@
   }
   const setTip = () => { tip.style.opacity = 0; setTimeout(() => { tip.textContent = tips[ti++ % tips.length]; tip.style.opacity = 1; }, 250); };
   // minimum time on screen: 2.5 s in the lobby, 1.8 s in the games (lets heavy pages settle and shows the brand)
-  const T0 = performance.now(), MIN = /\/(index\.html)?$/.test(location.pathname) ? 2500 : 1800;
+  const T0 = performance.now(), MIN = /\/(index\.html)?$/.test(location.pathname) ? 5000 : 1800;
   function done() {
     if (finished || !o) return;
     const wait = MIN - (performance.now() - T0); if (wait > 0) { setTimeout(done, wait); return; }
