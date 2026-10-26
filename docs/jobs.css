@@ -73,3 +73,4 @@ h1{font:700 30px 'Frank Ruhl Libre',serif;color:var(--champ);margin:6px 0 4px;te
 .cd.pop{animation:cdp .9s ease-out}@keyframes cdp{0%{transform:translate(-50%,-50%) scale(1.6);opacity:1}100%{transform:translate(-50%,-50%) scale(.9);opacity:.35}}
 .soonh{font:700 22px "Frank Ruhl Libre",serif;color:#B9AA94;margin:22px 0 10px}.job.off{opacity:.5;filter:grayscale(.6)}.jobcards.soon{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 .pc.img{background:#fff center/cover;border:0;width:56px;height:78px;margin-left:-16px}
+.pc.img{width:52px;height:73px;margin-left:-30px;box-shadow:-2px 2px 4px rgba(0,0,0,.35)}.pc.img:first-child{margin-left:0}.hand .cards{max-width:100%}
