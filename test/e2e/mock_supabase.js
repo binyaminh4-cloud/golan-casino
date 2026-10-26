@@ -39,6 +39,9 @@
       case "chat_since": { S.chat = S.chat || [{ id: 1, kind: "user", body: "מי בא לרולטה?", uid: "u2", name: "דני" }, { id: 2, kind: "sys", body: "🎉 דני זכה ב־₪6,300 על 17 ⚡ 200x" }];
         return { data: S.chat.filter((m) => m.id > (a.p_after || 0)) }; }
       case "chat_send": { S.chat.push({ id: S.chat.length + 1, kind: "user", body: a.p_body, uid: "u1", name: "בנימין" }); save(); return { data: S.chat.length }; }
+      case "gc_public": return { data: { challenges: false, games: { blackjack: true, lightning_bj: true, roulette: true, lightning: true, xxx: true, slots: true, fortune: true, poker: false, jobs: true } } };
+      case "admin_settings": case "admin_set": return { data: { challenges: false, games: { poker: false }, salary_weekly: 5000, salary_monthly: 25000, starting_balance: 10000, season: null } };
+      case "admin_members": return { data: [{ id: "u1", name: "בנימין", username: "בנימין", admin: true, balance: S.bal, joined: "2026-10-20" }, { id: "u2", name: "דני", username: "dani", balance: 24500, joined: "2026-10-24", seated: "חבר׳ה" }] };
       case "admin_pending_codes": return { data: [] };
       default: return { data: null };
     }

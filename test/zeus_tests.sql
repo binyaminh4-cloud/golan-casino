@@ -1,4 +1,5 @@
 \set ON_ERROR_STOP on
+update gc_settings set value = 'true' where key = 'challenges';
 insert into auth.users (id, email) values ('00000000-0000-0000-0000-00000000000b', 'b@x') on conflict do nothing;
 insert into profiles (id, nickname) values ('00000000-0000-0000-0000-00000000000b', 'דני') on conflict do nothing;
 select set_config('request.jwt.sub', '00000000-0000-0000-0000-00000000000a', false);

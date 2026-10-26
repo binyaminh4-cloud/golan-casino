@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="styles.css?v=9">
 <link rel="stylesheet" href="gate.css?v=11">
-<link rel="stylesheet" href="lobby.css?v=17">
+<link rel="stylesheet" href="lobby.css?v=19">
 <link rel="icon" href="img/brand/favicon.png">
 <link rel="apple-touch-icon" href="img/brand/apple-touch-icon.png">
 <link rel="preload" as="image" href="img/brand/emblem.webp">
@@ -60,6 +60,7 @@
       <div class="me">
         <div><div class="lbl" id="hdrName"></div><div class="bal num" id="hdrBal">…</div></div>
         <div class="avatar" id="hdrAv" aria-hidden="true"></div>
+        <a class="linkbtn adminlink" id="adminLink" href="admin.html" hidden>⚙️ ניהול</a>
         <button class="linkbtn" id="logout">יציאה</button>
       </div>
     </header>
@@ -67,7 +68,7 @@
 
     <div class="grid">
       <main>
-        <a class="chbanner" href="challenges.html"><span class="ci">🏆</span><span><b>אתגרים · העונה בעיצומה</b><small>דו־קרבות עם החברים, טבלת עונה, ₪500,000 לאלוף</small></span><span class="arr">←</span></a>
+        <a class="chbanner" href="challenges.html" hidden><span class="ci">🏆</span><span><b>אתגרים · העונה בעיצומה</b><small>דו־קרבות עם החברים, טבלת עונה, ₪500,000 לאלוף</small></span><span class="arr">←</span></a>
         <h2 class="orn" id="roomsH">חדרי המשחק</h2>
         <button type="button" class="catback" id="catBack" hidden>→ כל הקטגוריות</button>
         <div class="cats" id="cats">
@@ -104,37 +105,6 @@
         </section>
       </aside>
     </div>
-    <div class="adminzone">
-        <section class="panel" id="adminPanel" hidden>
-          <h3>➕ הזמנת חבר</h3>
-          <p class="msg">כותבים את השם שלו ולוחצים "צור הזמנה". נוצר קישור אישי: שולחים לו בוואטסאפ, הוא לוחץ, בוחר סיסמה, ונכנס. חבר ששכח סיסמה? אותו דבר עם השם שלו.</p>
-          <form id="inviteForm" class="row" novalidate>
-            <input id="inviteName" placeholder="שם משתמש" maxlength="20" required style="flex:1;min-width:0;font:400 15px var(--f-body);padding:10px;border-radius:6px;border:1px solid var(--wood-2);background:var(--room);color:var(--ink)">
-            <button class="btn">צור הזמנה</button>
-          </form>
-          <div id="codeOut" class="codeout" hidden></div>
-          <p class="msg" id="inviteMsg" aria-live="polite"></p>
-          <ul class="msg" id="inviteList" style="padding-inline-start:16px"></ul>
-        </section>
-
-        <section class="panel" id="grantPanel" hidden>
-          <h3>טעינת ארנק</h3>
-          <p class="msg">רק אתה רואה את זה. שקלים משחקיים בלבד.</p>
-          <form id="grantForm" class="row" novalidate>
-            <select id="grantWho" style="flex:1;min-width:0;font:400 15px var(--f-body);padding:10px;border-radius:6px;border:1px solid var(--wood-2);background:var(--room);color:var(--ink)"></select>
-            <input id="grantAmt" type="number" inputmode="numeric" min="1" step="1" value="10000" style="width:120px;font:400 15px var(--f-num);direction:ltr;padding:10px;border-radius:6px;border:1px solid var(--wood-2);background:var(--room);color:var(--ink)">
-            <button class="btn">טען</button>
-          </form>
-          <p class="msg" id="grantMsg" aria-live="polite"></p>
-        </section>
-
-        <section class="panel" id="charPanel" hidden>
-          <h3>שיבוץ דמויות</h3>
-          <p class="msg">רק אתה יכול לשבץ. לחץ על דמות כדי לשבץ אותה לחבר.</p>
-          <div id="charList"></div>
-          <p class="msg" id="charMsg" aria-live="polite"></p>
-        </section>
-    </div>
     <footer>גולן קזינו · שקלים משחקיים בלבד</footer>
   </div>
 </div>
@@ -142,7 +112,7 @@
 <script src="config.js?v=7"></script>
 <script src="char.js?v=1"></script>
 <script src="guide.js?v=16"></script>
-<script src="app.js?v=19"></script>
+<script src="app.js?v=20"></script>
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});</script>
 <script src="chat.js?v=3"></script>
 </body>

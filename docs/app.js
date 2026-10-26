@@ -88,10 +88,8 @@ async function showLobby(user) {
   $("hdrName").textContent = me.nickname;
   $("hdrAv").textContent = (me.nickname || "?")[0].toUpperCase();
   GC_CHAR(db, user.id).then((c) => { if (c.url) $("hdrAv").innerHTML = `<img src="${esc(c.url)}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 8%;border-radius:50%">`; });
-  $("adminPanel").hidden = !me.is_admin;
-  $("charPanel").hidden = !me.is_admin;
-  $("grantPanel").hidden = !me.is_admin;
-  if (me.is_admin) { loadInvites(); loadCharacters(); loadGrantList(); }
+  $("adminLink").hidden = !me.is_admin;
+  applyPublic();
   try { const { data: sal } = await db.rpc("salary_claim");
     if (sal && (sal.weekly || sal.monthly)) salaryToast(sal); } catch (e) {}
   await refresh();
@@ -113,67 +111,6 @@ async function refresh() {
   box.innerHTML = "<ol>" + lb.data.map((m, i) =>
     `<li class="${m.id === me.id ? "you" : ""}"><span class="rk num">${i + 1}</span><span class="avatar av">${esc((m.nickname || "?")[0].toUpperCase())}</span><span class="nm">${esc(m.nickname)}${m.id === me.id ? " (אתה)" : ""}</span><span class="w num">${fmt(m.wealth)}</span></li>`
   ).join("") + "</ol>";
-}
-
-// ---------- Admin: access codes (no email) ----------
-async function loadInvites() {
-  const { data } = await db.rpc("admin_pending_codes");
-  $("inviteList").innerHTML = (data || []).map((i) => `<li>${esc(i.username)} · ${i.reset ? "ממתין לסיסמה חדשה" : "ממתין להצטרפות"}</li>`).join("");
-}
-$("inviteForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const name = $("inviteName").value.trim(), msg = $("inviteMsg"), out = $("codeOut");
-  if (name.length < 2) { msg.className = "msg err"; msg.textContent = "שם משתמש של 2 עד 20 תווים."; return; }
-  const { data, error } = await db.rpc("admin_issue_code", { p_username: name });
-  if (error) { msg.className = "msg err"; msg.textContent = /invalid_username/.test(error.message) ? "רק אותיות, ספרות, רווח, נקודה וקו תחתון. 2 עד 20 תווים." : "הקוד לא נוצר. נסה שוב."; return; }
-  const link = location.origin + location.pathname + "?join=" + encodeURIComponent(name) + "&code=" + data;
-  const text = `${name}, הוזמנת לגולן קזינו 🎰\nלחץ על הקישור, בחר סיסמה ואתה בפנים:\n${link}\n(הקישור אישי, תקף 7 ימים)`;
-  out.innerHTML = `<div class="msg">ההזמנה של <b>${esc(name)}</b> מוכנה:</div><a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(text)}" target="_blank" rel="noopener">📲 שלח בוואטסאפ</a>
-    <button type="button" class="btn ghost" id="copyInv">העתק קישור</button><div class="msg" style="direction:ltr;word-break:break-all;font-size:12px">${esc(link)}</div>`;
-  $("copyInv").onclick = async () => { try { await navigator.clipboard.writeText(text); $("copyInv").textContent = "הועתק ✓"; } catch (e) {} };
-  out.hidden = false; msg.textContent = ""; $("inviteName").value = ""; loadInvites();
-});
-
-// ---------- Admin: load play money ----------
-async function loadGrantList() {
-  const { data } = await db.from("profiles").select("id,nickname").order("nickname");
-  $("grantWho").innerHTML = `<option value="">כל החברים</option>` + (data || []).map((p) => `<option value="${p.id}">${esc(p.nickname)}</option>`).join("");
-}
-$("grantForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const amt = Math.floor(+$("grantAmt").value), who = $("grantWho").value || null, m = $("grantMsg");
-  if (!(amt >= 1 && amt <= 10000000)) { m.className = "msg err"; m.textContent = "סכום בין ₪1 ל־₪10,000,000."; return; }
-  const name = who ? $("grantWho").selectedOptions[0].textContent : "כל החברים";
-  if (!confirm(`לטעון ${fmt(amt)} ל${who ? "־" + name : "כל החברים"}?`)) return;
-  const { data, error } = await db.rpc("admin_grant", { p_user: who, p_amount: amt });
-  m.className = error ? "msg err" : "msg";
-  m.textContent = error ? "הטעינה נכשלה. נסה שוב." : `נטען ${fmt(amt)} ל־${data} ${data === 1 ? "חבר" : "חברים"}.`;
-  if (!error) refresh();
-});
-
-// ---------- Admin: assign characters (stored in the private "characters" bucket) ----------
-const CHAR_KEYS = Array.from({ length: 8 }, (_, i) => "char_" + String(i).padStart(2, "0"));
-let charUrls = {};
-async function loadCharacters() {
-  if (!Object.keys(charUrls).length) {
-    const { data } = await db.storage.from("characters").createSignedUrls(CHAR_KEYS.map((k) => k + ".webp"), 3600);
-    (data || []).forEach((s, i) => { if (s.signedUrl) charUrls[CHAR_KEYS[i]] = s.signedUrl; });
-  }
-  const { data: people } = await db.from("profiles").select("id,nickname,character_key").order("created_at");
-  const taken = new Set((people || []).map((p) => p.character_key).filter(Boolean));
-  $("charList").innerHTML = (people || []).map((p) => `
-    <div class="crow">
-      <div class="cname">${esc(p.nickname)}</div>
-      <div class="cpick">${CHAR_KEYS.map((k) => `<button class="cthumb${p.character_key === k ? " on" : ""}${taken.has(k) && p.character_key !== k ? " taken" : ""}"
-        data-u="${p.id}" data-k="${k}" title="${k}" aria-pressed="${p.character_key === k}"><img src="${esc(charUrls[k] || "")}" alt="${k}"></button>`).join("")}
-        <button class="cthumb none" data-u="${p.id}" data-k="" title="בלי דמות">✕</button></div>
-    </div>`).join("") || '<p class="msg">עוד אין חברים רשומים.</p>';
-  $("charList").querySelectorAll(".cthumb").forEach((b) => b.onclick = async () => {
-    const { error } = await db.rpc("admin_set_character", { p_user: b.dataset.u, p_key: b.dataset.k || null });
-    $("charMsg").className = error ? "msg err" : "msg";
-    $("charMsg").textContent = error ? "השיבוץ לא נשמר. נסה שוב." : "נשמר.";
-    if (!error) loadCharacters();
-  });
 }
 
 boot();
@@ -208,3 +145,16 @@ function salaryToast(s) {
   $("catBack").onclick = () => show(null);
   try { const c = sessionStorage.getItem("gc_cat"); if (c && NAME[c]) show(c); } catch (e) {}
 })();
+
+// owner's settings: hide games he switched off, and the challenges banner while challenges are paused
+async function applyPublic() {
+  try {
+    const { data } = await db.rpc("gc_public"); if (!data) return;
+    document.querySelector(".chbanner").hidden = !data.challenges;
+    const map = { "blackjack.html": "blackjack", "blackjack.html?mode=lightning": "lightning_bj", "roulette.html": "roulette", "roulette.html?mode=lightning": "lightning",
+      "roulette.html?mode=xxx": "xxx", "slots.html": "slots", "slots.html?m=fortune": "fortune", "poker.html": "poker", "jobs.html": "jobs" };
+    document.querySelectorAll(".games .game[href]").forEach((g) => { const k = map[g.getAttribute("href")]; if (k && data.games && data.games[k] === false) g.remove(); });
+    document.querySelectorAll(".cat").forEach((c) => { const n = document.querySelectorAll(`.games .game[data-cat="${c.dataset.c}"]`).length; if (!n) c.hidden = true;
+      else c.querySelector("small").textContent = n === 1 ? "משחק אחד" : `${n} משחקים`; });
+  } catch (e) {}
+}

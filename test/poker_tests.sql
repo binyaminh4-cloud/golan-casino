@@ -1,4 +1,5 @@
 \set ON_ERROR_STOP on
+update gc_settings set value = 'true' where key = 'challenges';
 insert into invitations(email) values ('c@x.com') on conflict do nothing;
 insert into auth.users (id, email) values ('00000000-0000-0000-0000-00000000000b', 'b@x'), ('00000000-0000-0000-0000-00000000000c', 'c@x.com') on conflict do nothing;
 insert into profiles (id, nickname) values ('00000000-0000-0000-0000-00000000000b', 'דני'), ('00000000-0000-0000-0000-00000000000c', 'יוסי') on conflict do nothing;

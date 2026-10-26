@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="loader.js?v=4"></script>
+<title>ניהול · גולן קזינו</title>
+<link rel="icon" href="img/brand/favicon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="styles.css?v=9">
+<link rel="stylesheet" href="lobby.css?v=19">
+<link rel="stylesheet" href="admin.css?v=1">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=8"></script>
+</head>
+<body>
+<header class="atop"><a href="./" class="back">→ ללובי</a><h1>⚙️ ניהול הקזינו</h1></header>
+<main class="admin">
+  <section class="panel">
+    <h3>🏆 אתגרים ועונות</h3>
+    <div class="sw"><span>אתגרים פתוחים לחברים</span><label class="tog"><input type="checkbox" id="chOn"><i></i></label></div>
+    <p class="msg" id="chInfo"></p>
+    <button class="btn ghost" id="seasonRestart">התחל עונה חדשה (בלי פרסים)</button>
+    <p class="msg" id="chMsg"></p>
+  </section>
+
+  <section class="panel">
+    <h3>🎮 משחקים בלובי</h3>
+    <p class="msg">מה שכבוי לא מופיע לחברים בלובי.</p>
+    <div id="games" class="games-tog"></div>
+  </section>
+
+  <section class="panel">
+    <h3>👥 החברים</h3>
+    <div id="members" class="members"></div>
+  </section>
+
+    
+        <section class="panel" id="adminPanel">
+          <h3>➕ הזמנת חבר</h3>
+          <p class="msg">כותבים את השם שלו ולוחצים "צור הזמנה". נוצר קישור אישי: שולחים לו בוואטסאפ, הוא לוחץ, בוחר סיסמה, ונכנס. חבר ששכח סיסמה? אותו דבר עם השם שלו.</p>
+          <form id="inviteForm" class="row" novalidate>
+            <input id="inviteName" placeholder="שם משתמש" maxlength="20" required style="flex:1;min-width:0;font:400 15px var(--f-body);padding:10px;border-radius:6px;border:1px solid var(--wood-2);background:var(--room);color:var(--ink)">
+            <button class="btn">צור הזמנה</button>
+          </form>
+          <div id="codeOut" class="codeout"></div>
+          <p class="msg" id="inviteMsg" aria-live="polite"></p>
+          <ul class="msg" id="inviteList" style="padding-inline-start:16px"></ul>
+        </section>
+
+        <section class="panel" id="grantPanel">
+          <h3>טעינת ארנק</h3>
+          <p class="msg">רק אתה רואה את זה. שקלים משחקיים בלבד.</p>
+          <form id="grantForm" class="row" novalidate>
+            <select id="grantWho" style="flex:1;min-width:0;font:400 15px var(--f-body);padding:10px;border-radius:6px;border:1px solid var(--wood-2);background:var(--room);color:var(--ink)"></select>
+            <input id="grantAmt" type="number" inputmode="numeric" min="1" step="1" value="10000" style="width:120px;font:400 15px var(--f-num);direction:ltr;padding:10px;border-radius:6px;border:1px solid var(--wood-2);background:var(--room);color:var(--ink)">
+            <button class="btn">טען</button>
+          </form>
+          <p class="msg" id="grantMsg" aria-live="polite"></p>
+        </section>
+
+        <section class="panel" id="charPanel">
+          <h3>שיבוץ דמויות</h3>
+          <p class="msg">רק אתה יכול לשבץ. לחץ על דמות כדי לשבץ אותה לחבר.</p>
+          <div id="charList"></div>
+          <p class="msg" id="charMsg" aria-live="polite"></p>
+        </section>
+    
+
+  <section class="panel">
+    <h3>💼 משכורות וכסף התחלתי</h3>
+    <div class="nums">
+      <label>משכורת שבועית (כל יום ראשון)<input type="number" id="salW" min="0" step="1000"></label>
+      <label>משכורת חודשית (בכל 1 לחודש)<input type="number" id="salM" min="0" step="1000"></label>
+      <label>כסף התחלתי לחבר חדש<input type="number" id="startBal" min="0" step="1000"></label>
+    </div>
+    <button class="btn" id="saveNums">שמור</button>
+    <p class="msg" id="numsMsg"></p>
+  </section>
+</main>
+<script src="admin.js?v=1"></script>
+</body>
+</html>
