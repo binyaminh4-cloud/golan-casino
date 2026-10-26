@@ -83,7 +83,7 @@ do $$ declare t uuid := (select id from tb); st jsonb; begin
   perform set_config('request.jwt.sub', '00000000-0000-0000-0000-00000000000a', false);
   st := poker_state(t);
   if st->>'street' in ('preflop','flop','turn','river') then
-    perform t_assert(st->'seats'->'0'->'hole' is not null and jsonb_typeof(st->'seats'->'2'->'hole') = 'null', 'only my hole cards are visible');
+    perform t_assert(not exists (select 1 from jsonb_each(st->'seats') e where e.key::int <> (st->>'me')::int and jsonb_typeof(e.value->'hole') <> 'null'), 'only my hole cards are visible');
   end if;
 end $$;
 -- leaving returns the chips
@@ -103,3 +103,31 @@ do $$ declare t uuid := (select id from tb); st jsonb; i int; begin
        + (select coalesce(sum(stack),0) from poker_seats) = 3000000, 'still conserved after leaving');
 end $$;
 \echo POKER TESTS DONE
+-- jackpot tournament
+do $$ begin perform ch_season(); end $$;
+update wallets set balance = 100000 where user_id in ('00000000-0000-0000-0000-00000000000a','00000000-0000-0000-0000-00000000000b','00000000-0000-0000-0000-00000000000c');
+delete from poker_seats;
+do $$ declare u text; r jsonb; tb uuid; st jsonb; i int; tot bigint; pz bigint; begin
+  foreach u in array array['00000000-0000-0000-0000-00000000000a','00000000-0000-0000-0000-00000000000b','00000000-0000-0000-0000-00000000000c'] loop
+    perform set_config('request.jwt.sub', u, false); r := tourney_join();
+  end loop;
+  perform t_assert(r->>'status' = 'running', 'third player starts the tournament');
+  tb := (r->>'table')::uuid; pz := (select prize from tourneys where table_id = tb);
+  perform t_assert(pz in (15000, 20000, 50000, 100000, 250000, 500000), 'wheel prize ' || pz);
+  perform t_assert((select sum(balance) from wallets where user_id in ('00000000-0000-0000-0000-00000000000a','00000000-0000-0000-0000-00000000000b','00000000-0000-0000-0000-00000000000c')) = 270000, 'buy-ins taken');
+  perform t_assert((select wealth from leaderboard where id = '00000000-0000-0000-0000-00000000000a') = 90000, 'tournament chips are not wealth');
+  for i in 1..3000 loop
+    update poker_hands set next_at = now() where table_id = tb and street in ('done','idle');
+    perform poker_tick(tb);
+    exit when (select status from tourneys where table_id = tb) = 'done';
+    st := (select to_jsonb(h) from poker_hands h where table_id = tb);
+    if st->>'street' not in ('preflop','flop','turn','river') then continue; end if;
+    perform set_config('request.jwt.sub', (select user_id::text from poker_seats where table_id = tb and seat_index = (st->>'to_act')::int), false);
+    begin perform poker_act(tb, (array['allin','call','check','fold','allin'])[1 + floor(random()*5)::int]);
+    exception when others then begin perform poker_act(tb, 'check'); exception when others then perform poker_act(tb, 'call'); end; end;
+  end loop;
+  perform t_assert((select status from tourneys where table_id = tb) = 'done', 'tournament finished');
+  perform t_assert((select sum(balance) from wallets where user_id in ('00000000-0000-0000-0000-00000000000a','00000000-0000-0000-0000-00000000000b','00000000-0000-0000-0000-00000000000c')) = 270000 + pz, 'winner paid the prize');
+  perform t_assert((select sum(points) from ch_points where kind = 'tourney') = 40, 'points: winner 30 + runner-up 10');
+end $$;
+\echo TOURNEY TESTS DONE

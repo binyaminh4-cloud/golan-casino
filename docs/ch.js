@@ -44,15 +44,19 @@ function draw() {
     const { data, error } = await rpc("ch_accept_ido", { p_duel: b.dataset.acc }); if (error) return err(errText(error));
     location.href = runUrl("ido", data.run);
   });
+  const tn = S.tourney;
+  if (tn && tn.status === "running") { $("tnInfo").innerHTML = `🎡 הטורניר שלך רץ! פרס <b class="num">${fmt(tn.prize)}</b>`; $("tnBtn").textContent = "לשולחן"; $("tnBtn").dataset.go = `poker.html?t=${tn.table}`; }
+  else if (tn) { $("tnInfo").innerHTML = `נרשמת · ${(tn.players || []).length}/3 שחקנים: ${(tn.players || []).map(esc).join(", ")}`; $("tnBtn").textContent = "בטל הרשמה"; $("tnBtn").dataset.go = "leave"; }
+  else { $("tnInfo").innerHTML = S.tourney_open ? "יש טורניר שמחכה לשחקנים!" : "אין כרגע טורניר פתוח. פתח אחד!"; $("tnBtn").textContent = "הירשם · ₪10,000"; $("tnBtn").dataset.go = ""; }
   $("fBest").innerHTML = S.fisher_best ? `השיא שלך העונה: <b class="num">${fmt(S.fisher_best)}</b>` : "עוד לא שיחקת סט העונה";
   // vault
   const p = Math.min(100, S.vault / S.vault_target * 100);
   $("vaultBar").style.width = p + "%"; $("vaultTxt").textContent = `${fmt(S.vault)} / ${fmt(S.vault_target)}`;
   // board
   const b = (S.board || []).filter((x) => x.total > 0 || x.id === S.me);
-  $("board").innerHTML = `<tr><th>#</th><th>שחקן</th><th>🎧</th><th>🃏</th><th>⚡</th><th>סה״כ</th></tr>` +
-    (b.length ? b.map((x, i) => `<tr class="${x.id === S.me ? "me" : ""}"><td class="num">${i + 1}</td><td>${esc(x.name)}</td><td class="num">${x.fisher}</td><td class="num">${x.ido}</td><td class="num">${x.zeus}</td><td class="num tot">${x.total}</td></tr>`).join("")
-             : `<tr><td colspan="6" class="empty">עוד אין נקודות בעונה הזאת. מי פותח?</td></tr>`);
+  $("board").innerHTML = `<tr><th>#</th><th>שחקן</th><th>🎧</th><th>🃏</th><th>⚡</th><th>🎡</th><th>סה״כ</th></tr>` +
+    (b.length ? b.map((x, i) => `<tr class="${x.id === S.me ? "me" : ""}"><td class="num">${i + 1}</td><td>${esc(x.name)}</td><td class="num">${x.fisher}</td><td class="num">${x.ido}</td><td class="num">${x.zeus}</td><td class="num">${x.tourney || 0}</td><td class="num tot">${x.total}</td></tr>`).join("")
+             : `<tr><td colspan="7" class="empty">עוד אין נקודות בעונה הזאת. מי פותח?</td></tr>`);
   const L = S.last_results; $("last").innerHTML = L ? `🏆 עונה ${L.season} הסתיימה · הכספת: ${fmt(L.vault || 0)}${L.vault_hit ? " (התמלאה!)" : ""}` : "";
 }
 let Z = [];
@@ -80,6 +84,13 @@ async function load() {
   const [st, zl] = await Promise.all([db.rpc("ch_state"), db.rpc("zeus_list")]);
   if (st.error) return err(errText(st.error)); if (!zl.error) Z = zl.data || []; S = st.data; draw();
 }
+$("tnBtn").onclick = async () => {
+  const g = $("tnBtn").dataset.go;
+  if (g && g !== "leave") { location.href = g; return; }
+  const { data, error } = await rpc(g === "leave" ? "tourney_leave" : "tourney_join");
+  if (error) { const m = error.message || ""; return err(m.includes("insufficient") ? "אין מספיק בארנק לכניסה." : m.includes("already_seated") ? "אתה יושב בשולחן פוקר. קום ממנו קודם." : errText(error)); }
+  if (data && data.status === "running") location.href = `poker.html?t=${data.table}`; else load();
+};
 $("zeusBtn").onclick = async () => { const o = $("zopp").value; if (!o) return; const { error } = await rpc("zeus_invite", { p_opponent: o }); if (error) return err(errText(error)); err(""); load(); };
 $("fisherBtn").onclick = async () => { const { data, error } = await rpc("ch_start_fisher"); if (error) return err(errText(error)); location.href = runUrl(data.kind, data.run); };
 $("idoBtn").onclick = async () => {

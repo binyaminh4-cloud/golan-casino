@@ -38,13 +38,17 @@ async function avatar(uid) {
 function chipLabel(n) { return n >= 1e6 ? +(n / 1e6).toFixed(1) + "M" : n >= 1000 ? +(n / 1000).toFixed(1) + "K" : n; }
 function draw() {
   const s = S; if (!s) return;
-  ME = s.me; $("tname").innerHTML = `${esc(s.table.name)} · <span class="num">${fmt(s.table.sb)}/${fmt(s.table.bb)}</span>`;
-  $("bal").textContent = fmt(s.balance); $("leaveBtn").hidden = ME == null;
+  ME = s.me; const TN = s.tourney;
+  $("tname").innerHTML = TN ? `🎡 טורניר ג׳קפוט · פרס <span class="num">${fmt(TN.prize)}</span> · בליינדים <span class="num">${s.table.sb}/${s.table.bb}</span>`
+                            : `${esc(s.table.name)} · <span class="num">${fmt(s.table.sb)}/${fmt(s.table.bb)}</span>`;
+  if (TN && !wheelShown) { wheelShown = true; wheel(TN); }
+  if (TN && TN.status === "done" && !$("tnEnd")) tnEnd(TN);
+  $("bal").textContent = fmt(s.balance); $("leaveBtn").hidden = ME == null; $("leaveBtn").textContent = s.tourney ? "פרוש מהטורניר" : "קום מהשולחן";
   // seats
   let h = "";
   for (let seat = 0; seat < 6; seat++) {
     const p = s.seats[seat], pos = SPOT[rel(seat)], turn = s.to_act === seat && s.street !== "done" && s.street !== "idle";
-    if (!p) { h += ME == null ? `<button class="sit" style="left:${pos.x}px;top:${pos.y}px" data-seat="${seat}">שב כאן</button>` : ""; continue; }
+    if (!p) { h += ME == null && !s.tourney ? `<button class="sit" style="left:${pos.x}px;top:${pos.y}px" data-seat="${seat}">שב כאן</button>` : ""; continue; }
     if (p.user && AV[p.user] === undefined) avatar(p.user);
     const won = s.result && s.result.won && s.result.won[seat];
     const hole = p.hole ? p.hole.map((c) => card(c, seat === ME ? "big" : "")).join("") : p.in_hand && !p.folded ? card(null) + card(null) : "";
@@ -80,6 +84,28 @@ function draw() {
     q("allin").textContent = `אול־אין ${fmt(me.stack)}`;
   }
   if (s.hand_no !== lastHand && ["preflop"].includes(s.street)) { lastHand = s.hand_no; try { SFX.card(); } catch (e) {} }
+}
+// the prize wheel: spins once when you first see a tournament table, lands on the server's multiplier
+let wheelShown = false;
+function wheel(tn) {
+  if (tn.status !== "running" || (S && S.hand_no > 2)) return;
+  const SEG = [["×1.5", 15000], ["×2", 20000], ["×5", 50000], ["×10", 100000], ["×25", 250000], ["×50", 500000]];
+  const idx = Math.max(0, SEG.findIndex(([, v]) => v === tn.prize));
+  const o = document.createElement("div"); o.className = "wheel";
+  const segs = SEG.map(([m, v], i) => `<div class="seg" style="transform:rotate(${i * 60}deg)"><span>${m}<br><small>${fmt(v)}</small></span></div>`).join("");
+  o.innerHTML = `<div class="wt">🎡 גלגל הפרס</div><div class="wwrap"><div class="wd" id="wd">${segs}</div><div class="wptr">▼</div></div><div class="wres" id="wres"></div>`;
+  document.body.appendChild(o);
+  const end = 360 * 6 - idx * 60;
+  requestAnimationFrame(() => requestAnimationFrame(() => { $("wd").style.transform = `rotate(${end}deg)`; }));
+  try { SFX.roll(4); } catch (e) {}
+  setTimeout(() => { $("wres").innerHTML = `הפרס בטורניר: <b class="num">${fmt(tn.prize)}</b>`; try { SFX.win(tn.mult >= 10); } catch (e) {} }, 4300);
+  setTimeout(() => o.remove(), 7000);
+}
+function tnEnd(tn) {
+  const me = S.me, mine = (tn.places || []).find((p) => p.place === 1);
+  const o = document.createElement("div"); o.id = "tnEnd"; o.className = "tnend";
+  o.innerHTML = `<div class="box"><div class="t">🎡 הטורניר נגמר</div><div class="r">${mine ? "המנצח לוקח " + fmt(tn.prize) : ""}</div><a class="btn" href="challenges.html">חזרה לאתגרים</a></div>`;
+  document.body.appendChild(o);
 }
 $("raiseR").oninput = () => { $("raiseV").textContent = fmt(+$("raiseR").value); };
 let skew = 0;

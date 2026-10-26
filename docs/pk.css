@@ -53,3 +53,15 @@ dialog h2{font:700 22px 'Frank Ruhl Libre',serif;color:var(--champ);margin:0 0 6
 .btn{flex:1;height:44px;border-radius:10px;border:1px solid var(--gold);background:linear-gradient(180deg,var(--champ),var(--gold));color:var(--onyx);font-weight:800}
 .btn.ghost{background:none;color:var(--champ)}.err{color:#E89A9F;text-align:center;min-height:1em}
 [hidden]{display:none!important}
+.wheel{position:fixed;inset:0;z-index:80;display:grid;place-content:center;justify-items:center;gap:10px;background:rgba(0,0,0,.82)}
+.wt{font:700 28px 'Frank Ruhl Libre',serif;color:#F1D69A}
+.wwrap{position:relative;width:min(62vh,80vw);aspect-ratio:1}
+.wd{position:absolute;inset:0;border-radius:50%;border:6px solid #C5A05A;overflow:hidden;transition:transform 4.2s cubic-bezier(.15,.85,.2,1);
+  background:conic-gradient(from -30deg,#1d5e38 0 60deg,#9b1e2a 0 120deg,#1d4f8a 0 180deg,#4f2a72 0 240deg,#a8791f 0 300deg,#111 0 360deg)}
+.seg{position:absolute;inset:0;display:grid;justify-items:center;padding-top:8%}
+.seg span{font:800 clamp(14px,3.6vh,26px) Inter;color:#fff;text-align:center;text-shadow:0 2px 4px #000}.seg small{font-size:.55em;color:#F1D69A}
+.wptr{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:34px;color:#ffe27a;text-shadow:0 2px 6px #000}
+.wres{font:700 22px Heebo;color:#F5ECDD;min-height:1.4em}.wres b{color:#ffe27a;font:800 30px Inter}
+.tnend{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:rgba(0,0,0,.7)}
+.tnend .box{width:min(360px,90vw);background:#17120F;border:1px solid #C5A05A;border-radius:14px;padding:22px;text-align:center;display:grid;gap:12px}
+.tnend .t{font:700 24px 'Frank Ruhl Libre',serif;color:#F1D69A}.tnend .btn{text-decoration:none;display:block;padding:12px}
