@@ -226,8 +226,7 @@ const DJ = {}; let djEl = null, djT = null;
 async function loadDJ() {
   if (!LIT) return;
   const poses = ["idle", "build", "drop", "shrug", "celebrate"];
-  try { const { data } = await db.storage.from("characters").createSignedUrls(poses.map((p) => `dj_${p}.webp`), 3600);
-    (data || []).forEach((s, i) => { if (s.signedUrl) DJ[poses[i]] = s.signedUrl; }); } catch (e) {}
+  poses.forEach((p) => { if (p !== "celebrate") DJ[p] = `img/lightning/dj_${p}.webp`; });   // public by the owner's choice
   if (!DJ.celebrate) DJ.celebrate = DJ.drop;
   if (!DJ.idle) return;
   Object.values(DJ).forEach((u) => { const i = new Image(); i.src = u; });
@@ -332,7 +331,7 @@ $("rulesBtn").onclick = () => $("rules").showModal();
 if (LIT) {
   document.body.classList.add("lit"); document.title = "בלאק ג׳ק הכפולות של פישר · גולן קזינו";
   const r = $("rules"); r.querySelector("h2").textContent = "בלאק ג׳ק הכפולות של פישר · חוקים";
-  r.querySelector("h2").insertAdjacentHTML("afterend", "<p><b>⚡ איך זה עובד:</b> בכל סיבוב משלמים הימור + <b>עמלת ברק</b> באותו גובה. בסוף הסיבוב מקבלים <b>מכפיל 2x עד 25x</b>, לפי היד הסופית שלך (21 נותן הכי הרבה, שריפה הכי מעט). המכפיל מכפיל את <b>הרווח</b> של כל יד מנצחת בסיבוב הברקים הבא (עד גובה ההימור שבו הוא הושג). אין הימורים צדדיים במשחק הזה. החזר משוער לעמלה: כ־99%.</p>");
+  r.querySelector("h2").insertAdjacentHTML("afterend", "<p><b>⚡ איך זה עובד, בשלושה צעדים:</b></p><p>1. כל סיבוב עולה <b>הימור + עמלת ברק</b> באותו גובה (הימור ₪100 = ₪200).</p><p>2. בסוף היד נוחת <b>מכפיל 2x עד 25x</b> ונשמר לסיבוב הבא. 21 בסוף היד נותן את הסיכוי הטוב ביותר למכפיל גבוה, שריפה את הנמוך ביותר.</p><p>3. בסיבוב הבא, אם ניצחת, <b>הרווח מוכפל במכפיל</b> (₪100 רווח × 8x = ₪800). המכפיל מכפיל עד גובה ההימור שבו הושג. אין הימורים צדדיים. החזר משוער לעמלה: כ־99%.</p>");
 }
 // ---------- start ----------
 async function resume() { const { data } = await db.rpc("bj_current"); if (data) { clearRound(); $("betUI").hidden = true; await render(data); } }
@@ -340,7 +339,7 @@ async function resume() { const { data } = await db.rpc("bj_current"); if (data)
   const { data: { session } } = await db.auth.getSession();
   if (!session && location.hash === "#preview") {   // visual check only: no server, no wallet, no member images
     me = { id: "p", nickname: "שחקן לדוגמה" }; members = [{ id: "p", nickname: "שחקן לדוגמה", wealth: 10250 }, { id: "a", nickname: "חבר", wealth: 8900 }, { id: "b", nickname: "חבר", wealth: 12400 }];
-    GC_LOADER.done(); drawSeats(); setMyBalance(10250); drawBetSpots(); renderBets(); if (location.search.includes("bet")) { showControls(); return; } $("betUI").hidden = true; setSpotsVisible(false);
+    GC_LOADER.done(); if (LIT) { BOOST = 4; await loadDJ(); } drawSeats(); setMyBalance(10250); drawBetSpots(); renderBets(); if (location.search.includes("bet")) { showControls(); return; } $("betUI").hidden = true; setSpotsVisible(false);
     await render({ id: "x", status: "playing", active: 0, actions: ["hit", "stand", "double"], balance: 10250, dealer_total: 10,
       dealer: ["KH", "??"], hands: [{ cards: ["AS", "9D"], bet: 100, total: 20 }] });
     return;
