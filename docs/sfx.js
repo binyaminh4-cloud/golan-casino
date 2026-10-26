@@ -20,7 +20,7 @@
       st.textContent = `.gc-sit{position:fixed;inset:0;z-index:9000;display:grid;place-content:center;justify-items:center;gap:6px;border:0;cursor:pointer;
         background:radial-gradient(circle,rgba(40,30,8,.55),rgba(0,0,0,.82));color:#F1D69A;font-family:Heebo,sans-serif}
         .gc-sit span{font-size:56px}.gc-sit b{font:700 30px 'Frank Ruhl Libre',serif;padding:12px 34px;border:2px solid #C5A05A;border-radius:99px;
-        background:linear-gradient(180deg,#F1D69A,#C5A05A);color:#0B0908}.gc-sit small{color:#B9AA94;font-size:14px}`;
+        background:linear-gradient(180deg,#F1D69A,#C5A05A);color:#0B0908}.gc-sit small{color:#B9AA94;font-size:14px}@media (orientation:portrait) and (pointer:coarse){.gc-sit{display:none}}`;
       document.head.appendChild(st); document.body.appendChild(o);
       o.addEventListener("click", () => { ac(); o.remove(); });
     });
