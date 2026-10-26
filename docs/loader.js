@@ -2,6 +2,12 @@
    Each page calls GC_LOADER.done() when its data and graphics are in place (fallback: 15s). */
 (function () {
   const d = document.documentElement;
+  // no zoom by double tap or pinch: a stray tap must not move the table
+  const vp = document.querySelector('meta[name="viewport"]');
+  if (vp && !/maximum-scale/.test(vp.content)) vp.content += ",maximum-scale=1,user-scalable=no";
+  const ns = document.createElement("style"); ns.textContent = "html{touch-action:manipulation}body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}input,textarea{-webkit-user-select:text;user-select:text}"; document.head.appendChild(ns);
+  let lastTouch = 0; document.addEventListener("touchend", (e) => { const n = Date.now(); if (n - lastTouch < 320 && !e.target.closest("input,textarea,select")) e.preventDefault(); lastTouch = n; }, { passive: false });
+  document.addEventListener("gesturestart", (e) => e.preventDefault());
   d.classList.add("gc-loading");
   const st = document.createElement("style");
   st.textContent = `html.gc-loading{background:#0B0908}html.gc-loading body{visibility:hidden}
@@ -40,8 +46,12 @@
     progT = setInterval(() => { p += (92 - p) * 0.08; bar.style.width = p + "%"; }, 200);
   }
   const setTip = () => { tip.style.opacity = 0; setTimeout(() => { tip.textContent = tips[ti++ % tips.length]; tip.style.opacity = 1; }, 250); };
+  // minimum time on screen: 2.5 s in the lobby, 1.8 s in the games (lets heavy pages settle and shows the brand)
+  const T0 = performance.now(), MIN = /\/(index\.html)?$/.test(location.pathname) ? 2500 : 1800;
   function done() {
-    if (finished || !o) return; finished = true; const el = o;
+    if (finished || !o) return;
+    const wait = MIN - (performance.now() - T0); if (wait > 0) { setTimeout(done, wait); return; }
+    finished = true; const el = o;
     clearInterval(progT); bar.style.width = "100%";
     d.classList.remove("gc-loading"); el.classList.add("out"); clearInterval(tipT);
     el.addEventListener("transitionend", () => el.remove(), { once: true }); setTimeout(() => el.remove(), 700);
