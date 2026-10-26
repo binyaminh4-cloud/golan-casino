@@ -527,7 +527,7 @@ function drawPlayers() {
   const row = $("seatRow"), pres = liveSt.present || [];
   if (row) { row.hidden = !pres.length; const bet = {}; ps.forEach((p) => bet[p.id] = p.total);
     pres.forEach((p) => { if (!(p.id in PAV) && db) { PAV[p.id] = null; GC_CHAR(db, p.id).then((c) => { PAV[p.id] = c.url || ""; drawPlayers(); }); } });
-    row.innerHTML = pres.map((p) => `<div class="sitter${p.id === MY_ID ? " me" : ""}${bet[p.id] ? " bet" : ""}">${PAV[p.id] ? `<img src="${PAV[p.id]}" alt="">` : `<i>${esc(String(p.name)[0] || "?")}</i>`}
+    row.innerHTML = pres.map((p) => `<div class="sitter${p.id === MY_ID ? " mine" : ""}${bet[p.id] ? " bet" : ""}">${PAV[p.id] ? `<img src="${PAV[p.id]}" alt="">` : `<i>${esc(String(p.name)[0] || "?")}</i>`}
       <span>${esc(p.name)}</span>${p.bal != null ? `<em class="num">${fmt(p.bal)}</em>` : ""}${bet[p.id] ? `<b class="num">${fmt(bet[p.id])}</b>` : ""}</div>`).join(""); }
   drawTicker();
   // other players' bets as faint markers on the layout
