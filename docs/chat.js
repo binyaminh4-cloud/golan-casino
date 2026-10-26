@@ -4,9 +4,9 @@
   const page = location.pathname.split("/").pop() || "index.html";
   const ROOM = "lobby";                       // one room for the whole group
   const IN_GAME = /^(roulette|blackjack|slots|poker)/.test(page);
-  const QUICK = ["זאוס, זה הזמן לברק 🙏", "עידו היה מהמר על אדום", "מישהו ראה את הכסף שלי?", "עוד סיבוב אחד ואני הולך לישון 😴", "פישר, תעלה את הווליום 🎧", "כמה הג׳קפוט עכשיו?", "הבית תמיד מנצח… חוץ מהיום", "מי בא לדו־קרב?"];
+  const QUICK = ["זאוס, זה הזמן לברק 🙏", "עידו אמר לך 23 אחי", "לאן נעלם לי כל הכסף😱?", "עוד סיבוב אחד ואני הולך לישון 😴", "פישר אתה קמצן גדול", "יואב בוא לפוקר", "עדיף לשחק כבר בסיטי", "הראל אמר לשים על אדום כי יצא שחור", "עידו, תחזיר את הכסף לכספומט 🏧", "בנימין, תעשה משהו עם הדילרית הזאת 😤", "אמרתי לכם שיצא 8", "וואו! 🎉", "הולך לעבוד בשביל עוד בשר לרולטה 🥩", "לילה טוב חבר׳ה, נתראה מחר 👋"];
   const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
-  let me = null, last = 0, open = false, unread = 0, timer = null, busy = false;
+  let qStart = Math.floor(Math.random() * 14), me = null, last = 0, open = false, unread = 0, timer = null, busy = false;
   const seenKey = "gc_chat_seen_" + ROOM;
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
@@ -75,7 +75,9 @@
   function schedule() { clearInterval(timer); timer = setInterval(poll, open ? 3000 : 15000); }
   function toggle(on) {
     open = on; box.classList.toggle("on", on);
-    if (on) { unread = 0; badge(); log.scrollTop = log.scrollHeight; try { localStorage.setItem(seenKey, last); } catch (e) {} poll(); }
+    if (on) { qStart = (qStart + 3) % QUICK.length;   // each opening starts the quick messages somewhere else
+      const q = box.querySelector(".quick"); q.innerHTML = QUICK.slice(qStart).concat(QUICK.slice(0, qStart)).map((t) => `<button type="button">${esc(t)}</button>`).join(""); q.scrollLeft = 0;
+      unread = 0; badge(); log.scrollTop = log.scrollHeight; try { localStorage.setItem(seenKey, last); } catch (e) {} poll(); }
     schedule();
   }
   async function send(text) {
