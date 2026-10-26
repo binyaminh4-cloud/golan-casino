@@ -479,10 +479,12 @@ async function liveConfirm() {
   drawChips();
 }
 function liveErr(e) { return ((e && e.message) || "").includes("betting_closed") ? "ההימורים לסיבוב הזה נסגרו. נסה בסיבוב הבא." : errText(e); }
+const PAV = {};          // members' characters in the live players strip
 function drawPlayers() {
   const el = $("players"); if (!el || !liveSt) return;
   const ps = liveSt.players || [];
-  el.innerHTML = ps.length ? ps.map((p) => `<div class="pl${p.id === MY_ID ? " me" : ""}"><span>${String(p.name).replace(/[<>&]/g, "")}</span><b class="num">${fmt(p.total)}</b></div>`).join("")
+  ps.forEach((p) => { if (!(p.id in PAV) && db) { PAV[p.id] = null; GC_CHAR(db, p.id).then((c) => { PAV[p.id] = c.url || ""; drawPlayers(); }); } });
+  el.innerHTML = ps.length ? ps.map((p) => `<div class="pl${p.id === MY_ID ? " me" : ""}">${PAV[p.id] ? `<img src="${PAV[p.id]}" alt="">` : `<i>${esc(String(p.name)[0] || "?")}</i>`}<span>${esc(p.name)}</span><b class="num">${fmt(p.total)}</b></div>`).join("")
     : '<div class="pl empty">עוד אין הימורים בסיבוב</div>';
   // other players' bets as faint markers on the layout
   const layer = $("chipLayer"); if (!layer || VIEW !== "table") return;

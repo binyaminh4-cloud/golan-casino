@@ -330,3 +330,4 @@ body.live #spinBtn{display:none}
 .idorun.fl{animation:idofl .8s ease-in forwards}.idorun.fr{animation:idofr .8s ease-in forwards}
 @keyframes idofl{0%{transform:translate(-50%,-75%)}30%{transform:translate(-90%,-130%) rotate(-15deg)}100%{transform:translate(-400%,-60%) rotate(-30deg);opacity:0}}
 @keyframes idofr{0%{transform:translate(-50%,-75%)}30%{transform:translate(-10%,-130%) rotate(15deg)}100%{transform:translate(300%,-60%) rotate(30deg);opacity:0}}
+.players .pl{padding:2px 8px 2px 3px}.players .pl img,.players .pl i{width:24px;height:24px;border-radius:50%;object-fit:cover;object-position:50% 8%;border:1px solid #C5A05A;flex:none;display:grid;place-items:center;font:700 12px Heebo;font-style:normal;color:#F1D69A;background:#1b140f}
