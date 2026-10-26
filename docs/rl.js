@@ -622,3 +622,23 @@ if (LIT) {
 })();
 window.__rl = { shot, setCine, setView, setZoom, neighbours, ANNOUNCED, betAt, anchor, LEGAL, OUTSIDE, get W() { return W; }, get plan() { return plan; }, toXY, fromXY };
 $("eraseBtn").onclick = () => { ERASE = !ERASE; $("eraseBtn").setAttribute("aria-pressed", ERASE); document.body.classList.toggle("erase", ERASE); err(ERASE ? "מצב מחיקה: לחץ על הימור כדי להסיר אותו. לחץ שוב על 🧽 לסיום." : ""); };
+
+// statistics: the live table's last 500 / 250 / 50 numbers, newest first, 20 per row
+function rlStats() {
+  const o = document.createElement("div"); o.className = "rlstats";
+  o.innerHTML = `<div class="box"><div class="hd"><b>📊 סטטיסטיקה · שולחן לייב</b><button type="button" class="x" aria-label="סגור">✕</button></div>
+    <div class="seg">${[500, 250, 50].map((n) => `<button type="button" data-n="${n}" aria-pressed="${n === 500}">${n} אחרונים</button>`).join("")}</div>
+    <p class="sum"></p><div class="grid">טוען…</div></div>`;
+  document.body.appendChild(o);
+  const close = () => o.remove(); o.querySelector(".x").onclick = close; o.onclick = (e) => { if (e.target === o) close(); };
+  let all = [];
+  const show = (n) => {
+    o.querySelectorAll(".seg button").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.n === n));
+    const d = all.slice(0, n), c = (f) => d.filter(f).length;
+    o.querySelector(".sum").innerHTML = `🔴 ${c((h) => R.color(h.n) === "red")} · ⚫ ${c((h) => R.color(h.n) === "black")} · 🟢 ${c((h) => h.n === 0)}` + (LIT ? ` · ⚡ ${c((h) => h.x)} פגיעות ברק` : "") + (LIT ? `<br><small>מסגרת זהב = הכדור נחת על מספר שנפגע מברק</small>` : "");
+    o.querySelector(".grid").innerHTML = d.map((h) => `<i class="rb ${R.color(h.n)[0]}${h.x ? " x" : ""}" title="${h.x ? "⚡ " + h.x + "x" : ""}">${h.n}</i>`).join("");
+  };
+  o.querySelectorAll(".seg button").forEach((b) => b.onclick = () => show(+b.dataset.n));
+  db.rpc("rl_live_recent", { p_mode: MODE, p_limit: 500 }).then(({ data }) => { all = data || []; show(500); });
+}
+if (LIVE) { $("statsBtn").hidden = false; $("statsBtn").onclick = rlStats; }

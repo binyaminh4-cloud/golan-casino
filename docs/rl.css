@@ -331,3 +331,14 @@ body.live #spinBtn{display:none}
 @keyframes idofl{0%{transform:translate(-50%,-75%)}30%{transform:translate(-90%,-130%) rotate(-15deg)}100%{transform:translate(-400%,-60%) rotate(-30deg);opacity:0}}
 @keyframes idofr{0%{transform:translate(-50%,-75%)}30%{transform:translate(-10%,-130%) rotate(15deg)}100%{transform:translate(300%,-60%) rotate(30deg);opacity:0}}
 .players .pl{padding:2px 8px 2px 3px}.players .pl img,.players .pl i{width:24px;height:24px;border-radius:50%;object-fit:cover;object-position:50% 8%;border:1px solid #C5A05A;flex:none;display:grid;place-items:center;font:700 12px Heebo;font-style:normal;color:#F1D69A;background:#1b140f}
+.rlstats{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:rgba(0,0,0,.8);padding:8px}
+.rlstats .box{width:min(760px,100%);max-height:96dvh;overflow:auto;background:#17120F;border:1px solid #C5A05A;border-radius:14px;padding:12px 14px}
+.rlstats .hd{display:flex;justify-content:space-between;align-items:center;color:#F1D69A;font:700 18px Heebo}
+.rlstats .x{background:none;border:1px solid #80602E;border-radius:50%;width:38px;height:38px;color:#F1D69A;font-size:18px}
+.rlstats .seg{display:flex;gap:6px;margin:8px 0}.rlstats .seg button{flex:1;padding:8px;border-radius:99px;border:1px solid #80602E;background:#0b0806;color:#B9AA94;font:600 14px Heebo}
+.rlstats .seg button[aria-pressed="true"]{background:linear-gradient(180deg,#F1D69A,#C5A05A);color:#0B0908;border-color:#C5A05A}
+.rlstats .sum{margin:4px 0 8px;color:#F5ECDD;text-align:center}.rlstats .sum small{color:#B9AA94}
+.rlstats .grid{display:grid;grid-template-columns:repeat(20,1fr);gap:3px;direction:rtl}
+.rlstats .rb{display:grid;place-items:center;aspect-ratio:1;border-radius:50%;font:700 clamp(8px,1.6vw,12px) Inter;font-style:normal;color:#fff}
+.rlstats .rb.r{background:#b3162a}.rlstats .rb.b{background:#1a1a1a;border:1px solid #444}.rlstats .rb.g{background:#1d7a3e}.rlstats .rb.x{box-shadow:0 0 0 2px #ffe27a,0 0 8px rgba(255,220,100,.8)}
+.rlstats .grid{grid-template-columns:repeat(20,minmax(0,1fr))}.rlstats .rb{width:100%;min-width:0}
