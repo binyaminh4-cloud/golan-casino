@@ -317,3 +317,10 @@ body.short .wheel-slot{width:100%!important;aspect-ratio:auto!important;height:m
 .nmb small{display:block;font:700 clamp(14px,3vw,22px) Heebo;color:#F1D69A;letter-spacing:0}
 @keyframes nmb{0%{transform:translate(-50%,-50%) scale(.5);opacity:0}12%{transform:translate(-50%,-50%) scale(1.05);opacity:1}80%{opacity:1}100%{opacity:0}}
 .nmb{animation-duration:2.9s!important}
+/* the player's character sits on the right, inline before the chips */
+.me{position:relative!important;inset:auto!important;width:auto!important;flex:none;align-self:end;margin-bottom:-4px}
+.me img{width:auto!important;height:62px!important}
+.me-n{font-size:10px;margin-top:-4px}
+.controls{padding-inline-end:12px!important;padding-inline-start:12px!important}
+@media (max-height:560px) and (orientation:landscape){.me img{height:48px!important}}
+@media (max-height:560px) and (orientation:landscape){.controls{grid-template-columns:auto auto auto 1fr!important}}
