@@ -120,7 +120,7 @@ function clearRound() {
   $("seat0")?.classList.remove("jump", "sad"); pose("idle");
 }
 function label(txt, x, y, cls = "") { const t = el("total " + cls, x, y, esc(txt)); return t; }
-function placeActs(h) { if (PHONE) return; const s = spot(h); const a = $("acts"); a.style.left = s.x + "px"; a.style.top = (s.y + 62) + "px"; }
+function placeActs(h) { if (PHONE || $("acts").classList.contains("zoombar")) return; const s = spot(h); const a = $("acts"); a.style.left = s.x + "px"; a.style.top = (s.y + 62) + "px"; }
 
 async function render(next) {
   busy = true; lockActs();

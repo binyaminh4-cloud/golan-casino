@@ -12,6 +12,14 @@
   }
   const card = () => "AKQJT98765432"[Math.floor(Math.random() * 13)] + "SHDC"[Math.floor(Math.random() * 4)];
   let bj = null;
+  function tstate() {   // shared blackjack table: bet -> dealt immediately (alone at the table)
+    const now = Date.now(), base = { table: 1, round: 1, now, players: [], present: [{ id: "u1", name: "בנימין", char: "char_00" }], balance: S.bal, dealer: [] };
+    if (!S.tb) return { ...base, phase: "betting", me: null, my_bet: null };
+    if (!bj || bj.tround !== 1) bj = { id: "t1", tround: 1, status: "playing", active: 0, actions: ["hit", "stand", "double"], balance: S.bal, main_bet: S.tb.main, staked: S.tb.main,
+      dealer: ["9H", "??"], dealer_total: 9, side: {}, hands: [{ cards: ["8S", "5D"], bet: S.tb.main, total: 13 }] };
+    return { ...base, phase: "playing", play_until: now + 25000, dealer: bj.dealer, me: bj, my_bet: { main: S.tb.main },
+      players: [{ id: "u1", name: "בנימין", seat: 1, bet: S.tb.main, hands: bj.hands, status: bj.status }] };
+  }
   const rpc = async (name, a = {}) => {
     await delay(0, 400);
     switch (name) {
@@ -21,6 +29,8 @@
         S.bal += pay - tot; save(); return { data: { id: "x", result: n, total: tot, payout: pay, balance: S.bal, lucky } }; }
       case "sl_spin": { const st = [0, 1, 2].map(() => Math.floor(Math.random() * 32)); S.bal -= a.p_line_bet * 5; save(); return { data: { stops: st, wins: [], mult: 0, total: a.p_line_bet * 5, payout: 0, balance: S.bal } }; }
       case "bj_current": return { data: null };
+      case "bjt_bet": S.tb = { main: a.p_main }; S.bal -= a.p_main; return { data: tstate() };
+      case "bjt_state": return { data: tstate() };
       case "bj_my_boost": return { data: 4 };
       case "bj_deal": { bj = { id: "r1", status: "playing", active: 0, actions: ["hit", "stand"], balance: (S.bal -= a.p_main), main_bet: a.p_main, staked: a.p_main,
           dealer: [card(), "??"], dealer_total: 10, hands: [{ cards: [card(), card()], bet: a.p_main, total: 15 }] }; save(); return { data: bj }; }
