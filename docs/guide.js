@@ -40,7 +40,7 @@
   .gd-host{z-index:2;transition:bottom .3s}
   .gd.neon-on .gd-host{bottom:calc(175px + env(safe-area-inset-bottom))}
   .gd-dots{font:500 12px Inter;color:#8a7558}
-  .gd-host.top{bottom:auto;top:max(8px,env(safe-area-inset-top))}
+  .gd-host.top{bottom:auto;top:max(8px,env(safe-area-inset-top));max-height:calc(100dvh - 16px)}
   .gd-ring{animation:gdPulse 1.4s ease-in-out infinite}
   @keyframes gdPulse{50%{box-shadow:0 0 0 9999px rgba(5,4,3,.35),0 0 38px rgba(241,214,154,1)}}
   @media (max-width:560px){.gd-host{inset-inline:8px;flex-direction:column;align-items:flex-start;gap:0;max-width:none}
@@ -95,8 +95,9 @@
       if (r && r.width && r.bottom > 0 && r.top < innerHeight) {
         ring.hidden = false; dim.style.background = "transparent";
         Object.assign(ring.style, { left: Math.max(2, r.left - 6) + "px", top: Math.max(2, r.top - 6) + "px", width: Math.min(innerWidth - 4, r.width + 12) + "px", height: r.height + 12 + "px" });
-        host.classList.remove("top"); const h = host.getBoundingClientRect();
-        if (r.bottom + 6 > h.top && r.top - 6 < h.bottom) host.classList.add("top");
+        const ov = () => { const h = host.getBoundingClientRect(); return Math.max(0, Math.min(r.bottom, h.bottom) - Math.max(r.top, h.top)) + Math.max(0, -h.top) * 3; };
+        host.classList.remove("top"); const a = ov(); host.classList.add("top"); const b = ov();
+        if (b >= a) host.classList.remove("top");
       } else { ring.hidden = true; dim.style.background = ""; host.classList.remove("top"); }
     };
     const follow = setInterval(() => { if (!document.body.contains(o)) return clearInterval(follow); place(); }, 300);
