@@ -6,7 +6,6 @@
   const vp = document.querySelector('meta[name="viewport"]');
   if (vp && !/maximum-scale/.test(vp.content)) vp.content += ",maximum-scale=1,user-scalable=no";
   const ns = document.createElement("style"); ns.textContent = "html{touch-action:manipulation}body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}input,textarea{-webkit-user-select:text;user-select:text}"; document.head.appendChild(ns);
-  let lastTouch = 0; document.addEventListener("touchend", (e) => { const n = Date.now(); if (n - lastTouch < 320 && !e.target.closest("input,textarea,select")) e.preventDefault(); lastTouch = n; }, { passive: false });
   document.addEventListener("gesturestart", (e) => e.preventDefault());
   d.classList.add("gc-loading");
   const st = document.createElement("style");
