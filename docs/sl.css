@@ -100,3 +100,8 @@ body.fortune .cabinet{min-height:0;overflow:hidden}
 body.fortune .jp b{font-size:clamp(11px,3.1vh,24px)!important;left:40%;right:7%}
 body.fortune .mini b{font-size:clamp(12px,2.8vh,19px)}
 .wintoast b{white-space:nowrap}
+/* jackpot amount: exactly inside the dark window of the marquee art (measured: x 30.2%–87.8%, y 41%–91.7%) */
+body.fortune .jp{aspect-ratio:3.2/1!important}
+body.fortune .jp img{object-fit:fill!important}
+body.fortune .jp b{left:30.2%!important;right:12.2%!important;top:41%!important;bottom:8.3%!important;display:flex!important;align-items:center;justify-content:center;
+  font-size:clamp(10px,2.9vh,22px)!important;line-height:1;direction:ltr;overflow:hidden}
