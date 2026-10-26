@@ -32,7 +32,7 @@
         let payout = null; if (!open) { payout = mine.filter((b) => b.nums.includes(res)).reduce((s, b) => s + Math.floor(b.amt * 36 / b.nums.length), 0);
           if (!S.paid || S.paid < n) { S.bal += payout; S.paid = n; save(); } }
         return { data: { now: t, round: n, start: st, close: st + Wn, end: st + C, open, result: open ? null : res, lucky: open || a.p_mode === "classic" ? {} : { [res]: 200, 11: 50 },
-          mine, payout, balance: S.bal, history: [17, 0, 32, 5, 26],
+          mine, payout, balance: S.bal, history: [17, 0, 32, 5, 26], present: [{ id: "u1", name: "בנימין" }, { id: "u2", name: "דני" }, { id: "u3", name: "בדיקה" }],
           players: [{ id: "u2", name: "דני", total: 300, nums: [[17], [1, 2, 3]] }].concat(sentTot ? [{ id: "u1", name: "בנימין", total: sentTot, nums: mine.map((b) => b.nums) }] : []) } }; }
       case "rl_live_bet": { const tot = a.p_bets.reduce((s, b) => s + b.amt, 0); S.live = S.live || {}; (S.live[a.p_round] = S.live[a.p_round] || []).push(...a.p_bets);
         S.bal -= tot; save(); return { data: { ok: true, balance: S.bal } }; }

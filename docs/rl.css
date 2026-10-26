@@ -342,3 +342,12 @@ body.live #spinBtn{display:none}
 .rlstats .rb{display:grid;place-items:center;aspect-ratio:1;border-radius:50%;font:700 clamp(8px,1.6vw,12px) Inter;font-style:normal;color:#fff}
 .rlstats .rb.r{background:#b3162a}.rlstats .rb.b{background:#1a1a1a;border:1px solid #444}.rlstats .rb.g{background:#1d7a3e}.rlstats .rb.x{box-shadow:0 0 0 2px #ffe27a,0 0 8px rgba(255,220,100,.8)}
 .rlstats .grid{grid-template-columns:repeat(20,minmax(0,1fr))}.rlstats .rb{width:100%;min-width:0}
+/* members at the table: a row at the far edge of the layout */
+.board-slot{display:flex!important;flex-direction:column}.board-slot>.board-scroll{flex:1;min-height:0}
+.seatrow{flex:none;display:flex;justify-content:center;gap:10px;padding:2px 6px 0;overflow-x:auto;scrollbar-width:none;min-height:0}
+.sitter{position:relative;display:grid;justify-items:center;flex:none;width:56px}
+.sitter img,.sitter i{width:40px;height:40px;border-radius:50%;object-fit:cover;object-position:50% 8%;border:2px solid #80602E;background:#1b140f;display:grid;place-items:center;font:700 16px Heebo;font-style:normal;color:#F1D69A}
+.sitter.me img,.sitter.me i{border-color:#F1D69A}.sitter.bet img,.sitter.bet i{box-shadow:0 0 10px rgba(255,226,122,.8);border-color:#ffe27a}
+.sitter span{font:600 10px Heebo;color:#e8d9b5;max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:-4px;background:rgba(8,5,4,.8);border-radius:99px;padding:0 5px}
+.sitter b{font:700 9px Inter;color:#ffe27a}
+@media (max-height:560px){.sitter img,.sitter i{width:30px;height:30px}.sitter{width:46px}.sitter b{display:none}}
