@@ -316,3 +316,4 @@ body.short .wheel-slot{width:100%!important;aspect-ratio:auto!important;height:m
   text-shadow:0 0 18px rgba(229,72,77,.9),0 3px 0 #000;background:rgba(8,5,4,.72);border:2px solid #e5484d;border-radius:16px;padding:10px 28px;animation:nmb 1.9s ease-out forwards}
 .nmb small{display:block;font:700 clamp(14px,3vw,22px) Heebo;color:#F1D69A;letter-spacing:0}
 @keyframes nmb{0%{transform:translate(-50%,-50%) scale(.5);opacity:0}12%{transform:translate(-50%,-50%) scale(1.05);opacity:1}80%{opacity:1}100%{opacity:0}}
+.nmb{animation-duration:2.9s!important}

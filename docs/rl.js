@@ -434,7 +434,7 @@ function errText(e) {
 
 
 // ---------- live shared table: one wall-clock round every 48s for all three roulettes ----------
-const SPIN_AFTER = 6000;                   // ms after betting closes: lightning strikes, then the ball
+const NMB_MS = 3000, SPIN_AFTER = 8500;      // after betting closes: 3 s "No more bets", ~5 s of lightning, then the ball                   // ms after betting closes: lightning strikes, then the ball
 const srvNow = () => Date.now() + clockOff;
 function pendingList() {
   const out = [];
@@ -488,7 +488,7 @@ function drawBigClock(t) {          // countdown ring over the wheel: time left 
 let nmbRound = -1;
 function noMoreBets() {
   const b = document.createElement("div"); b.className = "nmb"; b.innerHTML = "NO MORE BETS<small>אין עוד הימורים</small>"; document.body.appendChild(b);
-  setTimeout(() => b.remove(), 1900);
+  setTimeout(() => b.remove(), 2900);
   try { if (localStorage.getItem("gc_mute") !== "1" && window.speechSynthesis) { const u = new SpeechSynthesisUtterance("No more bets"); u.lang = "en-US"; u.rate = 0.95; speechSynthesis.speak(u); } } catch (e) {}
 }
 function drawClock() {
@@ -529,6 +529,7 @@ async function liveRun(d) {
   bets = new Map(sent);                               // unconfirmed chips don't play
   spinRes = { result: d.result, total, payout: d.payout || 0, balance: d.balance };
   showBal(d.balance - (d.payout || 0));
+  const w0 = d.close + NMB_MS - srvNow(); if (w0 > 0) await wait(w0);          // let "No more bets" stand alone
   if (LIT) await strike(d.lucky || {});
   const w = d.close + SPIN_AFTER - srvNow(); if (w > 0) await wait(w);
   marks = {}; setCine(true);
