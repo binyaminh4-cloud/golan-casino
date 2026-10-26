@@ -10,6 +10,8 @@ const MODE = new URLSearchParams(location.search).get("mode") === "lightning" ? 
 const CH_ID = new URLSearchParams(location.search).get("ch");      // a challenge run: chips instead of the wallet
 let CH = null;
 const LIT = MODE === "lightning";
+// shared table: friends play together against one dealer (?table=1). Solo game otherwise.
+const TABLE = !LIT && !CH_ID ? (+new URLSearchParams(location.search).get("table") || 0) : 0;
 let STRIKES = {};          // Fisher's strikes for this hand: {"A": 5, "7": 3}
 const RANK = (r) => r === "T" ? "10" : r;
 const sleep = (ms) => new Promise((r) => setTimeout(r, reduced ? 0 : ms));
@@ -21,7 +23,10 @@ const SPOTS = [ { x: 838, y: 613 }, { x: 1153, y: 580 }, { x: 524, y: 580 }, { x
 // small side-bet circles around the player's main circle (photo pixels)
 const SIDE_SPOTS = { pp: { x: 718, y: 588, t: "PP" }, t3: { x: 958, y: 588, t: "21+3" }, ll: { x: 744, y: 668, t: "LL" }, bust: { x: 932, y: 668, t: "BB" } };
 const dealerPos = (i) => ({ x: 760 + i * 92, y: 352 });
-const cardPos = (h, i) => ({ x: SPOTS[h].x - 60 + i * 34, y: SPOTS[h].y - 140 - i * 9 });
+// my hand spots; at the shared table the other seats belong to friends, so my split hands stay around my seat
+const spot = (h) => !TABLE || !h ? (SPOTS[h] || SPOTS[0]) : { x: SPOTS[0].x + (h % 2 ? 175 : -175) * Math.ceil(h / 2), y: SPOTS[0].y + 20 };
+const cardPos = (h, i) => ({ x: spot(h).x - 60 + i * 34, y: spot(h).y - 140 - i * 9 });
+const SEAT2SPOT = [0, 2, 1, 4, 3];   // SEATS[k] sits behind SPOTS[SEAT2SPOT[k]]
 const SEATS = [ // where characters sit; index 0 is the player
   { x: 838, top: 700, w: 300 }, { x: 524, top: 665, w: 270 }, { x: 1153, top: 665, w: 270 }, { x: 300, top: 610, w: 230 }, { x: 1375, top: 610, w: 230 },
 ];
@@ -95,7 +100,7 @@ async function loadSeats() {
   drawSeats();
 }
 function drawSeats() {
-  const others = [];  // solo game: only the player sits at the table
+  const others = TABLE ? tOthers() : [];  // solo game: only the player sits at the table
   const mine = members.find((m) => m.id === me.id) || { nickname: me.nickname, character_key: null, wealth: 0 };
   const list = [mine, ...others];
   $("seats").innerHTML = list.map((m, i) => {
@@ -114,7 +119,7 @@ function clearRound() {
   $("seat0")?.classList.remove("jump", "sad"); pose("idle");
 }
 function label(txt, x, y, cls = "") { const t = el("total " + cls, x, y, esc(txt)); return t; }
-function placeActs(h) { if (PHONE) return; const s = SPOTS[h] || SPOTS[0]; const a = $("acts"); a.style.left = s.x + "px"; a.style.top = (s.y + 62) + "px"; }
+function placeActs(h) { if (PHONE) return; const s = spot(h); const a = $("acts"); a.style.left = s.x + "px"; a.style.top = (s.y + 62) + "px"; }
 
 async function render(next) {
   busy = true; lockActs();
@@ -138,7 +143,7 @@ async function render(next) {
     }
   }
   // bets on each hand
-  next.hands.forEach((h, i) => chipStack(SPOTS[i].x, SPOTS[i].y, h.bet, "hand" + i));
+  next.hands.forEach((h, i) => chipStack(spot(i).x, spot(i).y, h.bet, "hand" + i));
   for (const [k, p] of Object.entries(SIDE_SPOTS)) { const a = +(next.side?.[k] || 0); if (a && !layer.querySelector(`[data-k="side_${k}"]`)) chipStack(p.x, p.y, a, "side_" + k, true); }
   // new player cards
   for (let h = 0; h < n; h++) {
@@ -156,12 +161,12 @@ async function render(next) {
   next.hands.forEach((h, i) => {
     const o = next.result?.hands?.[i]?.outcome;
     const cls = o === "win" || o === "blackjack" ? "win" : o && o !== "push" ? "lose" : "";
-    totals.push(label(o ? `${h.total} · ${OUT[o]}` : h.total, SPOTS[i].x + 46, SPOTS[i].y - 74, cls));
+    totals.push(label(o ? `${h.total} · ${OUT[o]}` : h.total, spot(i).x + 46, spot(i).y - 74, cls));
   });
   totals.push(label(next.dealer_total, 905 + Math.max(0, next.dealer.length - 2) * 60, 384));
   // highlight the active hand when split
   if (ring) { ring.remove(); ring = null; }
-  if (next.status === "playing" && n > 1) { const s = SPOTS[next.active]; ring = el("ring", s.x - 75, s.y - 31); }
+  if (next.status === "playing" && n > 1) { const s = spot(next.active); ring = el("ring", s.x - 75, s.y - 31); }
   st = next; if (next.ch) { CH = { ...CH, ...next.ch }; drawCH(); } setMyBalance(next.balance);
   if (next.status === "done") await finish(next);
   busy = false; showControls();
@@ -190,7 +195,7 @@ async function finish(r) {
     if (o === "lose" || o === "bust") { c.style.opacity = "0"; await slide(c, TRAY.x, TRAY.y, 600); }
     else if (o === "win" || o === "blackjack") {
       const pay = chipStack(TRAY.x, TRAY.y, r.hands[i].bet, "pay" + i);
-      await slide(pay, SPOTS[i].x + 70, SPOTS[i].y - 6, 600);
+      await slide(pay, spot(i).x + 70, spot(i).y - 6, 600);
     }
   }));
   // side bets: winners get a gold tag with the payout, losers slide to the tray
@@ -224,6 +229,7 @@ function drawBetSpots() {
 function setSpotsVisible(v) { document.querySelectorAll(".spot").forEach((n) => n.hidden = !v); }
 function addBet(target) {
   if (st && st.status !== "done") return;
+  if (TABLE && (!T || T.phase !== "betting" || T.my_bet)) return err(T && T.my_bet ? "ההימור שלך כבר על השולחן." : "ההימורים סגורים. הסיבוב הבא יתחיל עוד רגע.");
   if (st?.status === "done") { clearRound(); }
   const next = bets[target] + chip;
   if (target === "main" && next > 50000) return err("ההימור הראשי המקסימלי הוא ₪50,000.");
@@ -280,6 +286,7 @@ $("dealBtn").onclick = async () => {
   engaged = true;
   if (busy || !bets.main) return;
   if (st?.status === "done") clearRound();
+  if (TABLE) return tableBet();
   err(""); busy = true; $("dealBtn").disabled = true;
   let data, error;
   try { ({ data, error } = await db.rpc("bj_deal", { p_main: bets.main, p_pp: bets.pp, p_t3: bets.t3, p_ll: bets.ll, p_bust: bets.bust, p_ref: newRef(), p_mode: MODE, p_run: CH ? CH.id : null })); }
@@ -304,7 +311,7 @@ function lockActs() { document.querySelectorAll("#acts .a").forEach((b) => b.dis
 // ---------- your turn: zoom in on your hand + 10-second decision clock ----------
 const DECIDE_MS = 20000; let clockT = null, engaged = false;   // the clock only runs for hands this visit dealt
 function zoomTo(h) {
-  const f = $("fit"), st2 = $("stage"), s = SPOTS[h] || SPOTS[0];
+  const f = $("fit"), st2 = $("stage"), s = spot(h);
   const a = $("acts");
   if (h == null) { f.style.transform = ""; a.classList.remove("zoombar"); fit(); return; }
   // while zoomed, the action buttons leave the scaled table and sit in a fixed bar at the bottom of the screen
@@ -331,6 +338,7 @@ function startClock() {
   }, DECIDE_MS);
 }
 function showControls() {
+  if (TABLE) return tControls();
   const playing = st && st.status !== "done";
   $("acts").hidden = !playing; $("betUI").hidden = !!playing; setSpotsVisible(!playing);
   if (playing) { placeActs(st.active); document.querySelectorAll("#acts .a").forEach((b) => { b.hidden = !st.actions.includes(b.dataset.a); b.disabled = busy; });
@@ -345,6 +353,9 @@ function errText(e) {
   if (m.includes("invalid_side_bet")) return "הימור צדדי לא יכול להיות גבוה מההימור הראשי.";
   if (m.includes("invalid_main_bet")) return "ההימור הראשי חייב להיות בין ₪10 ל־₪50,000.";
   if (m.includes("illegal_action")) return "הפעולה הזאת לא אפשרית כרגע.";
+  if (m.includes("betting_closed")) return "ההימורים לסיבוב הזה נסגרו. חכה לסיבוב הבא.";
+  if (m.includes("already_bet")) return "ההימור שלך כבר על השולחן.";
+  if (m.includes("table_full")) return "השולחן מלא (5 שחקנים). חכה לסיבוב הבא.";
   if (m.includes("round_in_progress")) { resume(); return "יש לך יד פתוחה. ממשיכים ממנה."; }
   console.error("rpc error", e);
   return "משהו השתבש (" + (e.code || "") + " " + m.slice(0, 80) + "). צלם לי את המסך.";
@@ -376,7 +387,8 @@ async function chEnd() {
   o.innerHTML = `<div class="box"><div class="t">${c.kind === "fisher" ? "🎧 הסט נגמר" : "🃏 החפיסה נגמרה"}</div><div class="r">${res}</div><a class="btn" href="challenges.html">חזרה לאתגרים</a></div>`;
   document.body.appendChild(o);
 }
-async function resume() { const { data } = await db.rpc("bj_current"); if (data) { clearRound(); $("betUI").hidden = true; await render(data); } }
+async function resume() { if (TABLE) return; return resume0(); }
+async function resume0() { const { data } = await db.rpc("bj_current"); if (data) { clearRound(); $("betUI").hidden = true; await render(data); } }
 (async () => {
   const { data: { session } } = await db.auth.getSession();
   if (!session && location.hash === "#preview") {   // visual check only: no server, no wallet, no member images
@@ -396,6 +408,96 @@ async function resume() { const { data } = await db.rpc("bj_current"); if (data)
   if (w) setMyBalance(w.balance);
   if (LIT) await loadDJ();
   drawBetSpots(); renderBets(); await resume(); showControls();
+  if (TABLE) tableStart();
   await Promise.all([...document.querySelectorAll("#stage img, #seats img")].map((im) => im.complete ? 0 : new Promise((r) => { im.onload = im.onerror = r; })));
   GC_LOADER.done();
 })();
+
+// ---------- shared table: everyone bets in the same window, plays at the same time, one dealer ----------
+let T = null, tSkew = 0, tLastRound = null, tOthersKey = "", tBusy = false, tTimer = null;
+function tOthers() {
+  if (!T) return [];
+  const seen = new Map();
+  for (const p of T.players) if (p.id !== me.id) seen.set(p.id, p);
+  for (const p of T.present) if (p.id !== me.id && !seen.has(p.id)) seen.set(p.id, p);
+  return [...seen.values()].slice(0, 4).map((p) => ({ id: p.id, nickname: p.name, character_key: p.char,
+    wealth: (members.find((m) => m.id === p.id) || {}).wealth || 0 }));
+}
+function tNow() { return Date.now() + tSkew; }
+function tBar() {
+  let b = $("tbar"); if (!b) { b = document.createElement("div"); b.id = "tbar"; b.className = "tbar"; document.body.appendChild(b); }
+  if (!T) return;
+  const sec = (ms) => Math.max(0, Math.ceil((ms - tNow()) / 1000));
+  const n = T.players.length;
+  let txt;
+  if (T.phase === "betting") txt = T.bet_until ? `⏳ ההימורים נסגרים בעוד <b class="num">${sec(T.bet_until)}</b> · ${n} מהמרים` : "שימו הימור כדי להתחיל סיבוב · כל מי שבשולחן משחק יחד";
+  else if (T.phase === "playing") txt = T.my_bet ? `🃏 כולם משחקים עכשיו · <b class="num">${sec(T.play_until)}</b>` : "סיבוב רץ. תצטרף בסיבוב הבא";
+  else txt = `הסיבוב הבא בעוד <b class="num">${sec(T.next_at)}</b>`;
+  b.innerHTML = txt;
+}
+function drawOthers() {
+  layer.querySelectorAll(".ot").forEach((n) => n.remove());
+  if (!T) return;
+  const list = tOthers();
+  list.forEach((o, k) => {
+    const p = T.players.find((x) => x.id === o.id); if (!p) return;
+    const sp = SPOTS[SEAT2SPOT[k + 1]];
+    const c = chipStack(sp.x, sp.y, p.bet, "o_" + p.id); if (c) c.classList.add("ot");
+    (p.hands || []).forEach((h, hi) => {
+      const ox = sp.x - 50 + hi * 70;
+      h.cards.forEach((card, i) => { const d = el("card ot small", ox + i * 26, sp.y - 120 - i * 7); faceUp(d, card); });
+      const o2 = p.out?.[hi]?.outcome, OUT = { win: "ניצחון", blackjack: "בלאק ג׳ק!", push: "תיקו", lose: "הפסד", bust: "נשרף", surrender: "ויתור" };
+      el("total ot " + (o2 === "win" || o2 === "blackjack" ? "win" : o2 && o2 !== "push" ? "lose" : ""), ox + 40, sp.y - 150, esc(o2 ? `${h.total} · ${OUT[o2]}` : h.total));
+    });
+    if (p.status === "waiting") el("total ot", sp.x - 10, sp.y + 40, "עומד ✓");
+  });
+  // a spectator (no bet this round) still sees the dealer
+  if (!T.me && T.dealer.length) T.dealer.forEach((card, i) => { const d = el("card ot" + (card === "??" ? " back" : ""), dealerPos(i).x, dealerPos(i).y); if (card !== "??") faceUp(d, card); });
+}
+function tControls() {
+  const mine = st && st.id && T && T.me && st.id === T.me.id;
+  const acting = mine && (st.status === "playing" || st.status === "insurance") && st.actions.length;
+  $("acts").hidden = !acting;
+  const canBet = T && T.phase === "betting" && !T.my_bet;
+  $("betUI").hidden = !canBet; setSpotsVisible(!!canBet);
+  if (acting) { placeActs(st.active); document.querySelectorAll("#acts .a").forEach((b) => { b.hidden = !st.actions.includes(b.dataset.a); b.disabled = busy; });
+    if (!busy && engaged && !clockT) { zoomTo(st.active); startClock(); } }
+  else { zoomTo(null); stopClock(); }
+  $("rebetBtn").disabled = !lastBets; $("dealBtn").disabled = !bets.main || !canBet;
+}
+async function tableBet() {
+  err(""); busy = true; $("dealBtn").disabled = true; engaged = true;
+  let data, error;
+  try { ({ data, error } = await db.rpc("bjt_bet", { p_t: TABLE, p_main: bets.main, p_pp: bets.pp, p_t3: bets.t3, p_ll: bets.ll, p_bust: bets.bust, p_ref: newRef() })); }
+  catch (ex) { error = { message: String(ex && ex.message || ex), code: "JS" }; }
+  busy = false;
+  if (error) { renderBets(); return err(errText(error)); }
+  lastBets = { ...bets }; Object.keys(bets).forEach((k) => bets[k] = 0);
+  showMsg("ההימור על השולחן", "ממתינים לשאר השחקנים");
+  await tApply(data);
+}
+async function tApply(data) {
+  if (!data) return;
+  T = data; tSkew = data.now - Date.now();
+  setMyBalance(data.balance);
+  if (tLastRound !== null && data.round !== tLastRound && (!st || st.status === "done") && !busy) { clearRound(); renderBets(); }
+  tLastRound = data.round;
+  const key = tOthers().map((o) => o.id).join(","); if (key !== tOthersKey) { tOthersKey = key; drawSeats(); }
+  drawOthers(); tBar();
+  const m = data.me;
+  if (m && !busy) {
+    if (!st || st.id !== m.id) { if (st || layer.querySelector(".card:not(.ot)")) { clearRound(); drawOthers(); } $("betUI").hidden = true; setSpotsVisible(false); await render(m); }
+    else if (st.status !== m.status || st.dealer.length !== m.dealer.length || JSON.stringify(st.hands) !== JSON.stringify(m.hands)) await render(m);
+  }
+  tControls();
+}
+async function tPoll() {
+  if (tBusy || document.hidden) return; tBusy = true;
+  try { const { data, error } = await db.rpc("bjt_state", { p_t: TABLE }); if (!error) await tApply(data); } catch (e) {}
+  tBusy = false;
+}
+function tableStart() {
+  document.body.classList.add("tablemode"); $("dealBtn").textContent = "שלח הימור";
+  document.title = "בלאק ג׳ק ביחד · גולן קזינו";
+  tPoll(); tTimer = setInterval(tPoll, 1000); setInterval(tBar, 250);
+}
