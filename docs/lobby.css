@@ -52,3 +52,9 @@ header{margin-bottom:14px}
 .cat.soon{opacity:.55}.cat.jobs{background:radial-gradient(circle at 50% 30%,rgba(197,160,90,.35),rgba(11,9,8,.92))}
 .catback{background:none;border:1px solid rgba(197,160,90,.7);color:#F1D69A;border-radius:99px;padding:6px 14px;margin:0 0 12px;font:600 14px Heebo,sans-serif;cursor:pointer}
 .game[hidden],.games[hidden],.cats[hidden],.catback[hidden]{display:none!important}
+
+.chbanner{display:flex;align-items:center;gap:12px;margin:0 0 18px;padding:14px 16px;border-radius:14px;text-decoration:none;color:#F5ECDD;
+  border:1px solid #C5A05A;background:radial-gradient(circle at 15% 50%,rgba(255,226,122,.22),rgba(11,9,8,.92) 70%);box-shadow:0 0 22px rgba(197,160,90,.25),0 12px 26px rgba(0,0,0,.5)}
+.chbanner .ci{font-size:38px;filter:drop-shadow(0 3px 10px rgba(255,220,100,.6))}
+.chbanner b{display:block;font:700 20px 'Frank Ruhl Libre',serif;color:#F1D69A}.chbanner small{color:#B9AA94}
+.chbanner .arr{margin-inline-start:auto;font-size:22px;color:#F1D69A}

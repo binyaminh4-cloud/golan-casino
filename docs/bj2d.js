@@ -7,6 +7,8 @@ const fmt = (n) => "₪" + Number(n).toLocaleString("en-US");
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MODE = new URLSearchParams(location.search).get("mode") === "lightning" ? "lightning" : "classic";
+const CH_ID = new URLSearchParams(location.search).get("ch");      // a challenge run: chips instead of the wallet
+let CH = null;
 const LIT = MODE === "lightning";
 let STRIKES = {};          // Fisher's strikes for this hand: {"A": 5, "7": 3}
 const RANK = (r) => r === "T" ? "10" : r;
@@ -103,7 +105,7 @@ function drawSeats() {
       <div class="tag"><div class="name">${esc(m.nickname)}${i === 0 ? "" : ""}</div><div class="b" data-bal="${i}">${fmt(m.wealth)}</div></div></div>`;
   }).join("");
 }
-function setMyBalance(v) { $("bal").textContent = fmt(v); const b = document.querySelector('[data-bal="0"]'); if (b) b.textContent = fmt(v); }
+function setMyBalance(v) { if (CH) v = CH.chips; $("bal").textContent = fmt(v); const b = document.querySelector('[data-bal="0"]'); if (b) b.textContent = fmt(v); }
 
 // ---------- round rendering ----------
 let st = null, busy = false, dealerEls = [], handEls = [], totals = [], ring = null;
@@ -160,7 +162,7 @@ async function render(next) {
   // highlight the active hand when split
   if (ring) { ring.remove(); ring = null; }
   if (next.status === "playing" && n > 1) { const s = SPOTS[next.active]; ring = el("ring", s.x - 75, s.y - 31); }
-  st = next; setMyBalance(next.balance);
+  st = next; if (next.ch) { CH = { ...CH, ...next.ch }; drawCH(); } setMyBalance(next.balance);
   if (next.status === "done") await finish(next);
   busy = false; showControls();
 }
@@ -216,7 +218,7 @@ function drawBetSpots() {
     b.onclick = () => addBet(k); stage.appendChild(b);
   };
   mk("main", SPOTS[0].x, SPOTS[0].y, 170, 92, "");
-  if (!LIT) for (const [k, p] of Object.entries(SIDE_SPOTS)) mk(k, p.x, p.y, 76, 48, p.t);
+  if (!LIT && !CH_ID) for (const [k, p] of Object.entries(SIDE_SPOTS)) mk(k, p.x, p.y, 76, 48, p.t);
   drawBoost();
 }
 function setSpotsVisible(v) { document.querySelectorAll(".spot").forEach((n) => n.hidden = !v); }
@@ -276,7 +278,7 @@ $("dealBtn").onclick = async () => {
   if (st?.status === "done") clearRound();
   err(""); busy = true; $("dealBtn").disabled = true;
   let data, error;
-  try { ({ data, error } = await db.rpc("bj_deal", { p_main: bets.main, p_pp: bets.pp, p_t3: bets.t3, p_ll: bets.ll, p_bust: bets.bust, p_ref: newRef(), p_mode: MODE })); }
+  try { ({ data, error } = await db.rpc("bj_deal", { p_main: bets.main, p_pp: bets.pp, p_t3: bets.t3, p_ll: bets.ll, p_bust: bets.bust, p_ref: newRef(), p_mode: MODE, p_run: CH ? CH.id : null })); }
   catch (ex) { error = { message: String(ex && ex.message || ex), code: "JS" }; }
   busy = false;
   if (error) { renderBets(); return err(errText(error)); }
@@ -352,6 +354,24 @@ if (LIT) {
   r.querySelector("h2").insertAdjacentHTML("afterend", "<p><b>⚡ איך זה עובד:</b></p><p>1. שמים הימור. כל יד עולה <b>הימור + עמלת ברק של חצי מההימור</b> (₪100 + ₪50).</p><p>2. לפני החלוקה די־ג׳יי פישר <b>מפיל ברקים על 2–3 ערכי קלפים</b>, כל אחד עם מכפיל ×2 עד ×25. למשל: A ×5 · 7 ×3. הקלפים האלה זוהרים בזהב כשהם יוצאים.</p><p>3. משחקים בלאק ג׳ק רגיל. <b>אם ניצחת ויש לך ביד קלף מוכה ברק, הרווח מוכפל מיד</b> במכפיל הכי גבוה שביד. ₪100 רווח עם אס ×5 = ₪500. בלאק ג׳ק (₪150) עם ×5 = ₪750.</p><p>אין הימורים צדדיים. החזר משוער לשחקן: כ־98%.</p>");
 }
 // ---------- start ----------
+// ---------- challenge HUD: hand count, challenge chips, the score to beat ----------
+function drawCH() {
+  if (!CH) return; let h = $("chHud");
+  if (!h) { h = document.createElement("div"); h.id = "chHud"; h.className = "chhud"; document.body.appendChild(h); document.querySelector(".top span").firstChild.textContent = "צ׳יפים של אתגר "; }
+  const name = CH.kind === "fisher" ? "🎧 הסט של פישר" : "🃏 החפיסה של עידו";
+  h.innerHTML = `<b>${name}</b><span>יד <b class="num">${Math.min(CH.hands + (st && st.status !== "done" ? 1 : 0), CH.max)}/${CH.max}</b></span>` +
+    (CH.target != null ? `<span>לעבור: <b class="num">${fmt(CH.target)}</b></span>` : CH.opponent ? `<span>נגד ${esc(CH.opponent)}</span>` : "");
+  if (CH.status === "done" && !$("chEnd")) setTimeout(chEnd, 2600);
+}
+async function chEnd() {
+  const { data } = await db.rpc("ch_run_info", { p_run: CH.id }); const c = data || CH;
+  const o = document.createElement("div"); o.id = "chEnd"; o.className = "chend";
+  const res = c.kind === "fisher" ? `סיימת עם <b class="num">${fmt(c.chips)}</b><br>${c.points > 0 ? `+${c.points} נקודות לעונה` : "בלי נקודות הפעם"}`
+    : c.target != null ? (c.chips > c.target ? `ניצחת! <b class="num">${fmt(c.chips)}</b> מול ${fmt(c.target)}` : c.chips === c.target ? "תיקו!" : `הפסדת: <b class="num">${fmt(c.chips)}</b> מול ${fmt(c.target)}`)
+    : `סיימת עם <b class="num">${fmt(c.chips)}</b>. עכשיו תור ${esc(c.opponent || "החבר")}.`;
+  o.innerHTML = `<div class="box"><div class="t">${c.kind === "fisher" ? "🎧 הסט נגמר" : "🃏 החפיסה נגמרה"}</div><div class="r">${res}</div><a class="btn" href="challenges.html">חזרה לאתגרים</a></div>`;
+  document.body.appendChild(o);
+}
 async function resume() { const { data } = await db.rpc("bj_current"); if (data) { clearRound(); $("betUI").hidden = true; await render(data); } }
 (async () => {
   const { data: { session } } = await db.auth.getSession();
@@ -368,6 +388,7 @@ async function resume() { const { data } = await db.rpc("bj_current"); if (data)
   me = prof || { id: session.user.id, nickname: "אני" };
   const { data: w } = await db.from("wallets").select("balance").eq("user_id", me.id).single();
   await loadSeats();
+  if (CH_ID) { const { data: ci } = await db.rpc("ch_run_info", { p_run: CH_ID }); if (!ci || ci.status !== "playing") { location.href = "challenges.html"; return; } CH = ci; drawCH(); }
   if (w) setMyBalance(w.balance);
   if (LIT) await loadDJ();
   drawBetSpots(); renderBets(); await resume(); showControls();
