@@ -138,10 +138,11 @@ function renderMap() {
 
 // ---------- boot ----------
 (async function boot() {
-  if (PREVIEW) { balance = 10000; showBal(); GC_LOADER.done(); return; }
+  if (PREVIEW) { balance = 10000; showBal(); GC_LOADER.done(); GC_GUIDE.init({ game: "jobs", db: null, mount: document.querySelector(".top"), steps: GC_STEPS.jobs(), auto: !/noguide/.test(location.search) }); return; }
   const { data: { session } } = await db.auth.getSession();
   if (!session) { location.href = "./"; return; }
   const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single();
   if (!w.error) balance = w.data.balance; showBal();
   GC_LOADER.done();
+  GC_GUIDE.init({ game: "jobs", db, mount: document.querySelector(".top"), steps: GC_STEPS.jobs() });
 })();
