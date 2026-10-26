@@ -37,3 +37,4 @@ header{margin-bottom:14px}
 .adminzone{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:24px}
 .adminzone .panel{margin-top:0}
 .adminzone:not(:has(.panel:not([hidden]))){display:none}
+.game .priv{display:inline-block;margin-top:8px;font:600 13px Heebo,sans-serif;color:var(--champ,#F1D69A);background:rgba(11,9,8,.55);border:1px solid rgba(197,160,90,.7);border-radius:99px;padding:5px 12px;cursor:pointer}.game .priv:hover{background:rgba(197,160,90,.2)}

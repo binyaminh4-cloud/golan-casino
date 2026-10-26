@@ -162,3 +162,5 @@ async function loadCharacters() {
 }
 
 boot();
+// private roulette table: a button inside the live-table card
+document.addEventListener("click", (e) => { const b = e.target.closest(".priv"); if (!b) return; e.preventDefault(); e.stopPropagation(); location.href = b.dataset.go; }, true);

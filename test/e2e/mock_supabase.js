@@ -26,6 +26,16 @@
           dealer: [card(), "??"], dealer_total: 10, hands: [{ cards: [card(), card()], bet: a.p_main, total: 15 }] }; save(); return { data: bj }; }
       case "bj_action": { bj = { ...bj, status: "done", actions: [], dealer: [bj.dealer[0], card(), card()], dealer_total: 20, payout: 0,
           result: { net: -bj.main_bet, hands: [{ outcome: "lose" }], side: { earned: 6, tier: "17" }, dealer_blackjack: false } }; return { data: bj }; }
+      case "rl_live_state": { const C = 48000, Wn = 25000, t = Date.now(), n = Math.floor(t / C), st = n * C, open = t < st + Wn;
+        const res = (n * 7919) % 37; S.live = S.live || {};
+        const mine = (S.live[n] || []); const sentTot = mine.reduce((s, b) => s + b.amt, 0);
+        let payout = null; if (!open) { payout = mine.filter((b) => b.nums.includes(res)).reduce((s, b) => s + Math.floor(b.amt * 36 / b.nums.length), 0);
+          if (!S.paid || S.paid < n) { S.bal += payout; S.paid = n; save(); } }
+        return { data: { now: t, round: n, start: st, close: st + Wn, end: st + C, open, result: open ? null : res, lucky: open || a.p_mode === "classic" ? {} : { [res]: 200, 11: 50 },
+          mine, payout, balance: S.bal, history: [17, 0, 32, 5, 26],
+          players: [{ id: "u2", name: "דני", total: 300, nums: [[17], [1, 2, 3]] }].concat(sentTot ? [{ id: "u1", name: "בנימין", total: sentTot, nums: mine.map((b) => b.nums) }] : []) } }; }
+      case "rl_live_bet": { const tot = a.p_bets.reduce((s, b) => s + b.amt, 0); S.live = S.live || {}; (S.live[a.p_round] = S.live[a.p_round] || []).push(...a.p_bets);
+        S.bal -= tot; save(); return { data: { ok: true, balance: S.bal } }; }
       case "admin_pending_codes": return { data: [] };
       default: return { data: null };
     }

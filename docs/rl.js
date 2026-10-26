@@ -4,6 +4,8 @@ const fmt = (n) => "₪" + Number(n).toLocaleString("en-US");
 const PREVIEW = /[?#&]preview/.test(location.href);
 const MODE = (new URLSearchParams(location.search).get("mode") || "classic").replace(/[^a-z]/g, "");
 const LIT = MODE === "lightning" || MODE === "xxx";
+const LIVE = !PREVIEW && !/[?&]private/.test(location.search);   // shared live table (default) vs. private table
+let sent = new Map(), liveSt = null, clockOff = 0, animRound = -1, MY_ID = null;
 const BASE_STRAIGHT = MODE === "xxx" ? 20 : MODE === "lightning" ? 30 : 36;
 let LUCKY = {};
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
@@ -168,6 +170,7 @@ function drawChips(win) {
   $("spinBtn").disabled = busy || tot === 0; $("undoBtn").disabled = busy || !undoStack.length;
   $("clearBtn").disabled = busy || !bets.size; $("dblBtn").disabled = busy || !bets.size;
   $("rebetBtn").disabled = busy || !lastBets || bets.size > 0;
+  if (LIVE) { liveButtons(tot); drawPlayers(); }
 }
 const undoStack = [];
 function place(key, amt) {
@@ -224,7 +227,7 @@ $("chips").innerHTML = CHIPS.map(([v, c]) => `<button class="chip ${c}" data-v="
 $("chips").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; chipVal = +b.dataset.v;
   $("chips").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); };
 $("undoBtn").onclick = () => { if (undoStack.length) { bets = undoStack.pop(); drawChips(); } };
-$("clearBtn").onclick = () => { undoStack.push(new Map(bets)); bets.clear(); drawChips(); };
+$("clearBtn").onclick = () => { undoStack.push(new Map(bets)); bets = new Map(sent); drawChips(); };
 $("dblBtn").onclick = () => { const tot = [...bets.values()].reduce((s, v) => s + v, 0);
   if ([...bets.values()].some((v) => v * 2 > 50000) || tot * 2 > 100000) return err("ההכפלה עוברת את מגבלת השולחן.");
   undoStack.push(new Map(bets)); bets = new Map([...bets].map(([k, v]) => [k, v * 2])); drawChips(); };
@@ -323,9 +326,9 @@ function showResult() {
   const zc = LUCKY[n] && ZEUS.celebrate && [...bets.keys()].includes(String(n));
   card.innerHTML = (zc ? `<img class="rme zc" src="${ZEUS.celebrate}" alt="">` : ME_URL ? `<img class="rme" src="${ME_URL}" alt="">` : "") + `<div class="rn num">${n}</div><div class="rc">${name}${n ? " · " + (n % 2 ? "אי־זוגי" : "זוגי") + " · " + (n <= 18 ? "1–18" : "19–36") : ""}</div>` +
     (LUCKY[n] ? `<div class="rbolt">⚡ ברק ${LUCKY[n]}x</div>` : "") +
-    (spinRes.payout > 0 ? `<div class="rw">זכית ${fmt(spinRes.payout)}</div>` : `<div class="rl">לא הפעם</div>`);
+    (spinRes.payout > 0 ? `<div class="rw">זכית ${fmt(spinRes.payout)}</div>` : spinRes.total ? `<div class="rl">לא הפעם</div>` : "");
   card.hidden = false;
-  if (spinRes.payout > 0) SFX.win(spinRes.payout >= spinRes.total * 10); else SFX.lose();
+  if (spinRes.payout > 0) SFX.win(spinRes.payout >= spinRes.total * 10); else if (spinRes.total) SFX.lose();
   if (W.under() !== n) console.error("wheel/result mismatch", W.under(), n);   // never expected; checked by tests
 }
 function finish() {
@@ -338,16 +341,17 @@ function finish() {
   drawChips(win);
   balance = spinRes.balance; showBal(balance);
   const me = $("me"); me.classList.remove("jump", "sad"); void me.offsetWidth;
-  if (spinRes.payout > 0) { me.classList.add("jump"); const f = document.createElement("div"); f.className = "float num"; f.textContent = "+" + fmt(spinRes.payout); me.appendChild(f); setTimeout(() => f.remove(), 2200); }
+  if (!spinRes.total) {} else if (spinRes.payout > 0) { me.classList.add("jump"); const f = document.createElement("div"); f.className = "float num"; f.textContent = "+" + fmt(spinRes.payout); me.appendChild(f); setTimeout(() => f.remove(), 2200); }
   else me.classList.add("sad");
   if (spinRes.payout > 0) err("");
   setTimeout(() => {                         // croupier clears the layout
-    lastBets = new Map(bets); bets.clear(); undoStack.length = 0; busy = false;
+    if (bets.size) lastBets = new Map(bets); bets.clear(); sent.clear(); undoStack.length = 0; busy = false;
     d.hidden = true; board.querySelectorAll(".winner").forEach((x) => x.classList.remove("winner")); clearLucky(); drawChips();
   }, 2600);
 }
 function newRef() { return (crypto.randomUUID ? crypto.randomUUID() : Date.now() + "-" + Math.random().toString(36).slice(2)); }
 $("spinBtn").onclick = async () => {
+  if (LIVE) return liveConfirm();
   if (busy || !bets.size) return;
   busy = true; drawChips(); err("");
   const payload = [...bets].map(([k, v]) => ({ nums: k.split(",").map(Number), amt: v }));
@@ -424,6 +428,93 @@ function errText(e) {
   return "משהו השתבש (" + ((e && e.code) || "") + " " + m.slice(0, 80) + "). צלם לי את המסך.";
 }
 
+
+// ---------- live shared table: one wall-clock round every 48s for all three roulettes ----------
+const SPIN_AFTER = 6000;                   // ms after betting closes: lightning strikes, then the ball
+const srvNow = () => Date.now() + clockOff;
+function pendingList() {
+  const out = [];
+  for (const [k, v] of bets) { const d = v - (sent.get(k) || 0); if (d > 0) out.push({ nums: k.split(",").map(Number), amt: d }); }
+  return out;
+}
+function liveButtons(tot) {
+  const open = liveSt && liveSt.open && srvNow() < liveSt.close;
+  const pend = pendingList().reduce((s, b) => s + b.amt, 0);
+  const sb = $("spinBtn");
+  sb.textContent = pend ? "אשר הימור" : sent.size ? "ההימור נקלט ✓" : "אשר הימור";
+  sb.disabled = busy || !open || !pend;
+  $("clearBtn").disabled = busy || bets.size === sent.size && pend === 0;
+}
+async function liveConfirm() {
+  const list = pendingList(); if (!list.length || busy || !liveSt) return;
+  const sb = $("spinBtn"); sb.disabled = true;
+  try {
+    const { data, error } = await db.rpc("rl_live_bet", { p_round: liveSt.round, p_mode: MODE, p_bets: list, p_ref: newRef() });
+    if (error) throw error;
+    sent = new Map(bets); undoStack.length = 0; balance = data.balance; showBal(balance); err(""); SFX.chip(); lastFetch = 0; setTimeout(liveFetch, 50);
+  } catch (e) { err(liveErr(e)); }
+  drawChips();
+}
+function liveErr(e) { return ((e && e.message) || "").includes("betting_closed") ? "ההימורים לסיבוב הזה נסגרו. נסה בסיבוב הבא." : errText(e); }
+function drawPlayers() {
+  const el = $("players"); if (!el || !liveSt) return;
+  const ps = liveSt.players || [];
+  el.innerHTML = ps.length ? ps.map((p) => `<div class="pl${p.id === MY_ID ? " me" : ""}"><span>${String(p.name).replace(/[<>&]/g, "")}</span><b class="num">${fmt(p.total)}</b></div>`).join("")
+    : '<div class="pl empty">עוד אין הימורים בסיבוב</div>';
+  // other players' bets as faint markers on the layout
+  const layer = $("chipLayer"); if (!layer || VIEW !== "table") return;
+  layer.querySelectorAll(".ghost").forEach((g) => g.remove());
+  for (const p of ps) { if (p.id === MY_ID) continue;
+    for (const nums of p.nums || []) { const k = nums.slice().sort((a, b) => a - b).join(","); if (!LEGAL.has(k)) continue;
+      const a = anchor(k), q = toXY(a.u, a.w), g = document.createElement("i"); g.className = "ghost"; g.title = p.name;
+      g.style.left = q.x + "px"; g.style.top = q.y + "px"; g.textContent = String(p.name).slice(0, 1); layer.appendChild(g); } }
+}
+function drawClock() {
+  const el = $("liveClock"); if (!el || !liveSt) return;
+  const t = srvNow();
+  if (t < liveSt.close) { const s = Math.ceil((liveSt.close - t) / 1000); el.textContent = `הימורים פתוחים · ${s}`; el.className = "liveclock" + (s <= 5 ? " hurry" : ""); }
+  else { el.textContent = "אין עוד הימורים"; el.className = "liveclock shut"; }
+}
+let fetching = false, lastFetch = 0;
+async function liveFetch() {
+  if (fetching) return; fetching = true; lastFetch = Date.now();
+  try {
+    const { data, error } = await db.rpc("rl_live_state", { p_mode: MODE });
+    if (error) throw error;
+    clockOff = data.now - Date.now();
+    const newRound = !liveSt || liveSt.round !== data.round;
+    liveSt = data;
+    if (!busy && newRound) {                  // restore my confirmed bets after a reload mid-round
+      const m = new Map(); for (const b of data.mine || []) { const k = b.nums.join(","); m.set(k, (m.get(k) || 0) + b.amt); }
+      if (m.size) { sent = m; bets = new Map(m); }
+    }
+    if (!plan && !cine && animRound !== data.round) { history = data.history || []; drawHist(); }
+    if (!plan && !cine) { balance = data.balance; showBal(balance); }
+    drawChips(); drawPlayers();
+    if (!data.open && data.result !== null && animRound !== data.round) liveRun(data);
+  } catch (e) { console.error(e); }
+  fetching = false;
+}
+async function liveRun(d) {
+  animRound = d.round;
+  if (srvNow() > d.close + SPIN_AFTER + 1500) return;      // joined mid-spin: just wait for the next round
+  busy = true; drawChips();
+  const total = [...sent.values()].reduce((s, v) => s + v, 0);
+  bets = new Map(sent);                               // unconfirmed chips don't play
+  spinRes = { result: d.result, total, payout: d.payout || 0, balance: d.balance };
+  showBal(d.balance - (d.payout || 0));
+  if (LIT) await strike(d.lucky || {});
+  const w = d.close + SPIN_AFTER - srvNow(); if (w > 0) await wait(w);
+  marks = {}; setCine(true);
+  plan = R.plan(d.result, W.rotor); t0 = performance.now(); SFX.roll(R.T.hit + 0.6); lastLift = prevLift = 1; lastTick = 0;
+}
+function liveTick() {
+  drawClock(); if (liveSt) liveButtons();
+  const t = srvNow();
+  const due = !liveSt || t >= liveSt.end || (liveSt.open && t >= liveSt.close + 200) || (!liveSt.open && liveSt.result === null);
+  if (due ? Date.now() - lastFetch > 700 : Date.now() - lastFetch > 2500) liveFetch();
+}
+
 // ---------- boot ----------
 // phones settle their size late (rotation, address bar, loader): redraw whenever the board area really changes size
 let lastBox = "";
@@ -456,10 +547,12 @@ if (LIT) {
   const { data: { session } } = await db.auth.getSession();
   if (!session) { location.href = "./"; return; }
   GC_GUIDE.init({ game: LIT ? "lightning" : "roulette", db, mount: document.querySelector(".top"), steps: LIT ? GC_STEPS.lightning() : GC_STEPS.roulette() });
-  const [w, h, ch] = await Promise.all([db.from("wallets").select("balance").eq("user_id", session.user.id).single(), db.rpc("rl_history", { p_mode: MODE }), GC_CHAR(db, session.user.id)]);
+  const [w, h, ch] = await Promise.all([db.from("wallets").select("balance").eq("user_id", session.user.id).single(), LIVE ? Promise.resolve({}) : db.rpc("rl_history", { p_mode: MODE }), GC_CHAR(db, session.user.id)]);
   if (ch.url) { ME_URL = ch.url; $("meImg").src = ch.url; $("meName").textContent = ch.nick || ""; $("me").hidden = false; }
   if (!w.error) { balance = w.data.balance; showBal(balance); }
-  if (!h.error && Array.isArray(h.data)) { history = h.data; drawHist(); }
+  if (!LIVE && !h.error && Array.isArray(h.data)) { history = h.data; drawHist(); }
+  MY_ID = session.user.id;
+  if (LIVE) { document.body.classList.add("live"); $("players").hidden = false; $("liveClock").hidden = false; await liveFetch(); setInterval(liveTick, 250); }
   if (ch.url) await new Promise((res) => { const i = new Image(); i.onload = i.onerror = res; i.src = ch.url; });
   GC_LOADER.done(); setTimeout(startLoop, 650);
   drawChips();
