@@ -299,3 +299,11 @@ body.live .side{grid-template-rows:auto auto 1fr}body.live.short .side{grid-temp
 .bigclock small{position:absolute;bottom:11px;font:600 10px Heebo;color:#B9AA94}
 .bigclock.hurry .fg{stroke:#e5484d}.bigclock.hurry b{color:#ff6b6f;animation:hit .5s ease-in-out infinite alternate}
 .bigclock.shut b{font-size:20px}
+/* Zeus's duel */
+.duelhud{position:fixed;top:48px;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:12px;align-items:center;white-space:nowrap;
+  background:rgba(8,12,30,.9);border:1px solid #7fb2ff;border-radius:99px;padding:4px 14px;font:500 13px Heebo;color:#dfe8ff;box-shadow:0 0 16px rgba(120,170,255,.35)}
+.duelhud b{color:#fff}.duelhud.last{border-color:#ffe27a;box-shadow:0 0 22px rgba(255,220,100,.6)}.duelhud .x2{color:#ffe27a;font-weight:800;animation:hit .5s ease-in-out infinite alternate}
+.duelend{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:rgba(0,0,0,.7)}
+.duelend .box{width:min(360px,90vw);background:#17120F;border:1px solid #C5A05A;border-radius:14px;padding:22px;text-align:center;display:grid;gap:12px}
+.duelend .t{font:700 24px 'Frank Ruhl Libre',serif;color:#F1D69A}.duelend .r{font-size:17px}.duelend .r b{color:#9fe0a8;font:800 22px Inter}
+.duelend .btn{text-decoration:none;display:block;padding:12px}

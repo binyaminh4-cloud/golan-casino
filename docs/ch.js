@@ -25,6 +25,8 @@ function draw() {
   const r = S.my_run; $("openRun").hidden = !r;
   if (r) $("openRun").innerHTML = `יש לך אתגר פתוח: ${r.kind === "fisher" ? "🎧 הסט של פישר" : "🃏 החפיסה של עידו"} · יד ${r.hands}/${r.max} · ${fmt(r.chips)} <a class="go" href="${runUrl(r.kind, r.id)}">המשך</a>`;
   // friends
+  $("zopp").innerHTML = (S.members || []).map((m) => `<option value="${m.id}">${esc(m.name)}</option>`).join("") || "<option disabled>אין עוד חברים</option>";
+  drawZeus();
   $("opp").innerHTML = (S.members || []).map((m) => `<option value="${m.id}">${esc(m.name)}</option>`).join("") || "<option disabled>אין עוד חברים</option>";
   // duels
   $("duels").innerHTML = (S.duels || []).slice(0, 8).map((d) => {
@@ -53,14 +55,32 @@ function draw() {
              : `<tr><td colspan="6" class="empty">עוד אין נקודות בעונה הזאת. מי פותח?</td></tr>`);
   const L = S.last_results; $("last").innerHTML = L ? `🏆 עונה ${L.season} הסתיימה · הכספת: ${fmt(L.vault || 0)}${L.vault_hit ? " (התמלאה!)" : ""}` : "";
 }
+let Z = [];
+function drawZeus() {
+  $("zduels").innerHTML = Z.map((d) => {
+    const them = esc(d.them); let st = "", act = "";
+    if (d.status === "invited") { if (d.mine) st = `⏳ מחכה ש${them} יקבל`; else { st = `${them} מזמין אותך לדו־קרב!`; act = `<button class="go sm" data-zy="${d.id}">קבל</button><button class="ghost sm" data-zn="${d.id}">לא עכשיו</button>`; } }
+    else if (d.status === "active") { st = `⚡ דו־קרב פעיל מול ${them}`; act = `<a class="go sm" href="roulette.html?mode=lightning&duel=${d.id}">היכנס</a>`; }
+    else if (d.status === "done") st = d.winner === d.me ? `✅ ניצחת את ${them}` : d.winner ? `❌ ${them} ניצח` : `🤝 תיקו עם ${them}`;
+    else if (d.status === "declined") st = d.mine ? `${them} לא היה זמין` : `דחית את ${them}`;
+    else st = `⌛ ההזמנה ל${them} פגה`;
+    return `<div class="duel ${d.status === "invited" || d.status === "active" ? "waiting" : ""}"><span>${st}</span><span class="acts">${act}</span></div>`;
+  }).join("");
+  $("zduels").querySelectorAll("[data-zy],[data-zn]").forEach((b) => b.onclick = async () => {
+    const yes = !!b.dataset.zy, { error } = await rpc("zeus_answer", { p_duel: b.dataset.zy || b.dataset.zn, p_accept: yes });
+    if (error) return err(errText(error)); if (yes) location.href = `roulette.html?mode=lightning&duel=${b.dataset.zy}`; else load();
+  });
+}
 async function rpc(name, args) { if (PREVIEW) return { data: null, error: { message: "preview" } }; return db.rpc(name, args); }
 async function load() {
   if (PREVIEW) { S = { season: 1, ends_at: new Date(Date.now() + 9.3 * 864e5).toISOString(), me: "a", vault: 1240000, vault_target: 3000000, fisher_best: 14350,
     members: [{ id: "b", name: "דני" }, { id: "c", name: "פישר" }], my_run: null,
     duels: [{ id: "1", status: "waiting", challenger: "b", challenger_name: "דני", opponent: "a", opponent_name: "בנימין", score_a: 12800 }, { id: "2", status: "done", challenger: "a", opponent_name: "פישר", challenger_name: "בנימין", winner: "a" }],
     board: [{ id: "a", name: "בנימין", fisher: 43, ido: 60, zeus: 0, total: 103 }, { id: "b", name: "דני", fisher: 20, ido: 30, zeus: 0, total: 50 }] }; draw(); return; }
-  const { data, error } = await db.rpc("ch_state"); if (error) return err(errText(error)); S = data; draw();
+  const [st, zl] = await Promise.all([db.rpc("ch_state"), db.rpc("zeus_list")]);
+  if (st.error) return err(errText(st.error)); if (!zl.error) Z = zl.data || []; S = st.data; draw();
 }
+$("zeusBtn").onclick = async () => { const o = $("zopp").value; if (!o) return; const { error } = await rpc("zeus_invite", { p_opponent: o }); if (error) return err(errText(error)); err(""); load(); };
 $("fisherBtn").onclick = async () => { const { data, error } = await rpc("ch_start_fisher"); if (error) return err(errText(error)); location.href = runUrl(data.kind, data.run); };
 $("idoBtn").onclick = async () => {
   const o = $("opp").value; if (!o) return;
@@ -72,5 +92,5 @@ $("idoBtn").onclick = async () => {
     const { data: w } = await db.from("wallets").select("balance").eq("user_id", session.user.id).single(); if (w) $("bal").textContent = fmt(w.balance);
   } else $("bal").textContent = fmt(10000);
   await load(); GC_LOADER.done();
-  setInterval(() => { if (!document.hidden) load(); }, 20000);
+  setInterval(() => { if (!document.hidden) load(); }, 8000);
 })();

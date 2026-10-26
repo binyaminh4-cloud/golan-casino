@@ -5,6 +5,8 @@ const PREVIEW = /[?#&]preview/.test(location.href);
 const MODE = (new URLSearchParams(location.search).get("mode") || "classic").replace(/[^a-z]/g, "");
 const LIT = MODE === "lightning" || MODE === "xxx";
 const LIVE = !PREVIEW && !/[?&]private/.test(location.search);   // shared live table (default) vs. private table
+const DUEL = LIVE ? new URLSearchParams(location.search).get("duel") : null;   // Zeus's duel: duel chips instead of the wallet
+let ZS = null;
 let sent = new Map(), liveSt = null, clockOff = 0, animRound = -1, MY_ID = null;
 const BASE_STRAIGHT = MODE === "xxx" ? 20 : MODE === "lightning" ? 30 : 36;
 let LUCKY = {};
@@ -442,16 +444,19 @@ function liveButtons(tot) {
   const pend = pendingList().reduce((s, b) => s + b.amt, 0);
   const sb = $("spinBtn");
   sb.textContent = pend ? "אשר הימור" : sent.size ? "ההימור נקלט ✓" : "אשר הימור";
-  sb.disabled = busy || !open || !pend;
+  const duelOff = DUEL && (!ZS || ZS.status !== "active" || !(ZS.round >= 1 && ZS.round <= ZS.rounds));
+  sb.disabled = busy || !open || !pend || duelOff;
   $("clearBtn").disabled = busy || bets.size === sent.size && pend === 0;
 }
 async function liveConfirm() {
   const list = pendingList(); if (!list.length || busy || !liveSt) return;
   const sb = $("spinBtn"); sb.disabled = true;
   try {
-    const { data, error } = await db.rpc("rl_live_bet", { p_round: liveSt.round, p_mode: MODE, p_bets: list, p_ref: newRef() });
+    const { data, error } = DUEL ? await db.rpc("zeus_bet", { p_duel: DUEL, p_round: liveSt.round, p_bets: list, p_ref: newRef() })
+                                 : await db.rpc("rl_live_bet", { p_round: liveSt.round, p_mode: MODE, p_bets: list, p_ref: newRef() });
     if (error) throw error;
-    sent = new Map(bets); undoStack.length = 0; balance = data.balance; showBal(balance); err(""); SFX.chip(); lastFetch = 0; setTimeout(liveFetch, 50);
+    if (DUEL) { ZS = data; drawDuel(); }
+    sent = new Map(bets); undoStack.length = 0; balance = DUEL ? data.my_chips : data.balance; showBal(balance); err(""); SFX.chip(); lastFetch = 0; setTimeout(liveFetch, 50);
   } catch (e) { err(liveErr(e)); }
   drawChips();
 }
@@ -491,6 +496,7 @@ async function liveFetch() {
     const { data, error } = await db.rpc("rl_live_state", { p_mode: MODE });
     if (error) throw error;
     clockOff = data.now - Date.now();
+    if (DUEL) { const z = await db.rpc("zeus_state", { p_duel: DUEL }); if (!z.error) { ZS = z.data; data.mine = ZS.my_bets; data.balance = ZS.my_chips; data.payout = ZS.my_payout; drawDuel(); } }
     const newRound = !liveSt || liveSt.round !== data.round;
     liveSt = data;
     if (!busy && newRound) {                  // restore my confirmed bets after a reload mid-round
@@ -506,6 +512,7 @@ async function liveFetch() {
 }
 async function liveRun(d) {
   animRound = d.round;
+  if (DUEL) { const z = await db.rpc("zeus_state", { p_duel: DUEL }); if (!z.error) { ZS = z.data; d.payout = ZS.my_payout; d.balance = ZS.my_chips; drawDuel(); } }
   if (srvNow() > d.close + SPIN_AFTER + 1500) return;      // joined mid-spin: just wait for the next round
   busy = true; drawChips();
   const total = [...sent.values()].reduce((s, v) => s + v, 0);
@@ -523,6 +530,23 @@ function liveTick() {
   const due = !liveSt || t >= liveSt.end || (liveSt.open && t >= liveSt.close + 200) || (!liveSt.open && liveSt.result === null);
   if (due ? Date.now() - lastFetch > 700 : Date.now() - lastFetch > 2500) liveFetch();
 }
+
+// ---------- Zeus's duel HUD ----------
+function drawDuel() {
+  if (!ZS) return; let h = $("duelHud");
+  if (!h) { h = document.createElement("div"); h.id = "duelHud"; h.className = "duelhud"; document.body.appendChild(h); document.querySelector(".bal").firstChild.textContent = "צ׳יפים של דו־קרב "; }
+  const r = ZS.round, last = r === ZS.rounds;
+  h.className = "duelhud" + (last ? " last" : "");
+  h.innerHTML = `<b>⚡ הדו־קרב של זאוס</b><span>${r < 1 ? "מתחיל בסיבוב הבא" : r > ZS.rounds || ZS.status === "done" ? "נגמר" : `סיבוב <b class="num">${r}/${ZS.rounds}</b>`}</span>` +
+    `<span>אתה <b class="num">${fmt(ZS.my_chips)}</b></span><span>${esc(ZS.them)} <b class="num">${fmt(ZS.their_chips)}</b></span>` + (last ? `<span class="x2">זאוס מכפיל הכול ×2</span>` : "");
+  if (ZS.status === "done" && !$("duelEnd") && !plan && !cine) {
+    const o = document.createElement("div"); o.id = "duelEnd"; o.className = "duelend";
+    const res = !ZS.winner ? "תיקו! זאוס לא מרוצה." : ZS.winner === ZS.me ? "⚡ ניצחת! +30 נקודות לעונה" : `${esc(ZS.them)} ניצח הפעם`;
+    o.innerHTML = `<div class="box"><div class="t">הדו־קרב נגמר</div><div class="r">${res}<br><b class="num">${fmt(ZS.my_chips)}</b> מול ${fmt(ZS.their_chips)}</div><a class="btn" href="challenges.html">חזרה לאתגרים</a></div>`;
+    document.body.appendChild(o);
+  }
+}
+const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 // ---------- boot ----------
 // phones settle their size late (rotation, address bar, loader): redraw whenever the board area really changes size

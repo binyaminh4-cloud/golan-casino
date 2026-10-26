@@ -37,3 +37,4 @@ th,td{padding:9px 10px;text-align:right;border-bottom:1px solid rgba(128,96,46,.
 tr.me td{background:rgba(197,160,90,.12)}td.tot{color:var(--champ);font-weight:800}td.empty{text-align:center;color:var(--muted)}
 .last{color:var(--muted);text-align:center;margin-top:12px}.err{color:#E89A9F;text-align:center}
 [hidden]{display:none!important}
+.ghost.sm{height:34px;padding:0 10px;border-radius:99px;border:1px solid var(--line);background:none;color:var(--muted);cursor:pointer}.duel .acts{display:flex;gap:6px}
