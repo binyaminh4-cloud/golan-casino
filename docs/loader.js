@@ -9,7 +9,7 @@
   document.addEventListener("gesturestart", (e) => e.preventDefault());
   d.classList.add("gc-loading");
   const st = document.createElement("style");
-  st.textContent = `html.gc-loading{background:#0B0908}html.gc-loading body{visibility:hidden}
+  st.textContent = `html.gc-loading{background:#0B0908}html.gc-loading body>*:not(#gcLoad){visibility:hidden}html.gc-loading body{background:#0B0908}
   #gcLoad{position:fixed;inset:0;z-index:10000;display:grid;place-content:center;justify-items:center;gap:14px;text-align:center;
     background:radial-gradient(ellipse at 50% 40%,#1c1410,#0B0908 70%);color:#F5ECDD;font-family:Heebo,system-ui,sans-serif;transition:opacity .5s}
   #gcLoad.out{opacity:0;pointer-events:none}
@@ -38,7 +38,10 @@
   let o, tip, bar, tipT, progT, ti, p, finished;
   function build() {
     o = document.createElement("div"); o.id = "gcLoad"; o.setAttribute("role", "status"); o.setAttribute("aria-label", "טוען");
-    o.innerHTML = TPL; d.appendChild(o);
+    o.innerHTML = TPL;
+    // Safari doesn't paint elements that sit outside <body>: place it in the body as soon as the body exists
+    const put = () => { if (document.body) { document.body.prepend(o); return true; } return false; };
+    if (!put()) { d.appendChild(o); const mo = new MutationObserver(() => { if (put()) mo.disconnect(); }); mo.observe(d, { childList: true }); }
     ti = Math.floor(Math.random() * tips.length); p = 8; finished = false;
     tip = o.querySelector(".tip"); bar = o.querySelector(".bar i");
     setTip(); tipT = setInterval(setTip, 1800);
