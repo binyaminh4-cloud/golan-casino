@@ -106,7 +106,8 @@ function drawDealer() {
   $("actions").innerHTML = `<button class="go" id="send">מסור לבדיקה</button>`;
   const ins = [...$("stage").querySelectorAll("input")];
   ins.forEach((el, i) => el.addEventListener("input", () => { el.value = el.value.replace(/\D/g, "").slice(0, 2);
-    if (el.value.length === 2 || (el.value.length === 1 && +el.value >= 4)) { if (ins[i + 1]) ins[i + 1].focus(); } }));
+    if (el.value.length === 2 || (el.value.length === 1 && +el.value >= 4)) {          // jump to the next EMPTY box, wherever it is
+      const next = ins.slice(i + 1).find((x) => !x.value) || ins.find((x) => !x.value); if (next) next.focus(); else el.blur(); } }));
   ins.forEach((el) => el.addEventListener("keydown", (e) => { if (e.key === "Enter") $("send").click(); }));
   ins[0].focus();
   $("send").onclick = () => { if (ins.some((x) => !x.value)) { ins.find((x) => !x.value).focus(); return; } finish(ins.map((x) => +x.value)); };
