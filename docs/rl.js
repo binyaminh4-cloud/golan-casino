@@ -105,8 +105,19 @@ function betAt(u, w) {
 // ---------- board rendering ----------
 const board = $("board");
 let bets = new Map(), lastBets = null, history = [], chipVal = 25, busy = false, balance = 0;
-const CHIPS = [[1, "c1"], [5, "c5"], [25, "c25"], [100, "c100"], [500, "c500"], [1000, "c1k"], [5000, "c5k"]];
-const chipLabel = (v) => v >= 1000 ? v / 1000 + "K" : String(v);
+// chip series keeps going (×5 / ×4); a chip shows once the wallet holds 20× its value; 7 chips on screen
+const CHIP_V = [1, 5, 25, 100, 500, 1000, 5000, 25000, 100000, 500000, 2500000, 10000000, 50000000, 250000000];
+const CHIP_C = ["c1", "c5", "c25", "c100", "c500", "c1k", "c5k", "c25", "c100", "c500", "c1k", "c5k", "c25", "c100"];
+const CHIPS = CHIP_V.map((v, i) => [v, CHIP_C[i]]);
+const maxBet = () => balance >= 500000 ? 100000 * Math.floor(balance / 500000) : 50000;   // same rule as the server
+let chipKey = "";
+function drawChipRack() {
+  const ok = CHIPS.filter(([v], i) => i < 7 || v * 20 <= balance), show = ok.slice(-7), k = show.map(([v]) => v).join(",");
+  if (k === chipKey) return; chipKey = k;
+  if (!show.some(([v]) => v === chipVal)) chipVal = show[Math.min(2, show.length - 1)][0];
+  $("chips").innerHTML = show.map(([v, c]) => `<button class="chip ${c}${v >= 25000 ? " big" : ""}" data-v="${v}" aria-pressed="${v === chipVal}">${chipLabel(v)}</button>`).join("");
+}
+const chipLabel = (v) => v >= 1e6 ? +(v / 1e6).toFixed(1) + "M" : v >= 1000 ? v / 1000 + "K" : String(v);
 const chipClass = (v) => (CHIPS.slice().reverse().find(([c]) => v >= c) || CHIPS[0])[1];
 
 let zoom = 1, VIEW = "table", NB = 2;
@@ -180,9 +191,8 @@ function place(key, amt) {
   if (!key || busy) return;
   if (ERASE) { if (!bets.has(key) || (sent.get(key) || 0) > 0) return; undoStack.push(new Map(bets)); bets.delete(key); err(""); drawChips(); SFX.chip(); return; }
   const cur = bets.get(key) || 0;
-  if (cur + amt > 50000) return err("מקסימום ₪50,000 על הימור אחד.");
+  if (cur + amt > maxBet()) return err(`מקסימום ${fmt(maxBet())} על הימור אחד.`);
   const tot = [...bets.values()].reduce((s, v) => s + v, 0);
-  if (tot + amt > 100000) return err("מקסימום ₪100,000 לסיבוב.");
   if (!PREVIEW && tot + amt > balance) return err("אין מספיק שקלים להימור הזה.");
   undoStack.push(new Map(bets)); bets.set(key, cur + amt); err(""); drawChips(); SFX.chip();
 }
@@ -190,9 +200,8 @@ function placeMany(list) {             // list of [key, amount]; one undo step
   if (busy || !list.length) return;
   const next = new Map(bets);
   for (const [k, a] of list) { if (!LEGAL.has(k)) return; next.set(k, (next.get(k) || 0) + a); }
-  if ([...next.values()].some((v) => v > 50000)) return err("מקסימום ₪50,000 על הימור אחד.");
+  if ([...next.values()].some((v) => v > maxBet())) return err(`מקסימום ${fmt(maxBet())} על הימור אחד.`);
   const tot = [...next.values()].reduce((s, v) => s + v, 0);
-  if (tot > 100000) return err("מקסימום ₪100,000 לסיבוב.");
   if (!PREVIEW && tot > balance) return err("אין מספיק שקלים להימור הזה.");
   undoStack.push(new Map(bets)); bets = next; err(""); drawChips(); SFX.chip();
 }
@@ -227,13 +236,13 @@ $("nPlus").onclick = () => { NB = Math.min(4, NB + 1); $("nVal").textContent = N
 function setZoom(z) { zoom = Math.max(0.7, Math.min(2, Math.round(z * 10) / 10)); drawBoard(); layoutWheel(); }
 $("zIn").onclick = () => setZoom(zoom + 0.15); $("zOut").onclick = () => setZoom(zoom - 0.15);
 
-$("chips").innerHTML = CHIPS.map(([v, c]) => `<button class="chip ${c}" data-v="${v}" aria-pressed="${v === chipVal}">${chipLabel(v)}</button>`).join("");
+drawChipRack();
 $("chips").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; chipVal = +b.dataset.v;
   $("chips").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); };
 $("undoBtn").onclick = () => { if (undoStack.length) { bets = undoStack.pop(); drawChips(); } };
 $("clearBtn").onclick = () => { undoStack.push(new Map(bets)); bets = new Map(sent); drawChips(); };
 $("dblBtn").onclick = () => { const tot = [...bets.values()].reduce((s, v) => s + v, 0);
-  if ([...bets.values()].some((v) => v * 2 > 50000) || tot * 2 > 100000) return err("ההכפלה עוברת את מגבלת השולחן.");
+  if ([...bets.values()].some((v) => v * 2 > maxBet())) return err("ההכפלה עוברת את מגבלת ההימור.");
   undoStack.push(new Map(bets)); bets = new Map([...bets].map(([k, v]) => [k, v * 2])); drawChips(); };
 $("rebetBtn").onclick = () => { if (lastBets) { undoStack.push(new Map(bets)); bets = new Map(lastBets); drawChips(); } };
 $("rulesBtn").onclick = () => $("rules").showModal();
@@ -244,7 +253,7 @@ function drawHist() {
   const h = history, c = (f) => h.length ? Math.round(100 * h.filter(f).length / h.length) : 0;
   $("pct").innerHTML = h.length ? `<span class="p red">${c((n) => R.color(n) === "red")}%</span><span class="p green">${c((n) => n === 0)}%</span><span class="p black">${c((n) => R.color(n) === "black")}%</span>` : "";
 }
-function showBal(v) { $("bal").textContent = fmt(v); }
+function showBal(v) { $("bal").textContent = fmt(v); drawChipRack(); }
 
 // ---------- wheel + camera ----------
 let W, plan = null, t0 = 0, last = performance.now(), cine = false;
@@ -462,7 +471,7 @@ function errText(e) {
   const m = (e && e.message) || "";
   if (m.includes("insufficient_funds")) return "אין מספיק שקלים משחקיים. הקטן את ההימור.";
   if (m.includes("table_limit")) return "מקסימום ₪100,000 לסיבוב.";
-  if (m.includes("invalid_amount")) return "כל הימור בין ₪1 ל־₪50,000.";
+  if (m.includes("invalid_amount")) return `כל הימור בין ₪1 ל־${fmt(maxBet())}.`;
   if (m.includes("not_signed_in")) { location.href = "./"; return ""; }
   console.error("rpc error", e);
   return "משהו השתבש (" + ((e && e.code) || "") + " " + m.slice(0, 80) + "). צלם לי את המסך.";

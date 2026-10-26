@@ -111,7 +111,7 @@ function drawSeats() {
       <div class="tag"><div class="name">${esc(m.nickname)}${i === 0 ? "" : ""}</div><div class="b" data-bal="${i}">${fmt(m.wealth)}</div></div></div>`;
   }).join("");
 }
-function setMyBalance(v) { if (CH) v = CH.chips; $("bal").textContent = fmt(v); const b = document.querySelector('[data-bal="0"]'); if (b) b.textContent = fmt(v); }
+function setMyBalance(v) { if (!CH) { myBal = +v || 0; drawRack(); } if (CH) v = CH.chips; $("bal").textContent = fmt(v); const b = document.querySelector('[data-bal="0"]'); if (b) b.textContent = fmt(v); }
 
 // ---------- round rendering ----------
 let st = null, busy = false, dealerEls = [], handEls = [], totals = [], ring = null;
@@ -213,7 +213,18 @@ let msgT; function showMsg(t, sub) { const m = $("msg"); m.innerHTML = esc(t) + 
 
 // ---------- betting: pick a chip, then tap the main circle or a side-bet circle ----------
 let chip = 25; const bets = { main: 0, pp: 0, t3: 0, ll: 0, bust: 0 }; let lastBets = null;
-document.querySelectorAll(".betui .chip").forEach((b) => b.onclick = () => { chip = +b.dataset.v; document.querySelectorAll(".betui .chip").forEach((x) => x.setAttribute("aria-pressed", x === b)); });
+// chips grow with the wallet: a chip shows once the wallet holds 20× its value; 5 chips on screen
+const BJ_CHIPS = [10, 25, 100, 500, 1000, 5000, 25000, 100000, 500000, 2500000, 10000000, 50000000], BJ_CC = ["c10", "c25", "c100", "c500", "c1000"];
+let myBal = 0, rackKey = "";
+const maxBet = () => myBal >= 500000 ? 100000 * Math.floor(myBal / 500000) : 50000;   // same rule as the server
+function drawRack() {
+  const ok = BJ_CHIPS.filter((v, i) => i < 5 || v * 20 <= myBal), show = ok.slice(-5), k = show.join(",");
+  if (k === rackKey) return; rackKey = k; if (!show.includes(chip)) chip = show[1];
+  const lab = (v) => v >= 1e6 ? +(v / 1e6).toFixed(1) + "M" : v >= 1000 ? v / 1000 + "K" : v;
+  document.querySelector(".betui .row").innerHTML = show.map((v, i) => `<button class="chip ${BJ_CC[BJ_CHIPS.indexOf(v) % 5]}" data-v="${v}" aria-pressed="${v === chip}">${lab(v)}</button>`).join("");
+  document.querySelectorAll(".betui .chip").forEach((b) => b.onclick = () => { chip = +b.dataset.v; document.querySelectorAll(".betui .chip").forEach((x) => x.setAttribute("aria-pressed", x === b)); });
+}
+drawRack();
 function drawBetSpots() {
   document.querySelectorAll(".spot").forEach((n) => n.remove());
   const stage = $("stage");
@@ -233,7 +244,7 @@ function addBet(target) {
   if (TABLE && (!T || T.phase !== "betting" || T.my_bet)) return err(T && T.my_bet ? "ההימור שלך כבר על השולחן." : "ההימורים סגורים. הסיבוב הבא יתחיל עוד רגע.");
   if (st?.status === "done") { clearRound(); }
   const next = bets[target] + chip;
-  if (target === "main" && next > 50000) return err("ההימור הראשי המקסימלי הוא ₪50,000.");
+  if (target === "main" && next > maxBet()) return err(`ההימור הראשי המקסימלי הוא ${fmt(maxBet())}.`);
   if (target !== "main" && next > bets.main) return err("הימור צדדי לא יכול להיות גבוה מההימור הראשי. שים קודם צ׳יפ על העיגול הגדול.");
   bets[target] = next; err(""); renderBets(); SFX.chip();
 }
@@ -352,7 +363,7 @@ function errText(e) {
   const m = e.message || "";
   if (m.includes("insufficient_funds")) return "אין מספיק שקלים משחקיים להימור הזה. הקטן את ההימור.";
   if (m.includes("invalid_side_bet")) return "הימור צדדי לא יכול להיות גבוה מההימור הראשי.";
-  if (m.includes("invalid_main_bet")) return "ההימור הראשי חייב להיות בין ₪10 ל־₪50,000.";
+  if (m.includes("invalid_main_bet")) return `ההימור הראשי חייב להיות בין ₪10 ל־${fmt(maxBet())}.`;
   if (m.includes("illegal_action")) return "הפעולה הזאת לא אפשרית כרגע.";
   if (m.includes("betting_closed")) return "ההימורים לסיבוב הזה נסגרו. חכה לסיבוב הבא.";
   if (m.includes("already_bet")) return "ההימור שלך כבר על השולחן.";

@@ -26,6 +26,7 @@
 .gc-chat .m.mine{align-self:flex-end;background:rgba(197,160,90,.18);border-color:#C5A05A}
 .gc-chat .m b{display:block;font-size:11px;color:#C5A05A}.gc-chat .m time{display:block;font:10px Inter,sans-serif;color:#8a7558;text-align:left;margin-top:1px}
 .gc-chat-btn{touch-action:none}
+.gc-chat .m.qk{background:linear-gradient(180deg,#14100b,#000);border:1px solid #F1D69A;color:#ffe27a;font-weight:700;text-shadow:0 0 8px rgba(255,214,110,.75);box-shadow:0 0 12px rgba(241,214,154,.35)}
 .gc-chat .m.sys{align-self:center;background:none;border:0;color:#ffe27a;font-weight:700;text-align:center}
 .gc-chat .quick{display:flex;gap:5px;flex-wrap:nowrap;overflow-x:auto;padding:0 10px 6px;scrollbar-width:none}.gc-chat .quick button{flex:none;white-space:nowrap}
 .gc-chat .quick button{border:1px solid rgba(197,160,90,.7);background:none;color:#F1D69A;border-radius:99px;padding:3px 9px;font:13px Heebo;cursor:pointer}
@@ -55,7 +56,7 @@
     for (const m of list) {
       if (m.id <= last) continue; last = m.id;
       const d = document.createElement("div");
-      d.className = "m" + (m.kind === "sys" ? " sys" : m.uid === me ? " mine" : "");
+      d.className = "m" + (m.kind === "sys" ? " sys" : m.uid === me ? " mine" : "") + (QUICK.includes(m.body) ? " qk" : "");
       const at = m.at ? new Date(m.at) : null, today = at && at.toDateString() === new Date().toDateString();
       const ts = at ? `<time>${today ? "" : at.toLocaleDateString("he-IL", { day: "numeric", month: "numeric" }) + " "}${at.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}</time>` : "";
       d.innerHTML = (m.kind === "sys" ? esc(m.body) : (m.uid === me ? "" : `<b>${esc(m.name || "")}</b>`) + esc(m.body)) + ts;

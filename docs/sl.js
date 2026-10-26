@@ -15,7 +15,7 @@ const GLYPH = { CH: "🍒", LE: "🍋", OR: "🍊", GR: "🍇", BE: "🔔", BAR:
 let ART = false;
 const sym = (k) => k === "FREE" ? `<span class="freesym">FREE<br>SPINS</span>` : FO ? `<img src="img/slots/fortune/${k}.webp" alt="${NAME[k]}">` : ART ? `<img src="img/slots/${k}.webp" alt="${NAME[k]}">` : GLYPH[k];
 const LINES = [[1, 1, 1], [0, 0, 0], [2, 2, 2], [0, 1, 2], [2, 1, 0]];
-const CHIPS = [1, 5, 10, 25, 100, 500, 1000];
+const CHIPS = [1, 5, 10, 25, 100, 500, 1000, 5000, 20000, 100000, 500000, 2000000, 10000000];   // per line; a spin is 5 lines
 let lineBet = 10, balance = 0, busy = false;
 const reels = [...document.querySelectorAll(".reel")];
 const pos = [0, 0, 0];       // current top index of each reel
@@ -58,12 +58,21 @@ function drawLines(wins) {
 function clearHits() { document.querySelectorAll(".sym.hit").forEach((t) => t.classList.remove("hit")); drawLines([]); }
 
 // ---------- betting ----------
-$("chips").innerHTML = CHIPS.map((v) => `<button class="chip" data-v="${v}" aria-pressed="${v === lineBet}">${v * 5 >= 1000 ? v * 5 / 1000 + "K" : v * 5}</button>`).join("");   // bet per spin (5 lines)
+// bet per spin (5 lines). Bigger bets show once the wallet holds 20× the spin; the max spin follows the wallet like every game
+let rackKey = "";
+function drawRack(bal) {
+  const max = (bal >= 500000 ? 100000 * Math.floor(bal / 500000) : 50000);
+  const ok = CHIPS.filter((v, i) => i < 7 || (v * 5 * 20 <= bal && v * 5 <= max)), show = ok.slice(-7), k = show.join(",");
+  if (k === rackKey) return; rackKey = k; if (!show.includes(lineBet) && FREE_LEFT === 0) { lineBet = show[0]; $("total").textContent = fmt(lineBet * 5); }
+  const lab = (t) => t >= 1e6 ? +(t / 1e6).toFixed(1) + "M" : t >= 1000 ? t / 1000 + "K" : t;
+  $("chips").innerHTML = show.map((v) => `<button class="chip" data-v="${v}" aria-pressed="${v === lineBet}">${lab(v * 5)}</button>`).join("");
+}
+drawRack(0);
 $("chips").onclick = (e) => { const b = e.target.closest("button"); if (!b || busy || FREE_LEFT > 0) return; lineBet = +b.dataset.v; SFX.chip();
   $("chips").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); $("total").textContent = fmt(lineBet * 5); };
 $("rulesBtn").onclick = () => $("rules").showModal();
 $("paytable").innerHTML = "<tr><th>שלושה בקו</th><th>משלם (פי ההימור לסיבוב)</th></tr>" + Object.entries(PAY).map(([k, v]) => `<tr><td>${sym(k)} ${sym(k)} ${sym(k)} <small>${NAME[k]}</small></td><td class="num">${typeof v === "number" ? "×" + (v / 5) : v === "🎁" ? "10 חינם" : "ג׳קפוט"}</td></tr>`).join("");
-function showBal(v) { $("bal").textContent = fmt(v); }
+function showBal(v) { $("bal").textContent = fmt(v); drawRack(+v || 0); }
 function err(t) { $("err").textContent = t; }
 function newRef() { try { return crypto.randomUUID(); } catch { return Date.now().toString(36) + Math.random().toString(36).slice(2); } }
 

@@ -374,3 +374,4 @@ body.live #spinBtn{display:none}
 .gmark{font-size:9px;height:17px;padding:0 3px;opacity:.85}
 .me img{width:52px!important;height:62px!important;object-fit:contain;object-position:50% 100%}
 @media (max-height:560px) and (orientation:landscape){.me img{width:42px!important;height:50px!important}}
+.chip.big{box-shadow:0 0 0 2px #ffe27a,0 0 10px rgba(255,226,122,.6)}
