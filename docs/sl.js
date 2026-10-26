@@ -1,6 +1,6 @@
 /* Golan Casino · slots. The server picks the reel stops (sl_spin); this file only animates them. */
 const $ = (id) => document.getElementById(id);
-const fmt = (n) => "₪" + Number(n).toLocaleString("en-US");
+const fmt = (n) => { n = Number(n); return Math.abs(n) >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };   // a million and up: ₪1.58M
 const PREVIEW = /[?#&]preview/.test(location.href);
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 const FO = new URLSearchParams(location.search).get("m") === "fortune";      // Golan Fortune: the friends' machine with two jackpots

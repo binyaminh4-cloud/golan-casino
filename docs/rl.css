@@ -368,3 +368,9 @@ body.live #spinBtn{display:none}
 .wticker .wt-in{display:inline-flex;gap:28px;white-space:nowrap;padding-inline:20px;line-height:26px;animation:wtk 18s linear infinite;font:600 13px Heebo}
 .wticker .up b{color:#3ad16f}.wticker .dn b{color:#E5484D}.wticker span{color:#F5ECDD}
 @keyframes wtk{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+/* one fixed frame for every character at the table: same box, feet on the same line */
+.sitter img{width:52px!important;height:62px!important;object-fit:contain!important;object-position:50% 100%!important}
+@media (max-height:560px) and (orientation:landscape){.sitter img{width:42px!important;height:50px!important}}
+.gmark{font-size:9px;height:17px;padding:0 3px;opacity:.85}
+.me img{width:52px!important;height:62px!important;object-fit:contain;object-position:50% 100%}
+@media (max-height:560px) and (orientation:landscape){.me img{width:42px!important;height:50px!important}}

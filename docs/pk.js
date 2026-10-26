@@ -1,6 +1,6 @@
 /* Golan Casino · Texas Hold'em. Everything is decided on the server (poker_state / poker_act); this file draws and polls. */
 const $ = (id) => document.getElementById(id);
-const fmt = (n) => "₪" + Number(n).toLocaleString("en-US");
+const fmt = (n) => { n = Number(n); return Math.abs(n) >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };   // a million and up: ₪1.58M
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const PREVIEW = /[?#&]preview/.test(location.href);
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);

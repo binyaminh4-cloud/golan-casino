@@ -3,7 +3,7 @@
 // This file only draws the state and sends the player's choices.
 const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 const $ = (id) => document.getElementById(id);
-const fmt = (n) => "₪" + Number(n).toLocaleString("en-US");
+const fmt = (n) => { n = Number(n); return Math.abs(n) >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };   // a million and up: ₪1.58M
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MODE = new URLSearchParams(location.search).get("mode") === "lightning" ? "lightning" : "classic";

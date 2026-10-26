@@ -1,6 +1,6 @@
 /* Golan Casino · jobs: small paid tasks. The server makes each puzzle and checks the answer. */
 const $ = (id) => document.getElementById(id);
-const fmt = (n) => "₪" + Number(n).toLocaleString("en-US");
+const fmt = (n) => { n = Number(n); return Math.abs(n) >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };   // a million and up: ₪1.58M
 const PREVIEW = /[?#&]preview/.test(location.href);
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 const PAY = { driver: [200, 600, 2000], dealer: [150, 500, 1600] };

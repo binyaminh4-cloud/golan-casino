@@ -1,6 +1,6 @@
 /* Golan Casino · roulette table (betting layout, flow, camera). The wheel itself lives in rl_wheel.js. */
 const $ = (id) => document.getElementById(id);
-const fmt = (n) => "₪" + Number(n).toLocaleString("en-US");
+const fmt = (n) => { n = Number(n); return Math.abs(n) >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };   // a million and up: ₪1.58M
 const PREVIEW = /[?#&]preview/.test(location.href);
 const MODE = (new URLSearchParams(location.search).get("mode") || "classic").replace(/[^a-z]/g, "");
 const LIT = MODE === "lightning" || MODE === "xxx";
