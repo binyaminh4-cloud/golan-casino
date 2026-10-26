@@ -106,16 +106,20 @@ async function lbAvatars(list) {
     GC_CHAR(db, m.id).then((c) => { if (!c.url) return; LBAV[m.id] = c.url; const el = document.querySelector(`.lb .av[data-u="${m.id}"]`); if (el) el.innerHTML = `<img src="${esc(c.url)}" alt="">`; }); }
 }
 async function refresh() {
-  const [w, lb] = await Promise.all([
+  const [w, lb, on] = await Promise.all([
     db.from("wallets").select("balance").eq("user_id", me.id).single(),
     db.from("leaderboard").select("id,nickname,wealth").order("wealth", { ascending: false }),
+    db.rpc("gc_online").then((r) => r, () => ({})),
   ]);
+  const ON = (on && on.data) || {};
+  const dot = (id) => { const s = id === me.id ? 0 : ON[id]; const [c, t] = s == null || s > 1800 ? ["off", "מנותק"] : s < 90 ? ["on", "מחובר"] : ["away", "היה לאחרונה"];
+    return `<i class="ondot ${c}" title="${t}"></i>`; };
   if (!w.error) { $("hdrBal").textContent = fmt(w.data.balance); $("walBal").textContent = fmt(w.data.balance); $("walSub").textContent = w.data.balance === 0 ? "נגמרו השקלים. מנהל המועדון יכול לאפס." : "יתרה בשרת · מתעדכנת אוטומטית"; }
   const box = $("lbBox");
   if (lb.error) { box.innerHTML = '<p class="msg err">לא הצלחנו לטעון את הטבלה. בדוק חיבור ונסה שוב.</p>'; return; }
   if (!lb.data.length) { box.innerHTML = '<p class="msg">עוד אין חברים במועדון.</p>'; return; }
   box.innerHTML = "<ol>" + lb.data.map((m, i) =>
-    `<li class="${m.id === me.id ? "you" : ""}"><span class="rk num">${i < 3 ? `<img src="img/lobby/medal_${i + 1}.webp" alt="${i + 1}">` : i + 1}</span><span class="avatar av" data-u="${m.id}">${LBAV[m.id] ? `<img src="${esc(LBAV[m.id])}" alt="">` : esc((m.nickname || "?")[0].toUpperCase())}</span><span class="nm">${esc(m.nickname)}${m.id === me.id ? " (אתה)" : ""}</span><span class="w num">${fmt(m.wealth)}</span></li>`
+    `<li class="${m.id === me.id ? "you" : ""}"><span class="rk num">${i < 3 ? `<img src="img/lobby/medal_${i + 1}.webp" alt="${i + 1}">` : i + 1}</span><span class="avatar av" data-u="${m.id}">${LBAV[m.id] ? `<img src="${esc(LBAV[m.id])}" alt="">` : esc((m.nickname || "?")[0].toUpperCase())}</span><span class="nm">${dot(m.id)}${esc(m.nickname)}${m.id === me.id ? " (אתה)" : ""}</span><span class="w num">${fmt(m.wealth)}</span></li>`
   ).join("") + "</ol>";
   lbAvatars(lb.data);
 }

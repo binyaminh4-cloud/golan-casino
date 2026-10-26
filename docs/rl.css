@@ -356,3 +356,15 @@ body.live #spinBtn{display:none}
 .sitter.bet img{filter:drop-shadow(0 0 8px rgba(255,226,122,.9))}
 .sitter i{width:46px;height:46px}
 @media (max-height:560px) and (orientation:landscape){.sitter img{height:48px!important}.sitter i{width:36px;height:36px}.sitter b{display:none}}
+.gmark{width:auto;min-width:20px;height:20px;padding:0 4px;border-radius:10px;background:rgba(150,170,200,.45);border:1px dashed #cfe0ff;gap:2px;grid-auto-flow:column;font-size:10px}
+.gmark small{font:700 9px Inter;color:#e8f0ff}
+.sitter em{font:600 9px Inter;font-style:normal;color:#b9d7a8}
+.potlist{right:auto;left:max(12px,env(safe-area-inset-left))}
+.pt-row{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center;font:600 13px Heebo;color:#F5ECDD;animation:llIn .4s both}
+.pt-row .ll-n{min-width:26px;text-align:center;border-radius:6px;padding:1px 4px}.pt-row .ll-n.red{background:#b3162a}.pt-row .ll-n.black{background:#1a1a1a}.pt-row .ll-n.green{background:#1d7a3e}
+.pt-row b{color:#ffe27a}.pt-row.mine{outline:1px solid #F1D69A;border-radius:6px}
+.pt-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px}
+.wticker{position:fixed;left:0;right:0;bottom:0;z-index:40;height:26px;overflow:hidden;background:rgba(8,6,4,.92);border-top:1px solid #C5A05A;direction:ltr;pointer-events:none}
+.wticker .wt-in{display:inline-flex;gap:28px;white-space:nowrap;padding-inline:20px;line-height:26px;animation:wtk 18s linear infinite;font:600 13px Heebo}
+.wticker .up b{color:#3ad16f}.wticker .dn b{color:#E5484D}.wticker span{color:#F5ECDD}
+@keyframes wtk{from{transform:translateX(-50%)}to{transform:translateX(0)}}

@@ -183,7 +183,7 @@ async function finish(r) {
   if (LIT) {
     const ex = sd.strike_extra || 0, hm = (sd.hand_mults || []).filter((m, i) => m > 1 && (outs[i] === "win" || outs[i] === "blackjack"));
     showMsg(head, ex > 0 ? `⚡ הברק של פישר ×${Math.max(...hm)} הוסיף ${fmt(ex)}` : r.result.dealer_blackjack ? "לדילרית יש בלאק ג׳ק" : "");
-    if (ex > 0) { djPose("celebrate", 2200); djBurst(); SFX.drop(); const fl = document.createElement("div"); fl.className = "bjflash"; document.body.appendChild(fl); setTimeout(() => fl.remove(), 900); }
+    if (ex > 0) { GC_BONUS(`⚡ בונוס ברק ×${Math.max(...hm)}`, net, "הברק של פישר הכפיל את הרווח"); djPose("celebrate", 2200); djBurst(); SFX.drop(); const fl = document.createElement("div"); fl.className = "bjflash"; document.body.appendChild(fl); setTimeout(() => fl.remove(), 900); }
     else if ((sd.hand_mults || []).some((m) => m > 1)) djPose("shrug", 1600);
   } else
   showMsg(head, r.result.dealer_blackjack ? "לדילרית יש בלאק ג׳ק" : sides.length ? "זכייה: " + sides.join(" · ") : "");

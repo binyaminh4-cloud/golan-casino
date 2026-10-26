@@ -300,7 +300,7 @@ let lastLift = 0, prevLift = 0, lastTick = 0; let spinRes = null, marks = {}, ME
 function setCine(on) {
   cine = on; const c = $("cine");
   if (on) { c.hidden = false; c.appendChild(host); requestAnimationFrame(() => c.classList.add("on")); drawLuckyList(); }
-  else { $("luckyList").hidden = true; c.classList.remove("on"); $("wheelSlot").appendChild(host); setTimeout(() => { if (!cine) c.hidden = true; }, 500); }
+  else { $("luckyList").hidden = true; if ($("potList")) $("potList").hidden = true; c.classList.remove("on"); $("wheelSlot").appendChild(host); setTimeout(() => { if (!cine) c.hidden = true; }, 500); }
   layoutWheel();
 }
 // lightning: the struck numbers and their multipliers, listed beside the close-up of the wheel
@@ -312,6 +312,33 @@ function drawLuckyList() {
   L.innerHTML = '<div class="ll-h">⚡ ברקים</div>' + e.map(([n, m], i) =>
     `<div class="ll-row ${R.color(+n)}${mine.has(n) ? " mine" : ""}" style="animation-delay:${i * 0.12}s"><span class="ll-n num">${n}</span><b class="ll-m num${m >= 1000 ? " mega" : ""}">${m}x</b></div>`).join("");
   L.hidden = false;
+  drawPotList();
+}
+// left of the close-up: who would win what on each lightning number, biggest first
+function drawPotList() {
+  let P = $("potList"); if (!P) { P = document.createElement("aside"); P.id = "potList"; P.className = "luckylist potlist"; $("luckyList").after(P); }
+  const players = LIVE && liveSt ? (liveSt.players || []) : [{ id: MY_ID, name: "אני", bets: [...bets].map(([k, v]) => ({ nums: k.split(",").map(Number), amt: v })) }];
+  const rows = [];
+  for (const [n, m] of Object.entries(LUCKY)) for (const p of players) {
+    const win = (p.bets || []).filter((b) => b.nums.includes(+n)).reduce((sum, b) => sum + (b.nums.length === 1 ? b.amt * (m + 1) : Math.floor(b.amt * 36 / b.nums.length)), 0);
+    if (win > 0) rows.push({ n, name: p.name, win, me: p.id === MY_ID });
+  }
+  rows.sort((a, b) => b.win - a.win);
+  if (!rows.length) { P.hidden = true; return; }
+  P.innerHTML = '<div class="ll-h">💰 זכייה צפויה</div>' + rows.slice(0, 10).map((r, i) =>
+    `<div class="pt-row${r.me ? " mine" : ""}" style="animation-delay:${i * 0.1}s"><span class="ll-n num ${R.color(+r.n)}">${r.n}</span><span class="pt-nm">${esc(r.name)}</span><b class="num">${fmt(r.win)}</b></div>`).join("");
+  P.hidden = false;
+}
+// after the ball lands: everyone's winnings (stake included), biggest first, sliding across the top like a stock ticker
+function drawTicker() {
+  let T = $("winTicker"); if (!T) { T = document.createElement("div"); T.id = "winTicker"; T.className = "wticker"; T.innerHTML = "<div class=\"wt-in\"></div>"; document.body.appendChild(T); }
+  const ps = (liveSt && liveSt.result != null ? liveSt.players || [] : []).filter((p) => p.payout != null);
+  if (!ps.length || liveSt.open) { T.hidden = true; T.dataset.k = ""; return; }
+  const k = liveSt.round + ":" + ps.length; if (T.dataset.k === k) return; T.dataset.k = k;
+  ps.sort((a, b) => b.payout - a.payout);
+  const items = ps.map((p) => `<span class="${p.payout > 0 ? "up" : "dn"}">${esc(p.name)} <b class="num">${p.payout > 0 ? "▲ " + fmt(p.payout) : "▼ " + fmt(p.total)}</b></span>`).join("");
+  T.querySelector(".wt-in").innerHTML = items + items;
+  T.hidden = false;
 }
 function onTime(t) {
   const T = R.T;
@@ -348,6 +375,7 @@ function finish() {
   if (!spinRes.total) {} else if (spinRes.payout > 0) { me.classList.add("jump"); const f = document.createElement("div"); f.className = "float num"; f.textContent = "+" + fmt(spinRes.payout); me.appendChild(f); setTimeout(() => f.remove(), 2200); }
   else me.classList.add("sad");
   if (spinRes.payout > 0) err("");
+  { const m = (spinRes.lucky || {})[n]; if (m && spinRes.payout > 0 && [...bets.keys()].includes(String(n))) GC_BONUS(`⚡ בונוס ברק! ${n} ×${m}`, spinRes.payout, "זאוס פגע במספר שלך"); }
   setTimeout(() => {                         // croupier clears the layout
     if (bets.size) lastBets = new Map(bets); bets.clear(); sent.clear(); undoStack.length = 0; busy = false;
     d.hidden = true; board.querySelectorAll(".winner").forEach((x) => x.classList.remove("winner")); clearLucky(); drawChips();
@@ -491,14 +519,16 @@ function drawPlayers() {
   if (row) { row.hidden = !pres.length; const bet = {}; ps.forEach((p) => bet[p.id] = p.total);
     pres.forEach((p) => { if (!(p.id in PAV) && db) { PAV[p.id] = null; GC_CHAR(db, p.id).then((c) => { PAV[p.id] = c.url || ""; drawPlayers(); }); } });
     row.innerHTML = pres.map((p) => `<div class="sitter${p.id === MY_ID ? " me" : ""}${bet[p.id] ? " bet" : ""}">${PAV[p.id] ? `<img src="${PAV[p.id]}" alt="">` : `<i>${esc(String(p.name)[0] || "?")}</i>`}
-      <span>${esc(p.name)}</span>${bet[p.id] ? `<b class="num">${fmt(bet[p.id])}</b>` : ""}</div>`).join(""); }
+      <span>${esc(p.name)}</span>${p.bal != null ? `<em class="num">${fmt(p.bal)}</em>` : ""}${bet[p.id] ? `<b class="num">${fmt(bet[p.id])}</b>` : ""}</div>`).join(""); }
+  drawTicker();
   // other players' bets as faint markers on the layout
   const layer = $("chipLayer"); if (!layer || VIEW !== "table") return;
   layer.querySelectorAll(".gmark").forEach((g) => g.remove());
   for (const p of ps) { if (p.id === MY_ID) continue;
-    for (const nums of p.nums || []) { const k = nums.slice().sort((a, b) => a - b).join(","); if (!LEGAL.has(k)) continue;
-      const a = anchor(k), q = toXY(a.u, a.w), g = document.createElement("i"); g.className = "gmark"; g.title = p.name;
-      g.style.left = q.x + "px"; g.style.top = q.y + "px"; g.textContent = String(p.name).slice(0, 1); layer.appendChild(g); } }
+    const per = {}; for (const b of p.bets || (p.nums || []).map((nums) => ({ nums, amt: 0 }))) { const k = b.nums.slice().sort((x, y) => x - y).join(","); per[k] = (per[k] || 0) + b.amt; }
+    for (const [k, amt] of Object.entries(per)) { if (!LEGAL.has(k)) continue;
+      const a = anchor(k), q = toXY(a.u, a.w), g = document.createElement("i"); g.className = "gmark"; g.title = p.name + " " + fmt(amt);
+      g.style.left = q.x + "px"; g.style.top = q.y + "px"; g.innerHTML = `${esc(String(p.name).slice(0, 1))}${amt ? `<small>${chipLabel(amt)}</small>` : ""}`; layer.appendChild(g); } }
 }
 function drawBigClock(t) {          // countdown ring over the wheel: time left to bet before the next throw
   const b = $("bigClock"); if (!b || !liveSt) return; b.hidden = cine;

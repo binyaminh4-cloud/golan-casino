@@ -95,10 +95,14 @@
       if (r && r.width && r.bottom > 0 && r.top < innerHeight) {
         ring.hidden = false; dim.style.background = "transparent";
         Object.assign(ring.style, { left: Math.max(2, r.left - 6) + "px", top: Math.max(2, r.top - 6) + "px", width: Math.min(innerWidth - 4, r.width + 12) + "px", height: r.height + 12 + "px" });
-        const ov = () => { const h = host.getBoundingClientRect(); return Math.max(0, Math.min(r.bottom, h.bottom) - Math.max(r.top, h.top)) + Math.max(0, -h.top) * 3; };
-        host.classList.remove("top"); const a = ov(); host.classList.add("top"); const b = ov();
-        if (b >= a) host.classList.remove("top");
-      } else { ring.hidden = true; dim.style.background = ""; host.classList.remove("top"); }
+        if (scroll || host.dataset.step !== String(i)) {   // choose the side once per step, so Ido doesn't jump around while the page moves
+          host.dataset.step = i; host.style.transition = "none";
+          const ov = () => { const h = host.getBoundingClientRect(); return Math.max(0, Math.min(r.bottom, h.bottom) - Math.max(r.top, h.top)) + Math.max(0, -h.top) * 3; };
+          host.classList.remove("top"); const a = ov(); host.classList.add("top"); const b = ov();
+          if (b >= a) host.classList.remove("top");
+          requestAnimationFrame(() => { host.style.transition = ""; });
+        }
+      } else { ring.hidden = true; dim.style.background = ""; if (host.dataset.step !== String(i)) { host.dataset.step = i; host.classList.remove("top"); } }
     };
     const follow = setInterval(() => { if (!document.body.contains(o)) return clearInterval(follow); place(); }, 300);
     const close = () => { clearInterval(follow); o.remove(); };
@@ -154,7 +158,7 @@ window.GC_STEPS = {
   ],
   live: () => !/[?&]private/.test(location.search),
   spinStep: () => GC_STEPS.live()
-    ? { el: "#bigClock", t: "זה <b>שולחן חי</b>: כל החברים משחקים על אותו גלגל, סיבוב כל 70 שניות. יש <b>40 שניות</b> להמר (השעון מעל הגלגל), והצ׳יפים נשלחים לבד. כשהזמן נגמר הדילרית קוראת <b>No more bets</b>. התוצאה נקבעת בשרת מראש, ואף אחד לא יכול לשנות אותה. רוצים לשחק לבד בקצב שלכם, בלי שעון? בלובי יש <b>🔒 שולחן פרטי</b>." }
+    ? { el: "#bigClock", t: "זה <b>שולחן חי</b>: כל החברים משחקים על אותו גלגל, סיבוב כל 50 שניות. יש <b>20 שניות</b> להמר (השעון מעל הגלגל), והצ׳יפים נשלחים לבד. כשהזמן נגמר הדילרית קוראת <b>No more bets</b>. התוצאה נקבעת בשרת מראש, ואף אחד לא יכול לשנות אותה. רוצים לשחק לבד בקצב שלכם, בלי שעון? בלובי יש <b>🔒 שולחן פרטי</b>." }
     : { el: "#spinBtn", t: "מוכנים? לוחצים <b>סובב</b>. התוצאה נקבעת בשרת ברגע הלחיצה, ואף אחד לא יכול לשנות אותה. גם לא אני 😉" },
   jobs: () => [
     { t: "עבודה? אין ברירה. גם אני עבדתי פה, כי חייבים להביא בשר לרולטה. בואו נראה איך זה עובד." },
@@ -184,7 +188,7 @@ window.GC_STEPS = {
     { el: "#board", t: "הימור על <b>מספר בודד</b> שנפגע מברק, ונוחת עליו הכדור, משלם את המכפיל. ₪10 על מספר עם 500x שווים <b>₪5,010</b>." },
     { t: "המחיר: מספר בודד בלי ברק משלם <b>29 ל־1</b> במקום 35. כל השאר, כמו אדום/שחור ותריסרים, נשאר כרגיל." },
     { t: "ב<b>רולטת XXX</b> בנימין זאוס עצבני במיוחד: <b>שרשרת ברקים</b> עד 10 מספרים, ו<b>מכה כפולה</b> עד <b>2,000x</b>. מספר בודד בלי ברק משלם שם רק 19 ל־1." },
-    ...(GC_STEPS.live() ? [{ el: "#bigClock", t: "זה <b>שולחן חי</b>: כל החברים על אותו גלגל ואותה תוצאה, סיבוב כל 70 שניות. יש 40 שניות להמר, והצ׳יפים נשלחים לבד. גם ברולטה הרגילה ובשתי רולטות הברקים הכדור נוחת על אותו מספר, רק הברקים שונים. רוצים לשחק לבד? בלובי יש <b>🔒 שולחן פרטי</b>." }] : []),
+    ...(GC_STEPS.live() ? [{ el: "#bigClock", t: "זה <b>שולחן חי</b>: כל החברים על אותו גלגל ואותה תוצאה, סיבוב כל 50 שניות. יש 20 שניות להמר, והצ׳יפים נשלחים לבד. גם ברולטה הרגילה ובשתי רולטות הברקים הכדור נוחת על אותו מספר, רק הברקים שונים. רוצים לשחק לבד? בלובי יש <b>🔒 שולחן פרטי</b>." }] : []),
     { t: "טיפ ממני: לפזר כמה צ׳יפים על מספרים בודדים, לחכות לברק ולהתפלל. עובד בערך כמו התפילות שלי שלא יהיה עבודה מחר בבוקר. בהצלחה!" },
   ],
   lightningBJ: () => [

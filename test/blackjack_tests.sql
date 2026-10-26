@@ -115,4 +115,7 @@ select t_assert((select sum(total_staked) - sum(payout) from bj_rounds where ref
                 = -(select sum(amount) from wallet_transactions where settlement_ref like 'bj%' and user_id='00000000-0000-0000-0000-00000000000b'
                     and settlement_ref not like 'bjstake:t%'), 'rounds and ledger agree on every shekel');
 select t_assert((select count(*) from wallet_transactions where settlement_ref like 'bjpay:%') = (select count(*) from bj_rounds where payout > 0), 'each round paid at most once');
-select t_assert((select bool_and(bj_total(dealer) >= 17 or bj_is_bj(dealer)) from bj_rounds where ref like 'fuzz%'), 'dealer always reaches 17');
+select t_assert((select bool_and(bj_total(dealer) >= 17 or bj_is_bj(dealer) or (array_length(dealer,1) = 2 and coalesce((side->>'bust')::bigint,0) = 0
+   and not exists (select 1 from jsonb_array_elements(hands) x where not coalesce((x->>'surrendered')::boolean,false) and bj_total(bj_jcards(x->'cards')) <= 21)))
+   from bj_rounds where ref like 'fuzz%'), 'dealer reaches 17 unless every hand is already lost');
+select t_assert((select count(*) from bj_rounds where ref like 'fuzz%' and array_length(dealer,1) = 2 and bj_total(dealer) < 17) > 0, 'dealer stops when all hands bust');

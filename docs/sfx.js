@@ -78,3 +78,25 @@
     const st = document.createElement("style"); st.textContent = ".sfx-btn{background:rgba(23,18,15,.9);border:1px solid #80602E;border-radius:99px;width:40px;height:40px;font-size:18px;cursor:pointer;flex:none}"; document.head.appendChild(st);
   });
 })();
+// A bonus win gets the whole stage: big gold text in the middle of the screen (about 40% of it) for a few seconds.
+window.GC_BONUS = function (title, amount, sub) {
+  if (!document.getElementById("gcBonusCss")) {
+    const c = document.createElement("style"); c.id = "gcBonusCss";
+    c.textContent = `.gc-bonus{position:fixed;left:50%;top:50%;z-index:9500;transform:translate(-50%,-50%);width:min(70vw,640px);min-height:40vh;max-height:80vh;display:grid;place-content:center;gap:6px;text-align:center;
+  background:radial-gradient(ellipse at 50% 40%,rgba(60,40,10,.96),rgba(11,9,8,.96));border:3px solid #F1D69A;border-radius:24px;box-shadow:0 0 0 9999px rgba(0,0,0,.45),0 0 60px rgba(255,214,110,.7);
+  pointer-events:none;direction:rtl;animation:gcbIn .5s cubic-bezier(.2,1.6,.4,1)}
+.gc-bonus .t{font:900 clamp(26px,6.5vmin,64px) Heebo,sans-serif;color:#ffe27a;text-shadow:0 0 20px rgba(255,200,80,.8),0 3px 0 #6b4e1e}
+.gc-bonus .a{font:900 clamp(40px,13vmin,120px) Inter,Heebo,sans-serif;color:#fff;direction:ltr;text-shadow:0 0 30px rgba(255,226,122,.9),0 4px 0 #8a6420}
+.gc-bonus .s{font:600 clamp(14px,3vmin,22px) Heebo,sans-serif;color:#F1D69A}
+.gc-bonus.out{animation:gcbOut .5s ease-in forwards}
+@keyframes gcbIn{from{transform:translate(-50%,-50%) scale(.3);opacity:0}}@keyframes gcbOut{to{transform:translate(-50%,-50%) scale(1.15);opacity:0}}`;
+    document.head.appendChild(c);
+  }
+  document.querySelectorAll(".gc-bonus").forEach((n) => n.remove());
+  const d = document.createElement("div"); d.className = "gc-bonus";
+  const e = (s) => String(s).replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[x]));
+  d.innerHTML = `<div class="t">${e(title)}</div>${amount != null ? `<div class="a">₪${Number(amount).toLocaleString("en-US")}</div>` : ""}${sub ? `<div class="s">${e(sub)}</div>` : ""}`;
+  document.body.appendChild(d);
+  try { SFX.win(true); } catch (er) {}
+  setTimeout(() => d.classList.add("out"), 3600); setTimeout(() => d.remove(), 4200);
+};
