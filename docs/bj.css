@@ -153,3 +153,10 @@ body #acts.zoombar{position:fixed;left:0;right:0;top:auto;bottom:0;transform:non
 body #acts.zoombar .a{font-size:18px;padding:12px 22px;min-width:96px}
 body.land #acts.zoombar{top:auto;width:auto;bottom:0;left:0;right:0;display:flex;padding-block:6px}
 body.land #acts.zoombar .a{width:auto;padding:10px 18px;font-size:16px}
+/* Fisher v2: struck card values */
+.boost .sk{display:flex;gap:8px;margin-top:4px}
+.boost .sk span{display:grid;justify-items:center;background:#0b0806;border:1px solid #ffe27a;border-radius:8px;padding:2px 8px;min-width:44px}
+.boost .sk b{font:800 24px Inter;color:#fff}.boost .sk i{font:800 16px Inter;font-style:normal;color:#ffe27a}
+.card.struck{box-shadow:0 0 0 3px #ffe27a,0 0 22px 6px rgba(255,220,100,.75)!important}
+.card.struck::after{content:attr(data-mx);position:absolute;top:-14px;left:-10px;background:#0b0806;color:#ffe27a;border:1px solid #ffe27a;
+  border-radius:99px;padding:1px 8px;font:800 15px Inter;white-space:nowrap;direction:ltr;box-shadow:0 0 10px rgba(255,220,100,.7)}

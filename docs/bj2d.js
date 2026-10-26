@@ -8,7 +8,8 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MODE = new URLSearchParams(location.search).get("mode") === "lightning" ? "lightning" : "classic";
 const LIT = MODE === "lightning";
-let BOOST = 0;
+let STRIKES = {};          // Fisher's strikes for this hand: {"A": 5, "7": 3}
+const RANK = (r) => r === "T" ? "10" : r;
 const sleep = (ms) => new Promise((r) => setTimeout(r, reduced ? 0 : ms));
 
 // ---------- geometry, in photo pixels (1672x941) ----------
@@ -50,7 +51,8 @@ function pose(p) { $("dealer").src = `img/dealer/m_${p}.webp`; }
 // ---------- drawing helpers ----------
 const layer = $("layer");
 function el(cls, x, y, html = "") { const d = document.createElement("div"); d.className = cls; d.style.left = x + "px"; d.style.top = y + "px"; d.innerHTML = html; layer.appendChild(d); return d; }
-function faceUp(d, card) { d.classList.remove("back"); d.style.backgroundImage = `url(cards/${card}.svg)`; d.dataset.card = card; }
+function faceUp(d, card) { d.classList.remove("back"); d.style.backgroundImage = `url(cards/${card}.svg)`; d.dataset.card = card;
+  if (LIT && STRIKES[card[0]]) { d.classList.add("struck"); d.dataset.mx = "×" + STRIKES[card[0]]; } }
 async function flyCard(card, to, fromHand = true) {
   if (fromHand) { pose("deal"); await sleep(220); }
   const d = el("card back", SHOE.x, SHOE.y); SFX.card();
@@ -114,6 +116,7 @@ function placeActs(h) { if (PHONE) return; const s = SPOTS[h] || SPOTS[0]; const
 
 async function render(next) {
   busy = true; lockActs();
+  if (LIT && next.strikes && JSON.stringify(next.strikes) !== JSON.stringify(STRIKES)) { STRIKES = next.strikes; drawBoost(); }
   const n = next.hands.length;
   // a split: move the second card of the split hand to its new spot
   while (handEls.length && handEls.length < n) {
@@ -169,15 +172,10 @@ async function finish(r) {
   const sides = Object.entries(r.result.side || {}).filter(([, v]) => v && v !== 0).map(([k, v]) => `${SIDE_NAME[k]}${typeof v === "number" ? " " + v + ":1" : ""}`);
   const sd = r.result.side || {};
   if (LIT) {
-    showMsg(head, sd.boost_extra > 0 ? `⚡ המכפיל ${sd.boost_used}x הוסיף ${fmt(sd.boost_extra)}` : r.result.dealer_blackjack ? "לדילרית יש בלאק ג׳ק" : "");
-    if (sd.boost_used > 1) djPose(sd.boost_extra > 0 ? "celebrate" : "shrug", 1500);
-    setTimeout(async () => {                       // DJ Fisher builds up... and drops the new multiplier
-      if (DJ.idle) { djPose("build"); SFX.riser(0.9); await new Promise((r) => setTimeout(r, 900)); djPose("drop", 1600); djBurst(); }
-      SFX.drop(); const fl = document.createElement("div"); fl.className = "bjflash"; document.body.appendChild(fl);
-      BOOST = sd.earned || 0; drawBoost(); document.querySelector(".boost")?.classList.add("zap");
-      showMsg(`⚡ מכפיל ${BOOST}x`, "יוכפל על הזכייה בסיבוב הבא");
-      setTimeout(() => fl.remove(), 900);
-    }, 1800);
+    const ex = sd.strike_extra || 0, hm = (sd.hand_mults || []).filter((m, i) => m > 1 && (outs[i] === "win" || outs[i] === "blackjack"));
+    showMsg(head, ex > 0 ? `⚡ הברק של פישר ×${Math.max(...hm)} הוסיף ${fmt(ex)}` : r.result.dealer_blackjack ? "לדילרית יש בלאק ג׳ק" : "");
+    if (ex > 0) { djPose("celebrate", 2200); djBurst(); SFX.drop(); const fl = document.createElement("div"); fl.className = "bjflash"; document.body.appendChild(fl); setTimeout(() => fl.remove(), 900); }
+    else if ((sd.hand_mults || []).some((m) => m > 1)) djPose("shrug", 1600);
   } else
   showMsg(head, r.result.dealer_blackjack ? "לדילרית יש בלאק ג׳ק" : sides.length ? "זכייה: " + sides.join(" · ") : "");
   const won = net > 0; if (won) SFX.win(net >= r.staked * 5); else if (net < 0) SFX.lose();
@@ -236,18 +234,29 @@ async function loadDJ() {
 function djPose(p, back) { if (!djEl || !DJ[p]) return; djEl.querySelector("img").src = DJ[p]; djEl.className = "dj p-" + p;
   clearTimeout(djT); if (back) djT = setTimeout(() => djPose("idle"), back); }
 function djBurst() { if (!djEl) return; const b = document.createElement("div"); b.className = "djburst"; djEl.appendChild(b); setTimeout(() => b.remove(), 1000); }
-function drawBoost() {
+function drawBoost() {               // the strikes board next to the bet circle
   document.querySelectorAll(".boost").forEach((n) => n.remove()); if (!LIT) return;
-  const b = document.createElement("div"); b.className = "boost" + (BOOST > 1 ? " on" : "");
+  const e = Object.entries(STRIKES).sort((x, y) => y[1] - x[1]);
+  const b = document.createElement("div"); b.className = "boost" + (e.length ? " on" : "");
   b.style.left = SPOTS[0].x - 215 + "px"; b.style.top = SPOTS[0].y + 10 + "px";
-  b.innerHTML = BOOST > 1 ? `⚡ <b>${BOOST}x</b><small>על הזכייה הבאה</small>` : `⚡<small>שחק כדי לטעון מכפיל</small>`;
+  b.innerHTML = e.length ? `<small>⚡ ברקים ביד הזאת</small><div class="sk">${e.map(([r, m]) => `<span><b class="num">${RANK(r)}</b><i class="num">×${m}</i></span>`).join("")}</div>`
+                         : `⚡<small>פישר יפיל ברקים<br>כשתחלק קלפים</small>`;
   $("stage").appendChild(b);
+}
+async function fisherDrop(strikes) {      // DJ Fisher builds up... drops lightning on 2-3 card values
+  STRIKES = {}; drawBoost();
+  if (DJ.idle) { djPose("build"); SFX.riser(0.9); await sleep(850); djPose("drop", 1800); djBurst(); }
+  SFX.drop(); const fl = document.createElement("div"); fl.className = "bjflash"; document.body.appendChild(fl); setTimeout(() => fl.remove(), 900);
+  STRIKES = strikes; drawBoost(); document.querySelector(".boost")?.classList.add("zap");
+  const e = Object.entries(strikes).sort((x, y) => y[1] - x[1]);
+  showMsg("⚡ " + e.map(([r, m]) => `${RANK(r)} ×${m}`).join(" · "), "נצח עם אחד הקלפים האלה ביד, והרווח מוכפל");
+  await sleep(1300);
 }
 function renderBets() {
   chipStack(SPOTS[0].x, SPOTS[0].y, bets.main, "hand0");
   for (const [k, p] of Object.entries(SIDE_SPOTS)) chipStack(p.x, p.y, bets[k], "side_" + k, true);
   $("dealBtn").disabled = !bets.main; $("rebetBtn").disabled = !lastBets;
-  if (LIT) { $("betSum").textContent = bets.main ? `הימור ${fmt(bets.main)} + עמלת ברק ${fmt(bets.main)} = ${fmt(bets.main * 2)}` : "בחר צ׳יפ ולחץ על העיגול. כל סיבוב: הימור + עמלת ברק באותו גובה, ומכפיל 2x–25x לזכייה הבאה."; return; }
+  if (LIT) { const f = Math.ceil(bets.main / 2); $("betSum").textContent = bets.main ? `הימור ${fmt(bets.main)} + עמלת ברק ${fmt(f)} = ${fmt(bets.main + f)}` : "בחר צ׳יפ ולחץ על העיגול. פישר מפיל ברקים על 2–3 קלפים, וניצחון עם קלף כזה ביד מכפיל את הרווח ×2 עד ×25."; return; }
   $("betSum").textContent = Object.values(bets).some(Boolean) ? "סה״כ " + fmt(Object.values(bets).reduce((a, b) => a + b, 0)) : "בחר צ׳יפ ולחץ על העיגול הגדול. העיגולים הקטנים הם הימורים צדדיים: PP זוג מושלם · 21+3 · LL ליידיז מזל · BB באסטר";
 }
 $("clearBtn").onclick = () => { Object.keys(bets).forEach((k) => bets[k] = 0); renderBets(); };
@@ -265,6 +274,7 @@ $("dealBtn").onclick = async () => {
   lastBets = { ...bets }; Object.keys(bets).forEach((k) => bets[k] = 0);
   $("betUI").hidden = true; setSpotsVisible(false);
   layer.querySelectorAll('[data-k^="side_"]').forEach((n) => n.remove());
+  if (LIT) await fisherDrop(data.strikes || {});
   await render(data);
 };
 document.querySelectorAll("#acts .a").forEach((b) => b.onclick = async () => {
@@ -331,7 +341,7 @@ $("rulesBtn").onclick = () => $("rules").showModal();
 if (LIT) {
   document.body.classList.add("lit"); document.title = "בלאק ג׳ק הכפולות של פישר · גולן קזינו";
   const r = $("rules"); r.querySelector("h2").textContent = "בלאק ג׳ק הכפולות של פישר · חוקים";
-  r.querySelector("h2").insertAdjacentHTML("afterend", "<p><b>⚡ איך זה עובד, בשלושה צעדים:</b></p><p>1. כל סיבוב עולה <b>הימור + עמלת ברק</b> באותו גובה (הימור ₪100 = ₪200).</p><p>2. בסוף היד נוחת <b>מכפיל 2x עד 25x</b> ונשמר לסיבוב הבא. 21 בסוף היד נותן את הסיכוי הטוב ביותר למכפיל גבוה, שריפה את הנמוך ביותר.</p><p>3. בסיבוב הבא, אם ניצחת, <b>הרווח מוכפל במכפיל</b> (₪100 רווח × 8x = ₪800). המכפיל מכפיל עד גובה ההימור שבו הושג. אין הימורים צדדיים. החזר משוער לעמלה: כ־99%.</p>");
+  r.querySelector("h2").insertAdjacentHTML("afterend", "<p><b>⚡ איך זה עובד:</b></p><p>1. שמים הימור. כל יד עולה <b>הימור + עמלת ברק של חצי מההימור</b> (₪100 + ₪50).</p><p>2. לפני החלוקה די־ג׳יי פישר <b>מפיל ברקים על 2–3 ערכי קלפים</b>, כל אחד עם מכפיל ×2 עד ×25. למשל: A ×5 · 7 ×3. הקלפים האלה זוהרים בזהב כשהם יוצאים.</p><p>3. משחקים בלאק ג׳ק רגיל. <b>אם ניצחת ויש לך ביד קלף מוכה ברק, הרווח מוכפל מיד</b> במכפיל הכי גבוה שביד. ₪100 רווח עם אס ×5 = ₪500. בלאק ג׳ק (₪150) עם ×5 = ₪750.</p><p>אין הימורים צדדיים. החזר משוער לשחקן: כ־98%.</p>");
 }
 // ---------- start ----------
 async function resume() { const { data } = await db.rpc("bj_current"); if (data) { clearRound(); $("betUI").hidden = true; await render(data); } }
@@ -339,7 +349,7 @@ async function resume() { const { data } = await db.rpc("bj_current"); if (data)
   const { data: { session } } = await db.auth.getSession();
   if (!session && location.hash === "#preview") {   // visual check only: no server, no wallet, no member images
     me = { id: "p", nickname: "שחקן לדוגמה" }; members = [{ id: "p", nickname: "שחקן לדוגמה", wealth: 10250 }, { id: "a", nickname: "חבר", wealth: 8900 }, { id: "b", nickname: "חבר", wealth: 12400 }];
-    GC_LOADER.done(); if (LIT) { BOOST = 4; await loadDJ(); } drawSeats(); setMyBalance(10250); drawBetSpots(); renderBets(); if (location.search.includes("bet")) { showControls(); return; } $("betUI").hidden = true; setSpotsVisible(false);
+    GC_LOADER.done(); if (LIT) { STRIKES = { A: 5, 7: 3 }; await loadDJ(); } drawSeats(); setMyBalance(10250); drawBetSpots(); renderBets(); if (location.search.includes("bet")) { showControls(); return; } $("betUI").hidden = true; setSpotsVisible(false);
     await render({ id: "x", status: "playing", active: 0, actions: ["hit", "stand", "double"], balance: 10250, dealer_total: 10,
       dealer: ["KH", "??"], hands: [{ cards: ["AS", "9D"], bet: 100, total: 20 }] });
     return;
@@ -351,7 +361,7 @@ async function resume() { const { data } = await db.rpc("bj_current"); if (data)
   const { data: w } = await db.from("wallets").select("balance").eq("user_id", me.id).single();
   await loadSeats();
   if (w) setMyBalance(w.balance);
-  if (LIT) { const { data: bst } = await db.rpc("bj_my_boost"); BOOST = bst || 0; await loadDJ(); }
+  if (LIT) await loadDJ();
   drawBetSpots(); renderBets(); await resume(); showControls();
   await Promise.all([...document.querySelectorAll("#stage img, #seats img")].map((im) => im.complete ? 0 : new Promise((r) => { im.onload = im.onerror = r; })));
   GC_LOADER.done();
