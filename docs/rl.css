@@ -326,3 +326,7 @@ body.short .wheel-slot{width:100%!important;aspect-ratio:auto!important;height:m
 @media (max-height:560px) and (orientation:landscape){.controls{grid-template-columns:auto auto auto 1fr!important}}
 body.live #spinBtn{display:none}
 #rebetBtn.icon{min-width:0!important;width:44px;padding:0!important;font-size:24px!important;line-height:1}
+.idorun{position:fixed;z-index:45;transform:translate(-50%,-75%);pointer-events:none;filter:drop-shadow(0 4px 6px rgba(0,0,0,.7))}
+.idorun.fl{animation:idofl .8s ease-in forwards}.idorun.fr{animation:idofr .8s ease-in forwards}
+@keyframes idofl{0%{transform:translate(-50%,-75%)}30%{transform:translate(-90%,-130%) rotate(-15deg)}100%{transform:translate(-400%,-60%) rotate(-30deg);opacity:0}}
+@keyframes idofr{0%{transform:translate(-50%,-75%)}30%{transform:translate(-10%,-130%) rotate(15deg)}100%{transform:translate(300%,-60%) rotate(30deg);opacity:0}}

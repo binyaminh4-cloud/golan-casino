@@ -381,8 +381,10 @@ $("spinBtn").onclick = async () => {
 // ---------- lightning: strike the lucky numbers on the layout, then spin ----------
 // Zeus (the owner's caricature, private bucket) throws a bolt at each lucky number
 const ZEUS = {}; const PRE = (src) => { const i = new Image(); i.src = src; return i; };
+let IDO = null;
 async function loadZeus() {
   if (!LIT) return;
+  if (db) db.storage.from("characters").createSignedUrl("guide_ido.webp", 3600).then(({ data }) => { if (data && data.signedUrl) { IDO = data.signedUrl; PRE(IDO); } }).catch(() => {});
   const poses = ["idle", "charge", "strike", "celebrate"];
   try {
     poses.forEach((p) => ZEUS[p] = `img/lightning/zeus_${p}.webp`);   // public by the owner's choice
@@ -403,6 +405,12 @@ async function strike(lucky) {
     if (z) { z.src = ZEUS.charge || ZEUS.idle; await wait(keys.length > 5 ? 160 : 300); z.src = ZEUS.strike || ZEUS.idle; }
     if (c) {
       const r = c.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+      if (IDO) {                                     // little Ido sits on the number... and jumps away just before the bolt
+        const i = document.createElement("img"); i.className = "idorun"; i.src = IDO; i.alt = "";
+        Object.assign(i.style, { left: x + "px", top: y + "px", height: Math.max(36, r.height * 1.5) + "px" }); document.body.appendChild(i);
+        await wait(keys.length > 5 ? 120 : 260);
+        i.classList.add(Math.random() < .5 ? "fl" : "fr"); setTimeout(() => i.remove(), 900); await wait(90);
+      }
       const b = document.createElement("div"); b.className = "bolt";
       const top = z ? z.getBoundingClientRect().top + 40 : -20;
       Object.assign(b.style, { left: x + "px", top: top + "px", height: Math.max(40, y - top) + "px" });

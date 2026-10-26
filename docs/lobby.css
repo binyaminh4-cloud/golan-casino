@@ -88,5 +88,5 @@ header{margin-bottom:14px}
 .chbanner .ci img{width:52px;height:52px;object-fit:contain}
 .lb li .rk{display:inline-grid;place-items:center}
 .lb li .rk img{width:30px;height:30px}
-.wallet{position:relative}.wallet::after{content:"";position:absolute;inset-inline-start:auto;inset-inline-end:auto;right:14px;top:14px;width:56px;height:56px;background:url(img/lobby/wallet_icon.webp) center/contain no-repeat;pointer-events:none}
+.wallet{position:relative}.wallet::after{content:"";position:absolute;inset-inline-start:auto;inset-inline-end:auto;right:auto;left:14px;top:12px;width:48px;height:48px;background:url(img/lobby/wallet_icon.webp) center/contain no-repeat;pointer-events:none}
 .gc-chat-btn{background:url(img/lobby/chat_icon.webp) center/cover!important;border:0!important;color:transparent!important}
