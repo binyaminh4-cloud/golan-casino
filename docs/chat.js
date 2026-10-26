@@ -95,6 +95,8 @@
   btn.addEventListener("pointerup", () => { drag = null; });
   btn.onclick = (e) => { if (moved) { moved = false; e.preventDefault(); return; } toggle(!open); };
   box.querySelector("h3 button").onclick = () => toggle(false);
+  // a tap anywhere outside the open chat closes it
+  document.addEventListener("pointerdown", (e) => { if (open && !box.contains(e.target) && !btn.contains(e.target)) toggle(false); }, true);
   box.querySelector("form").onsubmit = (e) => { e.preventDefault(); send(input.value); };
   box.querySelector(".quick").onclick = (e) => { const b = e.target.closest("button"); if (b) send(b.textContent); };
 
