@@ -62,3 +62,7 @@ header{margin-bottom:14px}
 .chbanner[hidden]{display:none!important}.adminlink{color:#F1D69A!important;text-decoration:none}
 .cat[hidden]{display:none!important}
 .game .priv small{display:block;font-weight:400;font-size:11px;color:#B9AA94;margin-top:2px}.joke{font:400 14px Heebo;color:#B9AA94}
+.soundask{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:rgba(0,0,0,.75);padding:16px}
+.soundask .box{width:min(360px,100%);background:#17120F;border:1px solid #C5A05A;border-radius:16px;padding:22px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.7)}
+.soundask .ic{font-size:46px}.soundask h3{margin:6px 0;font:700 24px 'Frank Ruhl Libre',serif;color:#F1D69A}.soundask p{color:#B9AA94;margin:0 0 14px}
+.soundask .row{display:flex;gap:10px}.soundask .btn{flex:1;padding:12px;font-size:17px}

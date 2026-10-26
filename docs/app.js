@@ -94,6 +94,7 @@ async function showLobby(user) {
     if (sal && (sal.weekly || sal.monthly)) salaryToast(sal); } catch (e) {}
   await refresh();
   GC_LOADER.done();
+  soundAsk();
   if (!document.querySelector(".top-guide")) { const m = document.createElement("div"); m.className = "top-guide"; document.querySelector("#lobbyView header .me").prepend(m);
     GC_GUIDE.init({ game: "lobby", db, mount: m, steps: GC_STEPS.lobby() }); }
   clearInterval(timer); timer = setInterval(refresh, 15000);
@@ -157,4 +158,20 @@ async function applyPublic() {
     document.querySelectorAll(".cat").forEach((c) => { const n = document.querySelectorAll(`.games .game[data-cat="${c.dataset.c}"]`).length; if (!n) c.hidden = true;
       else c.querySelector("small").textContent = n === 1 ? "משחק אחד" : `${n} משחקים`; });
   } catch (e) {}
+}
+
+// sound choice: asked once per device; the tap also wakes the phone's audio
+function soundAsk() {
+  try { if (localStorage.getItem("gc_sound_chosen")) return; } catch (e) { return; }
+  const o = document.createElement("div"); o.className = "soundask";
+  o.innerHTML = `<div class="box"><div class="ic">🔊</div><h3>עם קול או בלי?</h3><p>בקזינו יש צלילים: קלפים, צ׳יפים, ברקים והדילרית. אפשר לשנות בכל רגע בכפתור 🔊 בכל משחק.</p>
+    <div class="row"><button class="btn" data-s="on">🔊 עם קול</button><button class="btn ghost" data-s="off">🔇 בשקט</button></div></div>`;
+  document.body.appendChild(o);
+  o.querySelectorAll("button").forEach((b) => b.onclick = () => {
+    const on = b.dataset.s === "on";
+    try { localStorage.setItem("gc_sound_chosen", "1"); localStorage.setItem("gc_mute", on ? "0" : "1"); } catch (e) {}
+    if (on) { try { const C = window.AudioContext || window.webkitAudioContext, c = new C(), g = c.createGain(), os = c.createOscillator();
+      g.gain.value = 0.15; os.frequency.value = 880; os.connect(g).connect(c.destination); os.start(); os.stop(c.currentTime + 0.12); } catch (e) {} }
+    o.remove();
+  });
 }
