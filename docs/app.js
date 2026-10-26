@@ -164,8 +164,8 @@ async function applyPublic() {
 function soundAsk() {
   try { if (localStorage.getItem("gc_sound_chosen")) return; } catch (e) { return; }
   const o = document.createElement("div"); o.className = "soundask";
-  o.innerHTML = `<div class="box"><div class="ic">🔊</div><h3>עם קול או בלי?</h3><p>בקזינו יש צלילים: קלפים, צ׳יפים, ברקים והדילרית. אפשר לשנות בכל רגע בכפתור 🔊 בכל משחק.</p>
-    <div class="row"><button class="btn" data-s="on">🔊 עם קול</button><button class="btn ghost" data-s="off">🔇 בשקט</button></div></div>`;
+  o.innerHTML = `<img class="dj" src="img/lightning/dj_idle.webp" alt="די־ג׳יי פישר"><div class="box"><h3>דיג׳יי פישר מבקש רשות</h3><p>להדליק את הסאונד, או שגם הפעם הוא ינגן לעצמו?</p>
+    <div class="row"><button class="btn" data-s="on">🎧 תן בראש, פישר</button><button class="btn ghost" data-s="off">🔇 תודה, פישר</button></div></div>`;
   document.body.appendChild(o);
   o.querySelectorAll("button").forEach((b) => b.onclick = () => {
     const on = b.dataset.s === "on";

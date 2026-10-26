@@ -66,3 +66,5 @@ header{margin-bottom:14px}
 .soundask .box{width:min(360px,100%);background:#17120F;border:1px solid #C5A05A;border-radius:16px;padding:22px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.7)}
 .soundask .ic{font-size:46px}.soundask h3{margin:6px 0;font:700 24px 'Frank Ruhl Libre',serif;color:#F1D69A}.soundask p{color:#B9AA94;margin:0 0 14px}
 .soundask .row{display:flex;gap:10px}.soundask .btn{flex:1;padding:12px;font-size:17px}
+.soundask{grid-template-rows:auto auto;align-content:center;justify-items:center}
+.soundask .dj{width:min(220px,55vw);margin-bottom:-18px;position:relative;z-index:1;filter:drop-shadow(0 10px 16px rgba(0,0,0,.6))}
