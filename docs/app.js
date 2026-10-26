@@ -132,9 +132,9 @@ function salaryToast(s) {
   const box = $("gamesBox"), cs = $("cats"); if (!box || !cs) return;
   cs.querySelectorAll(".cat").forEach((b) => {
     const n = box.querySelectorAll(`.game[data-cat="${b.dataset.c}"]`).length, open = box.querySelectorAll(`.game[data-cat="${b.dataset.c}"]:not(.soon)`).length;
-    b.querySelector("small").textContent = open ? (n === 1 ? "משחק אחד" : `${n} משחקים`) : "בקרוב";
+    b.querySelector("small").textContent = b.dataset.c === "jobs" ? "דילר מתלמד · ועוד בדרך" : open ? (n === 1 ? "משחק אחד" : `${n} משחקים`) : "בקרוב";
     if (!open) b.classList.add("soon");
-    b.onclick = () => show(b.dataset.c);
+    b.onclick = () => { if (b.dataset.c === "jobs") { location.href = "jobs.html"; return; } show(b.dataset.c); };
   });
   function show(c) {
     if (c) box.querySelectorAll(".game").forEach((g) => g.hidden = g.dataset.cat !== c);
@@ -156,7 +156,7 @@ async function applyPublic() {
       "roulette.html?mode=xxx": "xxx", "slots.html": "slots", "slots.html?m=fortune": "fortune", "poker.html": "poker", "jobs.html": "jobs" };
     document.querySelectorAll(".games .game[href]").forEach((g) => { const k = map[g.getAttribute("href")]; if (k && data.games && data.games[k] === false) g.remove(); });
     document.querySelectorAll(".cat").forEach((c) => { const n = document.querySelectorAll(`.games .game[data-cat="${c.dataset.c}"]`).length; if (!n) c.hidden = true;
-      else c.querySelector("small").textContent = n === 1 ? "משחק אחד" : `${n} משחקים`; });
+      else if (c.dataset.c !== "jobs") c.querySelector("small").textContent = n === 1 ? "משחק אחד" : `${n} משחקים`; });
   } catch (e) {}
 }
 
