@@ -141,9 +141,9 @@ async function jackpotWin(res) {
   busy = false; $("spinBtn").disabled = false;
 }
 if (FO) {
-  document.body.classList.add("fortune"); document.title = "מכונת המזל של גולן · גולן קזינו";
+  document.body.classList.add("fortune"); document.title = "מכונת האטרף של בנימין · גולן קזינו";
   document.querySelector(".marquee-top").innerHTML = `<div class="jp"><img src="img/slots/fortune/marquee.webp" alt=""><b id="grand" class="num">₪1,000,000</b></div><div class="mini" id="mini"></div>`;
-  const r = $("rules"); r.querySelector("h2").textContent = "מכונת המזל של גולן · טבלת תשלומים";
+  const r = $("rules"); r.querySelector("h2").textContent = "מכונת האטרף של בנימין · טבלת תשלומים";
   r.querySelector("p").innerHTML = "3 גלגלים, 3 שורות, 5 קווי זכייה. בוחרים הימור לסיבוב. התוצאה נקבעת בשרת.<br><b>🎁 סיבובים חינם:</b> FREE SPINS בכל אחד משלושת הגלגלים (בכל שורה) = 10 סיבובים חינם באותו הימור. יוצא בערך פעם ב־100 סיבובים.<br><b>👑 ג׳קפוט זאוס:</b> מתחיל ב־₪1,000,000, ו־1% מכל סיבוב של כל השחקנים נכנס אליו. 3 זאוסים <b>בקו האמצעי</b> זוכים בו. בהימור של ₪500 לסיבוב ומעלה זוכים בכל הקופה, בהימור קטן יותר בחלק יחסי (₪250 = חצי).<br><b>💼 ג׳קפוט בנימין:</b> ₪250,000, חייב לצאת לפחות פעם בשבועיים: השרת בוחר רגע סודי, והסיבוב הראשון אחריו זוכה, לא משנה מי מסובב.";
   setInterval(async () => { if (busy || document.hidden || PREVIEW) return; const { data } = await db.rpc("fo_state"); jpState(data); }, 6000);
 }

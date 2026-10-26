@@ -4,7 +4,7 @@ const fmt = (n) => "₪" + Number(n).toLocaleString("en-US");
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 const GAMES = [["blackjack", "בלאק ג׳ק"], ["lightning_bj", "בלאק ג׳ק הכפולות של פישר"], ["roulette", "רולטה"], ["lightning", "רולטת ברקים"], ["xxx", "רולטת ברקים XXX"],
-  ["slots", "מכונות מזל"], ["fortune", "מכונת המזל של גולן"], ["poker", "פוקר"], ["jobs", "עבודות"]];
+  ["slots", "מכונות מזל"], ["fortune", "מכונת האטרף של בנימין"], ["poker", "פוקר"], ["jobs", "עבודות"]];
 let SET = null;
 function say(id, t, bad) { const m = $(id); m.className = bad ? "msg err" : "msg"; m.textContent = t; }
 async function set(key, value) { const { data, error } = await db.rpc("admin_set", { p_key: key, p_value: value }); if (!error) { SET = data; drawSettings(); } return !error; }
