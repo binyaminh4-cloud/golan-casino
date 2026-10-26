@@ -90,3 +90,4 @@ header{margin-bottom:14px}
 .lb li .rk img{width:30px;height:30px}
 .wallet{position:relative}.wallet::after{content:"";position:absolute;inset-inline-start:auto;inset-inline-end:auto;right:auto;left:14px;top:12px;width:48px;height:48px;background:url(img/lobby/wallet_icon.webp) center/contain no-repeat;pointer-events:none}
 .gc-chat-btn{background:url(img/lobby/chat_icon.webp) center/cover!important;border:0!important;color:transparent!important}
+.wallet::after{display:none!important}.wlbl{display:flex;align-items:center;gap:8px}.wlbl img{width:34px;height:34px}
