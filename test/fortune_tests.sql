@@ -29,7 +29,7 @@ do $$ declare r jsonb; begin
   perform t_assert(r->'jackpot'->>'kind' = 'mini' and (r->'jackpot'->>'amount')::int = 250000, 'mini drops once its moment passed');
   perform t_assert((r->>'payout')::bigint = 250000 + 400 + (select coalesce(sum((w->>'pay')::int),0) from jsonb_array_elements(r->'wins') w) - 400, 'mini + line pays');
   perform t_assert((select drop_at > now() and deadline > now() + interval '13 days' from sl_jackpots where kind='mini'), 'next mini drawn inside 14 days');
-  perform t_assert((select count(*) from chat_messages where room='slots' and kind='sys') = 1, 'chat announces the mini');
+  perform t_assert((select count(*) from chat_messages where body like '%בנימין:%' and kind='sys') = 1, 'chat announces the mini');
   r := fo_spin(1, 'M2'); perform t_assert(r->'jackpot' = 'null'::jsonb, 'no second mini right away');
 end $$;
 -- grand share: force a zeus line by testing the pay formula directly via a rigged pot

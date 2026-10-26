@@ -2,7 +2,8 @@
 (function () {
   if (/[?#&]preview/.test(location.href) || !window.supabase || !window.GC_CONFIG) return;
   const page = location.pathname.split("/").pop() || "index.html";
-  const ROOM = page.startsWith("roulette") ? "roulette" : page.startsWith("blackjack") ? "blackjack" : page.startsWith("slots") ? "slots" : "lobby";
+  const ROOM = "lobby";                       // one room for the whole group
+  const IN_GAME = /^(roulette|blackjack|slots)/.test(page);
   const QUICK = [];                 // quick messages: chosen by Binyamin (not yet approved)
   const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
   let me = null, last = 0, open = false, unread = 0, timer = null, busy = false;
@@ -34,10 +35,10 @@
   document.head.appendChild(css);
 
   const btn = document.createElement("button");
-  btn.className = "gc-chat-btn" + (ROOM === "lobby" ? " lob" : ""); btn.type = "button"; btn.setAttribute("aria-label", "צ׳אט"); btn.innerHTML = "💬";
+  btn.className = "gc-chat-btn" + (IN_GAME ? "" : " lob"); btn.type = "button"; btn.setAttribute("aria-label", "צ׳אט"); btn.innerHTML = "💬";
   const box = document.createElement("aside");
   box.className = "gc-chat"; box.setAttribute("aria-label", "צ׳אט");
-  const title = { lobby: "צ׳אט הלובי", roulette: "צ׳אט הרולטה", blackjack: "צ׳אט הבלאק ג׳ק", slots: "צ׳אט המכונות" }[ROOM];
+  const title = "צ׳אט החבורה";
   box.innerHTML = `<h3>${title}<button type="button" aria-label="סגור">✕</button></h3><div class="log" aria-live="polite"></div>
     <div class="quick"></div><div class="err"></div><form><input maxlength="200" placeholder="כתבו הודעה…" enterkeyhint="send"><button>שלח</button></form>`;
   const log = box.querySelector(".log"), input = box.querySelector("input"), errEl = box.querySelector(".err");
