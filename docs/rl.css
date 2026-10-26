@@ -325,3 +325,4 @@ body.short .wheel-slot{width:100%!important;aspect-ratio:auto!important;height:m
 @media (max-height:560px) and (orientation:landscape){.me img{height:48px!important}}
 @media (max-height:560px) and (orientation:landscape){.controls{grid-template-columns:auto auto auto 1fr!important}}
 body.live #spinBtn{display:none}
+#rebetBtn.icon{min-width:0!important;width:44px;padding:0!important;font-size:24px!important;line-height:1}
