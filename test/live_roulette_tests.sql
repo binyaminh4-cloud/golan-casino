@@ -41,3 +41,12 @@ select t_assert(t_raises($$select rl_live_bet(1001,'classic','[{"nums":[19],"amt
 select t_assert(t_raises($$select rl_live_settle()$$, 'permission denied') or true, 'internal');
 select set_config('gc.test_now', '', false);
 \echo LIVE ROULETTE TESTS DONE
+-- chat
+select chat_send('lobby', '  שלום   חברים ');
+select t_assert((chat_since('lobby',0)->0->>'body') = 'שלום חברים', 'chat trims and stores');
+select t_assert(t_raises($$select chat_send('lobby','')$$, 'invalid_body'), 'empty rejected');
+select t_assert(t_raises($$select chat_send('x','hi')$$, 'invalid_room'), 'bad room rejected');
+select chat_send('lobby','2'); select chat_send('lobby','3'); select chat_send('lobby','4'); select chat_send('lobby','5');
+select t_assert(t_raises($$select chat_send('lobby','6')$$, 'slow_down'), 'rate limited');
+select t_assert(jsonb_array_length(chat_since('lobby', (chat_since('lobby',0)->0->>'id')::bigint)) = 4, 'since returns newer only');
+\echo CHAT TESTS DONE

@@ -36,6 +36,9 @@
           players: [{ id: "u2", name: "דני", total: 300, nums: [[17], [1, 2, 3]] }].concat(sentTot ? [{ id: "u1", name: "בנימין", total: sentTot, nums: mine.map((b) => b.nums) }] : []) } }; }
       case "rl_live_bet": { const tot = a.p_bets.reduce((s, b) => s + b.amt, 0); S.live = S.live || {}; (S.live[a.p_round] = S.live[a.p_round] || []).push(...a.p_bets);
         S.bal -= tot; save(); return { data: { ok: true, balance: S.bal } }; }
+      case "chat_since": { S.chat = S.chat || [{ id: 1, kind: "user", body: "מי בא לרולטה?", uid: "u2", name: "דני" }, { id: 2, kind: "sys", body: "🎉 דני זכה ב־₪6,300 על 17 ⚡ 200x" }];
+        return { data: S.chat.filter((m) => m.id > (a.p_after || 0)) }; }
+      case "chat_send": { S.chat.push({ id: S.chat.length + 1, kind: "user", body: a.p_body, uid: "u1", name: "בנימין" }); save(); return { data: S.chat.length }; }
       case "admin_pending_codes": return { data: [] };
       default: return { data: null };
     }
