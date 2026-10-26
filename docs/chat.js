@@ -4,7 +4,7 @@
   const page = location.pathname.split("/").pop() || "index.html";
   const ROOM = "lobby";                       // one room for the whole group
   const IN_GAME = /^(roulette|blackjack|slots)/.test(page);
-  const QUICK = [];                 // quick messages: chosen by Binyamin (not yet approved)
+  const QUICK = ["זאוס, זה הזמן לברק 🙏", "עידו היה מהמר על אדום", "מישהו ראה את הכסף שלי?", "עוד סיבוב אחד ואני הולך לישון 😴", "פישר, תעלה את הווליום 🎧", "כמה הג׳קפוט עכשיו?", "הבית תמיד מנצח… חוץ מהיום", "מי בא לדו־קרב?"];
   const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
   let me = null, last = 0, open = false, unread = 0, timer = null, busy = false;
   const seenKey = "gc_chat_seen_" + ROOM;
@@ -26,7 +26,7 @@
 .gc-chat .m.mine{align-self:flex-end;background:rgba(197,160,90,.18);border-color:#C5A05A}
 .gc-chat .m b{display:block;font-size:11px;color:#C5A05A}
 .gc-chat .m.sys{align-self:center;background:none;border:0;color:#ffe27a;font-weight:700;text-align:center}
-.gc-chat .quick{display:flex;gap:5px;flex-wrap:wrap;padding:0 10px 6px}
+.gc-chat .quick{display:flex;gap:5px;flex-wrap:nowrap;overflow-x:auto;padding:0 10px 6px;scrollbar-width:none}.gc-chat .quick button{flex:none;white-space:nowrap}
 .gc-chat .quick button{border:1px solid rgba(197,160,90,.7);background:none;color:#F1D69A;border-radius:99px;padding:3px 9px;font:13px Heebo;cursor:pointer}
 .gc-chat form{display:flex;gap:6px;padding:8px 10px max(8px,env(safe-area-inset-bottom));border-top:1px solid rgba(128,96,46,.6)}
 .gc-chat input{flex:1;min-width:0;height:38px;border-radius:8px;border:1px solid #80602E;background:#0b0806;color:#F5ECDD;padding:0 10px;font:15px Heebo}
