@@ -33,7 +33,7 @@ function fit() {
   const st = $("stage"), acts = $("acts");
   let s, left, top;
   if (PHONE) { s = Math.min(W / 640, (H - 170) / 860); left = W / 2 - 838 * s; top = Math.max(44, (H - 120 - 900 * s) / 2); }
-  else if (LAND) { const side = 190, avail = W - side; s = Math.min(avail / 1500, (H - 40) / 900); left = side + (avail - 1672 * s) / 2; top = 40 - 30 * s; }
+  else if (LAND) { s = Math.min(W / 1560, (H - 40) / 880); left = (W - 1672 * s) / 2; top = 40 - 40 * s; }
   else { s = Math.min(W / 1672, (H - 150) / 941); left = (W - 1672 * s) / 2; top = Math.max(44, (H - 150 - 941 * s) / 2 + 44); }
   st.style.transform = `scale(${s})`; st.style.left = left + "px"; st.style.top = top + "px";
   const out = PHONE || LAND;
@@ -137,6 +137,7 @@ async function render(next) {
   }
   // bets on each hand
   next.hands.forEach((h, i) => chipStack(SPOTS[i].x, SPOTS[i].y, h.bet, "hand" + i));
+  for (const [k, p] of Object.entries(SIDE_SPOTS)) { const a = +(next.side?.[k] || 0); if (a && !layer.querySelector(`[data-k="side_${k}"]`)) chipStack(p.x, p.y, a, "side_" + k, true); }
   // new player cards
   for (let h = 0; h < n; h++) {
     handEls[h] ||= [];
@@ -189,6 +190,14 @@ async function finish(r) {
       const pay = chipStack(TRAY.x, TRAY.y, r.hands[i].bet, "pay" + i);
       await slide(pay, SPOTS[i].x + 70, SPOTS[i].y - 6, 600);
     }
+  }));
+  // side bets: winners get a gold tag with the payout, losers slide to the tray
+  const placed = r.side || {}, res = r.result.side || {};
+  await Promise.all(Object.keys(SIDE_SPOTS).filter((k) => +placed[k] > 0).map(async (k) => {
+    const c = layer.querySelector(`[data-k="side_${k}"]`); if (!c) return;
+    const m = +res[k] || 0, p = SIDE_SPOTS[k];
+    if (m > 0) { const t = el("sidewin", p.x, p.y - 46, `${SIDE_NAME[k]} +${fmt(placed[k] * m)}`); setTimeout(() => t.remove(), 3500); }
+    else { const t = el("sidelose", p.x, p.y - 40, `${SIDE_NAME[k]} ✕`); setTimeout(() => t.remove(), 2200); c.style.opacity = "0"; await slide(c, TRAY.x, TRAY.y, 600); }
   }));
   await sleep(1200); pose("idle");
 }
@@ -273,7 +282,6 @@ $("dealBtn").onclick = async () => {
   if (error) { renderBets(); return err(errText(error)); }
   lastBets = { ...bets }; Object.keys(bets).forEach((k) => bets[k] = 0);
   $("betUI").hidden = true; setSpotsVisible(false);
-  layer.querySelectorAll('[data-k^="side_"]').forEach((n) => n.remove());
   if (LIT) await fisherDrop(data.strikes || {});
   await render(data);
 };

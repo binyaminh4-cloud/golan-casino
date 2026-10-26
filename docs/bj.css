@@ -91,17 +91,17 @@ dialog p{margin:4px 0;color:var(--ink-2);font-size:13px}
 /* short landscape (phones): controls in a side panel on the left, table fills the rest */
 body.land .top{height:40px;padding-block:0}
 body.land .top a{padding:6px 14px!important;min-height:36px}
-body.land .betui{top:40px;bottom:0;left:0;right:auto;inset-inline-start:auto;width:190px;align-content:center;gap:10px;padding:8px;
-  background:linear-gradient(90deg,rgba(8,5,4,.96),rgba(8,5,4,.85))}
-body.land .betui .row{gap:6px}
-body.land .betui .chip{width:42px;height:42px;font-size:12px}
+body.land .betui{top:auto;bottom:max(6px,env(safe-area-inset-bottom));left:50%;right:auto;transform:translateX(-50%);width:max-content;max-width:98vw;
+  display:flex;flex-direction:row;align-items:center;gap:8px;padding:5px 10px;border-radius:16px;background:rgba(8,5,4,.72);border:1px solid rgba(217,181,111,.35)}
+body.land .betui .row{gap:5px;flex-wrap:nowrap}
+body.land .betui .chip{width:38px;height:38px;font-size:11px;border-width:3px}
 body.land #betSum{display:none}
-body.land .btn{min-width:0;width:100%;padding:9px 6px;font-size:15px}
-body.land .betui .row:last-of-type{display:grid;grid-template-columns:1fr 1fr;width:100%}
-body.land .betui #dealBtn{grid-column:1/-1;order:-1;font-size:17px}
-body.land #acts.phone{position:fixed;top:40px;bottom:0;left:0;width:190px;display:grid;align-content:center;gap:8px;padding:8px;
-  background:rgba(8,5,4,.92);transform:none!important}
-body.land #acts.phone .a{width:100%}
+body.land .betui .hint.err{position:absolute;bottom:100%;left:0;right:0;margin-bottom:4px;text-align:center;font-size:13px;text-shadow:0 1px 3px #000}
+body.land .btn{min-width:0;padding:8px 12px;font-size:14px;white-space:nowrap}
+body.land .betui #dealBtn{font-size:16px;padding:8px 16px}
+body.land #acts.phone{position:fixed;top:auto;bottom:max(6px,env(safe-area-inset-bottom));left:50%;width:max-content;max-width:98vw;transform:translateX(-50%)!important;
+  display:flex;flex-wrap:nowrap;gap:6px;padding:5px 8px;border-radius:16px;background:rgba(8,5,4,.72);border:1px solid rgba(217,181,111,.35)}
+body.land #acts.phone .a{width:auto;padding:8px 14px}
 /* bets on the felt: chip centred in its circle, amount underneath */
 .cstack{position:absolute;width:0;height:0;pointer-events:none;z-index:3}
 .cstack .chip3{position:absolute;left:0;top:0;width:74px;height:74px;margin:-37px 0 0 -37px;border-radius:50%;display:grid;place-items:center;
@@ -160,3 +160,8 @@ body.land #acts.zoombar .a{width:auto;padding:10px 18px;font-size:16px}
 .card.struck{box-shadow:0 0 0 3px #ffe27a,0 0 22px 6px rgba(255,220,100,.75)!important}
 .card.struck::after{content:attr(data-mx);position:absolute;top:-14px;left:-10px;background:#0b0806;color:#ffe27a;border:1px solid #ffe27a;
   border-radius:99px;padding:1px 8px;font:800 15px Inter;white-space:nowrap;direction:ltr;box-shadow:0 0 10px rgba(255,220,100,.7)}
+
+.sidewin,.sidelose{position:absolute;transform:translate(-50%,-50%);z-index:6;white-space:nowrap;font:800 22px Heebo;padding:3px 12px;border-radius:99px;pointer-events:none;animation:sidepop .35s ease-out}
+.sidewin{color:#0B0908;background:linear-gradient(180deg,#fff3cf,#F1D69A);box-shadow:0 0 18px rgba(255,220,100,.8)}
+.sidelose{color:#E89A9F;background:rgba(8,5,4,.85);border:1px solid rgba(232,154,159,.6);font-size:18px}
+@keyframes sidepop{from{transform:translate(-50%,-50%) scale(.4);opacity:0}}

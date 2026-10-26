@@ -289,3 +289,13 @@ body{grid-template-columns:minmax(0,1fr)}
 .ghost{position:absolute;width:18px;height:18px;border-radius:50%;background:rgba(197,160,90,.35);border:1px dashed var(--champ);color:#fff;font:700 10px Heebo;display:grid;place-items:center;pointer-events:none;transform:translate(-50%,-50%);z-index:1}
 @keyframes hit{to{opacity:.6}}
 body.live .side{grid-template-rows:auto auto 1fr}body.live.short .side{grid-template-rows:auto auto auto 1fr}body.short .players{max-height:44px}
+
+.wheel-slot{position:relative}
+.bigclock{position:absolute;top:6px;right:6px;width:64px;height:64px;z-index:5;pointer-events:none;display:grid;place-items:center}
+.bigclock svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.bigclock circle{fill:rgba(8,5,4,.85);stroke-width:3.5}.bigclock .bg{stroke:rgba(217,181,111,.25)}
+.bigclock .fg{fill:none;stroke:#F1D69A;stroke-dasharray:113.1;stroke-linecap:round;transition:stroke-dashoffset .25s linear}
+.bigclock b{position:relative;font:800 22px Inter;color:#F1D69A;line-height:1;margin-top:-6px}
+.bigclock small{position:absolute;bottom:11px;font:600 10px Heebo;color:#B9AA94}
+.bigclock.hurry .fg{stroke:#e5484d}.bigclock.hurry b{color:#ff6b6f;animation:hit .5s ease-in-out infinite alternate}
+.bigclock.shut b{font-size:20px}

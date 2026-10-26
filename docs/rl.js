@@ -469,8 +469,17 @@ function drawPlayers() {
       const a = anchor(k), q = toXY(a.u, a.w), g = document.createElement("i"); g.className = "ghost"; g.title = p.name;
       g.style.left = q.x + "px"; g.style.top = q.y + "px"; g.textContent = String(p.name).slice(0, 1); layer.appendChild(g); } }
 }
+function drawBigClock(t) {          // countdown ring over the wheel: time left to bet before the next throw
+  const b = $("bigClock"); if (!b || !liveSt) return; b.hidden = cine;
+  const W = liveSt.close - liveSt.start, left = Math.max(0, liveSt.close - t), open = left > 0, sec = Math.ceil(left / 1000);
+  b.className = "bigclock" + (open ? (sec <= 5 ? " hurry" : "") : " shut");
+  b.querySelector(".fg").style.strokeDashoffset = open ? 113.1 * (1 - left / W) : 113.1;
+  b.querySelector("b").textContent = open ? sec : "🎲";
+  b.querySelector("small").textContent = open ? "להמר" : "מסתובב";
+}
 function drawClock() {
   const el = $("liveClock"); if (!el || !liveSt) return;
+  drawBigClock(srvNow());
   const t = srvNow();
   if (t < liveSt.close) { const s = Math.ceil((liveSt.close - t) / 1000); el.textContent = `הימורים פתוחים · ${s}`; el.className = "liveclock" + (s <= 5 ? " hurry" : ""); }
   else { el.textContent = "אין עוד הימורים"; el.className = "liveclock shut"; }
@@ -552,7 +561,8 @@ if (LIT) {
   if (!w.error) { balance = w.data.balance; showBal(balance); }
   if (!LIVE && !h.error && Array.isArray(h.data)) { history = h.data; drawHist(); }
   MY_ID = session.user.id;
-  if (LIVE) { document.body.classList.add("live"); $("players").hidden = false; $("liveClock").hidden = false; await liveFetch(); setInterval(liveTick, 250); }
+  if (LIVE) { document.body.classList.add("live"); $("players").hidden = false; $("liveClock").hidden = false;
+    $("wheelSlot").insertAdjacentHTML("beforeend", '<div id="bigClock" class="bigclock" hidden><svg viewBox="0 0 40 40"><circle class="bg" cx="20" cy="20" r="18"/><circle class="fg" cx="20" cy="20" r="18"/></svg><b class="num"></b><small></small></div>'); await liveFetch(); setInterval(liveTick, 250); }
   if (ch.url) await new Promise((res) => { const i = new Image(); i.onload = i.onerror = res; i.src = ch.url; });
   GC_LOADER.done(); setTimeout(startLoop, 650);
   drawChips();
