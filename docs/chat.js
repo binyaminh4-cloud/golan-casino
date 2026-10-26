@@ -3,7 +3,7 @@
   if (/[?#&]preview/.test(location.href) || !window.supabase || !window.GC_CONFIG) return;
   const page = location.pathname.split("/").pop() || "index.html";
   const ROOM = "lobby";                       // one room for the whole group
-  const IN_GAME = /^(roulette|blackjack|slots)/.test(page);
+  const IN_GAME = /^(roulette|blackjack|slots|poker)/.test(page);
   const QUICK = ["זאוס, זה הזמן לברק 🙏", "עידו היה מהמר על אדום", "מישהו ראה את הכסף שלי?", "עוד סיבוב אחד ואני הולך לישון 😴", "פישר, תעלה את הווליום 🎧", "כמה הג׳קפוט עכשיו?", "הבית תמיד מנצח… חוץ מהיום", "מי בא לדו־קרב?"];
   const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
   let me = null, last = 0, open = false, unread = 0, timer = null, busy = false;

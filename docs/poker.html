@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="loader.js?v=4"></script>
+<title>פוקר · גולן קזינו</title>
+<link rel="icon" href="img/brand/favicon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@500;700;800&display=swap">
+<link rel="stylesheet" href="pk.css?v=1">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=8"></script>
+</head>
+<body>
+<header class="top">
+  <a href="./" class="back">→ ללובי</a>
+  <div class="bal">הארנק שלי <b id="bal" class="num">…</b></div>
+  <button id="leaveBtn" class="leave" hidden>קום מהשולחן</button>
+</header>
+
+<!-- table picker -->
+<main id="pick" class="pick" hidden>
+  <h1>♠️ פוקר טקסס הולדם</h1>
+  <p class="sub">שולחנות פתוחים, עד 6 שחקנים. בוחרים שולחן לפי גודל, קונים צ׳יפים מהארנק, וכל תור הוא 25 שניות. כשקמים, הצ׳יפים חוזרים לארנק.</p>
+  <div id="tables" class="tables"></div>
+</main>
+
+<!-- the table -->
+<div id="fit" hidden>
+  <div id="stage">
+    <div class="felt"></div>
+    <div class="tname" id="tname"></div>
+    <div class="pot" id="pot"></div>
+    <div class="board" id="board"></div>
+    <div id="seats"></div>
+    <div class="dbtn" id="dbtn"><img src="img/poker/dealer_button.webp" alt="דילר"></div>
+    <div class="msg" id="msg"></div>
+  </div>
+</div>
+<div class="acts" id="acts" hidden>
+  <button class="a fold" data-a="fold">פולד</button>
+  <button class="a" data-a="check">צ׳ק</button>
+  <button class="a" data-a="call">קול</button>
+  <div class="raise"><input type="range" id="raiseR" aria-label="סכום העלאה"><b id="raiseV" class="num"></b><button class="a up" data-a="raise">העלה</button></div>
+  <button class="a allin" data-a="allin">אול־אין</button>
+</div>
+<dialog id="buy">
+  <h2>כניסה לשולחן</h2>
+  <p id="buyInfo"></p>
+  <input type="range" id="buyR"><div class="buyv"><b id="buyV" class="num"></b></div>
+  <div class="row"><button class="btn ghost" id="buyNo">ביטול</button><button class="btn" id="buyYes">שב</button></div>
+  <p class="err" id="buyErr"></p>
+</dialog>
+
+<script src="sfx.js?v=1"></script>
+<script src="char.js?v=1"></script>
+<script src="pk.js?v=1"></script>
+<script src="chat.js?v=3"></script>
+</body>
+</html>

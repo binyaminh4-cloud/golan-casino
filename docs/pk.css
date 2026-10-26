@@ -1,0 +1,55 @@
+:root{--onyx:#0B0908;--walnut:#17120F;--gold:#C5A05A;--champ:#F1D69A;--ink:#F5ECDD;--muted:#B9AA94;--line:#80602E;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--onyx) url(img/poker/table.webp) center/cover fixed;color:var(--ink);font:400 15px Heebo,system-ui,sans-serif}
+body::before{content:"";position:fixed;inset:0;background:rgba(11,9,8,.82);pointer-events:none}
+body.at-table{overflow:hidden;height:100dvh;background:#0b0806}body.at-table::before{display:none}
+.num{font-family:Inter,Heebo,sans-serif;font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+button{font:inherit;cursor:pointer}
+.top{position:relative;z-index:20;height:44px;display:flex;align-items:center;gap:12px;padding:0 max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));background:linear-gradient(rgba(11,9,8,.95),rgba(11,9,8,.7));border-bottom:1px solid rgba(128,96,46,.5)}
+.back{color:var(--champ);text-decoration:none;font-weight:700;border:1px solid var(--line);border-radius:99px;padding:5px 12px;white-space:nowrap}
+.bal{flex:1;text-align:center;color:var(--muted)}.bal b{color:var(--champ);font:700 17px Inter}
+.leave{background:none;border:1px solid var(--line);color:var(--muted);border-radius:99px;padding:5px 12px}
+.pick{position:relative;width:min(760px,100%);margin:0 auto;padding:16px}
+.pick h1{font:700 30px 'Frank Ruhl Libre',serif;color:var(--champ);text-align:center;margin:8px 0}.sub{text-align:center;color:var(--muted)}
+.tables{display:grid;gap:10px;margin-top:14px}
+.tbl{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;padding:14px;border-radius:14px;border:1px solid var(--line);text-decoration:none;color:var(--ink);background:linear-gradient(90deg,rgba(29,94,56,.45),rgba(11,9,8,.9))}
+.tbl .ic{font-size:30px}.tbl b{display:block;font:700 20px 'Frank Ruhl Libre',serif;color:var(--champ)}.tbl small{color:var(--muted)}.tbl .pl{color:var(--muted);font-size:13px;max-width:12em;text-align:left}
+#fit{position:fixed;inset:0;overflow:hidden}
+#stage{position:absolute;width:1920px;height:1080px;transform-origin:0 0}
+.felt{position:absolute;inset:0;background:url(img/poker/table.webp) center/cover;border-radius:18px}
+.tname{position:absolute;left:50%;top:470px;transform:translateX(-50%);color:rgba(241,214,154,.55);font:700 26px 'Frank Ruhl Libre',serif;white-space:nowrap}
+.pot{position:absolute;left:50%;top:505px;transform:translateX(-50%);font:600 38px Heebo;color:#e8d9b5;background:rgba(8,5,4,.6);border-radius:99px;padding:2px 22px}.pot:empty{display:none}.pot b{color:#ffe27a}
+.board{position:absolute;left:50%;top:560px;transform:translateX(-50%);display:flex;gap:14px;direction:ltr}
+.pc{width:100px;height:140px;border-radius:9px;background:#fff center/cover;box-shadow:0 8px 14px rgba(0,0,0,.5)}
+.pc.back{background:repeating-linear-gradient(45deg,#7d1420 0 10px,#94202d 10px 20px);border:4px solid #f5ecdd}
+.pc.brd{width:140px;height:196px}.pc.big{width:130px;height:182px}
+.seat{position:absolute;transform:translate(-50%,-50%);display:grid;justify-items:center;width:260px}
+.seat .cards{display:flex;direction:ltr;margin-bottom:-26px;z-index:1}.seat .cards .pc{width:90px;height:126px;margin:0 -8px}.seat .cards .pc.big{width:150px;height:210px;margin:0 -10px}
+.seat.me .cards{position:absolute;right:calc(100% - 40px);top:-70px;margin:0}
+.av{position:relative;width:140px;height:140px;border-radius:50%;border:5px solid var(--gold);background:#1b140f;overflow:visible;z-index:2}
+.av img{width:100%;height:100%;object-fit:cover;object-position:50% 10%;border-radius:50%}.av span{display:grid;place-items:center;height:100%;font:800 50px Heebo;color:var(--champ)}
+.ring{position:absolute;inset:-14px;width:calc(100% + 28px);height:calc(100% + 28px);transform:rotate(-90deg)}
+.ring circle{fill:none;stroke:#ffe27a;stroke-width:3;stroke-dasharray:113;stroke-linecap:round;filter:drop-shadow(0 0 6px #ffe27a)}
+.seat.turn .av{box-shadow:0 0 30px rgba(255,226,122,.8)}
+.tag{margin-top:-14px;z-index:3;background:rgba(8,5,4,.9);border:2px solid var(--line);border-radius:14px;padding:4px 16px;text-align:center;min-width:170px}
+.tag b{display:block;font:700 32px Heebo;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}.tag span{font:800 36px Inter;color:var(--champ)}
+.seat.folded{opacity:.45}.seat.won .tag{border-color:#ffe27a;box-shadow:0 0 24px rgba(255,226,122,.7)}
+.hand{margin-top:6px;font:800 30px Heebo;color:#0B0908;background:linear-gradient(180deg,#fff3cf,#F1D69A);border-radius:99px;padding:2px 16px}
+.wonamt{position:absolute;top:-30px;font:800 34px Inter;color:#9fe0a8;text-shadow:0 2px 6px #000;animation:pop .5s}
+@keyframes pop{from{transform:scale(.3);opacity:0}}
+.bet{position:absolute;transform:translate(-50%,-50%);display:grid;justify-items:center}.bet img{width:70px}.bet b{font:800 32px Inter;color:#fff;background:rgba(8,5,4,.85);border-radius:99px;padding:0 12px;margin-top:-10px}
+.sit{position:absolute;transform:translate(-50%,-50%);width:150px;height:150px;border-radius:50%;border:4px dashed rgba(241,214,154,.7);background:rgba(8,5,4,.55);color:var(--champ);font:800 28px Heebo}
+.dbtn{position:absolute;width:64px;height:64px;transform:translate(-50%,-50%)}.dbtn img{width:100%}
+.msg{position:absolute;left:50%;top:780px;transform:translateX(-50%);font:700 30px Heebo;color:var(--champ);text-shadow:0 2px 8px #000}
+.acts{position:fixed;left:50%;bottom:max(6px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:30;display:flex;gap:6px;align-items:center;
+  padding:6px 8px;border-radius:16px;background:rgba(8,5,4,.85);border:1px solid rgba(217,181,111,.5);max-width:98vw}
+.acts .a{height:44px;border-radius:10px;border:1px solid var(--gold);background:linear-gradient(180deg,var(--champ),var(--gold));color:var(--onyx);font-weight:800;padding:0 14px;white-space:nowrap}
+.acts .fold{background:#2a1a14;color:#E89A9F;border-color:#8a3a3a}.acts .allin{background:linear-gradient(180deg,#ff8a8a,#b3162a);color:#fff;border-color:#b3162a}
+.raise{display:flex;align-items:center;gap:6px}.raise input{width:min(26vw,180px);accent-color:#C5A05A}.raise b{color:var(--champ);min-width:5.5em;text-align:center}
+dialog{background:var(--walnut);color:var(--ink);border:1px solid var(--gold);border-radius:14px;width:min(380px,92vw)}dialog::backdrop{background:rgba(0,0,0,.7)}
+dialog h2{font:700 22px 'Frank Ruhl Libre',serif;color:var(--champ);margin:0 0 6px}dialog input{width:100%;accent-color:#C5A05A}
+.buyv{text-align:center;font:800 26px Inter;color:var(--champ);margin:6px 0}.row{display:flex;gap:10px}
+.btn{flex:1;height:44px;border-radius:10px;border:1px solid var(--gold);background:linear-gradient(180deg,var(--champ),var(--gold));color:var(--onyx);font-weight:800}
+.btn.ghost{background:none;color:var(--champ)}.err{color:#E89A9F;text-align:center;min-height:1em}
+[hidden]{display:none!important}

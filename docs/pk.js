@@ -1,0 +1,130 @@
+/* Golan Casino · Texas Hold'em. Everything is decided on the server (poker_state / poker_act); this file draws and polls. */
+const $ = (id) => document.getElementById(id);
+const fmt = (n) => "₪" + Number(n).toLocaleString("en-US");
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const PREVIEW = /[?#&]preview/.test(location.href);
+const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
+const T = new URLSearchParams(location.search).get("t");
+// seat spots on the 1920x1080 table photo, position 0 = bottom centre (always me when seated)
+const SPOT = [{ x: 1040, y: 905 }, { x: 330, y: 880 }, { x: 330, y: 530 }, { x: 960, y: 395 }, { x: 1590, y: 530 }, { x: 1590, y: 880 }];
+const BETAT = (p) => ({ x: p.x + (960 - p.x) * 0.42, y: p.y + (640 - p.y) * 0.42 });
+let S = null, ME = null, busy = false, lastHand = -1, AV = {};
+
+// ---------- fit ----------
+function fit() {
+  // the room above the table is cropped: the visible window is y 330..1080 of the photo
+  const W = innerWidth, H = innerHeight - 44, s = Math.min(W / 1920, H / 760), st = $("stage");
+  st.style.transform = `scale(${s})`; st.style.left = (W - 1920 * s) / 2 + "px"; st.style.top = 44 - 320 * s + Math.max(0, (H - 760 * s) / 2) + "px";
+}
+addEventListener("resize", fit);
+
+// ---------- picker ----------
+async function pick() {
+  $("pick").hidden = false; GC_LOADER.done();
+  const { data } = PREVIEW ? { data: [{ id: "x", name: "מתחילים", sb: 10, bb: 20, min: 1000, max: 4000, players: ["דני"] }] } : await db.rpc("poker_tables_list");
+  const ICON = ["🟢", "🔵", "🔴", "⚫", "👑"];
+  $("tables").innerHTML = (data || []).map((t, i) => `<a class="tbl" href="poker.html?t=${t.id}"><span class="ic">${ICON[i] || "♠️"}</span>
+    <div><b>${esc(t.name)}</b><small>בליינדים <span class="num">${fmt(t.sb)} / ${fmt(t.bb)}</span> · כניסה <span class="num">${fmt(t.min)}–${fmt(t.max)}</span></small></div>
+    <span class="pl">${t.players.length ? `${t.players.length}/6 · ${t.players.map(esc).join(", ")}` : "שולחן ריק"}</span></a>`).join("");
+}
+
+// ---------- table ----------
+const card = (c, cls = "") => c ? `<div class="pc ${cls}" style="background-image:url(cards2/${c}.svg)"></div>` : `<div class="pc back ${cls}"></div>`;
+function rel(seat) { return ME == null ? seat : (seat - ME + 6) % 6; }
+async function avatar(uid) {
+  if (AV[uid] !== undefined || PREVIEW) return; AV[uid] = null;
+  const c = await GC_CHAR(db, uid); AV[uid] = c.url || null; if (S) draw();
+}
+function chipLabel(n) { return n >= 1e6 ? +(n / 1e6).toFixed(1) + "M" : n >= 1000 ? +(n / 1000).toFixed(1) + "K" : n; }
+function draw() {
+  const s = S; if (!s) return;
+  ME = s.me; $("tname").innerHTML = `${esc(s.table.name)} · <span class="num">${fmt(s.table.sb)}/${fmt(s.table.bb)}</span>`;
+  $("bal").textContent = fmt(s.balance); $("leaveBtn").hidden = ME == null;
+  // seats
+  let h = "";
+  for (let seat = 0; seat < 6; seat++) {
+    const p = s.seats[seat], pos = SPOT[rel(seat)], turn = s.to_act === seat && s.street !== "done" && s.street !== "idle";
+    if (!p) { h += ME == null ? `<button class="sit" style="left:${pos.x}px;top:${pos.y}px" data-seat="${seat}">שב כאן</button>` : ""; continue; }
+    if (p.user && AV[p.user] === undefined) avatar(p.user);
+    const won = s.result && s.result.won && s.result.won[seat];
+    const hole = p.hole ? p.hole.map((c) => card(c, seat === ME ? "big" : "")).join("") : p.in_hand && !p.folded ? card(null) + card(null) : "";
+    const hand = s.result && s.result.hands && s.result.hands[seat];
+    h += `<div class="seat ${seat === ME ? "me" : ""} ${p.folded ? "folded" : ""} ${turn ? "turn" : ""} ${won ? "won" : ""}" style="left:${pos.x}px;top:${pos.y}px">
+      <div class="cards">${hole}</div>
+      <div class="av">${AV[p.user] ? `<img src="${AV[p.user]}" alt="">` : `<span>${esc((p.name || "?")[0])}</span>`}${turn ? `<svg class="ring" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18"/></svg>` : ""}</div>
+      <div class="tag"><b>${esc(p.name)}</b><span class="num">${p.allin ? "אול־אין" : fmt(p.stack)}</span></div>
+      ${hand ? `<div class="hand">${esc(hand)}</div>` : ""}${won ? `<div class="wonamt num">+${fmt(won)}</div>` : ""}</div>`;
+    if (p.bet > 0) { const b = BETAT(pos); h += `<div class="bet" style="left:${b.x}px;top:${b.y}px"><img src="img/poker/chip_stack.webp" alt=""><b class="num">${chipLabel(p.bet)}</b></div>`; }
+  }
+  $("seats").innerHTML = h;
+  $("seats").querySelectorAll(".sit").forEach((b) => b.onclick = () => buyIn(+b.dataset.seat));
+  // timer ring on the player to act
+  const ring = document.querySelector(".ring circle");
+  if (ring && s.deadline) { const left = Math.max(0, new Date(s.deadline) - (Date.now() + skew)); ring.style.strokeDashoffset = 113 * (1 - left / 25000); }
+  // dealer button, board, pot
+  if (s.dealer != null && s.street !== "idle") { const p = SPOT[rel(s.dealer)], d = $("dbtn"); d.hidden = false; d.style.left = p.x + (p.x < 960 ? 120 : -120) + "px"; d.style.top = p.y - 70 + "px"; } else $("dbtn").hidden = true;
+  $("board").innerHTML = (s.board || []).map((c) => card(c, "brd")).join("");
+  $("pot").innerHTML = s.pot ? `קופה <b class="num">${fmt(s.pot)}</b>` : "";
+  $("msg").textContent = s.street === "idle" ? (Object.keys(s.seats).length < 2 ? "מחכים לשחקן נוסף…" : "יד חדשה מתחילה…") : "";
+  // my actions
+  const mine = ME != null && s.to_act === ME && ["preflop", "flop", "turn", "river"].includes(s.street);
+  $("acts").hidden = !mine;
+  if (mine) {
+    const me = s.seats[ME], toCall = Math.max(0, s.current_bet - me.bet), all = me.stack + me.bet;
+    const q = (a) => $("acts").querySelector(`[data-a="${a}"]`);
+    q("check").hidden = toCall > 0; q("call").hidden = toCall === 0; q("call").textContent = `קול ${fmt(Math.min(toCall, me.stack))}`;
+    const minR = Math.min(all, s.current_bet + Math.max(s.min_raise, s.table.bb)), R = $("raiseR");
+    document.querySelector(".raise").hidden = all <= s.current_bet || minR >= all;
+    R.min = minR; R.max = all; R.step = s.table.sb; if (+R.value < minR || +R.value > all || R.dataset.hand != s.hand_no + s.street) { R.value = minR; R.dataset.hand = s.hand_no + s.street; }
+    $("raiseV").textContent = fmt(+R.value); q("raise").textContent = s.current_bet ? "העלה ל־" : "הימור";
+    q("allin").textContent = `אול־אין ${fmt(me.stack)}`;
+  }
+  if (s.hand_no !== lastHand && ["preflop"].includes(s.street)) { lastHand = s.hand_no; try { SFX.card(); } catch (e) {} }
+}
+$("raiseR").oninput = () => { $("raiseV").textContent = fmt(+$("raiseR").value); };
+let skew = 0;
+async function poll() {
+  if (busy || document.hidden || PREVIEW) return;
+  const { data, error } = await db.rpc("poker_state", { p_table: T });
+  if (error) { if ((error.message || "").includes("not_signed_in")) location.href = "./"; return; }
+  skew = new Date(data.now) - Date.now(); const turnBefore = S && S.to_act === S.me; S = data; draw();
+  if (!turnBefore && S.to_act === S.me && S.me != null && ["preflop", "flop", "turn", "river"].includes(S.street)) { try { SFX.chip(); navigator.vibrate && navigator.vibrate(60); } catch (e) {} }
+}
+$("acts").addEventListener("click", async (e) => {
+  const b = e.target.closest(".a"); if (!b || busy) return;
+  busy = true; const a = b.dataset.a;
+  const { data, error } = await db.rpc("poker_act", { p_table: T, p_action: a, p_amount: a === "raise" ? +$("raiseR").value : 0, p_hand: S.hand_no });
+  busy = false; if (!error) { S = data; draw(); try { SFX.chip(); } catch (er) {} } else poll();
+});
+// ---------- buy in / leave ----------
+let buySeat = null;
+function buyIn(seat) {
+  buySeat = seat; const t = S.table, R = $("buyR");
+  R.min = t.min; R.max = Math.min(t.max, Math.max(t.min, S.balance)); R.step = t.bb; R.value = Math.min(t.max, Math.max(t.min, Math.min(S.balance, t.min * 2)));
+  $("buyInfo").innerHTML = `בליינדים ${fmt(t.sb)} / ${fmt(t.bb)} · כניסה ${fmt(t.min)} עד ${fmt(t.max)}`; $("buyV").textContent = fmt(+R.value); $("buyErr").textContent = "";
+  $("buy").showModal();
+}
+$("buyR").oninput = () => { $("buyV").textContent = fmt(+$("buyR").value); };
+$("buyNo").onclick = () => $("buy").close();
+$("buyYes").onclick = async () => {
+  const { data, error } = await db.rpc("poker_sit", { p_table: T, p_seat: buySeat, p_amount: +$("buyR").value });
+  if (error) { const m = error.message || ""; $("buyErr").textContent = m.includes("insufficient") ? "אין מספיק בארנק." : m.includes("seat_taken") ? "הכיסא נתפס." : m.includes("already_seated") ? "אתה כבר יושב בשולחן אחר. קום ממנו קודם." : "לא הצלחנו להושיב אותך."; return; }
+  $("buy").close(); S = data; draw();
+};
+$("leaveBtn").onclick = async () => { busy = true; await db.rpc("poker_leave", { p_table: T }); busy = false; poll(); };
+
+// ---------- boot ----------
+(async function boot() {
+  if (!PREVIEW) { const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; } }
+  if (!T) return pick();
+  const ls = document.createElement("script"); ls.src = "landscape.js?v=1"; document.head.appendChild(ls);
+  document.body.classList.add("at-table"); $("fit").hidden = false; fit();
+  if (PREVIEW) {
+    S = { table: { name: "חבר׳ה", sb: 50, bb: 100, min: 5000, max: 20000 }, hand_no: 3, street: "flop", board: ["AH", "7D", "KS"], dealer: 2, to_act: 0, me: 0, current_bet: 400, min_raise: 300, pot: 1750,
+      deadline: new Date(Date.now() + 14000).toISOString(), now: new Date().toISOString(), balance: 84000,
+      seats: { 0: { name: "בנימין", stack: 9600, bet: 0, in_hand: true, hole: ["AS", "KD"] }, 2: { name: "דני", stack: 12000, bet: 400, in_hand: true }, 4: { name: "פישר", stack: 0, bet: 0, in_hand: true, folded: true }, 5: { name: "עידו", stack: 7300, bet: 400, in_hand: true } } };
+    draw(); GC_LOADER.done(); return;
+  }
+  await poll(); GC_LOADER.done();
+  setInterval(poll, 1000); setInterval(() => S && draw(), 250);
+})();
