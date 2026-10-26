@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="loader.js?v=4"></script>
+<title>עבודות · גולן קזינו</title>
+<link rel="icon" href="img/brand/favicon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@500;700;800&display=swap">
+<link rel="stylesheet" href="jobs.css?v=1">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=8"></script>
+</head>
+<body>
+<header class="top">
+  <a href="./" class="back">→ ללובי</a>
+  <div class="bal">הארנק שלי <b id="bal" class="num">…</b></div>
+  <span class="earned" id="earned"></span>
+</header>
+
+<main id="pick" class="pick">
+  <h1>עבודות</h1>
+  <p class="sub">משימות קצרות שמשלמות שכר. אין הגבלה: עובדים כמה שרוצים. ככל שהמשימה קשה יותר, השכר גבוה יותר.</p>
+  <div class="jobcards">
+    <section class="job" data-game="driver">
+      <div class="ico">🚐</div><h2>נהג הסעות</h2>
+      <p>אוספים את הנוסעים ומורידים כל אחד ביעד שלו. לוחצים על התחנות לפי הסדר. צריך לעמוד בתקציב הקילומטרים ובזמן.</p>
+      <div class="levels"></div>
+    </section>
+    <section class="job" data-game="dealer">
+      <div class="ico">🃏</div><h2>דילר מתלמד</h2>
+      <p>על השולחן כמה ידיים של בלאק ג׳ק. מקלידים כמה שווה כל יד. אס שווה 1 או 11, תמונה שווה 10. טעות אחת והמשמרת לא משולמת.</p>
+      <div class="levels"></div>
+    </section>
+  </div>
+</main>
+
+<main id="play" class="play" hidden>
+  <div class="hud"><span id="jobTitle"></span><div class="timer"><i id="timeBar"></i></div><b id="timeLeft" class="num"></b></div>
+  <div id="stage" class="stage"></div>
+  <div class="actions" id="actions"></div>
+</main>
+
+<div id="result" class="result" hidden></div>
+
+<script src="sfx.js?v=1"></script>
+<script src="jobs.js?v=1"></script>
+<script src="chat.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+/* Golan Casino · jobs */
+:root{--onyx:#0B0908;--walnut:#17120F;--gold:#C5A05A;--champ:#F1D69A;--ink:#F5ECDD;--muted:#B9AA94;--line:#80602E;--red:#B3162A;--green:#1d5e38;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--onyx) url(img/roulette/room_bg.jpg) center/cover fixed;color:var(--ink);font:400 15px Heebo,system-ui,sans-serif;min-height:100dvh;display:flex;flex-direction:column}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(11,9,8,.55),rgba(11,9,8,.93));pointer-events:none;z-index:-1}
+.num{font-family:Inter,Heebo,sans-serif;font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+button{font:inherit;cursor:pointer}
+.top{display:flex;align-items:center;gap:12px;padding:8px max(12px,env(safe-area-inset-right)) 8px max(56px,calc(52px + env(safe-area-inset-left)));
+  background:linear-gradient(rgba(11,9,8,.92),rgba(11,9,8,.6));border-bottom:1px solid rgba(128,96,46,.5)}
+.back{color:var(--champ);text-decoration:none;font-weight:700;border:1px solid var(--line);border-radius:99px;padding:7px 14px;white-space:nowrap}
+.bal{flex:1;text-align:center;color:var(--muted)}.bal b{color:var(--champ);font:700 18px Inter}
+.earned{color:#9fe0a8;font-size:13px;white-space:nowrap}
+.pick{width:min(920px,100%);margin:0 auto;padding:16px}
+h1{font:700 30px 'Frank Ruhl Libre',serif;color:var(--champ);margin:6px 0 4px;text-align:center}
+.sub{color:var(--muted);text-align:center;margin:0 0 16px}
+.jobcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.job{background:linear-gradient(180deg,rgba(29,94,56,.35),rgba(11,9,8,.85));border:1px solid var(--gold);border-radius:14px;padding:16px}
+.job .ico{font-size:40px;line-height:1}.job h2{font:700 22px 'Frank Ruhl Libre',serif;color:var(--champ);margin:6px 0}
+.job p{color:var(--muted);margin:0 0 12px;font-size:14px}
+.levels{display:grid;gap:8px}
+.lvl{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;text-align:right;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0b0806;color:var(--ink)}
+.lvl .st{font-weight:700;color:var(--champ);white-space:nowrap}.lvl .ds{font-size:13px;color:var(--muted)}.lvl b{font:800 17px Inter;color:#9fe0a8}
+.lvl.l3{border-color:var(--gold);background:linear-gradient(90deg,#0b0806,rgba(197,160,90,.15))}
+.lvl:active{transform:scale(.98)}
+
+.play{flex:1;display:flex;flex-direction:column;gap:10px;width:min(760px,100%);margin:0 auto;padding:10px 12px max(12px,env(safe-area-inset-bottom))}
+.hud{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
+.hud b{color:#9fe0a8}
+.timer{height:10px;border-radius:5px;background:#0b0806;border:1px solid var(--line);overflow:hidden}
+.timer i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#C5A05A,#F1D69A);transition:width .1s linear}
+.timer i.low{background:#E5484D}
+#timeLeft{font:800 20px Inter;color:var(--champ);min-width:2ch;text-align:center}
+.stage{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.actions{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap}
+.go{min-width:160px;height:50px;border-radius:99px;border:2px solid var(--gold);font:800 18px Heebo;color:#0B0908;background:radial-gradient(circle at 50% 30%,#fff3cf,#F1D69A 40%,#C5A05A);box-shadow:0 5px 0 #6b4e1e}
+.go:active{transform:translateY(3px);box-shadow:0 2px 0 #6b4e1e}
+.ghost{height:44px;border-radius:99px;border:1px solid var(--line);background:rgba(11,9,8,.7);color:var(--champ);padding:0 16px;font-weight:700}
+
+/* dealer */
+.hands{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;width:100%}
+.hand{display:flex;flex-direction:column;align-items:center;gap:8px;background:rgba(29,94,56,.55);border:1px solid rgba(197,160,90,.6);border-radius:12px;padding:10px 6px}
+.cards{display:flex;justify-content:center;direction:ltr}
+.pc{width:42px;height:60px;margin-left:-12px;border-radius:6px;background:#fbf6ea;color:#141414;border:1px solid #c9bda4;box-shadow:0 2px 5px rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.pc:first-child{margin-left:0}.pc b{font:800 18px Inter}.pc i{font-style:normal;font-size:18px}.pc.red{color:#c3162b}
+.hand input{width:64px;height:44px;text-align:center;font:800 22px Inter;border-radius:8px;border:2px solid var(--line);background:#0b0806;color:var(--champ)}
+.hand input:focus{outline:none;border-color:var(--champ)}
+.hand input.right{border-color:#2fa35a}.hand input.wrongv{border-color:#E5484D;color:#E89A9F}
+
+/* driver */
+.map{width:min(100%,62vh);aspect-ratio:1;background:#1c2a20;border:2px solid var(--gold);border-radius:12px}
+.map .grid line{stroke:rgba(241,214,154,.18);stroke-width:.35}
+.map .route{fill:none;stroke:#F1D69A;stroke-width:1.2;stroke-linejoin:round;stroke-linecap:round;opacity:.9}
+.stop circle{fill:#0b0806;stroke:var(--line);stroke-width:.6}
+.stop text{text-anchor:middle;pointer-events:none}
+.stop .lab{font-family:Inter;font-weight:800;fill:#fff;paint-order:stroke;stroke:#000;stroke-width:.6}
+.stop.can{cursor:pointer}.stop.can circle{stroke:#F1D69A;stroke-width:1;animation:pulse 1s ease-in-out infinite alternate}
+.stop.wait{opacity:.45}.stop.done{opacity:.25}
+.c0 circle{fill:#3a1418}.c1 circle{fill:#14243a}.c2 circle{fill:#16351f}.c3 circle{fill:#33270f}
+.van{text-anchor:middle;pointer-events:none}
+@keyframes pulse{to{stroke-width:2}}
+.legend{color:var(--muted);font-size:13px;text-align:center;margin-top:6px}
+.km{color:var(--muted)}.km b{color:var(--champ);font:800 18px Inter}.km b.over{color:#E5484D}
+
+.result{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(0,0,0,.55)}
+.result .card{background:var(--walnut);border:1px solid var(--gold);border-radius:14px;padding:22px;text-align:center;width:min(360px,90vw);box-shadow:0 20px 50px rgba(0,0,0,.7)}
+.result .big{font:800 26px Heebo;color:var(--champ)}.result .card.ok .big{color:#9fe0a8}
+.result .why{color:var(--muted);margin:6px 0 10px}.result .vals{color:var(--ink);margin-bottom:10px}
+.result .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+[hidden]{display:none!important}

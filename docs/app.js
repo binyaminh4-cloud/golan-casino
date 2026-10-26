@@ -81,6 +81,8 @@ async function showLobby(user) {
   $("charPanel").hidden = !me.is_admin;
   $("grantPanel").hidden = !me.is_admin;
   if (me.is_admin) { loadInvites(); loadCharacters(); loadGrantList(); }
+  try { const { data: sal } = await db.rpc("salary_claim");
+    if (sal && (sal.weekly || sal.monthly)) salaryToast(sal); } catch (e) {}
   await refresh();
   GC_LOADER.done();
   if (!document.querySelector(".top-guide")) { const m = document.createElement("div"); m.className = "top-guide"; document.querySelector("#lobbyView header .me").prepend(m);
@@ -164,3 +166,11 @@ async function loadCharacters() {
 boot();
 // private roulette table: a button inside the live-table card
 document.addEventListener("click", (e) => { const b = e.target.closest(".priv"); if (!b) return; e.preventDefault(); e.stopPropagation(); location.href = b.dataset.go; }, true);
+
+// salary landed: a short gold toast
+function salaryToast(s) {
+  const parts = []; if (s.monthly) parts.push(`משכורת חודשית ${fmt(s.monthly)}`); if (s.weekly) parts.push(`משכורת שבועית ${fmt(s.weekly)}`);
+  const t = document.createElement("div"); t.className = "sal-toast"; t.innerHTML = `💰 נכנסה ${parts.join(" + ")}`;
+  document.body.appendChild(t); requestAnimationFrame(() => t.classList.add("on")); try { SFX && SFX.win && SFX.win(false); } catch (e) {}
+  setTimeout(() => { t.classList.remove("on"); setTimeout(() => t.remove(), 500); }, 5000);
+}
