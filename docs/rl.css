@@ -278,3 +278,5 @@ body.m-xxx .top .back::after{content:" · XXX";color:#9fd3ff}
   .ll-h{font-size:13px}.ll-n{width:30px;height:24px;font-size:13px}.ll-m{font-size:15px}}
 body{grid-template-columns:minmax(0,1fr)}
 .room,.controls,.top{min-width:0}
+.btn,.betline span{white-space:nowrap}
+@media (max-width:700px) and (orientation:landscape){.btn{font-size:12.5px;padding:0 7px}.btn.spin{font-size:15px;min-width:64px}.chips .chip{width:31px;height:31px;font-size:9.5px}}

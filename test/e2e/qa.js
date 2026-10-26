@@ -13,9 +13,9 @@ const DEV = {
 };
 const PAGES = {
   lobby: { url: "index.html", must: ["#lobbyView header", ".games", ".wallet", ".lb"] },
-  roulette: { url: "roulette.html", must: [".top .back", "#board", "#spinBtn", "#chips", "#wheelHost"] },
-  lightning: { url: "roulette.html?mode=lightning", must: [".top .back", "#board", "#spinBtn", "#chips"] },
-  xxx: { url: "roulette.html?mode=xxx", must: [".top .back", "#board", "#spinBtn"] },
+  roulette: { url: "roulette.html" + (process.env.FLAT ? "?flat" : ""), must: [".top .back", "#board", "#spinBtn", "#chips", "#wheelHost"] },
+  lightning: { url: "roulette.html?mode=lightning" + (process.env.FLAT ? "&flat" : ""), must: [".top .back", "#board", "#spinBtn", "#chips"] },
+  xxx: { url: "roulette.html?mode=xxx" + (process.env.FLAT ? "&flat" : ""), must: [".top .back", "#board", "#spinBtn"] },
   blackjack: { url: "blackjack.html", must: [".top a", "#dealBtn", ".betui .chip", ".spot.main"] },
   fisher: { url: "blackjack.html?mode=lightning", must: [".top a", "#dealBtn", ".spot.main"] },
   slots: { url: "slots.html", must: [".top .back", "#reels", "#spinBtn", "#chips"] },
