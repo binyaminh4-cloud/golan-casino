@@ -144,6 +144,18 @@ async function refresh() {
 }
 
 boot();
+// what's new: once per release, after the sound question and the guide are out of the way
+(async function whatsNew() {
+  let wn; try { wn = await (await fetch("whatsnew.json?t=" + Date.now(), { cache: "no-store" })).json(); } catch (e) { return; }
+  let seen = null; try { seen = localStorage.getItem("gc_wn"); } catch (e) {}
+  if (!wn || seen === wn.v) return;
+  if (seen === null) { try { localStorage.setItem("gc_wn", wn.v); } catch (e) {} return; }   // brand-new members skip old news
+  while (document.querySelector(".soundask, .gc-sit, .gd, #gcLoad")) await new Promise((r) => setTimeout(r, 700));
+  const o = document.createElement("div"); o.className = "wn";
+  o.innerHTML = `<div class="wnbox"><h2>${esc(wn.title)}</h2><div class="wnlist">${wn.items.map((i) => `<section><h3>${esc(i.t)}</h3><p>${esc(i.d)}</p>${i.img ? `<img src="${esc(i.img)}" alt="" loading="lazy">` : ""}</section>`).join("")}</div><button type="button">יאללה, לשחק</button></div>`;
+  o.querySelector("button").onclick = () => { o.remove(); try { localStorage.setItem("gc_wn", wn.v); } catch (e) {} };
+  document.body.appendChild(o);
+})();
 // "coming soon" games: closed to members; the owner's test code opens them on this device
 document.addEventListener("click", (e) => { const g = e.target.closest(".game[data-soon]"); if (!g) return;
   let dev = false; try { dev = localStorage.getItem("gc_dev") === "1"; } catch (er) {}

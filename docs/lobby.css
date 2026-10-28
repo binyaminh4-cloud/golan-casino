@@ -96,3 +96,10 @@ header{margin-bottom:14px}
 .ondot.on{background:#3ad16f;box-shadow:0 0 8px #3ad16f}.ondot.away{background:#e8b84a}
 .lb .seen{display:block;font:500 10.5px Heebo;color:#9b8a70;margin-top:1px}
 .game.soon{filter:saturate(.75)}.game.soon .tag{background:#3a3a3a;color:#ffe27a}
+.wn{position:fixed;inset:0;z-index:9700;background:rgba(0,0,0,.6);display:grid;place-items:center;padding:12px}
+.wnbox{width:min(560px,96vw);max-height:90dvh;display:flex;flex-direction:column;background:#17120F;border:1px solid #C5A05A;border-radius:16px;padding:14px 16px;box-shadow:0 20px 50px rgba(0,0,0,.7)}
+.wnbox h2{margin:0 0 8px;font:700 24px 'Frank Ruhl Libre',serif;color:#F1D69A;text-align:center}
+.wnlist{overflow:auto;display:grid;gap:12px}
+.wnlist h3{margin:0;font:700 16px Heebo;color:#ffe27a}.wnlist p{margin:2px 0 6px;color:#e8d9b5;font-size:14px}
+.wnlist img{width:100%;border-radius:10px;border:1px solid #80602E}
+.wnbox button{margin-top:10px;height:46px;border-radius:99px;border:2px solid #C5A05A;background:linear-gradient(180deg,#F1D69A,#C5A05A);color:#0B0908;font:800 17px Heebo;cursor:pointer}
