@@ -1,4 +1,4 @@
--- 30,000 pre-played rounds of על האש בכינרת (engine docs/vendor/ww_engine.js). The server picks one at random;
+-- 30,000 pre-played rounds of המערב הפרוע של הגולן (engine docs/vendor/ww_engine.js). The server picks one at random;
 -- the browser replays the same seed. Mean of this table = the game's exact return.
 create table if not exists ww_seeds (id int primary key, seed bigint not null, total numeric not null);
 alter table ww_seeds enable row level security; revoke all on ww_seeds from anon, authenticated;
