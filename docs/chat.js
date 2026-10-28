@@ -93,7 +93,7 @@
   }
   async function poll() {
     if (busy || document.hidden) return; busy = true;
-    try { const { data, error } = await db.rpc("chat_since", { p_room: ROOM, p_after: last }); if (!error && Array.isArray(data)) add(data); } catch (e) {}
+    try { const { data, error } = await db.rpc("chat_since", { p_room: ROOM, p_after: last, p_where: (location.pathname.split("/").pop() || "index.html") + location.search }); if (!error && Array.isArray(data)) add(data); } catch (e) {}
     busy = false;
   }
   function schedule() { clearInterval(timer); timer = setInterval(poll, open ? 3000 : 15000); }

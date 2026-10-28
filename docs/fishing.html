@@ -7,7 +7,7 @@
 <title>מסע הדיג של עידו · גולן קזינו</title>
 <link rel="icon" href="img/brand/favicon.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Inter:wght@600;800&display=swap">
-<link rel="stylesheet" href="if.css?v=6">
+<link rel="stylesheet" href="if.css?v=7">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
 <script src="landscape.js?v=1"></script>
@@ -24,6 +24,7 @@
   <div class="count" id="count" hidden></div>
   <div class="result" id="result" hidden></div>
   <div class="hist" id="hist" aria-label="תוצאות אחרונות"></div>
+  <div class="table" id="table" aria-label="מי ליד השולחן"></div>
 <section class="betbar">
   <div class="zones" id="zones"></div>
   <div class="ctl">
@@ -37,15 +38,15 @@
 <dialog id="rules">
   <h2>מסע הדיג של עידו · חוקים</h2>
   <p>גלגל של 53 חלקים שווים: 23 דג כהה, 23 דג בהיר, 4 כחול, 2 כתום ו־1 אדום. הימורים 10 שניות, ואז נחשפים המכפילים, הגלגל מסתובב, ואם נעצר על דג צבעוני עידו יוצא לדוג.</p>
-  <p><b>דג כהה / דג בהיר:</b> זיכוי פי 2 מההימור. חלק אחד מסומן בכל סיבוב במכפיל ×3 עד ×10, ואם הגלגל עוצר בדיוק עליו הזיכוי מוכפל.</p>
-  <p><b>דגים צבעוניים:</b> כחול ×12 עד ×100, כתום ×16 עד ×200, אדום ×40 עד ×500. לפעמים צבע שלם מקבל מכפיל גלגל ×2 עד ×10, עד ×5,000 בסך הכול. ככל שהמכפיל גדול יותר, הדג גדול יותר.</p>
+  <p><b>דג כהה / דג בהיר:</b> זיכוי פי 2 מההימור. בכל סיבוב 8 חלקים מקבלים מכפיל (לרוב ×2, לפעמים ×3 או ×5), ואם הגלגל עוצר על אחד מהם הזיכוי מוכפל. המכפיל הגבוה מופיע גם על משבצת ההימור.</p>
+  <p><b>דגים צבעוניים:</b> כחול ×12 עד ×100, כתום ×16 עד ×200, אדום ×40 עד ×500. לפעמים חלק צבעוני מקבל מכפיל ×2 עד ×5 על מה שנתפס בו. ככל שהמכפיל גדול יותר, הדג גדול יותר.</p>
   <p><b>כל הבונוסים</b> שם צ׳יפ על כחול, כתום ואדום (עולה שלושה צ׳יפים). התוצאות נקבעות בשרת לפני הסיבוב. שקלים משחקיים בלבד.</p>
   <form method="dialog"><button class="ghost" style="width:100%">סגור</button></form>
 </dialog>
 <script src="sfx.js?v=11"></script>
 <script src="vendor/motion_core.js?v=2"></script>
 <script src="vendor/rig_render.js?v=1"></script>
-<script src="if.js?v=13"></script>
-<script src="chat.js?v=10"></script>
+<script src="if.js?v=14"></script>
+<script src="chat.js?v=11"></script>
 </body>
 </html>

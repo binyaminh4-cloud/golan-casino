@@ -258,3 +258,14 @@ async function rlHistory(mode, title) {
   o.querySelector(".grid").innerHTML = d.map(ball).join("");
   o.querySelector(".msg").insertAdjacentHTML("beforeend", `<br>🔴 ${c((h) => rlCol(h.n) === "r")} · ⚫ ${c((h) => rlCol(h.n) === "b")} · 🟢 ${c((h) => h.n === 0)}${mode !== "classic" ? ` · ⚡ ${c((h) => h.x)}` : ""}`);
 }
+
+// who is playing right now: a small "live" strip on each game tile (sits on the tile's top edge, never over its art)
+async function liveNow() {
+  try { const { data } = await db.rpc("gc_live"); if (!data) return;
+    document.querySelectorAll(".games .game[href]").forEach((g) => { const ppl = data[g.getAttribute("href")] || []; let s = g.querySelector(".livenow");
+      if (!ppl.length) { if (s) s.remove(); return; }
+      if (!s) { s = document.createElement("span"); s.className = "livenow"; g.appendChild(s); }
+      const names = ppl.map((p) => p.name).filter(Boolean); s.textContent = `🟢 ${names.length === 1 ? names[0] + " משחק עכשיו" : names.slice(0, 3).join(", ") + (names.length > 3 ? ` +${names.length - 3}` : "") + " משחקים עכשיו"}`; });
+  } catch (e) {}
+}
+liveNow(); setInterval(liveNow, 20000);

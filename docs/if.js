@@ -176,7 +176,7 @@ async function poll() {
   if (lastRound !== null && data.round !== lastRound) {   // a new round: the last one's bets become "repeat"
     if (Object.keys(sent).length) lastBets = { ...sent }; myBets = {}; sent = {}; endShown = null;
   }
-  lastRound = data.round; S = data;
+  lastRound = data.round; S = data; drawTable();
   if (data.mine) for (const [k, v] of Object.entries(data.mine)) { sent[k] = Math.max(sent[k] || 0, v); myBets[k] = Math.max(myBets[k] || 0, v); }
   if (!busy && data.balance != null && (srvNow() - data.start) / 1000 < 20 || (srvNow() - data.start) / 1000 > 21) { balance = data.balance; showBal(); }
   drawBets(); drawHist();
@@ -202,3 +202,12 @@ addEventListener("resize", fit); function fit() {
   const pw = Math.min(box.clientWidth * .96, box.clientHeight * .9 * 16 / 9); pop.style.width = pw + "px"; pop.style.height = pw * 9 / 16 + "px";
 }
 fit(); setTimeout(fit, 300);
+
+// who is at the table: everyone in the room now (presence) plus what each one bet this round
+let HERE = [];
+async function presence() { if (PREVIEW) { HERE = [{ id: "a", name: "דני" }, { id: "b", name: "רועי" }]; return; }
+  try { const { data } = await db.rpc("gc_live"); if (data) HERE = Object.entries(data).filter(([k]) => k.startsWith("fishing.html")).flatMap(([, v]) => v); } catch (e) {} drawTable(); }
+function drawTable() { const m = new Map(); for (const p of HERE) m.set(p.id, { name: p.name, total: 0 });
+  for (const p of (S && S.players) || []) m.set(p.id, { name: p.name, total: p.total, payout: p.payout });
+  $("table").innerHTML = m.size ? `<b>🎣 ליד השולחן</b>` + [...m.values()].map((p) => `<span>🟢 ${p.name}${p.total ? ` · ${fmt(p.total)}` : ""}${p.payout ? ` <i>+${fmt(p.payout)}</i>` : ""}</span>`).join("") : ""; }
+presence(); setInterval(presence, 15000);
