@@ -92,7 +92,7 @@ function frame() {
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = "#060c16"; ctx.fillRect(0, 0, cv.width, cv.height);
     view(e); wheelScene(rotAt(e), e, e >= 10 ? S.boosts : null); paintZoneBoosts(e >= 10 ? S.boosts : null);
     if (isBonus && e >= 20.8 && I[S.cat]) {   // the wheel stops; the catch opens in its own window over it
-      pop.hidden = false; document.body.classList.add("catching");
+      if (pop.hidden) try { SFX.splash(); } catch (er) {} pop.hidden = false; document.body.classList.add("catching");
       const p = FishingRender.bonusFrame(pctx, I, Math.max(0, e - 20.8), S.total_mult, S.cat);
       if (p.done && endShown !== S.round) showEnd();
     } else { pop.hidden = true; document.body.classList.remove("catching"); }

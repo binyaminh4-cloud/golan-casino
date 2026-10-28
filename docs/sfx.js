@@ -68,6 +68,54 @@
     get muted() { return muted; },
     setMuted(m) { muted = m; try { localStorage.setItem("gc_mute", m ? "1" : "0"); } catch (e) {} if (master) master.gain.value = m ? 0 : 0.8; },
   };
+  // ---- recorded sounds (ElevenLabs pack in snd/): play the file when it's loaded, otherwise the synth above ----
+  const BUF = {}, LOADING = {};
+  function load(name) { if (BUF[name] || LOADING[name] || !ac()) return; LOADING[name] = fetch("snd/" + name + ".mp3").then((r) => r.ok ? r.arrayBuffer() : Promise.reject())
+    .then((a) => new Promise((ok, no) => ctx.decodeAudioData(a, ok, no))).then((b) => { BUF[name] = b; }).catch(() => {}); }
+  function play(name, { vol = 0.9, dur = null, rate = 1 } = {}) { if (!ac() || muted || !BUF[name]) return false;
+    const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = BUF[name]; src.playbackRate.value = rate; g.gain.value = vol;
+    src.connect(g).connect(master); const T = now(); src.start(T);
+    if (dur) { g.gain.setValueAtTime(vol, T + Math.max(0, dur - 0.4)); g.gain.linearRampToValueAtTime(0.0001, T + dur); src.stop(T + dur + 0.05); }
+    return true; }
+  const SAMPLES = ["chip", "tick", "card_flip", "shuffle", "win_small", "win_medium", "lose", "ball_roll", "ball_drop", "no_more_bets", "notify", "orb_lock", "splash", "reel_spin", "reel_stop", "card_deal", "bonus_trigger", "reel_tension", "error", "whoosh", "button"];
+  addEventListener("pointerdown", () => SAMPLES.forEach(load), { once: true, capture: true });
+  const synth = { ...S };
+  S.chip = () => play("chip", { vol: 0.8 }) || synth.chip();
+  S.tick = (u) => play("tick", { vol: u ? 1 : 0.6, rate: u ? 1.15 : 1 }) || synth.tick(u);
+  S.card = () => play("card_deal", { vol: 0.8 }) || synth.card();
+  S.cardFlip = () => play("card_flip", { vol: 0.8 }) || synth.flip();
+  S.flip = () => play("reel_stop", { vol: 0.55, dur: 0.6 }) || synth.flip();
+  S.bonus = () => play("bonus_trigger", { vol: 0.8 }) || synth.riser(1.2);
+  S.riser = (sec) => play("reel_tension", { vol: 0.6, dur: sec || 2.5 }) || synth.riser(sec);
+  S.error = () => play("error", { vol: 0.6 });
+  S.whoosh = () => play("whoosh", { vol: 0.5 });
+  S.button = () => play("button", { vol: 0.5 });
+  S.win = (big) => play(big ? "win_medium" : "win_small", { vol: big ? 0.8 : 0.7 }) || synth.win(big);
+  S.lose = () => play("lose", { vol: 0.6, dur: 1.6 }) || synth.lose();
+  S.roll = (sec) => play("ball_roll", { vol: 0.7, dur: sec }) || synth.roll(sec);
+  S.ballDrop = () => play("ball_drop", { vol: 0.8, dur: 2.2 }) || synth.pocket();
+  S.gong = () => play("no_more_bets", { vol: 0.7, dur: 2.5 }) || synth.drop();
+  S.notify = () => play("notify", { vol: 0.6 });
+  S.orbLock = () => play("orb_lock", { vol: 0.8, dur: 1.8 }) || synth.zap();
+  S.splash = () => play("splash", { vol: 0.8, dur: 3 }) || synth.drop();
+  S.shuffle = () => play("shuffle", { vol: 0.7 }) || synth.card();
+  S.reelSpin = (sec) => play("reel_spin", { vol: 0.45, dur: sec || 1.5 });
+  // ---- background music per page (its own on/off, remembered; quieter than the effects) ----
+  const PAGE = (location.pathname.split("/").pop() || "index.html") + location.search;
+  const MUSIC = /dragons/.test(PAGE) ? "music_dragons" : /wildwest/.test(PAGE) ? "music_wildwest" : /fisher90/.test(PAGE) ? "music_fisher90" : /kinneret/.test(PAGE) ? "music_kinneret" : /pachinko/.test(PAGE) ? "music_pachinko"
+    : /(roulette|blackjack|poker)/.test(PAGE) ? "music_tables" : /^(index\.html|)$/.test(PAGE.split("?")[0]) ? "music_lobby" : null;
+  let musicOn = true, mSrc = null, mGain = null, mName = null; try { musicOn = localStorage.getItem("gc_music") !== "0"; } catch (e) {}
+  async function startMusic(name) { name = name || MUSIC; if (!name || !musicOn || muted || !ac()) return; if (mName === name && mSrc) return;
+    load(name); await LOADING[name]; if (!BUF[name] || !musicOn || muted) return; stopMusic(); mName = name;
+    mSrc = ctx.createBufferSource(); mGain = ctx.createGain(); mSrc.buffer = BUF[name]; mSrc.loop = true;
+    mGain.gain.setValueAtTime(0.0001, now()); mGain.gain.linearRampToValueAtTime(0.22, now() + 1.5); mSrc.connect(mGain).connect(master); mSrc.start(); }
+  function stopMusic() { if (mSrc) { const s = mSrc, g = mGain; g.gain.linearRampToValueAtTime(0.0001, now() + 0.6); setTimeout(() => { try { s.stop(); } catch (e) {} }, 700); } mSrc = mGain = null; mName = null; }
+  S.music = (name) => startMusic(name);                // a page can switch tracks (e.g. a bonus)
+  S.musicDuck = (on) => { if (mGain) mGain.gain.linearRampToValueAtTime(on ? 0.06 : 0.22, now() + 0.3); };
+  S.setMusic = (on) => { musicOn = on; try { localStorage.setItem("gc_music", on ? "1" : "0"); } catch (e) {} if (on) startMusic(); else stopMusic(); };
+  Object.defineProperty(S, "musicOn", { get: () => musicOn });
+  addEventListener("pointerdown", () => startMusic(), { once: true, capture: true });
+  const baseMute = S.setMuted; S.setMuted = (m) => { baseMute(m); if (m) stopMusic(); else startMusic(); };
   window.SFX = S;
   // mute button in the top bar
   document.addEventListener("DOMContentLoaded", () => {
@@ -75,6 +123,9 @@
     const b = document.createElement("button"); b.className = "sfx-btn"; b.type = "button";
     const draw = () => { b.textContent = muted ? "🔇" : "🔊"; b.setAttribute("aria-label", muted ? "הפעל צלילים" : "השתק צלילים"); };
     b.onclick = () => { S.setMuted(!muted); draw(); if (!muted) S.chip(); }; draw(); bar.appendChild(b);
+    if (MUSIC) { const m = document.createElement("button"); m.className = "sfx-btn"; m.type = "button";
+      const dm = () => { m.textContent = musicOn ? "🎵" : "🎵̸"; m.style.opacity = musicOn ? 1 : .45; m.setAttribute("aria-label", musicOn ? "כבה מוזיקה" : "הפעל מוזיקה"); };
+      m.onclick = () => { S.setMusic(!musicOn); dm(); }; dm(); bar.appendChild(m); }
     const st = document.createElement("style"); st.textContent = ".sfx-btn{background:rgba(23,18,15,.9);border:1px solid #80602E;border-radius:99px;width:40px;height:40px;font-size:18px;cursor:pointer;flex:none}"; document.head.appendChild(st);
   });
 })();

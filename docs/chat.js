@@ -61,7 +61,8 @@
   function add(list) {
     const seen = +(localStorage.getItem(seenKey) || 0);
     for (const m of list) {
-      if (m.id <= last) continue; last = m.id;
+      if (m.id <= last) continue; const fresh = last > 0 && m.uid !== me; last = m.id;
+      if (fresh) try { SFX.notify(); } catch (e) {}
       const d = document.createElement("div");
       d.className = "m" + (m.kind === "sys" ? " sys" : m.uid === me ? " mine" : "") + (QUICK.includes(m.body) ? " qk" : "");
       const at = m.at ? new Date(m.at) : null, today = at && at.toDateString() === new Date().toDateString();

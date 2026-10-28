@@ -97,7 +97,7 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(14px) bright
   <p>כדור יכול להיות סכום או ג׳קפוט: MINI, MINOR, MAJOR. ממלאים את כל 15 המשבצות? <b>GRAND</b> פי 1,000.</p>
   <button id="go">כניסה לארמון 🐉</button><button class="back" onclick="location.href='./'">חזרה ללובי</button>
 </div></div></div>
-<script src="sfx.js?v=11"></script>
+<script src="sfx.js?v=12"></script>
 <script src="vendor/dg_engine.js?v=1"></script>
 <script>
 "use strict";
@@ -129,7 +129,7 @@ const S = (k, a) => { if (!sound) return; try { SFX[k](a); } catch (e) {} };
 async function spinTo(g, o, mask) {
   cols.forEach((col, c) => { if (!mask || mask[c].some((x) => !x)) { col.classList.add("spin"); col.classList.remove("stop"); } });
   const t = setInterval(() => { cols.forEach((col, c) => { if (col.classList.contains("spin")) for (let r = 0; r < 3; r++) if (!mask || !mask[c][r]) setCell(c, r, SYMS[Math.floor(Math.random() * SYMS.length)]); }); }, 90);
-  await sleep(auto ? 450 : 700);
+  S("reelSpin", auto ? 1.2 : 1.6); await sleep(auto ? 450 : 700);
   for (let c = 0; c < 5; c++) { if (!cols[c].classList.contains("spin")) continue; await sleep(auto ? 110 : 180);
     cols[c].classList.remove("spin"); for (let r = 0; r < 3; r++) if (!mask || !mask[c][r]) setCell(c, r, g[c][r], o[c][r]);
     void cols[c].offsetWidth; cols[c].classList.add("stop"); S("flip"); }
@@ -148,7 +148,7 @@ async function replay(seed, buy) {
     } else if (st.t === "hw_start") {
       // slow-motion entry: the orbs that triggered it glow, then the Hold & Win explanation
       for (let c = 0; c < 5; c++) for (let r = 0; r < 3; r++) if (st.held[c][r] !== null) cells[c][r].classList.add("lock", "new");
-      S("zap"); toast("🔥 החזק וזכה!<small>הכדורים ננעלים · 3 סיבובים</small>", 2400, true); await sleep(2600);
+      S("bonus"); try { SFX.music("music_dragons_bonus"); } catch (e) {} toast("🔥 החזק וזכה!<small>הכדורים ננעלים · 3 סיבובים</small>", 2400, true); await sleep(2600);
       await GC_BONUS_INTRO("🔥 החזק וזכה", ["כדורי האש שנחתו ננעלים במקום.", "יש 3 סיבובים. כל כדור חדש שנוחת מחזיר את הספירה ל־3.", "בסוף מקבלים את סכום כל הכדורים. ממלאים את כל 15 המשבצות? GRAND!"], "img/dg/orb.webp", auto ? "יאללה 🔥" : undefined);
       held = st.held.map((c) => c.slice()); $("title").classList.add("hw");
       for (let c = 0; c < 5; c++) for (let r = 0; r < 3; r++) if (held[c][r] === null) { cells[c][r].classList.add("dim"); }
@@ -160,7 +160,7 @@ async function replay(seed, buy) {
       await spinTo(g, o, mask);
       for (let c = 0; c < 5; c++) for (let r = 0; r < 3; r++) if (held[c][r] === null && !st.fresh.some(([a, b]) => a === c && b === r)) { cells[c][r].firstChild.style.visibility = "hidden"; }
       for (const [c, r, v] of st.fresh) { held[c][r] = v; const d = cells[c][r]; d.firstChild.style.visibility = ""; d.classList.remove("dim"); d.classList.add("lock", "new"); }
-      if (st.fresh.length) { S("win", false); toast(`🔥 +${st.fresh.length} כדור${st.fresh.length > 1 ? "ים" : ""}! חזרה ל־3`, 1300); }
+      if (st.fresh.length) { S("orbLock"); toast(`🔥 +${st.fresh.length} כדור${st.fresh.length > 1 ? "ים" : ""}! חזרה ל־3`, 1300); }
       hwTitle(st.left, st.count); await sleep(st.fresh.length ? 1500 : 900);
     } else if (st.t === "hw_end") {
       // collect the orbs one by one into the win box
@@ -171,7 +171,7 @@ async function replay(seed, buy) {
       if (st.grand) { $("jpG").classList.add("hit"); toast(`🐉 GRAND!!! ${fmt(JP.GRAND * bet)}`, 3500, true); await sleep(3500); $("jpG").classList.remove("hit"); }
       won += st.sum; $("winV").textContent = fmt(won * bet);
       toast(`🔥 סוף החזק וזכה<small>${fmt(st.sum * bet)}</small>`, 2200, true); await sleep(2400);
-      held = null; $("title").classList.remove("hw"); $("title").innerHTML = "<h1>דרקוני הגולן</h1><b>LINK</b>";
+      held = null; try { SFX.music("music_dragons"); } catch (e) {} $("title").classList.remove("hw"); $("title").innerHTML = "<h1>דרקוני הגולן</h1><b>LINK</b>";
       cells.flat().forEach((d) => { d.classList.remove("dim", "lock", "new"); d.firstChild.style.visibility = ""; });
     }
   }
@@ -188,7 +188,8 @@ function lock(v) { busy = v; $("bSpin").disabled = v && !auto; drawBet(); $("bIn
 $("bMinus").onclick = () => { const ok = GC_LADDER(25, balance), i = ok.indexOf(bet); if (!busy && i > 0) { bet = ok[i - 1]; drawBet(); S("chip"); } };
 $("bPlus").onclick = () => { const ok = GC_LADDER(25, balance), i = ok.indexOf(bet); if (!busy && i < ok.length - 1) { bet = ok[i + 1]; drawBet(); S("chip"); } };
 $("bMax").onclick = () => { if (busy) return; const ok = GC_LADDER(25, balance); bet = ok[ok.length - 1]; drawBet(); S("chip"); };
-$("bSound").onclick = () => { sound = !sound; $("bSound").style.opacity = sound ? 1 : .45; };
+$("bSound").onclick = () => { sound = !sound; try { SFX.setMuted(!sound); } catch (e) {} $("bSound").style.opacity = sound ? 1 : .45; };
+try { sound = !SFX.muted; $("bSound").style.opacity = sound ? 1 : .45; } catch (e) {}
 const errText = (e) => { const m = (e && e.message) || ""; return m.includes("insufficient") ? "אין מספיק שקלים." : m.includes("invalid_amount") ? "הסכום מעל המקסימום שלך." : "משהו השתבש."; };
 async function spinOnce() {
   lock(true); $("err").textContent = ""; $("winV").textContent = "₪0";
@@ -231,6 +232,6 @@ buyBtn.onclick = async () => {
   $("enter").hidden = false; $("go").onclick = () => { $("enter").hidden = true; S("chip"); };
 })();
 </script>
-<script src="chat.js?v=11"></script>
+<script src="chat.js?v=12"></script>
 </body>
 </html>
