@@ -16,15 +16,21 @@ body{position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,#13314
 .top h1{margin:0;font:900 18px Heebo;white-space:nowrap}.top h1 span{color:#8cc4ff}
 .score{margin-inline-start:auto;display:flex;gap:12px;align-items:center;padding:3px 14px;background:#0c1b30;border:1px solid var(--line);border-radius:10px;direction:ltr;font:800 16px Inter}.score span{color:#8cc4ff}
 #sound{background:#0c1b30;border:1px solid var(--line);color:#cfe2ff;border-radius:99px;padding:4px 12px;font:700 12px Heebo}
-.play{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:10px;padding:8px max(10px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));min-height:0}
-.field{position:relative;align-self:center;justify-self:center;width:100%;max-height:100%;aspect-ratio:16/9;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#183b2c}
-.field canvas{width:100%;height:100%;display:block}
+.play{position:relative;display:grid;grid-template-columns:1fr;gap:0;padding:8px max(10px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));min-height:0}
+.field{position:relative;align-self:center;justify-self:center;width:100%;height:100%;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#183b2c}
+.field canvas{width:100%;height:100%;display:block;object-fit:cover}
 .stage{position:absolute;top:10px;right:10px;background:#0c1b30d9;padding:6px 12px;border-radius:9px;display:grid;gap:2px}.stage span{font-size:11px;color:#a8c1dd}.stage b{font-size:16px}
 .progress{position:absolute;bottom:10px;right:14px;display:flex;gap:6px}.progress i{display:block;width:24px;height:5px;border-radius:4px;background:#ffffff40}.progress i.done{background:#9bdbb6}.progress i.current{background:#62b3ff}
 #loading{position:absolute;inset:0;display:grid;place-content:center;background:#0b1421e8}
 #result{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);padding:14px 30px;text-align:center;background:#102337f0;border:2px solid #748ba0;border-radius:16px;box-shadow:0 12px 60px #0009;display:grid;gap:4px}
 #result b{font:900 26px Heebo}#result.win{border-color:#9bdbb6}#result.win b{color:#9bdbb6}#result.loss b{color:#ff8a8a}
-.panel{display:flex;flex-direction:column;gap:8px;min-height:0;overflow:auto}
+.panel{position:absolute;inset:auto 0 max(8px,env(safe-area-inset-bottom)) 0;margin:auto;width:min(560px,94%);display:grid;grid-template-columns:1fr 1fr;gap:8px;z-index:3}
+.panel>*{grid-column:span 2}.panel #actions{grid-column:span 2;grid-template-columns:1fr 1fr}
+.bank{position:fixed;top:52px;left:max(10px,env(safe-area-inset-left));z-index:4;grid-column:auto!important;width:auto}
+#message{display:none}
+.flash{position:absolute;left:50%;top:22%;transform:translateX(-50%);z-index:5;padding:10px 24px;border-radius:99px;font:900 22px Heebo;white-space:nowrap;animation:fl .3s ease-out}
+.flash.ok{background:#0f3d27f0;border:2px solid #9bdbb6;color:#c9f5d8}.flash.bad{background:#3d0f12f0;border:2px solid #ff8a8a;color:#ffd0d0}
+@keyframes fl{from{transform:translateX(-50%) scale(.6);opacity:0}}
 .card{background:#0c1b30e6;border:1px solid var(--line);border-radius:12px;padding:8px 12px}
 .bank{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:baseline}.bank small{color:#a9b9cc;font-size:12px}.bank b{font:800 17px Inter;direction:ltr;text-align:left}
 #pot{font:900 24px Inter;color:#ffe27a;direction:ltr;text-align:left}
@@ -39,7 +45,7 @@ body{position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,#13314
 #message{margin:0;font-size:12px;color:#a9b9cc;text-align:center}
 #review{display:none}
 [hidden]{display:none!important}
-@media (max-height:420px){.play{grid-template-columns:minmax(0,1fr) 260px;gap:8px}.card{padding:6px 10px}#actions .odds{display:none}#actions button{padding:6px 10px}#start,.cash{height:40px}.score{display:none}}
+@media (max-height:420px){.card{padding:6px 10px}#actions .odds{display:none}#actions button{padding:6px 10px}#start,.cash{height:40px}.score{display:none}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
@@ -64,13 +70,13 @@ body{position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,#13314
 <div id="review"></div>
 <script src="sfx.js?v=10"></script>
 <script src="vendor/f90_engine.js?v=1"></script>
-<script src="f90.js?v=2"></script>
+<script src="f90.js?v=3"></script>
 <script>
 // bet in fixed jumps; the intro explains the game once per visit (skippable)
 GC_STEPPER(document.getElementById("stepper"), document.getElementById("stake"), { start: 100 });
 setTimeout(() => { if (window.GC_BONUS_INTRO) {
   GC_BONUS_INTRO("⚽ פישר בדקה ה־90", ["1:1 בדקה ה־90, והכדור אצל פישר. יש לך עד חמש החלטות עד השער.", "בכל שלב בוחרים: מהלך בטוח יותר עם רווח קטן, או מסוכן יותר עם רווח גדול. על כל כפתור כתוב כמה תקבל והסיכוי.", "מהלך שנכשל מאבד את הקופה. אחרי כל הצלחה אפשר ללחוץ ״קח וצא״ ולקחת את הקופה.", "בעיטה (מרחוק או מול השוער) מסיימת את ההתקפה."], "", "הבנתי, למגרש ⚽"); } }, 900);
 </script>
-<script src="chat.js?v=9"></script>
+<script src="chat.js?v=10"></script>
 </body>
 </html>

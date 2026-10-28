@@ -115,7 +115,17 @@
   const POSK = "gc_chat_pos_" + (IN_GAME ? "game" : "lobby");
   const putAt = (x, y) => { x = Math.max(4, Math.min(innerWidth - btn.offsetWidth - 4, x)); y = Math.max(4, Math.min(innerHeight - btn.offsetHeight - 4, y));
     Object.assign(btn.style, { left: x + "px", top: y + "px", bottom: "auto", right: "auto" }); return [x, y]; };
-  try { const pp = JSON.parse(localStorage.getItem(POSK) || "null"); if (pp) requestAnimationFrame(() => putAt(pp[0], pp[1])); } catch (e) {}
+  let saved = null; try { saved = JSON.parse(localStorage.getItem(POSK) || "null"); if (saved) requestAnimationFrame(() => putAt(saved[0], saved[1])); } catch (e) {}
+  // no saved spot: look for a place on this screen that covers no button, chip, card or seat
+  function freeSpot() {
+    if (saved) return; const s = btn.offsetWidth || 40, W = innerWidth, H = innerHeight;
+    const busy = (x, y) => { const el = document.elementFromPoint(x, y); if (!el || el === btn || btn.contains(el)) return false;
+      return !!el.closest("button,a,input,select,label,[role=button],.chip,.spot,.cell,.zone,.sitter,.char,.hero,.card,.panel,#actions,.bets,.ctl,.gc-limit,.bal,.top b,.lb li,.game,canvas#pitch,.board,.grid,.field"); };
+    const C = [[W * .3, 4], [W * .45, 4], [W * .6, 4], [6, H * .5], [W - s - 6, H * .5], [6, H - s - 6], [W - s - 6, H - s - 6], [6, 60], [W - s - 6, 60], [W * .3, H - s - 6]];
+    for (const [x, y] of C) { const pts = [[x + 2, y + 2], [x + s - 2, y + 2], [x + 2, y + s - 2], [x + s - 2, y + s - 2], [x + s / 2, y + s / 2]];
+      if (!pts.some(([a, b]) => busy(a, b))) { putAt(x, y); return; } }
+  }
+  setTimeout(freeSpot, 2500); addEventListener("orientationchange", () => setTimeout(freeSpot, 800));
   btn.addEventListener("pointerdown", (e) => { const r = btn.getBoundingClientRect(); drag = { dx: e.clientX - r.left, dy: e.clientY - r.top, x0: e.clientX, y0: e.clientY }; moved = false; btn.setPointerCapture(e.pointerId); });
   btn.addEventListener("pointermove", (e) => { if (!drag) return; if (Math.abs(e.clientX - drag.x0) + Math.abs(e.clientY - drag.y0) > 8) moved = true;
     if (moved) { const p2 = putAt(e.clientX - drag.dx, e.clientY - drag.dy); try { localStorage.setItem(POSK, JSON.stringify(p2)); } catch (er) {} } });
