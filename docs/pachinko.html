@@ -22,6 +22,17 @@ button[aria-pressed="true"]{background:#a78a53;color:#0d1b18}#spin{background:li
 button:disabled{opacity:.5}
 .wrap{flex:1;min-height:0;display:grid;place-items:center;overflow:hidden}canvas{display:block;border-radius:10px}
 #err{color:#E89A9F;font-size:12px}
+
+/* full-screen machine: the game takes the whole height, controls live in the side margins */
+body{display:block!important}
+.top{position:fixed;top:0;bottom:0;left:0;z-index:3;width:max(86px,calc(78px + env(safe-area-inset-left)));flex-direction:column;justify-content:flex-start;gap:8px;padding:8px 6px 8px max(6px,env(safe-area-inset-left))!important;background:linear-gradient(90deg,#081310f0,#08131000);border:0!important}
+.top a{padding:4px 8px!important;font-size:12px}.top .bal{display:grid;text-align:center;font-size:10px;gap:1px}.top .bal b{font-size:13px!important}
+#err{position:fixed;top:6px;left:50%;transform:translateX(-50%);z-index:4;background:#081310e6;border-radius:99px;padding:0 10px}
+.wrap{position:fixed;inset:0;display:grid;place-items:center}
+.bottom{position:fixed;top:0;bottom:0;right:0;z-index:3;width:max(96px,calc(88px + env(safe-area-inset-right)));flex-direction:column;justify-content:center;gap:10px;padding:8px max(6px,env(safe-area-inset-right)) 8px 6px!important;background:linear-gradient(270deg,#081310f0,#08131000);border:0!important}
+#bets{display:grid;justify-items:center;gap:3px}#bets button{width:44px;height:30px;padding:0;font-size:14px}#bets b{font:800 14px Inter;color:#ffe2a2}#bets small{font-size:10px;color:#b9bdad;margin-top:-3px}
+#spin{min-width:0!important;width:80px;height:80px;border-radius:50%!important;font-size:18px!important}
+#buy{padding:5px 6px;font-size:12px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
@@ -43,9 +54,11 @@ const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e9 ? "�
 const clock = () => performance.now() / 1000;
 const BETS = [10, 50, 100, 500, 1000, 5000, 25000];
 let bet = 100, balance = 0, busy = false, state = null, renderer = null, after = null;
-function drawBets() { const ok = BETS.filter((v, i) => i < 4 || v * 20 <= balance).slice(-5); if (!ok.includes(bet)) bet = ok[0];
-  $("bets").innerHTML = ok.map((v) => `<button data-v="${v}" aria-pressed="${v === bet}">${fmt(v)}</button>`).join(""); }
-$("bets").onclick = (e) => { const b = e.target.closest("button"); if (!b || busy) return; bet = +b.dataset.v; drawBets(); if (state && state.mode === "slot") state.betLabel = "הימור " + fmt(bet); };
+// bet: one small ▲ value ▼ control instead of a row of buttons
+function drawBets() { const ok = BETS.filter((v, i) => i < 4 || v * 20 <= balance); if (!ok.includes(bet)) bet = ok[0];
+  $("bets").innerHTML = `<button data-d="1" ${ok.indexOf(bet) >= ok.length - 1 ? "disabled" : ""}>▲</button><b>${fmt(bet)}</b><small>הימור</small><button data-d="-1" ${ok.indexOf(bet) <= 0 ? "disabled" : ""}>▼</button>`; $("bets").dataset.ok = ok.join(","); }
+$("bets").onclick = (e) => { const b = e.target.closest("button"); if (!b || busy) return; const ok = $("bets").dataset.ok.split(",").map(Number), i = ok.indexOf(bet) + +b.dataset.d;
+  if (i < 0 || i >= ok.length) return; bet = ok[i]; drawBets(); try { SFX.chip(); } catch (er) {} if (state && state.mode === "slot") state.betLabel = "הימור " + fmt(bet); };
 function showBal(v) { balance = +v; $("bal").textContent = fmt(v); drawBets(); }
 const badgesOf = (b) => Object.fromEntries(Object.entries(b || {}).map(([k, v]) => [+k, v]));
 $("spin").onclick = async () => {
@@ -99,7 +112,7 @@ const load = (src) => new Promise((ok, no) => { const im = new Image(); im.onloa
   const art = prepareArt(images, manifest, (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; });
   renderer = new Renderer($("game"), art);
   state = { mode: "slot", grid: [0, 1, 2, 3, 4, 6, 5, 2, 4, 1, 3, 2, 0, 5, 1], badges: {}, spinning: false, betLabel: "הימור " + fmt(bet), msg: "לחץ סובב" };
-  const fit = () => { const w = $("game").parentElement, s = Math.min(w.clientWidth / 1600, w.clientHeight / 900); $("game").style.width = 1600 * s + "px"; $("game").style.height = 900 * s + "px"; };
+  const fit = () => { const w = $("game").parentElement, s = Math.min((w.clientWidth - 2 * 70) / 1600, w.clientHeight / 900); $("game").style.width = 1600 * s + "px"; $("game").style.height = 900 * s + "px"; };
   addEventListener("resize", fit); fit(); setTimeout(fit, 400); try { new ResizeObserver(fit).observe($("game").parentElement); } catch (e) {}
   const frame = () => { renderer.frame(state, clock()); requestAnimationFrame(frame); }; requestAnimationFrame(frame);
   const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
