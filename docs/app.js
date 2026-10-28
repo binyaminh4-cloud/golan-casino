@@ -207,6 +207,10 @@ async function applyPublic() {
   try {
     const { data } = await db.rpc("gc_public"); if (!data) return;
     document.querySelector(".chbanner").hidden = !data.challenges;
+    // the owner opened every "coming soon" game for everyone
+    try { if (data.soon_open) localStorage.setItem("gc_open", "1"); else localStorage.removeItem("gc_open"); } catch (er) {}
+    if (data.soon_open) document.querySelectorAll(".game[data-soon]").forEach((g) => { g.removeAttribute("data-soon"); g.classList.remove("soon"); const t = g.querySelector(".tag"); if (t && /בקרוב/.test(t.textContent)) t.textContent = "חדש ✨"; });
+    document.querySelectorAll(".cat.soon").forEach((c) => { if (document.querySelector(`.games .game[data-cat="${c.dataset.c}"]:not(.soon)`)) c.classList.remove("soon"); });
     const map = { "blackjack.html": "blackjack", "blackjack.html?table=1": "blackjack", "blackjack.html?mode=lightning": "lightning_bj", "roulette.html": "roulette", "roulette.html?mode=lightning": "lightning",
       "roulette.html?mode=xxx": "xxx", "slots.html": "slots", "slots.html?m=fortune": "fortune", "poker.html": "poker", "jobs.html": "jobs" };
     document.querySelectorAll(".games .game[href]").forEach((g) => { const k = map[g.getAttribute("href")]; if (k && data.games && data.games[k] === false) g.remove(); });

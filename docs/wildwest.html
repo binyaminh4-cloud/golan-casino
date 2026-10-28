@@ -77,7 +77,7 @@ main{height:100dvh;padding-top:4px!important}
 "use strict";
 // Golan Casino wiring: the server picks a pre-played round (ww_spin → seed + total); the page replays it with the same engine.
 const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
-try { if (localStorage.getItem("gc_dev") !== "1") location.href = "./"; } catch (e) {}
+try { if (localStorage.getItem("gc_dev") !== "1" && localStorage.getItem("gc_open") !== "1") location.href = "./"; } catch (e) {}
 const $ = (id) => document.getElementById(id), E = WWEngine;
 const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
 const BETS = [10, 50, 100, 500, 1000, 5000, 25000]; let bet = 100, balance = 0, busy = false, FAST = false;

@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id), R=FisherRules, img=src=>{const i=new Image();i.src=src;return i;};
 const fmt=n=>{n=Number(n);const a=Math.abs(n);return a>=1e9?'₪'+ +(n/1e9).toFixed(2)+'B':a>=1e6?'₪'+ +(n/1e6).toFixed(2)+'M':'₪'+n.toLocaleString('en-US');};
 const db=supabase.createClient(GC_CONFIG.supabaseUrl,GC_CONFIG.supabaseKey);
-try{if(localStorage.getItem('gc_dev')!=='1')location.href='./';}catch(e){}
+try{if(localStorage.getItem('gc_dev')!=='1'&&localStorage.getItem('gc_open')!=='1')location.href='./';}catch(e){}
 // a thin mirror of the server run, shaped like the kit's Game so the drawing code stays as it was
 const game={balance:0,status:'idle',stage:0,ratio:[1,1],stake:0,paid:0,id:null,
  get pot(){return this.status==='lost'?0:R.amount(this.stake,this.ratio);},get canCash(){return this.status==='active'&&this.stage>0;},

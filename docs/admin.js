@@ -9,13 +9,14 @@ let SET = null;
 function say(id, t, bad) { const m = $(id); m.className = bad ? "msg err" : "msg"; m.textContent = t; }
 async function set(key, value) { const { data, error } = await db.rpc("admin_set", { p_key: key, p_value: value }); if (!error) { SET = data; drawSettings(); } return !error; }
 function drawSettings() {
-  $("chOn").checked = SET.challenges === true;
+  $("chOn").checked = SET.challenges === true; $("soonOn").checked = SET.soon_open === true;
   $("chInfo").textContent = SET.challenges ? (SET.season ? `עונה ${SET.season.no} רצה, עד ${new Date(SET.season.ends_at).toLocaleDateString("he-IL")}.` : "העונה תיפתח ברגע שמישהו ייכנס לאתגרים.") : "האתגרים בהשהיה: החברים לא רואים אותם בלובי.";
   $("games").innerHTML = GAMES.map(([k, n]) => `<div class="sw"><span>${n}</span><label class="tog"><input type="checkbox" data-g="${k}" ${SET.games[k] !== false ? "checked" : ""}><i></i></label></div>`).join("");
   $("games").querySelectorAll("input").forEach((i) => i.onchange = () => set("games", { [i.dataset.g]: i.checked }));
   $("salW").value = SET.salary_weekly; $("salM").value = SET.salary_monthly; $("startBal").value = SET.starting_balance;
 }
 $("chOn").onchange = async () => { await set("challenges", $("chOn").checked); };
+$("soonOn").onchange = async () => { if ($("soonOn").checked && !confirm("לפתוח את כל משחקי ה״בקרוב״ לכל החברים?")) { $("soonOn").checked = false; return; } await set("soon_open", $("soonOn").checked); };
 $("seasonRestart").onclick = async () => {
   if (!confirm("לסגור את העונה הנוכחית בלי פרסים ולהתחיל עונה חדשה מאפס?")) return;
   const { data, error } = await db.rpc("admin_season_restart");

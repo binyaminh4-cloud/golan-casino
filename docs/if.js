@@ -11,7 +11,7 @@ const ICON = { dark: "dark", light: "light", blue: "blue_i", orange: "orange_i",
 const CATNAME = { dark: "דג כהה", light: "דג בהיר", blue: "דג כחול", orange: "דג כתום", red: "דג אדום" };
 
 // coming soon: only the owner's test code opens the room
-try { if (!PREVIEW && localStorage.getItem("gc_dev") !== "1") location.href = "./"; } catch (e) {}
+try { if (!PREVIEW && localStorage.getItem("gc_dev") !== "1" && localStorage.getItem("gc_open") !== "1") location.href = "./"; } catch (e) {}
 
 // ---------- art ----------
 const I = {}; const NAMES = ["bg", "main", "upper", "lower", "body", "head", "strain", "ul", "fl", "ur", "fr", "grip", "reel", "box", "lantern", "hole", "front", "splash", "ripple", "blue", "orange", "red", "dark", "light", "blue_i", "orange_i", "red_i", "rim", "hub", "pointer", "stand", "plaque"];

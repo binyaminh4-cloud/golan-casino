@@ -446,7 +446,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 // Same server numbers and multipliers; only the presentation changes.
 const FISH = /[?&]skin=fish/.test(location.search);
 let fishOv = null;
-if (FISH) { try { if (localStorage.getItem("gc_dev") !== "1") location.href = "./"; } catch (e) {} document.body.classList.add("fishskin"); }
+if (FISH) { try { if (localStorage.getItem("gc_dev") !== "1" && localStorage.getItem("gc_open") !== "1") location.href = "./"; } catch (e) {} document.body.classList.add("fishskin"); }
 async function fishStrike(lucky, ms) {
   LUCKY = lucky; const keys = Object.keys(lucky);
   if (!fishOv) { const c = document.createElement("canvas"); c.className = "fishov"; c.hidden = true; document.body.appendChild(c); fishOv = new IdoFishingOverlay(c, { assetBase: "img/rlfish/" }); }
