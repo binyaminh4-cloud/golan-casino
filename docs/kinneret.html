@@ -80,7 +80,7 @@ main{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;padding:4p
     <div id="err"></div>
   </div></div>
 </main>
-<script src="sfx.js?v=10"></script>
+<script src="sfx.js?v=11"></script>
 <script src="vendor/kin_engine.js?v=1"></script>
 <script>
 "use strict";
@@ -99,7 +99,7 @@ function paint(b, m, fresh) { b.forEach((s, i) => { const c = cells[i], im = c.f
   c.classList.remove("gone", "win", "fx"); }); if (m) paintM(m); }
 function paintM(m) { m.forEach((v, i) => { cells[i].classList.toggle("heat", v === 1); cells[i].classList.toggle("mult", v >= 2); cells[i].lastChild.textContent = v >= 2 ? "×" + v : ""; }); }
 function friends(meter, next) { $("friends").innerHTML = K.CFG.order.map((f, i) => `<div class="fr${i === next ? " next" : ""}"><img src="img/kin/${f}.webp" alt=""><span>${NAMES[f]}</span>${i === next ? `<span class="dots">${[0, 1, 2].map((k) => `<i class="${k < meter ? "on" : ""}"></i>`).join("")}</span>` : ""}</div>`).join(""); }
-function drawBets() { const ok = BETS.filter((v, i) => i < 4 || v * 20 <= balance); if (!ok.includes(bet)) bet = ok[0]; $("bets").dataset.ok = ok.join(",");
+function drawBets() { const ok = GC_LADDER(5, balance); if (!ok.includes(bet)) bet = ok[0]; $("bets").dataset.ok = ok.join(",");
   $("bets").innerHTML = `<button data-d="-1">▶</button><b>${fmt(bet)}</b><button data-d="1">◀</button>`; }
 $("bets").onclick = (e) => { const b = e.target.closest("button"); if (!b || busy) return; const ok = $("bets").dataset.ok.split(",").map(Number), i = ok.indexOf(bet) + +b.dataset.d;
   if (i >= 0 && i < ok.length) { bet = ok[i]; drawBets(); } };

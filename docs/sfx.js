@@ -189,3 +189,10 @@ window.GC_STEPPER = function (host, input, opts = {}) {
   dn.onclick = () => { if (i > 0) { i--; draw(); try { SFX.chip(); } catch (e) {} } }; up.onclick = () => { if (STEPS[i + 1] <= max()) { i++; draw(); try { SFX.chip(); } catch (e) {} } };
   draw(); return { refresh: draw, set disabled(v) { dn.disabled = up.disabled = v; if (!v) draw(); } };
 };
+// the same stepped bet limit the server enforces (gc_max_bet): <₪500K → ₪50K, ₪500K → ₪100K, ₪1M → ₪200K, ₪2.5M → ₪500K ...
+window.GC_MAXBET = function (bal) { bal = Number(bal) || 0; if (bal < 500000) return 50000; let v = 500000, k = 0;
+  for (;;) { const nx = v * (k % 3 === 1 ? 2.5 : 2); if (nx > bal) break; v = nx; k++; } return Math.floor(v / 5); };
+// bet ladder for a machine: 1-2.5-5 steps from the machine's minimum up to the player's limit (the limit itself is the last step)
+window.GC_LADDER = function (min, bal) { const max = GC_MAXBET(bal), out = []; let p = 1;
+  for (; p <= max * 10; p *= 10) for (const m of [1, 2.5, 5]) { const v = m * p; if (v >= min && v <= max && Number.isInteger(v)) out.push(v); }
+  if (out[out.length - 1] !== max) out.push(max); return out; };

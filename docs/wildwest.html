@@ -71,7 +71,7 @@ main{height:100dvh;padding-top:4px!important}
   </div>
   <img class="hero" id="bin" src="img/ww/binyamin_idle.webp" alt="בנימין">
 </main>
-<script src="sfx.js?v=10"></script>
+<script src="sfx.js?v=11"></script>
 <script src="vendor/ww_engine.js?v=1"></script>
 <script>
 "use strict";
@@ -126,7 +126,7 @@ async function replay(seed, stake, buy) {
   }
   return r;
 }
-function drawBets() { const ok = BETS.filter((v, i) => i < 4 || v * 20 <= balance); if (!ok.includes(bet)) bet = ok[0]; $("bets").dataset.ok = ok.join(",");
+function drawBets() { const ok = GC_LADDER(10, balance); if (!ok.includes(bet)) bet = ok[0]; $("bets").dataset.ok = ok.join(",");
   $("bets").innerHTML = `<button data-d="-1">▶</button><b>${fmt(bet)}</b><button data-d="1">◀</button>`; }
 $("bets").onclick = (e) => { const b = e.target.closest("button"); if (!b || busy) return; const ok = $("bets").dataset.ok.split(",").map(Number), i = ok.indexOf(bet) + +b.dataset.d;
   if (i >= 0 && i < ok.length) { bet = ok[i]; drawBets(); } };

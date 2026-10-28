@@ -42,7 +42,7 @@ body{display:block!important}
 <header class="top"><a href="./">→ ללובי</a><span class="bal">הארנק שלי <b id="bal">…</b></span><span id="err"></span></header>
 <div class="wrap"><canvas id="game" width="1600" height="900" aria-label="מכונת השירותים והפצ׳ינקו"></canvas></div>
 <footer class="bottom"><div class="ctl" id="bets"></div><button id="buy" title="קניית בונוס">🛒 בונוס</button><button id="spin">סובב</button></footer>
-<script src="sfx.js?v=10"></script>
+<script src="sfx.js?v=11"></script>
 <script type="module">
 import { scoreDrops } from "./vendor/pc_rules.mjs?v=1";
 import { Renderer, prepareArt } from "./vendor/pc_renderer.mjs?v=4";
@@ -55,7 +55,7 @@ const clock = () => performance.now() / 1000;
 const BETS = [10, 50, 100, 500, 1000, 5000, 25000];
 let bet = 100, balance = 0, busy = false, state = null, renderer = null, after = null;
 // bet: one small ▲ value ▼ control instead of a row of buttons
-function drawBets() { const ok = BETS.filter((v, i) => i < 4 || v * 20 <= balance); if (!ok.includes(bet)) bet = ok[0];
+function drawBets() { const ok = GC_LADDER(10, balance); if (!ok.includes(bet)) bet = ok[0];
   $("bets").innerHTML = `<button data-d="1" ${ok.indexOf(bet) >= ok.length - 1 ? "disabled" : ""}>▲</button><b>${fmt(bet)}</b><small>הימור</small><button data-d="-1" ${ok.indexOf(bet) <= 0 ? "disabled" : ""}>▼</button>`; $("bets").dataset.ok = ok.join(","); }
 $("bets").onclick = (e) => { const b = e.target.closest("button"); if (!b || busy) return; const ok = $("bets").dataset.ok.split(",").map(Number), i = ok.indexOf(bet) + +b.dataset.d;
   if (i < 0 || i >= ok.length) return; bet = ok[i]; drawBets(); try { SFX.chip(); } catch (er) {} if (state && state.mode === "slot") state.betLabel = "הימור " + fmt(bet); };
