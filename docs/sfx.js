@@ -118,3 +118,22 @@ window.GC_LIMIT = function (total, max, bal, fmt) {
   t.innerHTML = `סה״כ הימור <b>${fmt(total)}</b><i>·</i>מקס׳ להימור <b>${fmt(max)}</b>`;
   t.dataset.why = `היתרה שלך ${fmt(bal)}, ולכן ההימור המקסימלי כרגע הוא ${fmt(max)}. כשהיתרה עולה, המקסימום עולה במדרגות.`;
 };
+// Entering a bonus: a screen that explains it, and the bonus starts only after the player taps "יאללה".
+window.GC_BONUS_INTRO = function (title, lines, img) {
+  if (!document.getElementById("gcBiCss")) { const c = document.createElement("style"); c.id = "gcBiCss";
+    c.textContent = `.gc-bi{position:fixed;inset:0;z-index:9550;display:grid;place-items:center;background:rgba(0,0,0,.85);direction:rtl;animation:gcbiF .25s}
+.gc-bi .box{width:min(520px,92vw);max-height:92dvh;overflow:auto;background:radial-gradient(ellipse at 50% 0%,#3a2a10,#120c08);border:2px solid #F1D69A;border-radius:18px;padding:16px 18px;text-align:center;box-shadow:0 0 50px rgba(255,214,110,.45);animation:gcbiP .35s cubic-bezier(.2,1.5,.4,1)}
+.gc-bi img{max-height:26dvh;max-width:70%;object-fit:contain;margin-bottom:6px}
+.gc-bi h2{margin:0 0 8px;font:900 clamp(22px,5vmin,34px) Heebo,sans-serif;color:#ffe27a;text-shadow:0 0 14px rgba(255,200,80,.7)}
+.gc-bi ul{margin:0 0 12px;padding:0;list-style:none;display:grid;gap:6px;text-align:right}.gc-bi li{font:500 15px Heebo,sans-serif;color:#F5ECDD;background:rgba(255,255,255,.05);border-radius:10px;padding:6px 10px}
+.gc-bi button{width:100%;height:50px;border:0;border-radius:99px;background:linear-gradient(180deg,#ffe9a8,#C5A05A);color:#120c08;font:900 20px Heebo,sans-serif;cursor:pointer}
+@media (max-height:500px){.gc-bi .box{padding:10px 14px}.gc-bi img{max-height:16dvh}.gc-bi h2{font-size:20px;margin-bottom:4px}.gc-bi li{font-size:13px;padding:4px 8px}.gc-bi ul{gap:4px;margin-bottom:8px}.gc-bi button{height:40px;font-size:17px}}
+@keyframes gcbiF{from{opacity:0}}@keyframes gcbiP{from{transform:scale(.7);opacity:0}}`; document.head.appendChild(c); }
+  return new Promise((done) => {
+    const o = document.createElement("div"); o.className = "gc-bi";
+    const e = (s) => String(s).replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[x]));
+    o.innerHTML = `<div class="box">${img ? `<img src="${e(img)}" alt="">` : ""}<h2>${e(title)}</h2><ul>${lines.map((l) => `<li>${e(l)}</li>`).join("")}</ul><button type="button">יאללה, לבונוס!</button></div>`;
+    o.querySelector("button").onclick = () => { o.remove(); done(); };
+    document.body.appendChild(o); try { SFX.win(true); } catch (er) {}
+  });
+};

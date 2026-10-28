@@ -64,6 +64,21 @@ export class Renderer {
     const bodyX=x-anchor.x*s;c.drawImage(b.image,bodyX,top,bw,bodyH);
     const neckY=top+anchor.y*s;c.drawImage(head,x-headW/2,neckY-headH+5,headW,headH);
   }
+  path(id,start,end){
+    this._paths??={};const key=id+':'+Math.round(start)+':'+Math.round(end);if(this._paths[key])return this._paths[key];
+    let seed=(id*9301+49297)%233280;const rnd=()=>(seed=(seed*9301+49297)%233280)/233280;
+    const pinsAt=r=>{const xs=[];for(let col=0;col<13;col++){const px=150+col*104+(r%2)*44;if(px<=1450)xs.push(px);}return xs;};
+    const pts=[{x:start,y:225}];let x=start;
+    for(let r=0;r<8;r++){
+      const xs=pinsAt(r);let pin=xs.reduce((a,b)=>Math.abs(b-x)<Math.abs(a-x)?b:a);
+      pts.push({x:pin+(rnd()-.5)*8,y:268+r*43-14});
+      const left=7-r,need=end-pin,reach=52*left+60;   // keep the target reachable with the rows that are left
+      let dir=rnd()<.5?-1:1;if(need>reach-52)dir=1;else if(need<-(reach-52))dir=-1;else if(Math.abs(need)>40&&rnd()<.35)dir=Math.sign(need);
+      x=Math.max(120,Math.min(1480,pin+dir*52));
+    }
+    pts.push({x:(x+end)/2,y:268+8*43+10});pts.push({x:end,y:640});pts.push({x:end,y:715});
+    return this._paths[key]=pts;
+  }
   frame(state,time){
     const c=this.c;c.save();c.setTransform(this.canvas.width/W,0,0,this.canvas.height/H,0,0);
     c.clearRect(0,0,W,H);c.drawImage(this.art.background,0,0,W,H);
@@ -92,8 +107,8 @@ export class Renderer {
   bonus(state,time){
     const c=this.c,slots=slotsFor(state.mode),left=105,right=1495,cell=(right-left)/slots.length;
     const elapsed=Math.max(0,time-state.startedAt),events=state.outcome.events;
-    const releases=events.map((_,i)=>state.mode==='super'?1.4+i*.40:1.4+i*6.0);
-    const duration=5.2;const settled=[];const flying=[];
+    const releases=events.map((_,i)=>state.mode==='super'?1.4+i*.9:1.4+i*10.0);
+    const duration=state.mode==='super'?6.2:9;const settled=[];const flying=[];
     for(let i=0;i<events.length;i++){
       const age=elapsed-releases[i];if(age>=duration)settled.push(events[i]);else if(age>=0)flying.push({event:events[i],progress:age/duration,i});
     }
@@ -132,12 +147,14 @@ export class Renderer {
     }
     c.fillStyle='#26483e';c.fillRect(right-7,661,7,166);
     for(const f of flying){
-      const start=sourceAt(releases[f.i]),end=left+(f.event.target+.5)*cell,p=f.progress;
-      const segment=p*9,seg=Math.floor(segment),frac=segment-seg;
-      const jitter=k=>Math.sin(k*7.13+f.i*5.32)*38;
-      const bounce=(jitter(seg)*(1-frac)+jitter(seg+1)*frac)*Math.sin(Math.PI*p);
-      const px=start+(end-start)*p+bounce,py=240+475*p;
-      const size=state.mode==='super'?19:39;c.save();c.translate(px,py);c.rotate(Math.sin(p*27+f.i)*.17);this.symbol(state.mode==='super'?7:5,-size/2,-size/2,size,size);c.restore();
+      // a real pachinko fall: the ball hops pin to pin under gravity, nudged so it ends in the cell the server chose
+      const start=sourceAt(releases[f.i]),end=left+(f.event.target+.5)*cell;
+      const path=this.path(f.i+(state.mode==='super'?100:0),start,end);
+      const n=path.length-1,q=f.progress*n,k=Math.min(n-1,Math.floor(q)),u=q-k,a=path[k],b=path[k+1];
+      const lift=k===0?0:(b.y-a.y)<60?26:10;            // a small bounce off each pin, then gravity takes over
+      const px=a.x+(b.x-a.x)*u,py=a.y+(b.y-a.y)*u*u*.6+(b.y-a.y)*u*.4-lift*4*u*(1-u);
+      const size=state.mode==='super'?19:39;c.save();c.translate(px,py);c.rotate((k+u)*1.3*(b.x>a.x?1:-1));this.symbol(state.mode==='super'?7:5,-size/2,-size/2,size,size);c.restore();
+      if(u<.12&&k>0){c.save();c.globalAlpha=.6*(1-u/.12);c.strokeStyle='#ffe3a0';c.lineWidth=2;c.beginPath();c.arc(a.x,a.y+8,12+u*80,0,Math.PI*2);c.stroke();c.restore();}
     }
     this.plate('כניסה ×'+state.outcome.entry,140,842,235,42,22);
     this.plate('זכייה מצטברת ×'+total,580,842,440,42,25);

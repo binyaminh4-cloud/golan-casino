@@ -28,10 +28,10 @@ button:disabled{opacity:.5}
 <header class="top"><a href="./">→ ללובי</a><span class="bal">הארנק שלי <b id="bal">…</b></span>
   <div class="ctl" id="bets"></div><button id="spin">סובב</button><span id="err"></span></header>
 <div class="wrap"><canvas id="game" width="1600" height="900" aria-label="מכונת השירותים והפצ׳ינקו"></canvas></div>
-<script src="sfx.js?v=6"></script>
+<script src="sfx.js?v=7"></script>
 <script type="module">
 import { scoreDrops } from "./vendor/pc_rules.mjs?v=1";
-import { Renderer, prepareArt } from "./vendor/pc_renderer.mjs?v=1";
+import { Renderer, prepareArt } from "./vendor/pc_renderer.mjs?v=2";
 // Golan Casino wiring: every spin and bonus is decided on the server (pc_spin); the kit's renderer only plays it back.
 const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 try { if (localStorage.getItem("gc_dev") !== "1") location.href = "./"; } catch (e) {}
@@ -59,8 +59,11 @@ $("spin").onclick = async () => {
     try { lineWin ? SFX.win(false) : data.bonus ? SFX.win(true) : SFX.lose(); } catch (e) {}
     if (!data.bonus) { showBal(data.balance); busy = false; $("spin").disabled = false; return; }
     const b = data.bonus, out = scoreDrops(b.kind, b.entry, b.targets);
-    const dur = b.kind === "super" ? 1.4 + 19 * .4 + 5.2 : 1.4 + (b.targets.length - 1) * 6 + 5.2;
-    setTimeout(() => {
+    const dur = b.kind === "super" ? 1.4 + 19 * .9 + 6.2 : 1.4 + (b.targets.length - 1) * 10 + 9;
+    setTimeout(async () => {
+      await GC_BONUS_INTRO(b.kind === "super" ? "💩 סופר בונוס של פישר!" : "🚽 הבונוס של אביחי!", b.kind === "super"
+        ? ["פישר יושב על האסלה ומשחרר 20 גושים קטנים.", "כל גוש קופץ בין הפינים ונוחת אצל אחד החברים. כל נחיתה מוסיפה את הערך שלו.", `מכפיל הכניסה שלך: ×${b.entry}. הכל משולם ביחס להימור.`]
+        : ["אביחי נוסע על המסילה ומשחרר גוש אחד.", "הגוש קופץ מפין לפין ונוחת באחד התאים: ×5 עד ×100.", "נחיתה ב״דאבל״ מכפילה את כל הערכים ומקבלים עוד נפילה.", `מכפיל הכניסה שלך: ×${b.entry}.`], "img/pc/avichai.webp");
       state = { mode: b.kind, outcome: out, startedAt: clock() };
       setTimeout(() => {
         showBal(data.balance);

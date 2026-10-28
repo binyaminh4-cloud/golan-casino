@@ -53,7 +53,7 @@ button[aria-pressed="true"]{background:#a3753c;color:#140c06}
   </div>
   <img class="hero" id="bin" src="img/ww/binyamin_idle.webp" alt="בנימין">
 </main>
-<script src="sfx.js?v=6"></script>
+<script src="sfx.js?v=7"></script>
 <script src="vendor/ww_engine.js?v=1"></script>
 <script>
 "use strict";
@@ -83,6 +83,9 @@ async function showWins(st, stake, acc) { for (const w of st.wins) { const L = E
   if (st.win > 0) { acc.v += st.win; $("win").textContent = fmt(Math.floor(stake * acc.v)); try { SFX.win(st.win > 5); } catch (e) {} await wait(900); cells.forEach((d) => d.classList.remove("win")); } }
 function banner(kind, txt) { const b = document.createElement("div"); b.className = "ban"; b.innerHTML = `<img src="img/ww/ui_bonus_${kind}.webp" alt=""><p>${txt}</p>`; document.body.appendChild(b); setTimeout(() => b.remove(), FAST ? 1200 : 2400); }
 const BN = { horse: "סוס הפרא", duel: "ראש בראש", volcano: "התפרצות הר געש" };
+const INTRO = { horse: ["כל סוס פרא (Wild) שנוחת נשאר במקום עד סוף הבונוס.", "ככל שיותר סוסים ננעלים, הקווים מתמלאים יותר."],
+  duel: ["הרבה יותר סמלי דו־קרב על הגלגלים.", "עידו ובנימין יוצאים לדו־קרב: המנצח הופך את כל הטור לסוסים עם מכפיל ×2 עד ×100.", "מכפילים של כמה טורים על אותו קו מתחברים."],
+  volcano: ["7 סיבובי איסוף: כל סוס נאסף, וכל סמל דו־קרב מעלה את מכפיל הלבה.", "3 סיבובי הכרעה: כל הסוסים שנאספו מתפזרים מחדש בכל סיבוב, והמכפיל חל על כל הזכיות."] };
 async function replay(seed, stake) {
   const r = E.play(Number(seed)), acc = { v: 0 }; let kind = null;
   for (const st of r.steps) {
@@ -94,7 +97,9 @@ async function replay(seed, stake) {
       await showWins(st, stake, acc);
       $("ido").src = "img/ww/ido_idle.webp"; $("bin").src = "img/ww/binyamin_idle.webp";
       await wait(st.t === "fs" ? 350 : 150);
-    } else if (st.t === "bonus") { kind = st.kind; document.body.classList.add("b-" + kind); banner(kind, `${BN[kind]} · 10 סיבובים`); $("fsHud").hidden = false; try { SFX.win(true); } catch (e) {} await wait(2400); }
+    } else if (st.t === "bonus") { kind = st.kind;
+      await GC_BONUS_INTRO(`🤠 ${BN[kind]} · 10 סיבובים חינם`, INTRO[kind], `img/ww/ui_bonus_${kind}.webp`);
+      document.body.classList.add("b-" + kind); $("fsHud").hidden = false; }
     else if (st.t === "bonus_end") { await wait(600); document.body.classList.remove("b-" + kind); $("fsHud").hidden = true; }
   }
   return r;

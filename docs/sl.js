@@ -155,7 +155,7 @@ $("spinBtn").onclick = async () => {
     $("winbar").className = "winbar win" + (big ? " big" : ""); SFX.win(big);
   } else { $("winbar").textContent = FREE_LEFT > 0 ? "" : "לא הפעם"; if (!res.free_spin) SFX.lose(); }
   busy = false; $("spinBtn").disabled = false;
-  if (FO && FREE_LEFT > 0) setTimeout(() => $("spinBtn").click(), res.free ? 4400 : 1200);   // free spins play themselves
+  if (FO && FREE_LEFT > 0 && !res.free) setTimeout(() => $("spinBtn").click(), 1200);   // free spins play themselves
 };
 function winToast(amount, big) {
   const t = document.createElement("div"); t.className = "wintoast" + (big ? " big" : ""); t.innerHTML = `${big ? "💰 זכייה גדולה!" : "זכית"}<b class="num">+${fmt(amount)}</b>`;
@@ -164,7 +164,7 @@ function winToast(amount, big) {
 // free spins: 3 FREE (one on each reel) = 10 spins at the same bet, nothing charged
 let FREE_LEFT = 0;
 function freeState(res) {
-  if (res.free) GC_BONUS("🎁 בונוס! 10 סיבובים חינם", null, "הסיבובים משחקים לבד, באותו הימור");
+  if (res.free) GC_BONUS_INTRO("🎁 10 סיבובים חינם!", ["הסיבובים משחקים לבד, באותו הימור, בלי לחייב את הארנק.", "כל זכייה בסיבוב חינם נכנסת לארנק.", "גם הג׳קפוטים פתוחים בסיבובים החינם."], "img/slots/fortune/BIN.webp").then(() => { if (FREE_LEFT > 0 && !busy) $("spinBtn").click(); });
   setFree(res.free_left || 0);
 }
 function setFree(n) {

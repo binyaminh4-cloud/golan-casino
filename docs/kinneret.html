@@ -62,7 +62,7 @@ button[aria-pressed="true"]{background:var(--brass);color:#120c08}
     <div id="err"></div>
   </div>
 </main>
-<script src="sfx.js?v=6"></script>
+<script src="sfx.js?v=7"></script>
 <script src="vendor/kin_engine.js?v=1"></script>
 <script>
 "use strict";
@@ -102,7 +102,8 @@ async function replay(seed, stake) {
       for (const i of s.cells) cells[i].classList.add("fx");
       if (s.waves) for (const w of s.waves) { paint(w.b, null, true); await wait(450); }
       paint(s.b, s.m, false); for (const i of s.cells) cells[i].classList.add("fx"); await wait(700); }
-    else if (s.t === "fs_start") { $("fs").classList.add("on"); $("fsLeft").textContent = s.spins; toast(`🎉 ${s.spins} סיבובים חינם!`, 2000); await wait(1800); }
+    else if (s.t === "fs_start") { await GC_BONUS_INTRO(`🎉 ${s.spins} סיבובים חינם על האש!`, ["המכפילים במשבצות נשארים לכל הסיבובים החינם וממשיכים לגדול.", "מסלול החברים מתחיל מפישר, וההתקדמות נשמרת מסיבוב לסיבוב.", "2 סמלי מנגל בסיבוב חינם: עוד 3 סיבובים. 3 ומעלה: עוד 5."], "img/kin/scatter.webp");
+      $("fs").classList.add("on"); $("fsLeft").textContent = s.spins; }
     else if (s.t === "fs_spin") { $("fsLeft").textContent = s.left; }
     else if (s.t === "end") { if (s.add) { toast(`+${s.add} סיבובים חינם`); $("fsLeft").textContent = s.left; await wait(900); } await wait(250); }
     else if (s.t === "fs_end") { toast("סוף הסיבובים החינם"); await wait(1000); $("fs").classList.remove("on"); }
