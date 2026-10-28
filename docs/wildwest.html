@@ -44,6 +44,17 @@ button[aria-pressed="true"]{background:#a3753c;color:#140c06}
 .top .bal{position:absolute;left:max(100px,calc(94px + env(safe-area-inset-left)));top:3px;display:grid;line-height:1.1;font-size:10px;text-align:center}.bal b{font-size:13px!important}
 main{height:100dvh;padding-top:4px!important}
 .hero{width:auto!important;height:94dvh!important;max-height:none!important;max-width:none!important;transform:none!important;min-width:0}main{overflow:hidden}.hero{justify-self:center;height:90dvh!important}.board{max-width:min(54vw,100%)!important}
+
+/* compact controls: one bet pill, round spin, small icons; heroes never block taps */
+.hero{pointer-events:none}.center{position:relative;z-index:3}
+.bar{gap:5px}.bar button{padding:4px 7px;font-size:12px}
+#bets{display:flex;align-items:center;gap:2px;background:#140c06d9;border:1px solid #a3753c;border-radius:99px;padding:1px 3px}
+#bets button{border:0;background:none;padding:3px 7px;font-size:13px}#bets b{font:800 13px Inter;color:#ffd99a;min-width:58px;text-align:center}
+#spin{width:54px;height:54px;padding:0!important;border-radius:50%!important;font-size:14px!important;margin-top:-14px}
+.toast{position:fixed;left:50%;top:44%;transform:translate(-50%,-50%);z-index:30;background:#1d120af0;border:2px solid #ffcf7a;border-radius:14px;padding:8px 18px;font:900 20px Heebo;color:#ffe2a2;text-align:center;pointer-events:none;animation:tp .25s ease-out;box-shadow:0 10px 40px #000c}
+.toast small{display:block;font:600 12px Heebo;color:#e7d3ad}.toast.big{font-size:26px;padding:12px 26px}
+@keyframes tp{from{transform:translate(-50%,-50%) scale(.6);opacity:0}}
+.cell.sc{box-shadow:inset 0 0 0 3px #7fd3ff,0 0 18px #7fd3ff;animation:pul .5s ease-in-out infinite alternate}@keyframes pul{to{transform:scale(1.08)}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
@@ -78,8 +89,8 @@ const C = (c, r) => cells[c * 5 + r];
 const IMG = (s) => s === "W" ? "horse_wild_active" : s === "x" ? "hat" : s;
 function paint(g, cls) { for (let c = 0; c < 5; c++) for (let r = 0; r < 5; r++) { const d = C(c, r); d.firstChild.src = `img/ww/${IMG(g[c][r])}.webp`; d.className = "cell" + (g[c][r] === "W" || g[c][r] === "horse_wild" ? " wild" : ""); }
   cells.forEach((d) => d.querySelector(".cm")?.remove()); if (cls) for (const [c, r] of cls) C(c, r).classList.add("sticky"); }
-async function spinAnim(g, sticky) { cells.forEach((d) => d.classList.add("spin")); await wait(450);
-  for (let c = 0; c < 5; c++) { for (let r = 0; r < 5; r++) { const d = C(c, r); d.classList.remove("spin"); d.firstChild.src = `img/ww/${IMG(g[c][r])}.webp`; d.className = "cell" + (g[c][r] === "horse_wild" ? " wild" : ""); } try { SFX.flip(); } catch (e) {} await wait(150); }
+async function spinAnim(g, sticky) { cells.forEach((d) => d.classList.add("spin")); await wait(inBonus ? 800 : 450);
+  for (let c = 0; c < 5; c++) { for (let r = 0; r < 5; r++) { const d = C(c, r); d.classList.remove("spin"); d.firstChild.src = `img/ww/${IMG(g[c][r])}.webp`; d.className = "cell" + (g[c][r] === "horse_wild" ? " wild" : ""); } try { SFX.flip(); } catch (e) {} await wait(inBonus ? 260 : 150); }
   cells.forEach((d) => d.querySelector(".cm")?.remove()); if (sticky) for (const k of sticky) { const [c, r] = k.split(",").map(Number); C(c, r).classList.add("sticky"); } }
 async function duel(d) { const o = document.createElement("div"); o.className = "duel";
   o.innerHTML = `<img src="img/ww/ido_portrait_duel.webp" alt=""><b>VS</b><img src="img/ww/binyamin_portrait_duel.webp" alt="">`; document.body.appendChild(o); try { SFX.zap(); } catch (e) {}
@@ -87,7 +98,9 @@ async function duel(d) { const o = document.createElement("div"); o.className = 
   for (let r = 0; r < 5; r++) { C(d.col, r).firstChild.src = "img/ww/horse_wild_active.webp"; C(d.col, r).classList.add("wild"); }
   const m = document.createElement("span"); m.className = "cm"; m.textContent = "×" + d.m; C(d.col, 0).appendChild(m); }
 async function showWins(st, stake, acc) { for (const w of st.wins) { const L = E.LINES[w.line]; for (let c = 0; c < w.n; c++) C(c, L[c]).classList.add("win"); }
-  if (st.win > 0) { acc.v += st.win; $("win").textContent = fmt(Math.floor(stake * acc.v)); try { SFX.win(st.win > 5); } catch (e) {} await wait(900); cells.forEach((d) => d.classList.remove("win")); } }
+  if (st.win > 0) { acc.v += st.win; $("win").textContent = fmt(Math.floor(stake * acc.v)); try { SFX.win(st.win > 5); } catch (e) {}
+    const w = Math.floor(stake * st.win); toast(`+${fmt(w)}<small>${st.wins.length > 1 ? st.wins.length + " קווים" : "קו זוכה"}${inBonus ? " · סה״כ בבונוס " + fmt(Math.floor(stake * acc.v)) : ""}</small>`, FAST ? 800 : 1500, st.win >= 5);
+    await wait(inBonus ? 1700 : 1500); cells.forEach((d) => d.classList.remove("win")); } }
 function banner(kind, txt) { const b = document.createElement("div"); b.className = "ban"; b.innerHTML = `<img src="img/ww/ui_bonus_${kind}.webp" alt=""><p>${txt}</p>`; document.body.appendChild(b); setTimeout(() => b.remove(), FAST ? 1200 : 2400); }
 const BN = { horse: "סוס הפרא", duel: "ראש בראש", volcano: "התפרצות הר געש" };
 const INTRO = { horse: ["כל סוס פרא (Wild) שנוחת נשאר במקום עד סוף הבונוס.", "ככל שיותר סוסים ננעלים, הקווים מתמלאים יותר."],
@@ -103,17 +116,24 @@ async function replay(seed, stake, buy) {
       if (st.decisive) { await wait(300); }
       await showWins(st, stake, acc);
       $("ido").src = "img/ww/ido_idle.webp"; $("bin").src = "img/ww/binyamin_idle.webp";
-      await wait(st.t === "fs" ? 350 : 150);
+      await wait(st.t === "fs" ? 900 : 150);
     } else if (st.t === "bonus") { kind = st.kind;
+      cells.forEach((d) => /scatter/.test(d.firstChild.src) && d.classList.add("sc")); try { SFX.zap(); } catch (e) {}
+      toast(`🎉 נכנסת לבונוס!<small>${BN[kind]}</small>`, 2200, true); await slow(2400); cells.forEach((d) => d.classList.remove("sc")); inBonus = true;
       await GC_BONUS_INTRO(`🤠 ${BN[kind]} · 10 סיבובים חינם`, INTRO[kind], `img/ww/ui_bonus_${kind}.webp`);
       document.body.classList.add("b-" + kind); $("fsHud").hidden = false; }
-    else if (st.t === "bonus_end") { await wait(600); document.body.classList.remove("b-" + kind); $("fsHud").hidden = true; }
+    else if (st.t === "bonus_end") { inBonus = false; toast(`🏁 סוף הבונוס<small>סה״כ ${fmt(Math.floor(stake * acc.v))}</small>`, 2000, true); await slow(2200); document.body.classList.remove("b-" + kind); $("fsHud").hidden = true; }
   }
   return r;
 }
-function drawBets() { const ok = BETS.filter((v, i) => i < 4 || v * 20 <= balance).slice(-5); if (!ok.includes(bet)) bet = ok[0];
-  $("bets").innerHTML = ok.map((v) => `<button data-v="${v}" aria-pressed="${v === bet}">${fmt(v)}</button>`).join(""); }
-$("bets").onclick = (e) => { const b = e.target.closest("button"); if (!b || busy) return; bet = +b.dataset.v; drawBets(); };
+function drawBets() { const ok = BETS.filter((v, i) => i < 4 || v * 20 <= balance); if (!ok.includes(bet)) bet = ok[0]; $("bets").dataset.ok = ok.join(",");
+  $("bets").innerHTML = `<button data-d="-1">▶</button><b>${fmt(bet)}</b><button data-d="1">◀</button>`; }
+$("bets").onclick = (e) => { const b = e.target.closest("button"); if (!b || busy) return; const ok = $("bets").dataset.ok.split(",").map(Number), i = ok.indexOf(bet) + +b.dataset.d;
+  if (i >= 0 && i < ok.length) { bet = ok[i]; drawBets(); } };
+// small pop-up message in the middle of the board
+function toast(html, ms, big) { const t = document.createElement("div"); t.className = "toast" + (big ? " big" : ""); t.innerHTML = html; document.body.appendChild(t); setTimeout(() => t.remove(), ms); }
+const slow = (ms) => new Promise((r) => setTimeout(r, ms));
+let inBonus = false;
 function showBal(v) { balance = +v; $("bal").textContent = fmt(v); drawBets(); }
 $("spin").onclick = async () => {
   if (busy) return; busy = true; $("spin").disabled = true; $("err").textContent = ""; $("win").textContent = "₪0";
