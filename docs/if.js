@@ -76,10 +76,12 @@ function view(e) {
   // fit the whole wheel (rim top ≈70 → stand ≈1040 in scene pixels) into the space above the betting bar; Ido on its right
   const W = cv.width, H = cv.height, d = cv.width / Math.max(1, cv.clientWidth), bar = (document.querySelector(".betbar").offsetHeight + 6) * d;
   const s0 = Math.max(W / 1920, Math.min((H - bar) / 1050, W / 1250));
-  let z = 1, fx = 110 + (W / s0) / 2, fy = 70 + (H - bar) / s0 / 2;
-  if (S && S.stop != null) { const u = ease((e - 17.2) / 1.6) * (1 - ease((e - 21.6) / 1)); z = 1 + .7 * u; fx += (610 - fx) * u; fy += (330 - fy) * u; }
+  let z = 1, fx = 110 + (W / s0) / 2, fy = 70 + (H - bar) / s0 / 2, u = 0;
+  // close-up near the end of the spin: the pointer and the segments under it move to the middle of the screen
+  if (S && S.stop != null) { u = ease((e - 17.2) / 1.6) * (1 - ease((e - 21.6) / 1)); z = 1 + .7 * u; fx += (610 - fx) * u; fy += (215 - fy) * u; }
+  document.body.classList.toggle("closeup", u > .05);
   const s = s0 * z, vh = H - bar; let ox = W / 2 - fx * s, oy = vh / 2 - fy * s;
-  ox = Math.min(0, Math.max(W - 1920 * s, ox)); oy = Math.min(0, Math.max(H - 1080 * s, oy));
+  ox = Math.min(0, Math.max(W - 1920 * s, ox)); oy = Math.min(vh * .45 * u, Math.max(H - 1080 * s, oy));
   ctx.setTransform(s, 0, 0, s, ox, oy);
 }
 const pop = $("bonusPop"), pcv = $("bonusCv"), pctx = pcv.getContext("2d");

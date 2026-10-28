@@ -60,3 +60,5 @@ html,body{height:100%;overflow:hidden}body{position:fixed;inset:0;height:auto}
 .zone{position:relative}.zone .zb{position:absolute;top:-8px;left:-6px;z-index:2;font:900 13px Inter;font-style:normal;color:#3a2600;background:#ffe27a;border:2px solid #8a5a00;border-radius:99px;padding:1px 6px;box-shadow:0 0 12px #ffcf40;animation:zbp .35s ease-out}@keyframes zbp{from{transform:scale(1.8)}}
 
 .table{position:absolute;top:40px;left:max(8px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:2px;z-index:4;pointer-events:none;max-width:30%}.table b{font:800 11px Heebo;color:#ffe27a;text-shadow:0 1px 3px #000}.table span{background:#080f1dcc;border:1px solid #3c4a5e;border-radius:99px;padding:1px 8px;font:700 11px Heebo;color:#d7e6f5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.table i{font-style:normal;color:#9bdbb6}
+
+body.closeup .hist,body.closeup .table{opacity:0;transition:opacity .3s}.hist,.table{transition:opacity .3s}
