@@ -38,7 +38,7 @@ class IdoFishingOverlay {
     // Keep the original face bitmap rigid. No face warping or artificial lip movement.
     c.drawImage(this.images.ido_fisherman,70,170,650,650);
     const q = Math.min(list.length-.00001,Math.max(0,progress)*list.length), idx = Math.floor(q), p = q-idx;
-    const catchProgress = Math.max(0,Math.min(1,(p-.22)/.43));
+    const catchProgress = Math.max(0,Math.min(1,(p-.12)/.22));   // a quick yank out of the water
     const ease = 1-Math.pow(1-catchProgress,3);
     const fishY = 620-ease*300, fishX = 900;
     const tipX = 1090, tipY = 275-25*Math.sin(p*Math.PI);
@@ -60,13 +60,13 @@ class IdoFishingOverlay {
     c.textAlign='center'; c.direction='rtl';
     c.fillStyle='#fff6de'; c.shadowColor='#16221f'; c.shadowBlur=10;
     c.font='bold 40px Arial'; c.fillText('השלל של עידו',1000,120);
-    if(p>.60) {
+    if(p>.38) {
       c.fillStyle='rgba(16,32,30,.91)'; c.fillRect(920,555,320,100);
       c.fillStyle='#f3e4bb'; c.direction='ltr'; c.font='bold 52px Arial';
       c.fillText(list[idx].number+'  |  ×'+list[idx].multiplier,1080,622);
     }
     c.shadowBlur=0;
-    const revealed = list.slice(0,idx+(p>.60?1:0));
+    const revealed = list.slice(0,idx+(p>.38?1:0));
     c.font='bold 25px Arial'; c.direction='ltr';
     revealed.forEach((b,i) => {
       const x=800+(i-(list.length-1)/2)*Math.min(210,1300/list.length);

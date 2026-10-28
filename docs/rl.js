@@ -347,12 +347,16 @@ function drawPotList() {
 // after the ball lands: everyone's winnings (stake included), biggest first, sliding across the top like a stock ticker
 function drawTicker() {
   let T = $("winTicker"); if (!T) { T = document.createElement("div"); T.id = "winTicker"; T.className = "wticker"; T.innerHTML = "<div class=\"wt-in\"></div>"; document.body.appendChild(T); }
+  // results of the round that just landed keep looping until the NEXT round's betting closes
+  const shownRound = +(T.dataset.r || -1);
+  if (shownRound >= 0 && liveSt && (liveSt.round > shownRound + 1 || (liveSt.round === shownRound + 1 && !liveSt.open))) { T.hidden = true; T.dataset.k = ""; T.dataset.r = -1; }
   const ps = (liveSt && liveSt.result != null ? liveSt.players || [] : []).filter((p) => p.payout != null);
-  if (!ps.length || liveSt.open || landed !== liveSt.round) { T.hidden = true; T.dataset.k = ""; return; }   // only after the ball has landed on screen
-  const k = liveSt.round + ":" + ps.length; if (T.dataset.k === k) return; T.dataset.k = k;
+  if (!ps.length || liveSt.open || landed !== liveSt.round) return;   // only after the ball has landed on screen
+  const k = liveSt.round + ":" + ps.length; if (T.dataset.k === k) return; T.dataset.k = k; T.dataset.r = liveSt.round;
   ps.sort((a, b) => b.payout - a.payout);
   const items = ps.map((p) => `<span class="${p.payout > 0 ? "up" : "dn"}">${esc(p.name)} <b class="num">${p.payout > 0 ? "▲ " + fmt(p.payout) : "▼ " + fmt(p.total)}</b></span>`).join("");
-  T.querySelector(".wt-in").innerHTML = items + items;
+  const inner = T.querySelector(".wt-in"); inner.innerHTML = items + items + items + items;
+  inner.style.animationDuration = Math.max(6, ps.length * 2.2) + "s";   // brisk, and it loops
   T.hidden = false;
 }
 function onTime(t) {

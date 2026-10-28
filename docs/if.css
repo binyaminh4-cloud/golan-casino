@@ -35,3 +35,14 @@ body.closed .zone,body.closed #allBtn,body.closed #rebetBtn{opacity:.45;pointer-
 dialog{background:#101a2a;color:#dbe6ef;border:1px solid var(--gold);border-radius:14px;max-width:min(560px,92vw)}
 dialog h2{color:var(--champ);margin-top:0}
 @media (max-height:500px){.zone img{height:30px}.zone .zn{font-size:12px}.zone small{display:none}.chip{width:34px;height:34px;font-size:10px}.top{padding-block:3px}}
+/* full-bleed stage, betting bar floats over the bottom of the scene */
+.stagewrap{position:relative;overflow:hidden}
+#cv{position:absolute;inset:0;border-radius:0}
+.betbar{position:absolute;left:0;right:0;bottom:0;z-index:5;background:linear-gradient(transparent,#060c16e6 35%);border-top:0;padding-top:14px}
+body{position:relative}
+.zone{background:#0d1828d9}.zone img{height:34px}
+.bonuspop{position:absolute;left:50%;top:3%;transform:translateX(-50%);z-index:6;border:3px solid #8b6d3f;border-radius:16px;overflow:hidden;box-shadow:0 0 0 9999px #000c,0 0 40px #000;background:#060c16;opacity:1}
+.bonuspop canvas{width:100%;height:100%;display:block}
+@keyframes bp{from{transform:scale(.85);opacity:0}}
+@media (max-height:500px){.zone img{height:26px}.betbar{padding-top:8px}}
+body.catching .betbar{opacity:.25;pointer-events:none}

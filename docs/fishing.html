@@ -7,7 +7,7 @@
 <title>מסע הדיג של עידו · גולן קזינו</title>
 <link rel="icon" href="img/brand/favicon.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Inter:wght@600;800&display=swap">
-<link rel="stylesheet" href="if.css?v=1">
+<link rel="stylesheet" href="if.css?v=3">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
 <script src="landscape.js?v=1"></script>
@@ -20,9 +20,9 @@
   <button id="rulesBtn" class="ghost">חוקים</button>
 </header>
 <main class="stagewrap"><canvas id="cv" width="1920" height="1080" aria-label="גלגל הדיג של עידו"></canvas>
+  <div class="bonuspop" id="bonusPop" hidden><canvas id="bonusCv" width="1920" height="1080" aria-label="עידו דג את הדג"></canvas></div>
   <div class="result" id="result" hidden></div>
   <div class="hist" id="hist" aria-label="תוצאות אחרונות"></div>
-</main>
 <section class="betbar">
   <div class="zones" id="zones"></div>
   <div class="ctl">
@@ -31,6 +31,8 @@
     <div class="err" id="err" aria-live="polite"></div>
   </div>
 </section>
+</main>
+
 <dialog id="rules">
   <h2>מסע הדיג של עידו · חוקים</h2>
   <p>גלגל של 53 חלקים שווים: 23 דג כהה, 23 דג בהיר, 4 כחול, 2 כתום ו־1 אדום. הימורים 10 שניות, ואז נחשפים המכפילים, הגלגל מסתובב, ואם נעצר על דג צבעוני עידו יוצא לדוג.</p>
@@ -42,7 +44,7 @@
 <script src="sfx.js?v=5"></script>
 <script src="vendor/motion_core.js?v=1"></script>
 <script src="vendor/rig_render.js?v=1"></script>
-<script src="if.js?v=2"></script>
+<script src="if.js?v=4"></script>
 <script src="chat.js?v=9"></script>
 </body>
 </html>

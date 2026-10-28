@@ -52,17 +52,29 @@ function rotAt(e) {   // e: seconds since the round started
   const u = Math.min(1, (e - 13) / 7), ease = 1 - Math.pow(1 - u, 4);
   return r0 + (end - r0) * ease;
 }
+// camera: the scene fills the screen (cover); in the last seconds of the spin it pushes in on the pointer for the tension
+const ease = (x) => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x);
+function view(e) {
+  const W = cv.width, H = cv.height, s0 = Math.max(W / 1920, H / 1080);
+  let z = 1, fx = 760, fy = 560;
+  if (S && S.stop != null) { const u = ease((e - 17.2) / 1.6) * (1 - ease((e - 21.5) / 1)); z = 1 + 1.25 * u; fx = 760 + (610 - 760) * u; fy = 560 + (250 - 560) * u; }
+  const s = s0 * z; let ox = W / 2 - fx * s, oy = H / 2 - fy * s;
+  ox = Math.min(0, Math.max(W - 1920 * s, ox)); oy = Math.min(0, Math.max(H - 1080 * s, oy));
+  ctx.setTransform(s, 0, 0, s, ox, oy);
+}
+const pop = $("bonusPop"), pcv = $("bonusCv"), pctx = pcv.getContext("2d");
 function frame() {
   if (S && I.main) {
     const e = (srvNow() - S.start) / 1000;
-    const bonus = S.cat && ["blue", "orange", "red"].includes(S.cat) && S.total_mult && e >= 20.3;
-    if (bonus && I[S.cat]) {
-      const p = FishingRender.bonusFrame(ctx, I, Math.max(0, e - 20.3), S.total_mult, S.cat);
+    const isBonus = S.cat && ["blue", "orange", "red"].includes(S.cat) && S.total_mult;
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = "#060c16"; ctx.fillRect(0, 0, cv.width, cv.height);
+    view(e); wheelScene(rotAt(e), e, e >= 10 ? S.boosts : null);
+    if (isBonus && e >= 20.8 && I[S.cat]) {   // the wheel stops; the catch opens in its own window over it
+      pop.hidden = false; document.body.classList.add("catching");
+      const p = FishingRender.bonusFrame(pctx, I, Math.max(0, e - 20.8), S.total_mult, S.cat);
       if (p.done && endShown !== S.round) showEnd();
-    } else {
-      wheelScene(rotAt(e), e, e >= 10 ? S.boosts : null);
-      if (e >= 20 && S.cat && !["blue", "orange", "red"].includes(S.cat) && endShown !== S.round) showEnd();
-    }
+    } else { pop.hidden = true; document.body.classList.remove("catching"); }
+    if (e >= 20 && S.cat && !isBonus && endShown !== S.round) showEnd();
     phaseText(e);
   }
   requestAnimationFrame(frame);
@@ -156,8 +168,8 @@ $("rulesBtn").onclick = () => $("rules").showModal();
   if (window.GC_LOADER) GC_LOADER.done();
 })();
 addEventListener("resize", fit); function fit() {
-  const bar = document.querySelector(".betbar").offsetHeight, top = document.querySelector(".top").offsetHeight;
-  const H = innerHeight - bar - top, W = innerWidth, s = Math.min(W / 1920, H / 1080);
-  cv.style.width = 1920 * s + "px"; cv.style.height = 1080 * s + "px";
+  const box = document.querySelector(".stagewrap"), d = Math.min(2, devicePixelRatio || 1);
+  cv.width = Math.round(box.clientWidth * d); cv.height = Math.round(box.clientHeight * d); cv.style.width = box.clientWidth + "px"; cv.style.height = box.clientHeight + "px";
+  const pw = Math.min(box.clientWidth * .96, box.clientHeight * .9 * 16 / 9); pop.style.width = pw + "px"; pop.style.height = pw * 9 / 16 + "px";
 }
 fit(); setTimeout(fit, 300);
