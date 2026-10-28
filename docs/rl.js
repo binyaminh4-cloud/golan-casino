@@ -196,7 +196,7 @@ function place(key, amt) {
   if (ERASE) { if (!bets.has(key) || (sent.get(key) || 0) > 0) return; undoStack.push(new Map(bets)); bets.delete(key); err(""); drawChips(); SFX.chip(); return; }
   const cur = bets.get(key) || 0;
   if (cur + amt > maxBet()) return err(`מקסימום ${fmt(maxBet())} על הימור אחד.`);
-  const tot = [...bets.values()].reduce((s, v) => s + v, 0);
+  const tot = [...bets.values()].reduce((s, v) => s + v, 0) - [...sent.values()].reduce((s, v) => s + v, 0);   // chips already sent are already off the balance
   if (!PREVIEW && tot + amt > balance) return err("אין מספיק שקלים להימור הזה.");
   undoStack.push(new Map(bets)); bets.set(key, cur + amt); err(""); drawChips(); SFX.chip();
 }
@@ -205,7 +205,7 @@ function placeMany(list) {             // list of [key, amount]; one undo step
   const next = new Map(bets);
   for (const [k, a] of list) { if (!LEGAL.has(k)) return; next.set(k, (next.get(k) || 0) + a); }
   if ([...next.values()].some((v) => v > maxBet())) return err(`מקסימום ${fmt(maxBet())} על הימור אחד.`);
-  const tot = [...next.values()].reduce((s, v) => s + v, 0);
+  const tot = [...next.values()].reduce((s, v) => s + v, 0) - [...sent.values()].reduce((s, v) => s + v, 0);
   if (!PREVIEW && tot > balance) return err("אין מספיק שקלים להימור הזה.");
   undoStack.push(new Map(bets)); bets = next; err(""); drawChips(); SFX.chip();
 }
@@ -397,9 +397,11 @@ function finish() {
   if (!spinRes.total) {} else if (spinRes.payout > 0) { me.classList.add("jump"); const f = document.createElement("div"); f.className = "float num"; f.textContent = "+" + fmt(spinRes.payout); me.appendChild(f); setTimeout(() => f.remove(), 2200); }
   else me.classList.add("sad");
   if (spinRes.payout > 0) err("");
-  { const m = (spinRes.lucky || {})[n]; if (m && spinRes.payout > 0 && [...bets.keys()].includes(String(n))) GC_BONUS(`⚡ בונוס ברק! ${n} ×${m}`, spinRes.payout, "זאוס פגע במספר שלך"); }
-  setTimeout(() => {                         // croupier clears the layout
-    if (bets.size) lastBets = new Map(bets); bets.clear(); sent.clear(); undoStack.length = 0; busy = false;
+  try { const m = (spinRes.lucky || {})[n]; if (m && spinRes.payout > 0 && [...bets.keys()].includes(String(n))) GC_BONUS(`⚡ בונוס ברק! ${n} ×${m}`, spinRes.payout, "זאוס פגע במספר שלך"); } catch (e) {}
+  const finRound = animRound;
+  setTimeout(() => {                         // croupier clears the layout (but never chips already placed on the next round)
+    const moved = LIVE && liveSt && liveSt.round !== finRound;
+    if (!moved) { if (bets.size) lastBets = new Map(bets); bets.clear(); sent.clear(); undoStack.length = 0; } busy = false;
     d.hidden = true; board.querySelectorAll(".winner").forEach((x) => x.classList.remove("winner")); clearLucky(); drawChips();
   }, 2600);
 }
@@ -600,6 +602,8 @@ async function liveFetch() {
     clockOff = data.now - Date.now();
     if (DUEL) { const z = await db.rpc("zeus_state", { p_duel: DUEL }); if (!z.error) { ZS = z.data; data.mine = ZS.my_bets; data.balance = ZS.my_chips; data.payout = ZS.my_payout; drawDuel(); } }
     const newRound = !liveSt || liveSt.round !== data.round;
+    // safety net: a new round is open, nothing is animating, but the table is still locked from the last one → unlock it
+    if (busy && data.open && !plan && !cine && newRound) { busy = false; bets = new Map(); sent = new Map(); undoStack.length = 0; }
     liveSt = data;
     if (!busy && newRound) {                  // restore my confirmed bets after a reload mid-round
       const m = new Map(); for (const b of data.mine || []) { const k = b.nums.join(","); m.set(k, (m.get(k) || 0) + b.amt); }
