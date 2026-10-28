@@ -117,6 +117,7 @@ function drawChipRack() {
   if (k === chipKey) return; chipKey = k;
   if (!show.some(([v]) => v === chipVal)) chipVal = show[Math.min(2, show.length - 1)][0];
   $("chips").innerHTML = show.map(([v, c]) => `<button class="chip ${c}${v >= 25000 ? " big" : ""}" data-v="${v}" aria-pressed="${v === chipVal}">${chipLabel(v)}</button>`).join("");
+  $("chips").querySelectorAll(".chip").forEach((b) => GC_CHIPIFY(b, +b.dataset.v));
 }
 const chipLabel = (v) => v >= 1e12 ? +(v / 1e12).toFixed(1) + "T" : v >= 1e9 ? +(v / 1e9).toFixed(1) + "B" : v >= 1e6 ? +(v / 1e6).toFixed(1) + "M" : v >= 1000 ? +(v / 1000).toFixed(1) + "K" : String(v);
 const chipClass = (v) => (CHIPS.slice().reverse().find(([c]) => v >= c) || CHIPS[0])[1];
@@ -177,7 +178,8 @@ function drawChips(win) {
     board.querySelectorAll(".rc").forEach((c) => { const a = per[c.dataset.n]; const i = c.querySelector(".amt"); i.textContent = a ? chipLabel(Math.round(a)) : ""; c.classList.toggle("has", !!a); });
   } else layer.innerHTML = [...bets].map(([k, v]) => {
     const a = anchor(k), p = toXY(a.u, a.w), st = win ? (win.has(k) ? " won" : " lost") : "";
-    return `<div class="chip ${chipClass(v)}${st}" style="left:${p.x}px;top:${p.y}px"><b>${chipLabel(v)}</b></div>`;
+    const g = GC_CHIP(v);
+    return `<div class="chip ${chipClass(v)}${st} gcchip${g.exact ? "" : " txt"}" style="left:${p.x}px;top:${p.y}px;background-image:url(${g.url})"><b>${chipLabel(v)}</b></div>`;
   }).join("");
   const tot = [...bets.values()].reduce((s, v) => s + v, 0);
   $("total").textContent = fmt(tot); GC_LIMIT(tot, maxBet(), balance, fmt);
@@ -563,7 +565,7 @@ function drawPlayers() {
     const per = {}; for (const b of p.bets || (p.nums || []).map((nums) => ({ nums, amt: 0 }))) { const k = b.nums.slice().sort((x, y) => x - y).join(","); per[k] = (per[k] || 0) + b.amt; }
     for (const [k, amt] of Object.entries(per)) { if (!LEGAL.has(k)) continue;
       const a = anchor(k), q = toXY(a.u, a.w), g = document.createElement("div"); g.className = `chip ${chipClass(amt || 5)} gmark`; g.title = p.name + " " + fmt(amt);
-      g.style.left = q.x + 7 + "px"; g.style.top = q.y - 7 + "px"; g.innerHTML = `<b>${amt ? chipLabel(amt) : ""}</b><em>${esc(String(p.name).slice(0, 1))}</em>`; layer.appendChild(g); } }
+      GC_CHIPIFY(g, amt || 5); g.classList.add("txt"); g.style.left = q.x + 7 + "px"; g.style.top = q.y - 7 + "px"; g.innerHTML = `<b>${amt ? chipLabel(amt) : ""}</b><em>${esc(String(p.name).slice(0, 1))}</em>`; layer.appendChild(g); } }
   layer.classList.toggle("nofriends", !SHOW_FRIENDS);
 }
 function drawBigClock(t) {          // countdown ring over the wheel: time left to bet before the next throw

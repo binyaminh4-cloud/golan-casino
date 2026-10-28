@@ -137,3 +137,20 @@ window.GC_BONUS_INTRO = function (title, lines, img) {
     document.body.appendChild(o); try { SFX.win(true); } catch (er) {}
   });
 };
+// Real chip art (img/chips): an exact denomination uses its printed chip; any other amount sits on the nearest smaller blank chip with the number in code.
+(function () {
+  const V = [5, 25, 100, 500, ...[1e3, 1e6, 1e9].flatMap((m) => [1, 5, 25, 100, 500].map((c) => c * m)), 1e12, 5e12];
+  const lab = (v) => v >= 1e12 ? v / 1e12 + "T" : v >= 1e9 ? v / 1e9 + "B" : v >= 1e6 ? v / 1e6 + "M" : v >= 1e3 ? v / 1e3 + "K" : String(v);
+  window.GC_CHIP = function (v) {
+    v = Number(v); const exact = V.includes(v), base = V.slice().reverse().find((x) => x <= v) || 5;
+    return { exact, url: `img/chips/chip_${exact ? "" : "blank_"}${lab(exact ? v : base)}.webp` };
+  };
+  // decorate any chip element: el.dataset.v = amount
+  window.GC_CHIPIFY = function (el, v) { const c = GC_CHIP(v); el.classList.add("gcchip"); el.classList.toggle("txt", !c.exact); el.style.backgroundImage = `url(${c.url})`; };
+  const st = document.createElement("style");
+  st.textContent = `.gcchip{background-color:transparent!important;background-size:contain!important;background-position:center!important;background-repeat:no-repeat!important;border:0!important;outline-offset:1px;box-shadow:0 3px 6px rgba(0,0,0,.55)!important;border-radius:50%}
+.gcchip:not(.txt){color:transparent!important;text-shadow:none!important}.gcchip:not(.txt) *{opacity:0}
+.gcchip.txt{color:#fff!important;text-shadow:0 1px 2px #000,0 0 3px #000!important;font-weight:800}`;
+  (document.head || document.documentElement).appendChild(st);
+  [5, 25, 100, 500, 1000, 5000, 25000].forEach((v) => { const i = new Image(); i.src = GC_CHIP(v).url; });
+})();

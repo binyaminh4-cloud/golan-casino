@@ -105,6 +105,7 @@ function drawRack(bal) {
   if (k === rackKey) return; rackKey = k; if (!show.includes(lineBet) && FREE_LEFT === 0) { lineBet = show[0]; $("total").textContent = fmt(lineBet * 5); }
   const lab = (t) => String(fmt(t)).slice(1).replace(/,000$/, "K");
   $("chips").innerHTML = show.map((v) => `<button class="chip" data-v="${v}" aria-pressed="${v === lineBet}">${lab(v * 5)}</button>`).join("");
+  $("chips").querySelectorAll(".chip").forEach((b) => GC_CHIPIFY(b, +b.dataset.v * 5));
 }
 drawRack(0);
 $("chips").onclick = (e) => { const b = e.target.closest("button"); if (!b || busy || FREE_LEFT > 0) return; lineBet = +b.dataset.v; SFX.chip(); if (FO && JPS) jpState(JPS);

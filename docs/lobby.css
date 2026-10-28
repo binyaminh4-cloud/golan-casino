@@ -103,3 +103,8 @@ header{margin-bottom:14px}
 .wnlist h3{margin:0;font:700 16px Heebo;color:#ffe27a}.wnlist p{margin:2px 0 6px;color:#e8d9b5;font-size:14px}
 .wnlist img{width:100%;border-radius:10px;border:1px solid #80602E}
 .wnbox button{margin-top:10px;height:46px;border-radius:99px;border:2px solid #C5A05A;background:linear-gradient(180deg,#F1D69A,#C5A05A);color:#0B0908;font:800 17px Heebo;cursor:pointer}
+/* poster backgrounds: art on the left, a dark fade under the text on the right */
+.game.art{background:linear-gradient(to left,rgba(8,6,4,.94) 0%,rgba(8,6,4,.82) 38%,rgba(8,6,4,.25) 62%,rgba(8,6,4,0) 78%),var(--art) left center/cover no-repeat!important;min-height:170px}
+.game.art h3,.game.art p{text-shadow:0 2px 6px #000}
+.game.art p{max-width:60%}
+.game.art .suits{opacity:.85}

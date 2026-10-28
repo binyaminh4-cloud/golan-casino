@@ -112,6 +112,7 @@ function drawRack() {
   const ok = CHIPS.filter((v, i) => i < 6 || v * 20 <= balance), show = ok.slice(-6), k = show.join(",");
   if (k === rackKey) return; rackKey = k; if (!show.includes(chip)) chip = show[1];
   $("chips").innerHTML = show.map((v, i) => `<button class="chip c${i}" data-v="${v}" aria-pressed="${v === chip}">${lab(v)}</button>`).join("");
+  $("chips").querySelectorAll(".chip").forEach((b) => GC_CHIPIFY(b, +b.dataset.v));
 }
 $("chips").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; chip = +b.dataset.v; $("chips").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); };
 $("zones").innerHTML = ZONES.map(([k, n, p]) => `<button class="zone z-${k}" data-k="${k}"><img src="img/fishing/${ICON[k]}.webp" alt=""><span class="zn">${n}</span><small>${p}</small><b class="amt" data-a="${k}"></b></button>`).join("");

@@ -79,7 +79,8 @@ function chipStack(x, y, amount, key, small = false) {
   if (!amount) return null;
   const w = el("cstack" + (small ? " small" : ""), x, y); w.dataset.k = key;
   const col = chipColor(amount);
-  w.innerHTML = `<div class="chip3" style="background:${col};color:${col}"><span>${String(fmt(amount)).slice(1)}</span></div><div class="camt">${fmt(amount)}</div>`;
+  const gc = GC_CHIP(amount);
+  w.innerHTML = `<div class="chip3 gcchip${gc.exact ? "" : " txt"}" style="background-image:url(${gc.url});color:#fff"><span>${String(fmt(amount)).slice(1)}</span></div><div class="camt">${fmt(amount)}</div>`;
   w.title = fmt(amount); return w;
 }
 async function slide(node, x, y, ms = 500) {
@@ -225,6 +226,7 @@ function drawRack() {
   if (k === rackKey) return; rackKey = k; if (!show.includes(chip)) chip = show[1];
   const lab = (v) => v >= 1e12 ? +(v / 1e12).toFixed(1) + "T" : v >= 1e9 ? +(v / 1e9).toFixed(1) + "B" : v >= 1e6 ? +(v / 1e6).toFixed(1) + "M" : v >= 1000 ? +(v / 1000).toFixed(1) + "K" : v;
   document.querySelector(".betui .row").innerHTML = show.map((v, i) => `<button class="chip ${BJ_CC[BJ_CHIPS.indexOf(v) % 5]}" data-v="${v}" aria-pressed="${v === chip}">${lab(v)}</button>`).join("");
+  document.querySelectorAll(".betui .chip").forEach((b) => GC_CHIPIFY(b, +b.dataset.v));
   document.querySelectorAll(".betui .chip").forEach((b) => b.onclick = () => { chip = +b.dataset.v; document.querySelectorAll(".betui .chip").forEach((x) => x.setAttribute("aria-pressed", x === b)); });
 }
 drawRack();
