@@ -46,3 +46,5 @@ body{position:relative}
 @keyframes bp{from{transform:scale(.85);opacity:0}}
 @media (max-height:500px){.zone img{height:26px}.betbar{padding-top:8px}}
 body.catching .betbar{opacity:.25;pointer-events:none}
+
+.result{top:8%;left:auto;right:3%;transform:none}@keyframes pop{from{transform:scale(.6);opacity:0}}

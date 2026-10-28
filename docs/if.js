@@ -55,10 +55,12 @@ function rotAt(e) {   // e: seconds since the round started
 // camera: the scene fills the screen (cover); in the last seconds of the spin it pushes in on the pointer for the tension
 const ease = (x) => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x);
 function view(e) {
-  const W = cv.width, H = cv.height, s0 = Math.max(W / 1920, H / 1080);
-  let z = 1, fx = 760, fy = 560;
-  if (S && S.stop != null) { const u = ease((e - 17.2) / 1.6) * (1 - ease((e - 21.5) / 1)); z = 1 + 1.25 * u; fx = 760 + (610 - 760) * u; fy = 560 + (250 - 560) * u; }
-  const s = s0 * z; let ox = W / 2 - fx * s, oy = H / 2 - fy * s;
+  // fit the whole wheel (rim top ≈70 → stand ≈1040 in scene pixels) into the space above the betting bar; Ido on its right
+  const W = cv.width, H = cv.height, d = cv.width / cv.clientWidth, bar = (document.querySelector(".betbar").offsetHeight + 6) * d;
+  const s0 = Math.max(W / 1920, Math.min((H - bar) / 1050, W / 1250));
+  let z = 1, fx = 110 + (W / s0) / 2, fy = 70 + (H - bar) / s0 / 2;
+  if (S && S.stop != null) { const u = ease((e - 17.2) / 1.6) * (1 - ease((e - 21.6) / 1)); z = 1 + .7 * u; fx += (610 - fx) * u; fy += (330 - fy) * u; }
+  const s = s0 * z, vh = H - bar; let ox = W / 2 - fx * s, oy = vh / 2 - fy * s;
   ox = Math.min(0, Math.max(W - 1920 * s, ox)); oy = Math.min(0, Math.max(H - 1080 * s, oy));
   ctx.setTransform(s, 0, 0, s, ox, oy);
 }
