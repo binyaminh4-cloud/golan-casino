@@ -50,12 +50,15 @@
     return { duels, colMult, ...lw };
   }
   const scCount = (g, type) => g.reduce((n, col) => n + col.filter((s) => s === SC[type]).length, 0);
-  function play(seed) {
-    const R = rng(seed), steps = []; let total = 0;
-    const g = board(R, CFG.w); const shown = g.map((c) => c.slice());
-    const ev = evaluate(R, g); total += ev.total * CFG.payScale;
-    steps.push({ t: "spin", g: shown, after: g.map((c) => c.slice()), duels: ev.duels, wins: ev.wins, win: ev.total * CFG.payScale });
-    let bonus = null; for (const k of ["horse", "duel", "volcano"]) if (scCount(shown, k) >= 3) { bonus = k; break; }
+  function play(seed, opt = {}) {   // opt.buy: "horse" | "duel" | "volcano" — a bought bonus, no base spin
+    const R = rng(seed), steps = []; let total = 0, bonus = null;
+    if (opt.buy) bonus = opt.buy;
+    else {
+      const g = board(R, CFG.w); const shown = g.map((c) => c.slice());
+      const ev = evaluate(R, g); total += ev.total * CFG.payScale;
+      steps.push({ t: "spin", g: shown, after: g.map((c) => c.slice()), duels: ev.duels, wins: ev.wins, win: ev.total * CFG.payScale });
+      for (const k of ["horse", "duel", "volcano"]) if (scCount(shown, k) >= 3) { bonus = k; break; }
+    }
     if (bonus) {
       steps.push({ t: "bonus", kind: bonus, spins: CFG.spins });
       const bw = { ...CFG.w, horse_scatter: 0, duel_scatter: 0, volcano_scatter: 0 };

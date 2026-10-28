@@ -85,10 +85,11 @@
     fx.b = b.slice(); fx.m = st.m.slice(); steps.push(fx);
     resolve();
   }
-  function play(seed) {
+  function play(seed, opt = {}) {   // opt.buy: a bought bonus — straight into 10 free spins
     const R = rng(seed), steps = [], st = { m: Array(N * N).fill(0), meter: 0, next: 0 };
-    const base = spin(R, st, steps); let total = base.win, fsAward = 0;
-    steps.push({ t: "end", win: base.win, sc: base.sc });
+    let base = { win: 0, sc: 3 };
+    if (!opt.buy) { base = spin(R, st, steps); steps.push({ t: "end", win: base.win, sc: base.sc }); }
+    let total = base.win, fsAward = 0;
     if (base.sc >= 3) {
       let left = CFG.fs[Math.min(base.sc, 5)], played = 0; fsAward = left;
       const fst = { m: Array(N * N).fill(0), meter: 0, next: 0, fs: true };

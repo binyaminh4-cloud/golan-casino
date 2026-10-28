@@ -168,6 +168,15 @@ function freeState(res) {
   if (res.free) GC_BONUS_INTRO("🎁 10 סיבובים חינם!", ["הסיבובים משחקים לבד, באותו הימור, בלי לחייב את הארנק.", "כל זכייה בסיבוב חינם נכנסת לארנק.", "גם הג׳קפוטים פתוחים בסיבובים החינם."], "img/slots/fortune/BIN.webp").then(() => { if (FREE_LEFT > 0 && !busy) $("spinBtn").click(); });
   setFree(res.free_left || 0);
 }
+// bonus buy (Binyamin's machine): 10 free spins at the chosen bet
+if (FO) { const bb = document.createElement("button"); bb.type = "button"; bb.className = "fastbtn"; bb.textContent = "🛒 בונוס"; $("spinBtn").before(bb);
+  bb.onclick = async () => {
+    if (busy || FREE_LEFT > 0 || PREVIEW) return; const P = (await db.rpc("gc_buy_prices")).data || {};
+    const k = await GC_BUYMENU([{ kind: "free", label: "10 סיבובים חינם", price: P["fortune:free"] || 10, desc: "10 סיבובים באותו הימור, כולל סיכוי לג׳קפוטים" }], lineBet * 5, fmt);
+    if (!k) return; const { data, error } = await db.rpc("fo_buy", { p_line_bet: lineBet, p_ref: newRef() });
+    if (error) return err((error.message || "").includes("insufficient") ? "אין מספיק שקלים." : "הקנייה נכשלה.");
+    showBal(data.balance); freeState({ free: true, free_left: data.free_left });
+  }; }
 function setFree(n) {
   FREE_LEFT = n; $("spinBtn").textContent = n > 0 ? `חינם · ${n}` : "סובב"; $("spinBtn").classList.toggle("free", n > 0);
   $("chips").classList.toggle("locked", n > 0);

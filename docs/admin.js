@@ -59,7 +59,7 @@ async function loadGrantList() {
 $("grantForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const amt = Math.floor(+$("grantAmt").value), who = $("grantWho").value || null, m = $("grantMsg");
-  if (!(amt >= 1 && amt <= 10000000)) { m.className = "msg err"; m.textContent = "סכום בין ₪1 ל־₪10,000,000."; return; }
+  if (!(amt >= 1 && amt <= 100000000)) { m.className = "msg err"; m.textContent = "סכום בין ₪1 ל־₪100,000,000."; return; }
   const name = who ? $("grantWho").selectedOptions[0].textContent : "כל החברים";
   if (!confirm(`לטעון ${fmt(amt)} ל${who ? "־" + name : "כל החברים"}?`)) return;
   const { data, error } = await db.rpc("admin_grant", { p_user: who, p_amount: amt });

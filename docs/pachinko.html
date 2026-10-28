@@ -26,9 +26,9 @@ button:disabled{opacity:.5}
 </head>
 <body>
 <header class="top"><a href="./">→ ללובי</a><span class="bal">הארנק שלי <b id="bal">…</b></span>
-  <div class="ctl" id="bets"></div><button id="spin">סובב</button><span id="err"></span></header>
+  <div class="ctl" id="bets"></div><button id="spin">סובב</button><button id="buy" title="קניית בונוס">🛒 בונוס</button><span id="err"></span></header>
 <div class="wrap"><canvas id="game" width="1600" height="900" aria-label="מכונת השירותים והפצ׳ינקו"></canvas></div>
-<script src="sfx.js?v=8"></script>
+<script src="sfx.js?v=10"></script>
 <script type="module">
 import { scoreDrops } from "./vendor/pc_rules.mjs?v=1";
 import { Renderer, prepareArt } from "./vendor/pc_renderer.mjs?v=2";
@@ -51,6 +51,9 @@ $("spin").onclick = async () => {
   const { data, error } = await db.rpc("pc_spin", { p_stake: bet, p_ref: crypto.randomUUID ? crypto.randomUUID() : Date.now() + "" + Math.random() });
   if (error) { const m = error.message || ""; $("err").textContent = m.includes("insufficient") ? "אין מספיק שקלים." : m.includes("invalid_amount") ? "הסכום מעל המקסימום שלך." : "משהו השתבש.";
     state.spinning = false; busy = false; $("spin").disabled = false; return; }
+  playResult(data);
+};
+function playResult(data) {
   showBal(data.balance - data.payout);
   setTimeout(() => {
     const lineWin = Math.floor(data.stake * data.line_mult / 10);
@@ -73,6 +76,16 @@ $("spin").onclick = async () => {
       }, (dur + 1.2) * 1000);
     }, 1800);
   }, 1300);
+}
+// bonus buy: Avichai's pachinko or Fisher's super, straight away
+$("buy").onclick = async () => {
+  if (busy) return; const P = await (await db.rpc("gc_buy_prices")).data || {};
+  const kind = await GC_BUYMENU([{ kind: "regular", label: "הבונוס של אביחי", price: P["pachinko:regular"] || 17, desc: "פצ׳ינקו עם דאבל, מכפיל כניסה ×1" },
+    { kind: "super", label: "הסופר בונוס של פישר", price: P["pachinko:super"] || 133, desc: "20 נפילות על שבעת החברים" }], bet, fmt);
+  if (!kind) return; busy = true; $("spin").disabled = true; $("err").textContent = "";
+  const { data, error } = await db.rpc("pc_buy", { p_kind: kind, p_stake: bet, p_ref: crypto.randomUUID ? crypto.randomUUID() : Date.now() + "" + Math.random() });
+  if (error) { const m = error.message || ""; $("err").textContent = m.includes("insufficient") ? "אין מספיק שקלים." : "הקנייה נכשלה."; busy = false; $("spin").disabled = false; return; }
+  data.grid = state.grid; playResult(data);
 };
 const load = (src) => new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => no(new Error(src)); im.src = src; });
 (async () => {

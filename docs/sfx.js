@@ -119,7 +119,7 @@ window.GC_LIMIT = function (total, max, bal, fmt) {
   t.dataset.why = `היתרה שלך ${fmt(bal)}, ולכן ההימור המקסימלי כרגע הוא ${fmt(max)}. כשהיתרה עולה, המקסימום עולה במדרגות.`;
 };
 // Entering a bonus: a screen that explains it, and the bonus starts only after the player taps "יאללה".
-window.GC_BONUS_INTRO = function (title, lines, img) {
+window.GC_BI_CSS = function () {
   if (!document.getElementById("gcBiCss")) { const c = document.createElement("style"); c.id = "gcBiCss";
     c.textContent = `.gc-bi{position:fixed;inset:0;z-index:9550;display:grid;place-items:center;background:rgba(0,0,0,.85);direction:rtl;animation:gcbiF .25s}
 .gc-bi .box{width:min(520px,92vw);max-height:92dvh;overflow:auto;background:radial-gradient(ellipse at 50% 0%,#3a2a10,#120c08);border:2px solid #F1D69A;border-radius:18px;padding:16px 18px;text-align:center;box-shadow:0 0 50px rgba(255,214,110,.45);animation:gcbiP .35s cubic-bezier(.2,1.5,.4,1)}
@@ -129,10 +129,13 @@ window.GC_BONUS_INTRO = function (title, lines, img) {
 .gc-bi button{width:100%;height:50px;border:0;border-radius:99px;background:linear-gradient(180deg,#ffe9a8,#C5A05A);color:#120c08;font:900 20px Heebo,sans-serif;cursor:pointer}
 @media (max-height:500px){.gc-bi .box{padding:10px 14px}.gc-bi img{max-height:16dvh}.gc-bi h2{font-size:20px;margin-bottom:4px}.gc-bi li{font-size:13px;padding:4px 8px}.gc-bi ul{gap:4px;margin-bottom:8px}.gc-bi button{height:40px;font-size:17px}}
 @keyframes gcbiF{from{opacity:0}}@keyframes gcbiP{from{transform:scale(.7);opacity:0}}`; document.head.appendChild(c); }
+};
+window.GC_BONUS_INTRO = function (title, lines, img, btn) {
+  GC_BI_CSS();
   return new Promise((done) => {
     const o = document.createElement("div"); o.className = "gc-bi";
     const e = (s) => String(s).replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[x]));
-    o.innerHTML = `<div class="box">${img ? `<img src="${e(img)}" alt="">` : ""}<h2>${e(title)}</h2><ul>${lines.map((l) => `<li>${e(l)}</li>`).join("")}</ul><button type="button">יאללה, לבונוס!</button></div>`;
+    o.innerHTML = `<div class="box">${img ? `<img src="${e(img)}" alt="">` : ""}<h2>${e(title)}</h2><ul>${lines.map((l) => `<li>${e(l)}</li>`).join("")}</ul><button type="button">${e(btn || "יאללה, לבונוס!")}</button></div>`;
     o.querySelector("button").onclick = () => { o.remove(); done(); };
     document.body.appendChild(o); try { SFX.win(true); } catch (er) {}
   });
@@ -154,3 +157,35 @@ window.GC_BONUS_INTRO = function (title, lines, img) {
   (document.head || document.documentElement).appendChild(st);
   [5, 25, 100, 500, 1000, 5000, 25000].forEach((v) => { const i = new Image(); i.src = GC_CHIP(v).url; });
 })();
+// Bonus buy: a menu of the bonuses this machine sells, each with its price for the current bet; resolves to the chosen kind (or null).
+window.GC_BUYMENU = function (opts, stake, fmt) {
+  GC_BI_CSS();
+  return new Promise((done) => {
+    const o = document.createElement("div"); o.className = "gc-bi";
+    const e = (s) => String(s).replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[x]));
+    o.innerHTML = `<div class="box"><h2>🛒 קניית בונוס</h2><ul>${opts.map((p, i) => `<li style="cursor:pointer;display:grid;gap:2px" data-i="${i}"><b style="color:#ffe27a;font-size:17px">${e(p.label)} · ${fmt(stake * p.price)}</b><span>${e(p.desc)}</span><small style="color:#B9AA94">${p.price}× מההימור (${fmt(stake)})</small></li>`).join("")}</ul><button type="button" class="no" style="background:#2a1c10;color:#F1D69A;border:1px solid #C5A05A">ביטול</button></div>`;
+    let chosen = null;
+    o.querySelectorAll("li").forEach((li) => li.onclick = () => {
+      chosen = opts[+li.dataset.i]; const b = o.querySelector(".box");
+      b.innerHTML = `<h2>לקנות ${e(chosen.label)}?</h2><ul><li>המחיר: <b>${fmt(stake * chosen.price)}</b> (${chosen.price}× מההימור). הבונוס מתחיל מיד.</li></ul><button type="button" class="yes">כן, קנה</button><button type="button" class="no" style="margin-top:8px;background:#2a1c10;color:#F1D69A;border:1px solid #C5A05A">ביטול</button>`;
+      b.querySelector(".yes").onclick = () => { o.remove(); done(chosen.kind); };
+      b.querySelector(".no").onclick = () => { o.remove(); done(null); };
+    });
+    o.querySelector(".no").onclick = () => { o.remove(); done(null); };
+    document.body.appendChild(o);
+  });
+};
+// Bet stepper: ▼ ₪100 ▲ in fixed jumps (no typing). Keeps a hidden <input> in sync so game code can read .value.
+window.GC_STEPPER = function (host, input, opts = {}) {
+  const STEPS = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1e6, 2.5e6, 5e6, 1e7, 2.5e7, 5e7, 1e8];
+  const f = (n) => n >= 1e6 ? "₪" + n / 1e6 + "M" : n >= 1e3 ? "₪" + n / 1e3 + "K" : "₪" + n;
+  if (!document.getElementById("gcStepCss")) { const c = document.createElement("style"); c.id = "gcStepCss";
+    c.textContent = `.gc-step{display:inline-flex;align-items:center;gap:4px;direction:ltr}.gc-step button{width:34px;height:34px;border-radius:50%;border:1px solid #C5A05A;background:#1d140c;color:#F1D69A;font:900 14px sans-serif;cursor:pointer;padding:0}
+.gc-step button:disabled{opacity:.35}.gc-step b{min-width:74px;text-align:center;font:800 17px Inter,Heebo,sans-serif;color:#ffe27a;background:#0b0806;border:1px solid #80602E;border-radius:10px;padding:5px 8px}`; document.head.appendChild(c); }
+  let i = Math.max(0, STEPS.indexOf(opts.start || 100));
+  host.classList.add("gc-step"); host.innerHTML = `<button type="button" aria-label="פחות">▼</button><b></b><button type="button" aria-label="יותר">▲</button>`;
+  const [dn, val, up] = host.children, max = () => (opts.max ? opts.max() : Infinity);
+  const draw = () => { while (i > 0 && STEPS[i] > max()) i--; input.value = STEPS[i]; val.textContent = f(STEPS[i]); dn.disabled = i === 0; up.disabled = i >= STEPS.length - 1 || STEPS[i + 1] > max(); };
+  dn.onclick = () => { if (i > 0) { i--; draw(); try { SFX.chip(); } catch (e) {} } }; up.onclick = () => { if (STEPS[i + 1] <= max()) { i++; draw(); try { SFX.chip(); } catch (e) {} } };
+  draw(); return { refresh: draw, set disabled(v) { dn.disabled = up.disabled = v; if (!v) draw(); } };
+};

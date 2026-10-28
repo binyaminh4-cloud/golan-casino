@@ -58,11 +58,11 @@ button[aria-pressed="true"]{background:var(--brass);color:#120c08}
     <div class="panel"><small>זכייה בסיבוב</small><b id="win">₪0</b></div>
     <div class="panel" id="fs"><small>סיבובים חינם</small><b id="fsLeft">0</b></div>
     <div class="bets" id="bets"></div>
-    <button id="spin">סובב</button><button id="skip" title="קצב מהיר">⏩ מהיר</button>
+    <button id="spin">סובב</button><button id="buy">🛒 קנה סיבובים חינם</button><button id="skip" title="קצב מהיר">⏩ מהיר</button>
     <div id="err"></div>
   </div>
 </main>
-<script src="sfx.js?v=8"></script>
+<script src="sfx.js?v=10"></script>
 <script src="vendor/kin_engine.js?v=1"></script>
 <script>
 "use strict";
@@ -90,8 +90,8 @@ function showBal(v) { balance = +v; $("bal").textContent = fmt(v); drawBets(); }
 function toast(t, ms = 1400) { const d = document.createElement("div"); d.className = "toast"; d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), FAST ? ms * .5 : ms); }
 async function card(who) { const o = document.createElement("div"); o.className = "card"; o.innerHTML = `<img src="img/kin/${who}.webp" alt="${NAMES[who]}"><p>${LINES[who]}</p>`; document.body.appendChild(o);
   let done; const p = new Promise((r) => done = r); o.onclick = done; setTimeout(done, FAST ? 1100 : 2600); await p; o.remove(); }
-async function replay(seed, stake) {
-  const r = K.play(Number(seed)); let roundWin = 0, meter = 0, next = 0;
+async function replay(seed, stake, buy) {
+  const r = K.play(Number(seed), buy ? { buy: 1 } : {}); let roundWin = 0, meter = 0, next = 0;
   for (const s of r.steps) {
     if (s.t === "board") { paint(s.b, s.m, true); meter = s.meter; next = s.next; friends(meter, next); await wait(500); }
     else if (s.t === "win") { for (const p of s.parts) for (const i of p.cells) cells[i].classList.add("win");
@@ -118,6 +118,17 @@ $("spin").onclick = async () => {
   await replay(data.seed, data.stake);
   $("win").textContent = fmt(data.payout); showBal(data.balance);
   if (data.total >= 20 && window.GC_BONUS) GC_BONUS(`🔥 על האש! ×${Math.round(data.total)}`, data.payout, "");
+  busy = false; $("spin").disabled = false;
+};
+$("buy").onclick = async () => {
+  if (busy) return; const P = (await db.rpc("gc_buy_prices")).data || {};
+  const kind = await GC_BUYMENU([{ kind: "fs", label: "10 סיבובים חינם", price: P["kinneret:fs"] || 18, desc: "מכפילי משבצות שנשארים לכל הבונוס, וכל החברים בדרך" }], bet, fmt);
+  if (!kind) return; busy = true; $("spin").disabled = true; $("err").textContent = ""; $("win").textContent = "₪0";
+  const { data, error } = await db.rpc("kin_buy", { p_stake: bet, p_ref: crypto.randomUUID ? crypto.randomUUID() : Date.now() + "" + Math.random() });
+  if (error) { $("err").textContent = (error.message || "").includes("insufficient") ? "אין מספיק שקלים." : "הקנייה נכשלה."; busy = false; $("spin").disabled = false; return; }
+  showBal(data.balance - data.payout); await replay(data.seed, data.stake, true);
+  $("win").textContent = fmt(data.payout); showBal(data.balance);
+  if (window.GC_BONUS) GC_BONUS(`🔥 סיבובים חינם ×${Math.round(data.total)}`, data.payout, `עלה ${fmt(data.cost)}`);
   busy = false; $("spin").disabled = false;
 };
 (async () => {

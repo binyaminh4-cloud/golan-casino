@@ -16,8 +16,8 @@ body.b-horse{background-image:url(img/ww/bg_horse_desktop.webp)}body.b-duel{back
 .top a{color:#ffd99a;text-decoration:none;font-weight:700;border:1px solid #a3753c;border-radius:99px;padding:4px 12px;white-space:nowrap}
 .bal b{color:#ffd99a;font:800 16px Inter}.top h1{margin:0 auto;font:900 18px Heebo;color:#ffcf7a;text-shadow:0 2px 6px #000;white-space:nowrap}
 main{position:relative;z-index:1;flex:1;min-height:0;display:grid;grid-template-columns:minmax(80px,1fr) auto minmax(80px,1fr);grid-template-rows:minmax(0,1fr);align-items:end;justify-items:center;gap:6px;padding:6px max(8px,env(safe-area-inset-left)) 6px max(8px,env(safe-area-inset-right))}
-.hero{width:100%;height:100%;max-height:calc(100dvh - 60px);object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 10px 18px #000c);transition:transform .3s}
-.hero.pop{transform:scale(1.06)}
+.hero{width:100%;height:100%;max-height:calc(100dvh - 60px);object-fit:contain;object-position:50% 100%;transform:scale(1.5);transform-origin:50% 100%;filter:drop-shadow(0 10px 18px #000c);transition:transform .3s}
+
 .center{height:100%;display:flex;flex-direction:column;align-items:center;gap:5px;min-height:0}
 .board{position:relative;flex:1;min-height:0;aspect-ratio:1;max-width:min(62vw,100%);background:#1d120ae6;border:3px solid #a3753c;border-radius:12px;padding:1.5%;box-shadow:0 12px 30px #000c}
 .grid{display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(5,1fr);grid-auto-flow:column;gap:3px;height:100%;direction:ltr}
@@ -49,11 +49,11 @@ button[aria-pressed="true"]{background:#a3753c;color:#140c06}
   <div class="center">
     <div class="board"><div class="grid" id="grid"></div></div>
     <div class="bar"><span class="hud">זכייה <b id="win">₪0</b></span><span class="hud" id="fsHud" hidden>סיבוב <b id="fsN"></b></span>
-      <span id="bets"></span><button id="spin">סובב</button><button id="fast">⏩</button><span id="err"></span></div>
+      <span id="bets"></span><button id="spin">סובב</button><button id="buy">🛒</button><button id="fast">⏩</button><span id="err"></span></div>
   </div>
   <img class="hero" id="bin" src="img/ww/binyamin_idle.webp" alt="בנימין">
 </main>
-<script src="sfx.js?v=8"></script>
+<script src="sfx.js?v=10"></script>
 <script src="vendor/ww_engine.js?v=1"></script>
 <script>
 "use strict";
@@ -86,8 +86,8 @@ const BN = { horse: "סוס הפרא", duel: "ראש בראש", volcano: "התפ
 const INTRO = { horse: ["כל סוס פרא (Wild) שנוחת נשאר במקום עד סוף הבונוס.", "ככל שיותר סוסים ננעלים, הקווים מתמלאים יותר."],
   duel: ["הרבה יותר סמלי דו־קרב על הגלגלים.", "עידו ובנימין יוצאים לדו־קרב: המנצח הופך את כל הטור לסוסים עם מכפיל ×2 עד ×100.", "מכפילים של כמה טורים על אותו קו מתחברים."],
   volcano: ["7 סיבובי איסוף: כל סוס נאסף, וכל סמל דו־קרב מעלה את מכפיל הלבה.", "3 סיבובי הכרעה: כל הסוסים שנאספו מתפזרים מחדש בכל סיבוב, והמכפיל חל על כל הזכיות."] };
-async function replay(seed, stake) {
-  const r = E.play(Number(seed)), acc = { v: 0 }; let kind = null;
+async function replay(seed, stake, buy) {
+  const r = E.play(Number(seed), buy ? { buy } : {}), acc = { v: 0 }; let kind = null;
   for (const st of r.steps) {
     if (st.t === "spin" || st.t === "fs") {
       if (st.t === "fs") $("fsN").textContent = `${st.n}/10${st.collect ? ` · ${st.collect.wilds} סוסים · ×${st.collect.mult}` : st.decisive ? ` · ×${st.decisive.mult}` : ""}`;
@@ -117,6 +117,20 @@ $("spin").onclick = async () => {
   $("win").textContent = fmt(data.payout); showBal(data.balance);
   if (r.bonus && window.GC_BONUS) GC_BONUS(`🤠 ${BN[r.bonus]} ×${Math.round(data.total)}`, data.payout, r.capped ? "הגעת לתקרה: 12,500×" : "");
   else if (data.total >= 20 && window.GC_BONUS) GC_BONUS(`🤠 זכייה גדולה ×${Math.round(data.total)}`, data.payout, "");
+  busy = false; $("spin").disabled = false;
+};
+$("buy").onclick = async () => {
+  if (busy) return; const P = (await db.rpc("gc_buy_prices")).data || {};
+  const kind = await GC_BUYMENU([
+    { kind: "horse", label: "סוס הפרא", price: P["wild_west:horse"] || 83, desc: "10 סיבובים, סוסים שנוחתים ננעלים" },
+    { kind: "duel", label: "ראש בראש", price: P["wild_west:duel"] || 83, desc: "10 סיבובים עם הרבה דו־קרבות ×2 עד ×100" },
+    { kind: "volcano", label: "התפרצות הר געש", price: P["wild_west:volcano"] || 140, desc: "7 סיבובי איסוף ו־3 סיבובי הכרעה עם מכפיל מצטבר" }], bet, fmt);
+  if (!kind) return; busy = true; $("spin").disabled = true; $("err").textContent = ""; $("win").textContent = "₪0";
+  const { data, error } = await db.rpc("ww_buy", { p_kind: kind, p_stake: bet, p_ref: crypto.randomUUID ? crypto.randomUUID() : Date.now() + "" + Math.random() });
+  if (error) { $("err").textContent = (error.message || "").includes("insufficient") ? "אין מספיק שקלים." : "הקנייה נכשלה."; busy = false; $("spin").disabled = false; return; }
+  showBal(data.balance - data.payout); const r = await replay(data.seed, data.stake, kind);
+  $("win").textContent = fmt(data.payout); showBal(data.balance);
+  if (window.GC_BONUS) GC_BONUS(`🤠 ${BN[kind]} ×${Math.round(data.total)}`, data.payout, r.capped ? "הגעת לתקרה: 12,500×" : `עלה ${fmt(data.cost)}`);
   busy = false; $("spin").disabled = false;
 };
 (async () => {

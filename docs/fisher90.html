@@ -1,6 +1,76 @@
-<!doctype html><html lang="he" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><script src="loader.js?v=10"></script><title>פישר בדקה ה־90 · גולן קזינו</title><link rel="icon" href="img/brand/favicon.png"><link rel="stylesheet" href="f90.css?v=1"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script><script src="config.js?v=8"></script><script src="landscape.js?v=1"></script><body>
-<main class="game"><header><div><a href="./" class="back">→ ללובי</a><h1>פישר <span>בדקה ה־90</span></h1></div><div class="score"><b>1 : 1</b><span>90:00</span></div><button id="sound" class="quiet" aria-pressed="false">סאונד כבוי</button></header>
-<section class="field" aria-label="מגרש המשחק"><canvas id="pitch" width="1440" height="810"></canvas><div class="stage"><span id="stage-count">התקפה אחרונה</span><b id="stage-title">הכדור אצל פישר</b></div><div id="loading">טוען את המגרש…</div><div id="result" hidden></div><div class="progress" id="progress"></div></section>
-<section class="controls"><div class="bank"><small>הארנק שלי</small><b id="balance"></b><span id="pot-label">סכום כניסה</span><strong id="pot">100</strong></div><div id="start-panel"><label for="stake">סכום משחק</label><div class="start-row"><input id="stake" type="number" min="1" max="1000000" step="1" value="100" inputmode="numeric"><button id="start" disabled>התחל התקפה</button></div><small>מהלך שלא הצליח מסיים את ההתקפה ב־0.</small></div><div id="actions" hidden></div><button id="cash" class="cash" hidden></button></section>
-<p id="message" role="status" aria-live="polite">בחר סכום וצא להתקפה.</p><div id="review" hidden><b>מצב המחשה — התוצאות נבחרות לצורך בדיקה</b><button data-outcome="win">המחשת הצלחה</button><button data-outcome="lose">המחשת כישלון</button><button data-outcome="random">חזרה להגרלה</button></div><footer>הסכום לקבלה כולל את ההימור · הרווח הנקי מחושב מול סכום הכניסה · התוצאות נקבעות בשרת · שקלים משחקיים בלבד</footer></main>
-<script src="sfx.js?v=8"></script><script src="vendor/f90_engine.js?v=1"></script><script src="f90.js?v=1"></script><script src="chat.js?v=9"></script></body></html>
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="loader.js?v=10"></script>
+<title>פישר בדקה ה־90 · גולן קזינו</title>
+<link rel="icon" href="img/brand/favicon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&family=Inter:wght@700;800&display=swap">
+<style>
+:root{--line:#2c455a;--blue:#1d6fd1;--gold:#C5A05A}
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden}
+body{position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,#13314d,#08111d 70%);color:#edf4ff;font:15px Heebo,Arial,sans-serif;display:grid;grid-template-rows:auto minmax(0,1fr);}
+.top{display:flex;align-items:center;gap:10px;padding:5px max(10px,env(safe-area-inset-right)) 5px max(56px,calc(52px + env(safe-area-inset-left)));background:#06101bcc;border-bottom:1px solid var(--line)}
+.top a{color:#F1D69A;text-decoration:none;font-weight:700;border:1px solid #80602E;border-radius:99px;padding:4px 12px;white-space:nowrap}
+.top h1{margin:0;font:900 18px Heebo;white-space:nowrap}.top h1 span{color:#8cc4ff}
+.score{margin-inline-start:auto;display:flex;gap:12px;align-items:center;padding:3px 14px;background:#0c1b30;border:1px solid var(--line);border-radius:10px;direction:ltr;font:800 16px Inter}.score span{color:#8cc4ff}
+#sound{background:#0c1b30;border:1px solid var(--line);color:#cfe2ff;border-radius:99px;padding:4px 12px;font:700 12px Heebo}
+.play{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:10px;padding:8px max(10px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));min-height:0}
+.field{position:relative;align-self:center;justify-self:center;width:100%;max-height:100%;aspect-ratio:16/9;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#183b2c}
+.field canvas{width:100%;height:100%;display:block}
+.stage{position:absolute;top:10px;right:10px;background:#0c1b30d9;padding:6px 12px;border-radius:9px;display:grid;gap:2px}.stage span{font-size:11px;color:#a8c1dd}.stage b{font-size:16px}
+.progress{position:absolute;bottom:10px;right:14px;display:flex;gap:6px}.progress i{display:block;width:24px;height:5px;border-radius:4px;background:#ffffff40}.progress i.done{background:#9bdbb6}.progress i.current{background:#62b3ff}
+#loading{position:absolute;inset:0;display:grid;place-content:center;background:#0b1421e8}
+#result{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);padding:14px 30px;text-align:center;background:#102337f0;border:2px solid #748ba0;border-radius:16px;box-shadow:0 12px 60px #0009;display:grid;gap:4px}
+#result b{font:900 26px Heebo}#result.win{border-color:#9bdbb6}#result.win b{color:#9bdbb6}#result.loss b{color:#ff8a8a}
+.panel{display:flex;flex-direction:column;gap:8px;min-height:0;overflow:auto}
+.card{background:#0c1b30e6;border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+.bank{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:baseline}.bank small{color:#a9b9cc;font-size:12px}.bank b{font:800 17px Inter;direction:ltr;text-align:left}
+#pot{font:900 24px Inter;color:#ffe27a;direction:ltr;text-align:left}
+#start-panel{display:grid;gap:8px;justify-items:center}#start-panel label{font-size:13px;color:#a9b9cc}
+#start{width:100%;height:46px;border:0;border-radius:99px;background:linear-gradient(180deg,#5fb0ff,#1d6fd1);color:#fff;font:900 18px Heebo;cursor:pointer}#start:disabled{opacity:.5}
+#start-panel small{color:#a9b9cc;font-size:11px;text-align:center}
+#actions{display:grid;gap:8px}
+#actions button{display:grid;gap:1px;text-align:right;padding:8px 12px;border-radius:12px;border:1px solid #3d7fcf;background:linear-gradient(180deg,#1f63b5,#174c8c);color:#fff;cursor:pointer}
+#actions button:active{transform:scale(.98)}
+#actions .name{font:900 17px Heebo}#actions .amount{font:800 15px Heebo;color:#ffe27a}#actions .profit{font-size:12px;color:#bfe3c9}#actions .odds{font-size:11px;color:#cfe2ff;opacity:.85}
+.cash{height:46px;border-radius:12px;border:2px solid #9bdbb6;background:#14352a;color:#c9f5d8;font:900 16px Heebo;cursor:pointer;display:grid;place-items:center;line-height:1.1}.cash small{font:600 11px Heebo;color:#9bdbb6}
+#message{margin:0;font-size:12px;color:#a9b9cc;text-align:center}
+#review{display:none}
+[hidden]{display:none!important}
+@media (max-height:420px){.play{grid-template-columns:minmax(0,1fr) 260px;gap:8px}.card{padding:6px 10px}#actions .odds{display:none}#actions button{padding:6px 10px}#start,.cash{height:40px}.score{display:none}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=8"></script>
+<script src="landscape.js?v=1"></script>
+</head>
+<body>
+<header class="top"><a href="./">→ ללובי</a><h1>פישר <span>בדקה ה־90</span></h1>
+  <div class="score"><b>1 : 1</b><span>90:00</span></div><button id="sound" aria-pressed="false" style="display:none">סאונד כבוי</button></header>
+<main class="play">
+  <section class="field" aria-label="מגרש המשחק"><canvas id="pitch" width="1440" height="810"></canvas>
+    <div class="stage"><span id="stage-count">התקפה אחרונה</span><b id="stage-title">הכדור אצל פישר</b></div>
+    <div id="loading">טוען את המגרש…</div><div id="result" hidden></div><div class="progress" id="progress"></div></section>
+  <aside class="panel">
+    <div class="card bank"><small>הארנק שלי</small><b id="balance">…</b><small id="pot-label">סכום כניסה</small><strong id="pot">₪100</strong></div>
+    <div class="card" id="start-panel"><label>סכום ההתקפה</label><span id="stepper"></span><input id="stake" type="hidden" value="100">
+      <button id="start" disabled>⚽ התחל התקפה</button><small>חמש החלטות. כל מהלך שמצליח מגדיל את הקופה, מהלך שנכשל מאבד אותה. אחרי הצלחה אפשר לקחת ולצאת.</small></div>
+    <div id="actions" hidden></div>
+    <button id="cash" class="cash" hidden></button>
+    <p id="message" role="status" aria-live="polite">בחר סכום וצא להתקפה.</p>
+  </aside>
+</main>
+<div id="review"></div>
+<script src="sfx.js?v=10"></script>
+<script src="vendor/f90_engine.js?v=1"></script>
+<script src="f90.js?v=2"></script>
+<script>
+// bet in fixed jumps; the intro explains the game once per visit (skippable)
+GC_STEPPER(document.getElementById("stepper"), document.getElementById("stake"), { start: 100 });
+setTimeout(() => { if (window.GC_BONUS_INTRO) {
+  GC_BONUS_INTRO("⚽ פישר בדקה ה־90", ["1:1 בדקה ה־90, והכדור אצל פישר. יש לך עד חמש החלטות עד השער.", "בכל שלב בוחרים: מהלך בטוח יותר עם רווח קטן, או מסוכן יותר עם רווח גדול. על כל כפתור כתוב כמה תקבל והסיכוי.", "מהלך שנכשל מאבד את הקופה. אחרי כל הצלחה אפשר ללחוץ ״קח וצא״ ולקחת את הקופה.", "בעיטה (מרחוק או מול השוער) מסיימת את ההתקפה."], "", "הבנתי, למגרש ⚽"); } }, 900);
+</script>
+<script src="chat.js?v=9"></script>
+</body>
+</html>

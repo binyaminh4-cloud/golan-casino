@@ -30,10 +30,15 @@ function wheelScene(rot, t, B) {
     const a = -Math.PI / 2 + i * TH, b = a + TH, k = LAYOUT[i];
     const g = ctx.createRadialGradient(-70, -110, 25, 0, 0, r); g.addColorStop(0, "#0c1724"); g.addColorStop(.55, colors[k]); g.addColorStop(.88, colors[k]); g.addColorStop(1, "#101c2c");
     ctx.fillStyle = g; ctx.strokeStyle = "#91764b"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, r, a, b); ctx.closePath(); ctx.fill(); ctx.stroke();
+    if (B && (B.seg === i || B.cat === k) && t > 10.6) { ctx.save(); ctx.globalAlpha = .35 + .2 * Math.sin(t * 6); ctx.fillStyle = "#ffd34d"; ctx.fill(); ctx.restore(); }
     const mid = (a + b) / 2; ctx.save(); ctx.translate(Math.cos(mid) * 315, Math.sin(mid) * 315); ctx.rotate(mid + Math.PI / 2); if (I[ICON[k]]) C(ctx, I[ICON[k]], -20, -33, 40, 66);
     // boost badges: the one boosted friend-fish segment, or every segment of a boosted bonus colour
     const m = B ? (B.seg === i ? B.mult : B.cat === k ? B.cat_mult : 0) : 0;
-    if (m) { ctx.translate(0, -78); ctx.fillStyle = "#ffe27a"; ctx.beginPath(); ctx.arc(0, 0, 25, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = "#3a2600"; ctx.font = "bold 24px Inter, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("×" + m, 0, 1); }
+    if (m) {   // boost badge: lands with a pop during the 3 s reveal, then keeps glowing
+      const age = Math.max(0, t - 10 - (B.seg === i ? 0.6 : 1.4)), pop = age < .35 ? 1.8 - age * 2.3 : 1 + .06 * Math.sin(t * 6);
+      if (age > 0) { ctx.translate(0, -70); ctx.scale(pop, pop); ctx.shadowColor = "#ffcf40"; ctx.shadowBlur = 30; ctx.fillStyle = "#ffe27a"; ctx.beginPath(); ctx.arc(0, 0, 34, 0, Math.PI * 2); ctx.fill();
+        ctx.shadowBlur = 0; ctx.lineWidth = 4; ctx.strokeStyle = "#8a5a00"; ctx.stroke(); ctx.fillStyle = "#3a2600"; ctx.font = "900 30px Inter, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("×" + m, 0, 2); }
+    }
     ctx.restore();
   }
   ctx.restore();
@@ -92,6 +97,9 @@ function phaseText(e) {
   const cd = $("count"), left = Math.ceil(10 - e);
   if (open && left > 0) { cd.hidden = false; if (cd.dataset.s !== String(left)) { cd.dataset.s = left; cd.innerHTML = `<small>הימורים נסגרים בעוד</small><b>${left}</b>`; cd.classList.toggle("hurry", left <= 3);
       cd.classList.remove("tick"); void cd.offsetWidth; cd.classList.add("tick"); if (left <= 3) try { SFX.tick(true); } catch (er) {} } }
+  else if (e >= 10 && e < 13 && S.boosts) { cd.hidden = false; const b = S.boosts, key = "boost" + S.round;
+    if (cd.dataset.s !== key) { cd.dataset.s = key; cd.classList.remove("hurry");
+      cd.innerHTML = `<small>⚡ מכפילים על הגלגל</small><b style="font-size:clamp(24px,6vh,40px)">${CATNAME[LAYOUT[b.seg]]} ×${b.mult}${b.cat ? ` · ${CATNAME[b.cat]} ×${b.cat_mult}` : ""}</b>`; try { SFX.zap(); } catch (er) {} } }
   else cd.hidden = true;
 }
 function showEnd() {
