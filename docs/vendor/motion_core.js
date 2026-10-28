@@ -23,7 +23,8 @@
  function fishFit(total,nativeWidth,nativeHeight,zone,minLength=48){
   if(!(total>0&&nativeWidth>0&&nativeHeight>0))throw Error('Invalid fish dimensions/multiplier');
   const maxScale=Math.min(zone.width/nativeWidth,zone.height/nativeHeight);
-  const scale=Math.min(maxScale,Math.max(minLength/nativeWidth,maxScale*total/5000));
+  // log size: even a ×12 fish is clearly visible (~40% of the frame), a ×5000 monster fills it
+  const frac=Math.min(1,Math.max(.4,.4+.6*Math.log(total/12)/Math.log(5000/12)));const scale=Math.max(minLength/nativeWidth,maxScale*frac);
   return {scale,width:nativeWidth*scale,height:nativeHeight*scale,maxWidth:nativeWidth*maxScale};
  }
  function elbow(shoulder,hand,l1,l2,bend){const dx=hand.x-shoulder.x,dy=hand.y-shoulder.y,raw=Math.hypot(dx,dy);const d=clamp(raw,Math.abs(l1-l2)+.01,l1+l2-.01);const a=Math.atan2(dy,dx)+bend*Math.acos(clamp((l1*l1+d*d-l2*l2)/(2*l1*d),-1,1));return {x:shoulder.x+Math.cos(a)*l1,y:shoulder.y+Math.sin(a)*l1}}

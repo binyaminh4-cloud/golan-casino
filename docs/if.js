@@ -118,7 +118,7 @@ function showEnd() {
   const pay = S.payout || 0, staked = Object.values(S.mine || {}).reduce((a, b) => a + b, 0);
   r.innerHTML = `<b>${CATNAME[S.cat] || ""}${x ? ` · ×${Number(x).toLocaleString("en-US")}` : ""}</b>${staked ? (pay > 0 ? `<span class="win">זכית ${fmt(pay)}</span>` : `<span>לא הפעם</span>`) : ""}`;
   r.hidden = false; setTimeout(() => { r.hidden = true; }, 3500);
-  if (pay > 0) { if (["blue", "orange", "red"].includes(S.cat) && window.GC_BONUS) GC_BONUS(`🎣 בונוס ${CATNAME[S.cat]} ×${S.total_mult}`, pay, "עידו הוציא אותו מהקרח"); else try { SFX.win(false); } catch (e) {} }
+  if (pay > 0) { if (["blue", "orange", "red"].includes(S.cat) && window.GC_BONUS) GC_BONUS(S.total_mult >= 500 ? `🐋 דג מפלצת! ×${S.total_mult}` : S.total_mult >= 100 ? `🦈 דג ענק! ×${S.total_mult}` : `🎣 בונוס ${CATNAME[S.cat]} ×${S.total_mult}`, pay, S.total_mult >= 100 ? "עידו בקושי הוציא אותו מהקרח!" : "עידו הוציא אותו מהקרח"); else try { SFX.win(false); } catch (e) {} }
 }
 
 // ---------- betting ----------
