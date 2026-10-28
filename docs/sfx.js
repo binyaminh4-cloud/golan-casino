@@ -6,7 +6,7 @@
   try { muted = localStorage.getItem("gc_mute") === "1"; } catch (e) {}
   function ac() {
     if (!ctx) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
-      ctx = new C(); master = ctx.createGain(); master.gain.value = muted ? 0 : 0.8; master.connect(ctx.destination); }
+      ctx = new C(); master = ctx.createGain(); master.gain.value = 0.8; master.connect(ctx.destination); }
     if (ctx.state === "suspended") ctx.resume();
     return ctx;
   }
@@ -66,7 +66,7 @@
     drop() { noise({ type: "lowpass", f: 200, dur: 0.5, peak: 0.9, a: 0.005 }); tone({ f: 55, f2: 40, dur: 0.6, type: "sine", peak: 0.7 }); tone({ t: 0.02, f: 880, f2: 1760, dur: 0.3, type: "sawtooth", peak: 0.08 }); },
     riser(sec = 1) { tone({ f: 200, f2: 1600, dur: sec, type: "sawtooth", peak: 0.06, a: sec * 0.8 }); noise({ type: "highpass", f: 800, f2: 6000, dur: sec, peak: 0.15, a: sec * 0.8 }); },
     get muted() { return muted; },
-    setMuted(m) { muted = m; try { localStorage.setItem("gc_mute", m ? "1" : "0"); } catch (e) {} if (master) master.gain.value = m ? 0 : 0.8; },
+    setMuted(m) { muted = m; try { localStorage.setItem("gc_mute", m ? "1" : "0"); } catch (e) {} },
   };
   // ---- recorded sounds (ElevenLabs pack in snd/): play the file when it's loaded, otherwise the synth above ----
   const BUF = {}, LOADING = {};
@@ -110,8 +110,8 @@
   const MUSIC = /dragons/.test(PAGE) ? "music_dragons" : /wildwest/.test(PAGE) ? "music_wildwest" : /fisher90/.test(PAGE) ? "music_fisher90" : /kinneret/.test(PAGE) ? "music_kinneret" : /pachinko/.test(PAGE) ? "music_pachinko" : /fishing|skin=fish/.test(PAGE) ? "music_fishing" : /protein/.test(PAGE) ? "music_protein" : /slots/.test(PAGE) ? "music_slots"
     : /(roulette|blackjack|poker)/.test(PAGE) ? "music_tables" : /^(index\.html|)$/.test(PAGE.split("?")[0]) ? "music_lobby" : null;
   let musicOn = true, mSrc = null, mGain = null, mName = null; try { musicOn = localStorage.getItem("gc_music") !== "0"; } catch (e) {}
-  async function startMusic(name) { name = name || MUSIC; if (!name || !musicOn || muted || !ac()) return; if (mName === name && mSrc) return;
-    load(name); await LOADING[name]; if (!BUF[name] || !musicOn || muted) return; stopMusic(); mName = name;
+  async function startMusic(name) { name = name || MUSIC; if (!name || !musicOn || !ac()) return; if (mName === name && mSrc) return;
+    load(name); await LOADING[name]; if (!BUF[name] || !musicOn) return; stopMusic(); mName = name;
     mSrc = ctx.createBufferSource(); mGain = ctx.createGain(); mSrc.buffer = BUF[name]; mSrc.loop = true;
     mGain.gain.setValueAtTime(0.0001, now()); mGain.gain.linearRampToValueAtTime(0.22, now() + 1.5); mSrc.connect(mGain).connect(master); mSrc.start(); }
   function stopMusic() { if (mSrc) { const s = mSrc, g = mGain; g.gain.linearRampToValueAtTime(0.0001, now() + 0.6); setTimeout(() => { try { s.stop(); } catch (e) {} }, 700); } mSrc = mGain = null; mName = null; }
@@ -120,18 +120,22 @@
   S.setMusic = (on) => { musicOn = on; try { localStorage.setItem("gc_music", on ? "1" : "0"); } catch (e) {} if (on) startMusic(); else stopMusic(); };
   Object.defineProperty(S, "musicOn", { get: () => musicOn });
   addEventListener("pointerdown", () => startMusic(), { once: true, capture: true });
-  const baseMute = S.setMuted; S.setMuted = (m) => { baseMute(m); if (m) stopMusic(); else startMusic(); };
+  
   window.SFX = S;
   // mute button in the top bar
   document.addEventListener("DOMContentLoaded", () => {
-    const bar = document.querySelector(".top") || document.querySelector("#lobbyView header .me"); if (!bar) return;
+    const bar = document.querySelector(".top") || document.querySelector("#lobbyView header .me");
     const b = document.createElement("button"); b.className = "sfx-btn"; b.type = "button";
-    const draw = () => { b.textContent = muted ? "🔇" : "🔊"; b.setAttribute("aria-label", muted ? "הפעל צלילים" : "השתק צלילים"); };
-    b.onclick = () => { S.setMuted(!muted); draw(); if (!muted) S.chip(); }; draw(); bar.appendChild(b);
-    if (MUSIC) { const m = document.createElement("button"); m.className = "sfx-btn"; m.type = "button";
-      const dm = () => { m.textContent = musicOn ? "🎵" : "🎵̸"; m.style.opacity = musicOn ? 1 : .45; m.setAttribute("aria-label", musicOn ? "כבה מוזיקה" : "הפעל מוזיקה"); };
-      m.onclick = () => { S.setMusic(!musicOn); dm(); }; dm(); bar.appendChild(m); }
-    const st = document.createElement("style"); st.textContent = ".sfx-btn{background:rgba(23,18,15,.9);border:1px solid #80602E;border-radius:99px;width:40px;height:40px;font-size:18px;cursor:pointer;flex:none}"; document.head.appendChild(st);
+    const draw = () => { b.textContent = muted && !musicOn ? "🔇" : "🔊"; b.setAttribute("aria-label", "הגדרות צליל"); };
+    const menu = document.createElement("div"); menu.className = "sfx-menu"; menu.hidden = true;
+    const drawMenu = () => { menu.innerHTML = `<b>צלילים</b><label><input type="checkbox" data-k="fx" ${muted ? "" : "checked"}><span>🔔 אפקטים</span></label>`
+      + `<label><input type="checkbox" data-k="mu" ${musicOn ? "checked" : ""}><span>🎵 מוזיקת רקע</span></label>`;
+      menu.querySelectorAll("input").forEach((i) => i.onchange = () => { if (i.dataset.k === "fx") { S.setMuted(!i.checked); if (i.checked) S.chip(); } else S.setMusic(i.checked); draw(); }); };
+    b.onclick = (e) => { e.stopPropagation(); drawMenu(); const r = b.getBoundingClientRect(); menu.style.top = r.bottom + 6 + "px"; menu.style.left = Math.max(8, Math.min(innerWidth - 190, r.left - 60)) + "px"; menu.hidden = !menu.hidden; };
+    document.addEventListener("pointerdown", (e) => { if (!menu.hidden && !menu.contains(e.target) && e.target !== b) menu.hidden = true; });
+    draw(); if (bar) bar.appendChild(b); document.body.appendChild(menu);
+    window.GC_SOUND_MENU = (btn) => { btn.onclick = (e) => { e.stopPropagation(); drawMenu(); const r = btn.getBoundingClientRect(); menu.style.top = Math.max(8, r.top - 130) + "px"; menu.style.left = Math.max(8, Math.min(innerWidth - 190, r.left)) + "px"; menu.hidden = !menu.hidden; }; };
+    const st = document.createElement("style"); st.textContent = ".sfx-btn{background:rgba(23,18,15,.9);border:1px solid #80602E;border-radius:99px;width:40px;height:40px;font-size:18px;cursor:pointer;flex:none}.sfx-menu{position:fixed;z-index:9500;width:180px;background:#17120ff5;border:1px solid #C5A05A;border-radius:12px;padding:8px 10px;display:grid;gap:6px;color:#F1D69A;font:600 14px Heebo,sans-serif;box-shadow:0 10px 30px #000a;direction:rtl}.sfx-menu[hidden]{display:none}.sfx-menu b{font-size:12px;color:#B9AA94}.sfx-menu label{display:flex;gap:8px;align-items:center;cursor:pointer}.sfx-menu input{width:18px;height:18px;accent-color:#C5A05A}"; document.head.appendChild(st);
   });
 })();
 // A bonus win gets the whole stage: big gold text in the middle of the screen (about 40% of it) for a few seconds.

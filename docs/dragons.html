@@ -97,7 +97,7 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(14px) bright
   <p>כדור יכול להיות סכום או ג׳קפוט: MINI, MINOR, MAJOR. ממלאים את כל 15 המשבצות? <b>GRAND</b> פי 1,000.</p>
   <button id="go">כניסה לארמון 🐉</button><button class="back" onclick="location.href='./'">חזרה ללובי</button>
 </div></div></div>
-<script src="sfx.js?v=14"></script>
+<script src="sfx.js?v=15"></script>
 <script src="vendor/dg_engine.js?v=1"></script>
 <script>
 "use strict";
@@ -188,8 +188,9 @@ function lock(v) { busy = v; $("bSpin").disabled = v && !auto; drawBet(); $("bIn
 $("bMinus").onclick = () => { const ok = GC_LADDER(25, balance), i = ok.indexOf(bet); if (!busy && i > 0) { bet = ok[i - 1]; drawBet(); S("chip"); } };
 $("bPlus").onclick = () => { const ok = GC_LADDER(25, balance), i = ok.indexOf(bet); if (!busy && i < ok.length - 1) { bet = ok[i + 1]; drawBet(); S("chip"); } };
 $("bMax").onclick = () => { if (busy) return; const ok = GC_LADDER(25, balance); bet = ok[ok.length - 1]; drawBet(); S("chip"); };
-$("bSound").onclick = () => { sound = !sound; try { SFX.setMuted(!sound); } catch (e) {} $("bSound").style.opacity = sound ? 1 : .45; };
-try { sound = !SFX.muted; $("bSound").style.opacity = sound ? 1 : .45; } catch (e) {}
+// sound button opens the casino's sound menu (effects / background music)
+addEventListener("DOMContentLoaded", () => { if (window.GC_SOUND_MENU) GC_SOUND_MENU($("bSound")); });
+setInterval(() => { try { sound = !SFX.muted; } catch (e) {} }, 1000);
 const errText = (e) => { const m = (e && e.message) || ""; return m.includes("insufficient") ? "אין מספיק שקלים." : m.includes("invalid_amount") ? "הסכום מעל המקסימום שלך." : "משהו השתבש."; };
 async function spinOnce() {
   lock(true); $("err").textContent = ""; $("winV").textContent = "₪0";

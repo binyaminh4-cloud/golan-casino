@@ -48,9 +48,9 @@
   <div class="chips" role="group" aria-label="ערך צ׳יפ" id="chips"></div>
   <div class="betline"><span class="liveclock" id="liveClock" hidden></span><span>הימור כולל <b id="total" class="num">₪0</b></span><span class="err" id="err" aria-live="polite"></span></div>
   <div class="btns">
-    <button class="btn ghost" id="undoBtn">בטל</button>
-    <button class="btn ghost" id="eraseBtn" aria-pressed="false" title="מצב מחיקה: לחץ על הימור כדי להסיר אותו">🧽 הסר</button>
-    <button class="btn ghost" id="clearBtn">נקה</button>
+    <button class="btn ghost" id="undoBtn" title="הסר את ההימור האחרון" aria-label="הסר את ההימור האחרון">⌫ 1</button>
+    <button class="btn ghost" id="eraseBtn" hidden></button>
+    <button class="btn ghost" id="clearBtn" title="הסר את כל ההימורים">🧹 ניקוי</button>
     <button class="btn ghost" id="dblBtn">הכפל</button>
     <button class="btn ghost icon" id="rebetBtn" title="אותו הימור" aria-label="אותו הימור">↻</button>
     <button class="btn spin" id="spinBtn">סובב</button>
@@ -83,7 +83,7 @@
 </dialog>
 
 <script type="importmap">{"imports":{"three":"./vendor/three/three.module.min.js"}}</script>
-<script src="sfx.js?v=14"></script>
+<script src="sfx.js?v=15"></script>
 <script src="char.js?v=2"></script>
 <script src="guide.js?v=33"></script>
 <script src="rl_wheel.js?v=3"></script>
