@@ -29,6 +29,20 @@
         S.bal += pay - tot; save(); return { data: { id: "x", result: n, total: tot, payout: pay, balance: S.bal, lucky } }; }
       case "sl_spin": { const st = [0, 1, 2].map(() => Math.floor(Math.random() * 32)); S.bal -= a.p_line_bet * 5; save(); return { data: { stops: st, wins: [], mult: 0, total: a.p_line_bet * 5, payout: 0, balance: S.bal } }; }
       case "bj_current": return { data: null };
+      case "f90_current": return { data: null };
+      case "pm_current": return { data: null };
+      case "ww_spin": return { data: { seed: 20, total: 2, payout: a.p_stake * 2, stake: a.p_stake, balance: S.bal } };
+      case "kin_spin": return { data: { seed: 4242, total: 3.1, payout: Math.floor(a.p_stake * 3.1), stake: a.p_stake, balance: S.bal } };
+      case "pc_spin": return { data: { grid: [0, 6, 2, 3, 4, 1, 5, 6, 4, 6, 3, 2, 0, 5, 1], badges: { 7: 3 }, wins: [], line_mult: 0, stake: a.p_stake, payout: a.p_stake * 30, balance: S.bal += a.p_stake * 29,
+        bonus: { kind: "regular", entry: 3, targets: [3, 4], total: 120 } } };
+      case "pm_start": { const rocks = []; for (let L = 0; L < 4; L++) for (let j = 0; j < 12; j++) rocks.push({ id: rocks.length, layer: L, size: j % 4, tagged: j === 3, boost: 3, skin: j % 3, x: 110 + j * 153, y: 385 + L * 155 + (j % 2 ? 21 : -21), w: 54 * [1, 1.3, 1.6, 2][j % 4], taken: false });
+        S.pm = { id: "p1", stake: a.p_stake, mode: a.p_mode, layer: 0, successes: 0, bank_units: 0, phase: "playing", paid: 0, rocks, balance: (S.bal -= a.p_stake) }; return { data: S.pm }; }
+      case "pm_collect": { const k = S.pm.rocks[a.p_rock]; k.taken = true; const got = { ...k, bomb: Math.random() < .2, units: 40, food: "chicken" }; if (got.bomb) S.pm.phase = "busted"; else { S.pm.successes++; S.pm.bank_units += 40; if (S.pm.successes % 3 === 0) S.pm.phase = "checkpoint"; }
+        return { data: { ...S.pm, got } }; }
+      case "pm_next": S.pm.phase = a.p_cash ? "cashed" : "playing"; if (!a.p_cash) S.pm.layer++; return { data: { ...S.pm } };
+      case "f90_start": S.f90 = { id: "f1", stake: a.p_stake, num: 1, den: 1, stage: 0, status: "active", paid: 0, balance: (S.bal -= a.p_stake) }; return { data: S.f90 };
+      case "f90_act": { const f = S.f90; if (Math.random() < .25) f.status = "lost"; else { f.num *= 5; f.den *= 4; f.stage++; if (f.stage > 4) { f.status = "won"; f.paid = Math.round(f.stake * f.num / f.den); } } return { data: { ...f } }; }
+      case "f90_cash": { const f = S.f90; f.status = "cashed"; f.paid = Math.round(f.stake * f.num / f.den); return { data: { ...f } }; }
       case "bjt_bet": S.tb = { main: a.p_main }; S.bal -= a.p_main; return { data: tstate() };
       case "bjt_state": return { data: tstate() };
       case "bj_my_boost": return { data: 4 };

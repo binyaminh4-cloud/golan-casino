@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="loader.js?v=10"></script>
+<title>המערב הפרוע של הגולן · גולן קזינו</title>
+<link rel="icon" href="img/brand/favicon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&family=Inter:wght@700;800&display=swap">
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{background:#140c06 url(img/ww/bg_base_desktop.webp) center/cover;color:#f3e2c0;font:15px Heebo,Arial,sans-serif;display:flex;flex-direction:column;height:100dvh;overflow:hidden;transition:background-image .6s}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at 50% 50%,transparent 30%,#0008 85%);pointer-events:none}
+body.b-horse{background-image:url(img/ww/bg_horse_desktop.webp)}body.b-duel{background-image:url(img/ww/bg_duel_desktop.webp)}body.b-volcano{background-image:url(img/ww/bg_volcano_desktop.webp)}
+.top{position:relative;z-index:2;display:flex;gap:10px;align-items:center;padding:4px max(10px,env(safe-area-inset-right)) 4px max(56px,calc(52px + env(safe-area-inset-left)));background:#140c06d9;border-bottom:1px solid #a3753c}
+.top a{color:#ffd99a;text-decoration:none;font-weight:700;border:1px solid #a3753c;border-radius:99px;padding:4px 12px;white-space:nowrap}
+.bal b{color:#ffd99a;font:800 16px Inter}.top h1{margin:0 auto;font:900 18px Heebo;color:#ffcf7a;text-shadow:0 2px 6px #000;white-space:nowrap}
+main{position:relative;z-index:1;flex:1;min-height:0;display:grid;grid-template-columns:minmax(80px,1fr) auto minmax(80px,1fr);grid-template-rows:minmax(0,1fr);align-items:end;justify-items:center;gap:6px;padding:6px max(8px,env(safe-area-inset-left)) 6px max(8px,env(safe-area-inset-right))}
+.hero{width:100%;height:100%;max-height:calc(100dvh - 60px);object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 10px 18px #000c);transition:transform .3s}
+.hero.pop{transform:scale(1.06)}
+.center{height:100%;display:flex;flex-direction:column;align-items:center;gap:5px;min-height:0}
+.board{position:relative;flex:1;min-height:0;aspect-ratio:1;max-width:min(62vw,100%);background:#1d120ae6;border:3px solid #a3753c;border-radius:12px;padding:1.5%;box-shadow:0 12px 30px #000c}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(5,1fr);grid-auto-flow:column;gap:3px;height:100%;direction:ltr}
+.cell{position:relative;background:#2a1a0d;border-radius:6px;display:grid;place-items:center;overflow:hidden}
+.cell img{width:90%;height:90%;object-fit:contain}
+.cell.win{box-shadow:inset 0 0 0 3px #ffd34d;background:#4a3010}.cell.sticky{background:#3d2a0f}.cell.wild{background:linear-gradient(#5b3a12,#2a1a0d)}
+.cell.spin img{animation:sp .14s linear infinite}@keyframes sp{50%{transform:translateY(-25%);opacity:.5}}
+.cm{position:absolute;top:-2px;left:50%;transform:translateX(-50%);z-index:3;background:#c0392b;color:#fff;font:900 15px Inter;border:2px solid #ffd34d;border-radius:99px;padding:1px 8px}
+.bar{display:flex;gap:6px;align-items:center;flex-wrap:nowrap}
+button{border:1px solid #a3753c;background:#2a1a0d;color:#ffd99a;padding:6px 9px;border-radius:8px;font:700 13px Heebo;cursor:pointer}
+button[aria-pressed="true"]{background:#a3753c;color:#140c06}
+#spin{font:900 18px Heebo;padding:8px 22px;background:linear-gradient(180deg,#ffcf7a,#b5651d);color:#1b0f06;border:0}#spin:disabled{opacity:.5}
+.hud{background:#140c06d9;border:1px solid #a3753c;border-radius:10px;padding:2px 10px;font:700 13px Heebo;white-space:nowrap}.hud b{font:800 15px Inter;color:#ffd99a}
+.ban{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);z-index:30;text-align:center;pointer-events:none;animation:bi .3s ease-out}
+.ban img{max-width:min(70vw,620px);max-height:40vh;object-fit:contain;filter:drop-shadow(0 0 30px #ff9d3b)}.ban p{margin:-4px 0 0;font:900 26px Heebo;color:#ffd99a;text-shadow:0 3px 8px #000}
+.duel{position:fixed;inset:0;z-index:60;display:flex;justify-content:center;align-items:center;gap:4vw;background:#000c;animation:df .2s}@keyframes df{from{opacity:0}}
+.duel img{height:60vh;object-fit:contain}.duel b{font:900 48px Inter;color:#ffd34d;text-shadow:0 0 20px #f00}
+@keyframes bi{from{opacity:0;transform:translate(-50%,-50%) scale(.85)}}
+#err{color:#E89A9F;font-size:12px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=8"></script>
+<script src="landscape.js?v=1"></script>
+</head>
+<body>
+<header class="top"><a href="./">→ ללובי</a><span class="bal">הארנק שלי <b id="bal">…</b></span><h1>🤠 המערב הפרוע של הגולן</h1></header>
+<main>
+  <img class="hero" id="ido" src="img/ww/ido_idle.webp" alt="עידו">
+  <div class="center">
+    <div class="board"><div class="grid" id="grid"></div></div>
+    <div class="bar"><span class="hud">זכייה <b id="win">₪0</b></span><span class="hud" id="fsHud" hidden>סיבוב <b id="fsN"></b></span>
+      <span id="bets"></span><button id="spin">סובב</button><button id="fast">⏩</button><span id="err"></span></div>
+  </div>
+  <img class="hero" id="bin" src="img/ww/binyamin_idle.webp" alt="בנימין">
+</main>
+<script src="sfx.js?v=6"></script>
+<script src="vendor/ww_engine.js?v=1"></script>
+<script>
+"use strict";
+// Golan Casino wiring: the server picks a pre-played round (ww_spin → seed + total); the page replays it with the same engine.
+const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
+try { if (localStorage.getItem("gc_dev") !== "1") location.href = "./"; } catch (e) {}
+const $ = (id) => document.getElementById(id), E = WWEngine;
+const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
+const BETS = [10, 50, 100, 500, 1000, 5000, 25000]; let bet = 100, balance = 0, busy = false, FAST = false;
+try { FAST = localStorage.getItem("gc_ww_fast") === "1"; } catch (e) {} $("fast").setAttribute("aria-pressed", FAST);
+$("fast").onclick = () => { FAST = !FAST; $("fast").setAttribute("aria-pressed", FAST); try { localStorage.setItem("gc_ww_fast", FAST ? "1" : "0"); } catch (e) {} };
+const wait = (ms) => new Promise((r) => setTimeout(r, FAST ? ms * .45 : ms));
+const cells = []; for (let i = 0; i < 25; i++) { const d = document.createElement("div"); d.className = "cell"; d.innerHTML = "<img alt=''>"; $("grid").appendChild(d); cells.push(d); }
+const C = (c, r) => cells[c * 5 + r];
+const IMG = (s) => s === "W" ? "horse_wild_active" : s === "x" ? "hat" : s;
+function paint(g, cls) { for (let c = 0; c < 5; c++) for (let r = 0; r < 5; r++) { const d = C(c, r); d.firstChild.src = `img/ww/${IMG(g[c][r])}.webp`; d.className = "cell" + (g[c][r] === "W" || g[c][r] === "horse_wild" ? " wild" : ""); }
+  cells.forEach((d) => d.querySelector(".cm")?.remove()); if (cls) for (const [c, r] of cls) C(c, r).classList.add("sticky"); }
+async function spinAnim(g, sticky) { cells.forEach((d) => d.classList.add("spin")); await wait(450);
+  for (let c = 0; c < 5; c++) { for (let r = 0; r < 5; r++) { const d = C(c, r); d.classList.remove("spin"); d.firstChild.src = `img/ww/${IMG(g[c][r])}.webp`; d.className = "cell" + (g[c][r] === "horse_wild" ? " wild" : ""); } try { SFX.flip(); } catch (e) {} await wait(150); }
+  cells.forEach((d) => d.querySelector(".cm")?.remove()); if (sticky) for (const k of sticky) { const [c, r] = k.split(",").map(Number); C(c, r).classList.add("sticky"); } }
+async function duel(d) { const o = document.createElement("div"); o.className = "duel";
+  o.innerHTML = `<img src="img/ww/ido_portrait_duel.webp" alt=""><b>VS</b><img src="img/ww/binyamin_portrait_duel.webp" alt="">`; document.body.appendChild(o); try { SFX.zap(); } catch (e) {}
+  await wait(900); o.innerHTML = `<img src="img/ww/${d.winner}_portrait_win.webp" alt=""><b>×${d.m}</b>`; $(d.winner === "ido" ? "ido" : "bin").src = `img/ww/${d.winner}_celebrate.webp`; await wait(900); o.remove();
+  for (let r = 0; r < 5; r++) { C(d.col, r).firstChild.src = "img/ww/horse_wild_active.webp"; C(d.col, r).classList.add("wild"); }
+  const m = document.createElement("span"); m.className = "cm"; m.textContent = "×" + d.m; C(d.col, 0).appendChild(m); }
+async function showWins(st, stake, acc) { for (const w of st.wins) { const L = E.LINES[w.line]; for (let c = 0; c < w.n; c++) C(c, L[c]).classList.add("win"); }
+  if (st.win > 0) { acc.v += st.win; $("win").textContent = fmt(Math.floor(stake * acc.v)); try { SFX.win(st.win > 5); } catch (e) {} await wait(900); cells.forEach((d) => d.classList.remove("win")); } }
+function banner(kind, txt) { const b = document.createElement("div"); b.className = "ban"; b.innerHTML = `<img src="img/ww/ui_bonus_${kind}.webp" alt=""><p>${txt}</p>`; document.body.appendChild(b); setTimeout(() => b.remove(), FAST ? 1200 : 2400); }
+const BN = { horse: "סוס הפרא", duel: "ראש בראש", volcano: "התפרצות הר געש" };
+async function replay(seed, stake) {
+  const r = E.play(Number(seed)), acc = { v: 0 }; let kind = null;
+  for (const st of r.steps) {
+    if (st.t === "spin" || st.t === "fs") {
+      if (st.t === "fs") $("fsN").textContent = `${st.n}/10${st.collect ? ` · ${st.collect.wilds} סוסים · ×${st.collect.mult}` : st.decisive ? ` · ×${st.decisive.mult}` : ""}`;
+      await spinAnim(st.g, st.sticky);
+      for (const d of st.duels) await duel(d);
+      if (st.decisive) { await wait(300); }
+      await showWins(st, stake, acc);
+      $("ido").src = "img/ww/ido_idle.webp"; $("bin").src = "img/ww/binyamin_idle.webp";
+      await wait(st.t === "fs" ? 350 : 150);
+    } else if (st.t === "bonus") { kind = st.kind; document.body.classList.add("b-" + kind); banner(kind, `${BN[kind]} · 10 סיבובים`); $("fsHud").hidden = false; try { SFX.win(true); } catch (e) {} await wait(2400); }
+    else if (st.t === "bonus_end") { await wait(600); document.body.classList.remove("b-" + kind); $("fsHud").hidden = true; }
+  }
+  return r;
+}
+function drawBets() { const ok = BETS.filter((v, i) => i < 4 || v * 20 <= balance).slice(-5); if (!ok.includes(bet)) bet = ok[0];
+  $("bets").innerHTML = ok.map((v) => `<button data-v="${v}" aria-pressed="${v === bet}">${fmt(v)}</button>`).join(""); }
+$("bets").onclick = (e) => { const b = e.target.closest("button"); if (!b || busy) return; bet = +b.dataset.v; drawBets(); };
+function showBal(v) { balance = +v; $("bal").textContent = fmt(v); drawBets(); }
+$("spin").onclick = async () => {
+  if (busy) return; busy = true; $("spin").disabled = true; $("err").textContent = ""; $("win").textContent = "₪0";
+  const { data, error } = await db.rpc("ww_spin", { p_stake: bet, p_ref: crypto.randomUUID ? crypto.randomUUID() : Date.now() + "" + Math.random() });
+  if (error) { const m = error.message || ""; $("err").textContent = m.includes("insufficient") ? "אין מספיק שקלים." : m.includes("invalid_amount") ? "הסכום מעל המקסימום שלך." : "משהו השתבש."; busy = false; $("spin").disabled = false; return; }
+  showBal(data.balance - data.payout);
+  const r = await replay(data.seed, data.stake);
+  $("win").textContent = fmt(data.payout); showBal(data.balance);
+  if (r.bonus && window.GC_BONUS) GC_BONUS(`🤠 ${BN[r.bonus]} ×${Math.round(data.total)}`, data.payout, r.capped ? "הגעת לתקרה: 12,500×" : "");
+  else if (data.total >= 20 && window.GC_BONUS) GC_BONUS(`🤠 זכייה גדולה ×${Math.round(data.total)}`, data.payout, "");
+  busy = false; $("spin").disabled = false;
+};
+(async () => {
+  paint(E.play(3).steps[0].g);
+  const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
+  const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single(); if (w.data) showBal(w.data.balance);
+  if (window.GC_LOADER) GC_LOADER.done();
+})();
+</script>
+<script src="chat.js?v=9"></script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="loader.js?v=10"></script>
+<title>על האש בכינרת · גולן קזינו</title>
+<link rel="icon" href="img/brand/favicon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;800&family=Inter:wght@700;800&display=swap">
+<style>
+:root{--brass:#bd9654;--ivory:#f7ecd5;--wood:#24170f}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{background:#120c08 url(img/kin/kinneret-dusk.webp) center/cover fixed;color:var(--ivory);font:15px Heebo,Arial,sans-serif;display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+.top{display:flex;gap:10px;align-items:center;padding:4px max(10px,env(safe-area-inset-right)) 4px max(56px,calc(52px + env(safe-area-inset-left)));background:#120c08d9;border-bottom:1px solid var(--brass)}
+.top a{color:#ffe2a2;text-decoration:none;font-weight:700;border:1px solid var(--brass);border-radius:99px;padding:4px 12px;white-space:nowrap}
+.bal{white-space:nowrap;color:#d8c9a8}.bal b{color:#ffe2a2;font:800 16px Inter}
+.top h1{margin:0 auto;font:800 18px Heebo;color:#ffd08a;text-shadow:0 2px 6px #000;white-space:nowrap}
+main{flex:1;min-height:0;display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:minmax(0,1fr);gap:10px;align-items:center;justify-items:center;padding:6px max(10px,env(safe-area-inset-left)) 6px max(10px,env(safe-area-inset-right))}
+.friends{display:flex;flex-direction:column;gap:3px;max-height:100%;overflow:hidden}
+.fr{display:flex;align-items:center;gap:6px;padding:3px 8px 3px 4px;border-radius:10px;background:#120c08cc;border:1px solid #5a4422;font:700 12px Heebo;white-space:nowrap}
+.fr img{width:30px;height:30px;border-radius:50%;object-fit:cover;object-position:50% 18%}
+.fr.next{border-color:#ffd08a;box-shadow:0 0 10px #ffd08a88}.fr .dots{display:flex;gap:2px}.fr .dots i{width:7px;height:7px;border-radius:50%;background:#3a2c1a}.fr .dots i.on{background:#ff9d3b}
+.board{position:relative;height:100%;max-width:100%;aspect-ratio:1;background:linear-gradient(#2b1c11,#140d08);border:3px solid var(--brass);border-radius:14px;padding:1.2%;box-shadow:0 10px 30px #000a}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(7,1fr);gap:2px;width:100%;height:100%;direction:ltr}
+.cell{position:relative;background:#17120e;border-radius:6px;display:grid;place-items:center;overflow:hidden;transition:background .2s}
+.cell img{width:88%;height:88%;object-fit:contain;transition:transform .25s,opacity .25s}
+.cell.heat{background:#3b2410}.cell .mx{position:absolute;top:1px;right:2px;font:800 10px Inter;color:#ffe27a;text-shadow:0 1px 2px #000;z-index:2}
+.cell.mult{background:radial-gradient(#7a3a0c,#2b170a)}
+.cell.win img{animation:pulse .5s ease-in-out 2}.cell.gone img{transform:scale(.2);opacity:0}.cell.new img{animation:drop .3s ease-out}
+.cell.fx{box-shadow:inset 0 0 0 3px #ffd08a}
+@keyframes pulse{50%{transform:scale(1.18)}}@keyframes drop{from{transform:translateY(-60%);opacity:0}}
+.side{display:flex;flex-direction:column;gap:5px;align-items:stretch;min-width:140px;max-height:100%;overflow:auto}
+@media (max-height:500px){.panel b{font-size:16px}.panel{padding:3px 8px}#spin{padding:8px;font-size:18px}.fr span{display:none}.fr{padding:2px}}
+.panel{background:#120c08d9;border:1px solid var(--brass);border-radius:12px;padding:6px 10px;text-align:center}
+.panel small{display:block;color:#c9b894;font-size:12px}.panel b{font:800 20px Inter;color:#ffe2a2}
+.bets{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}.bets button{flex:1 0 40%}
+button{border:1px solid var(--brass);background:#2a1c10;color:#ffe2a2;padding:6px 8px;border-radius:8px;font:700 13px Heebo;cursor:pointer}
+button[aria-pressed="true"]{background:var(--brass);color:#120c08}
+#spin{font-size:20px;padding:12px;background:linear-gradient(180deg,#ffcf7a,#c47a2a);color:#1b0f06;border:0}#spin:disabled{opacity:.5}
+#fs{display:none}#fs.on{display:block;background:#4a1d06d9}
+.card{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:#000a;animation:fade .18s}
+.card img{max-height:76dvh;max-width:70vw;border-radius:12px;box-shadow:0 0 40px #ff9d3b88;animation:cin .18s ease-out}
+.card p{position:absolute;bottom:6%;margin:0;background:#120c08e6;border:1px solid var(--brass);border-radius:99px;padding:6px 18px;font:700 16px Heebo}
+@keyframes cin{from{transform:scale(.96)}}@keyframes fade{from{opacity:0}}
+.toast{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:40;background:#120c08e6;border:2px solid #ffd08a;border-radius:14px;padding:8px 20px;font:800 22px Heebo;color:#ffe2a2;animation:fade .2s}
+#err{color:#E89A9F;font-size:12px;min-height:14px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=8"></script>
+<script src="landscape.js?v=1"></script>
+</head>
+<body>
+<header class="top"><a href="./">→ ללובי</a><span class="bal">הארנק שלי <b id="bal">…</b></span><h1>🔥 על האש בכינרת</h1></header>
+<main>
+  <div class="friends" id="friends"></div>
+  <div class="board"><div class="grid" id="grid"></div></div>
+  <div class="side">
+    <div class="panel"><small>זכייה בסיבוב</small><b id="win">₪0</b></div>
+    <div class="panel" id="fs"><small>סיבובים חינם</small><b id="fsLeft">0</b></div>
+    <div class="bets" id="bets"></div>
+    <button id="spin">סובב</button><button id="skip" title="קצב מהיר">⏩ מהיר</button>
+    <div id="err"></div>
+  </div>
+</main>
+<script src="sfx.js?v=6"></script>
+<script src="vendor/kin_engine.js?v=1"></script>
+<script>
+"use strict";
+// Golan Casino wiring: the server picks a pre-played round (kin_spin returns its seed and total); this page replays it with the same engine.
+const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
+try { if (localStorage.getItem("gc_dev") !== "1") location.href = "./"; } catch (e) {}
+const $ = (id) => document.getElementById(id), K = KinEngine;
+const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
+const NAMES = { fisher: "פישר", avichai: "אביחי", yoav: "יואב", roy: "רועי", binyamin: "בנימין", ido: "עידו", harel: "הראל" };
+const LINES = { fisher: "מי הזמין סטייקים? אמרנו כל אחד מביא מהבית!", avichai: "פיתות זה משמין", yoav: "פישר תסתכל לשם", roy: "המנגל לא חם מספיק", binyamin: "אני חייב לאכול משהו דחוף", ido: "לא מבין מה אתם אוכלים, בוא נצא לקזינו כבר", harel: "מה זה התחלת בלעדיי? בקושי איחרתי!" };
+const BETS = [5, 25, 100, 500, 1000, 5000, 25000];
+let bet = 25, balance = 0, busy = false, FAST = false; try { FAST = localStorage.getItem("gc_kin_fast") === "1"; } catch (e) {}
+const wait = (ms) => new Promise((r) => setTimeout(r, FAST ? ms * 0.45 : ms));
+const cells = []; for (let i = 0; i < 49; i++) { const d = document.createElement("div"); d.className = "cell"; d.innerHTML = '<img alt=""><b class="mx"></b>'; $("grid").appendChild(d); cells.push(d); }
+function paint(b, m, fresh) { b.forEach((s, i) => { const c = cells[i], im = c.firstChild; const src = `img/kin/${s}.webp`; if (im.getAttribute("src") !== src) { im.src = src; if (fresh) { c.classList.remove("new"); void c.offsetWidth; c.classList.add("new"); } }
+  c.classList.remove("gone", "win", "fx"); }); if (m) paintM(m); }
+function paintM(m) { m.forEach((v, i) => { cells[i].classList.toggle("heat", v === 1); cells[i].classList.toggle("mult", v >= 2); cells[i].lastChild.textContent = v >= 2 ? "×" + v : ""; }); }
+function friends(meter, next) { $("friends").innerHTML = K.CFG.order.map((f, i) => `<div class="fr${i === next ? " next" : ""}"><img src="img/kin/${f}.webp" alt=""><span>${NAMES[f]}</span>${i === next ? `<span class="dots">${[0, 1, 2].map((k) => `<i class="${k < meter ? "on" : ""}"></i>`).join("")}</span>` : ""}</div>`).join(""); }
+function drawBets() { const ok = BETS.filter((v, i) => i < 4 || v * 20 <= balance).slice(-6); if (!ok.includes(bet)) bet = ok[0];
+  $("bets").innerHTML = ok.map((v) => `<button data-v="${v}" aria-pressed="${v === bet}">${fmt(v)}</button>`).join(""); }
+$("bets").onclick = (e) => { const b = e.target.closest("button"); if (!b || busy) return; bet = +b.dataset.v; drawBets(); };
+$("skip").onclick = () => { FAST = !FAST; $("skip").setAttribute("aria-pressed", FAST); try { localStorage.setItem("gc_kin_fast", FAST ? "1" : "0"); } catch (e) {} };
+$("skip").setAttribute("aria-pressed", FAST);
+function showBal(v) { balance = +v; $("bal").textContent = fmt(v); drawBets(); }
+function toast(t, ms = 1400) { const d = document.createElement("div"); d.className = "toast"; d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), FAST ? ms * .5 : ms); }
+async function card(who) { const o = document.createElement("div"); o.className = "card"; o.innerHTML = `<img src="img/kin/${who}.webp" alt="${NAMES[who]}"><p>${LINES[who]}</p>`; document.body.appendChild(o);
+  let done; const p = new Promise((r) => done = r); o.onclick = done; setTimeout(done, FAST ? 1100 : 2600); await p; o.remove(); }
+async function replay(seed, stake) {
+  const r = K.play(Number(seed)); let roundWin = 0, meter = 0, next = 0;
+  for (const s of r.steps) {
+    if (s.t === "board") { paint(s.b, s.m, true); meter = s.meter; next = s.next; friends(meter, next); await wait(500); }
+    else if (s.t === "win") { for (const p of s.parts) for (const i of p.cells) cells[i].classList.add("win");
+      roundWin += s.pay; $("win").textContent = fmt(Math.floor(stake * roundWin)); try { SFX.win(false); } catch (e) {}
+      await wait(650); for (const p of s.parts) for (const i of p.cells) cells[i].classList.add("gone"); paintM(s.m); meter = s.meter % 3; friends(Math.min(3, s.meter), next); await wait(280); }
+    else if (s.t === "drop") { paint(s.b, null, true); await wait(380); }
+    else if (s.t === "friend") { await card(s.who); next = (K.CFG.order.indexOf(s.who) + 1) % 7; meter = 0; friends(0, next);
+      for (const i of s.cells) cells[i].classList.add("fx");
+      if (s.waves) for (const w of s.waves) { paint(w.b, null, true); await wait(450); }
+      paint(s.b, s.m, false); for (const i of s.cells) cells[i].classList.add("fx"); await wait(700); }
+    else if (s.t === "fs_start") { $("fs").classList.add("on"); $("fsLeft").textContent = s.spins; toast(`🎉 ${s.spins} סיבובים חינם!`, 2000); await wait(1800); }
+    else if (s.t === "fs_spin") { $("fsLeft").textContent = s.left; }
+    else if (s.t === "end") { if (s.add) { toast(`+${s.add} סיבובים חינם`); $("fsLeft").textContent = s.left; await wait(900); } await wait(250); }
+    else if (s.t === "fs_end") { toast("סוף הסיבובים החינם"); await wait(1000); $("fs").classList.remove("on"); }
+  }
+  return r.total;
+}
+$("spin").onclick = async () => {
+  if (busy) return; busy = true; $("spin").disabled = true; $("err").textContent = ""; $("win").textContent = "₪0";
+  const { data, error } = await db.rpc("kin_spin", { p_stake: bet, p_ref: crypto.randomUUID ? crypto.randomUUID() : Date.now() + "" + Math.random() });
+  if (error) { const m = error.message || ""; $("err").textContent = m.includes("insufficient") ? "אין מספיק שקלים." : m.includes("invalid_amount") ? "הסכום מעל המקסימום שלך." : "משהו השתבש."; busy = false; $("spin").disabled = false; return; }
+  showBal(data.balance - data.payout);
+  await replay(data.seed, data.stake);
+  $("win").textContent = fmt(data.payout); showBal(data.balance);
+  if (data.total >= 20 && window.GC_BONUS) GC_BONUS(`🔥 על האש! ×${Math.round(data.total)}`, data.payout, "");
+  busy = false; $("spin").disabled = false;
+};
+(async () => {
+  const st = K.play(1); const b0 = st.steps[0]; paint(b0.b, b0.m, false); friends(0, 0);
+  const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
+  const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single(); if (w.data) showBal(w.data.balance);
+  if (window.GC_LOADER) GC_LOADER.done();
+})();
+</script>
+<script src="chat.js?v=9"></script>
+</body>
+</html>

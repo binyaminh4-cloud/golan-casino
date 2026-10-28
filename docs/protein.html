@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="loader.js?v=10"></script>
+<title>שולה החלבון · גולן קזינו</title>
+<link rel="icon" href="img/brand/favicon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;800&family=Inter:wght@700;800&display=swap">
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{background:#171710;color:#e8dfcd;font:15px Heebo,Arial,sans-serif;display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+.top{display:flex;gap:8px;align-items:center;flex-wrap:nowrap;padding:5px max(10px,env(safe-area-inset-right)) 5px max(56px,calc(52px + env(safe-area-inset-left)));background:#0e0e09e6;border-bottom:1px solid #827453}
+.top a{color:#F1D69A;text-decoration:none;font-weight:700;border:1px solid #827453;border-radius:99px;padding:5px 12px;white-space:nowrap}
+.bal{white-space:nowrap;color:#b3aa98}.bal b{color:#F1D69A;font:800 16px Inter}
+.ctl{display:flex;gap:6px;align-items:center;margin-inline-start:auto;flex-wrap:nowrap}
+button,input,select{font:inherit;border:1px solid #827453;border-radius:8px;padding:6px 10px;background:#302b21;color:#f1e9d5}
+button{cursor:pointer;font-weight:700}button:disabled{opacity:.4;cursor:default}#start,#cash{background:#a78b52;color:#17170e}
+.wrap{flex:1;min-height:0;display:grid;place-items:center;position:relative}
+canvas{display:block;border-radius:8px;touch-action:manipulation;max-width:100%;max-height:100%}
+#info{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);background:#0e0e09cc;border-radius:99px;padding:2px 12px;font-size:12px;color:#d9cfb8;white-space:nowrap}
+#err{color:#E89A9F;font-size:12px}
+[hidden]{display:none!important}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=8"></script>
+<script src="landscape.js?v=1"></script>
+</head>
+<body>
+<header class="top"><a href="./">→ ללובי</a><span class="bal">הארנק שלי <b id="bal">…</b></span>
+  <div class="ctl"><label>הימור <input id="stake" type="number" value="100" min="1" style="width:84px" inputmode="numeric"></label>
+  <select id="mode"><option value="easy">קל</option><option value="normal" selected>רגיל</option><option value="extreme">אקסטרים</option></select>
+  <button id="start">התחל</button><button id="cash" hidden>קח וצא</button><button id="more" hidden>עוד שלושה</button><span id="err"></span></div></header>
+<div class="wrap"><canvas id="game" width="1920" height="1080" aria-label="שדה החפירה. לחץ כדי לשלוח את הקרס"></canvas><small id="info">טוען…</small></div>
+<script src="sfx.js?v=6"></script>
+<script src="vendor/pm_scene.js?v=1"></script>
+<script>
+'use strict';
+// Golan Casino wiring for the art kit's scene: the server holds every rock's contents (pm_start / pm_collect / pm_next).
+const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
+try { if (localStorage.getItem("gc_dev") !== "1") location.href = "./"; } catch (e) {}
+const S = ProteinScene, canvas = document.getElementById("game"), ctx = canvas.getContext("2d"), imgs = {}, el = (id) => document.getElementById(id);
+const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
+const FILES = ["backgrounds/field_desktop.jpg","characters/avichai_idle.png","characters/avichai_pull.png","characters/avichai_celebrate.png","characters/avichai_shock.png","rocks/rock_a.png","rocks/rock_b.png","rocks/rock_c.png","prizes/mushroom.png","prizes/chicken.png","prizes/bomb.png","props/tray.png","ui/tag_blank.png","ui/plaque_blank.png","props/winch.png","props/crank.png","props/claw_open.png","props/claw_closed.png","fx/dust.png","fx/bomb_puff.png","characters/yoav_throw_00.png","characters/yoav_throw_01.png","characters/yoav_walk_00.png","characters/yoav_walk_01.png","characters/yoav_walk_02.png","characters/yoav_walk_03.png"];
+let r = { mode: "normal", rocks: [], layer: 0, successes: 0, bankUnits: 0, phase: "ready", history: [] }, runId = null, stake = 100;
+let introAt = 0, shot = null, reveal = null, angle = 0, busy = false;
+const active = () => ["intro", "playing", "checkpoint"].includes(r.phase);
+function fromServer(v) { runId = v.id; stake = +v.stake; r.mode = v.mode; r.layer = v.layer; r.successes = v.successes; r.bankUnits = +v.bank_units;
+  r.rocks = v.rocks.map((x) => ({ ...x, rewardUnits: x.units })); if (r.phase !== "intro") r.phase = v.phase; if (v.balance != null) el("bal").textContent = fmt(v.balance); }
+function controls() { const cp = r.phase === "checkpoint"; el("cash").hidden = el("more").hidden = !cp; el("more").hidden = !cp || r.layer >= 3;
+  el("start").disabled = active(); el("mode").disabled = el("stake").disabled = active();
+  el("info").textContent = r.phase === "ready" ? "בחר הימור ולחץ התחל" : `שכבה ${r.layer + 1} מתוך 4 · שליפות ${r.successes} · קופה ×${(r.bankUnits / 100).toFixed(2)} = ${fmt(Math.floor(stake * r.bankUnits / 100))}`; }
+const errMsg = (e) => { const m = (e && e.message) || ""; return m.includes("insufficient") ? "אין מספיק שקלים." : m.includes("invalid_amount") ? "הסכום גבוה מהמקסימום שלך." : "משהו השתבש."; };
+const ref = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now() + "" + Math.random());
+el("start").onclick = async () => {
+  if (active() || busy) return; const bet = Math.floor(Number(el("stake").value)); if (!(bet >= 1)) return (el("err").textContent = "בחר הימור");
+  busy = true; const { data, error } = await db.rpc("pm_start", { p_stake: bet, p_mode: el("mode").value, p_ref: ref() }); busy = false;
+  if (error) return (el("err").textContent = errMsg(error)); el("err").textContent = "";
+  r.history = []; r.phase = "intro"; fromServer(data); introAt = performance.now() / 1000; shot = null; reveal = null; controls();
+};
+async function next(cash) { if (busy) return; busy = true; const { data, error } = await db.rpc("pm_next", { p_run: runId, p_cash: cash }); busy = false;
+  if (error) return (el("err").textContent = errMsg(error)); fromServer(data); reveal = null; controls();
+  if (cash && window.GC_BONUS && data.paid >= stake * 5) GC_BONUS("💪 שלל של חלבון", data.paid, ""); }
+el("cash").onclick = () => next(true); el("more").onclick = () => next(false);
+// same aim geometry as the kit: the first open rock on the claw's line
+function hitTest(a) { const ox = 1000, oy = 280, dx = Math.sin(a), dy = Math.cos(a); let best = null; if (dy <= 0) return null;
+  for (const k of r.rocks) { if (k.taken || k.layer !== r.layer) continue; const vx = k.x - ox, vy = k.y - oy, t = vx * dx + vy * dy, d2 = vx * vx + vy * vy - t * t;
+    if (t > 0 && d2 <= (k.w * .52 + 7) ** 2 && (!best || t < best.distance)) best = { rock: k, distance: t }; } return best; }
+canvas.addEventListener("pointerdown", () => { if (r.phase !== "playing" || shot || busy) return; const hit = hitTest(angle), max = (385 + r.layer * 155 + 100 - 280) / Math.cos(angle);
+  shot = { start: performance.now() / 1000, angle, distance: hit ? hit.distance : max, rock: hit ? hit.rock : null, done: false, res: null };
+  if (shot.rock) { const s = shot; busy = true; db.rpc("pm_collect", { p_run: runId, p_rock: s.rock.id }).then(({ data, error }) => { busy = false; s.res = error ? { error } : data; }); }
+  reveal = null; });
+function frame(now) {
+  const t = now / 1000; let state = { round: r, time: r.phase === "intro" ? t - introAt : t, stake, angle, length: 45 };
+  if (r.phase === "intro" && t - introAt >= 4.2) { r.phase = "playing"; controls(); }
+  if (!shot) { angle = Math.sin(t * 1.45) * 1.46; state.angle = r.phase === "playing" ? angle : 0; }
+  if (shot) { const sh = shot, e = t - sh.start, out = sh.distance / 1200, back = sh.distance / (sh.rock ? 650 : 1000), total = out + .18 + back;
+    state.angle = sh.angle; state.closed = e >= out; state.pose = e >= out ? "pull" : "idle"; state.bodyTilt = Math.sin(t * 15) * .006; state.crankAngle = t * 10;
+    if (e < out) state.length = 45 + (sh.distance - 45) * S.ease(e / out); else if (e < out + .18) state.length = sh.distance; else state.length = sh.distance - (sh.distance - 45) * S.ease((e - out - .18) / back);
+    if (sh.rock && e >= out && e < total) { state.carried = sh.rock; state.hiddenRock = sh.rock.id; }
+    if (e >= total && !sh.done && (!sh.rock || sh.res)) { sh.done = true; shot = null;
+      if (sh.res && !sh.res.error) { const g = sh.res.got; fromServer(sh.res); if (!g.bomb) r.history.push({ ...g, rewardUnits: g.units }); reveal = { ...g, at: t }; controls();
+        try { g.bomb ? SFX.lose() : SFX.win(false); } catch (er) {}
+        if (sh.res.phase === "finished" && window.GC_BONUS) GC_BONUS("🏆 החיטוב הושלם!", sh.res.paid, "12 שליפות"); }
+      else if (sh.res && sh.res.error) el("err").textContent = errMsg(sh.res.error); } }
+  if (reveal && t - reveal.at < 1.2) { state.reveal = reveal; state.pose = reveal.bomb ? "shock" : "celebrate"; if (reveal.bomb) state.fx = { bomb: true, x: 1000, y: 340, progress: (t - reveal.at) / 1.2 }; }
+  S.draw(ctx, imgs, state); requestAnimationFrame(frame);
+}
+function fit() { const w = el("game").parentElement, s = Math.min(w.clientWidth / 1920, w.clientHeight / 1080); canvas.style.width = 1920 * s + "px"; canvas.style.height = 1080 * s + "px"; }
+addEventListener("resize", fit);
+Promise.all(FILES.map((f) => new Promise((ok) => { const im = new Image(); im.onload = () => { imgs[f] = im; ok(); }; im.onerror = ok; im.src = "img/pm/" + f.replace(/\.(png|jpg)$/, ".webp"); }))).then(async () => {
+  fit(); const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
+  const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single(); if (w.data) el("bal").textContent = fmt(w.data.balance);
+  const c = await db.rpc("pm_current"); if (c.data) { r.phase = c.data.phase; fromServer(c.data); }
+  controls(); requestAnimationFrame(frame); if (window.GC_LOADER) GC_LOADER.done();
+});
+</script>
+<script src="chat.js?v=9"></script>
+</body>
+</html>
