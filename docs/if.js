@@ -38,7 +38,8 @@ function wheelScene(rot, t, B) {
   }
   ctx.restore();
   C(ctx, I.rim, cx - 480, cy - 480, 960, 960); C(ctx, I.hub, cx - 118, cy - 118, 236, 236); C(ctx, I.pointer, cx - 45, cy - 455, 90, 120);
-  FishingRender.puppet(ctx, I, { bodyAngle: 0, headAngle: 0, handX: 0, handY: 0, reelAngle: t, breathing: 0 });
+  ctx.save(); ctx.translate(-300, 40); ctx.scale(1, 1);   // Ido sits right next to the wheel
+  FishingRender.puppet(ctx, I, { bodyAngle: 0, headAngle: 0, handX: 0, handY: 0, reelAngle: t, breathing: 0 }); ctx.restore();
 }
 
 // ---------- shared clock ----------
@@ -54,9 +55,11 @@ function rotAt(e) {   // e: seconds since the round started
 }
 // camera: the scene fills the screen (cover); in the last seconds of the spin it pushes in on the pointer for the tension
 const ease = (x) => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x);
+let lastW = 0, lastH = 0;
 function view(e) {
+  const box = document.querySelector(".stagewrap"); if (box.clientWidth !== lastW || box.clientHeight !== lastH) { lastW = box.clientWidth; lastH = box.clientHeight; fit(); }
   // fit the whole wheel (rim top ≈70 → stand ≈1040 in scene pixels) into the space above the betting bar; Ido on its right
-  const W = cv.width, H = cv.height, d = cv.width / cv.clientWidth, bar = (document.querySelector(".betbar").offsetHeight + 6) * d;
+  const W = cv.width, H = cv.height, d = cv.width / Math.max(1, cv.clientWidth), bar = (document.querySelector(".betbar").offsetHeight + 6) * d;
   const s0 = Math.max(W / 1920, Math.min((H - bar) / 1050, W / 1250));
   let z = 1, fx = 110 + (W / s0) / 2, fy = 70 + (H - bar) / s0 / 2;
   if (S && S.stop != null) { const u = ease((e - 17.2) / 1.6) * (1 - ease((e - 21.6) / 1)); z = 1 + .7 * u; fx += (610 - fx) * u; fy += (330 - fy) * u; }
@@ -85,6 +88,11 @@ function phaseText(e) {
   const t = e < 10 ? `הימורים · ${Math.ceil(10 - e)}` : e < 13 ? "⚡ מכפילים" : e < 20 ? "🎡 הגלגל מסתובב" : S.cat && ["blue", "orange", "red"].includes(S.cat) && !endShown ? "🎣 עידו דג!" : "תוצאות";
   if ($("phase").textContent !== t) $("phase").textContent = t;
   const open = e < 10; document.body.classList.toggle("closed", !open);
+  // a big, clear countdown while bets are open (red in the last 3 seconds)
+  const cd = $("count"), left = Math.ceil(10 - e);
+  if (open && left > 0) { cd.hidden = false; if (cd.dataset.s !== String(left)) { cd.dataset.s = left; cd.innerHTML = `<small>הימורים נסגרים בעוד</small><b>${left}</b>`; cd.classList.toggle("hurry", left <= 3);
+      cd.classList.remove("tick"); void cd.offsetWidth; cd.classList.add("tick"); if (left <= 3) try { SFX.tick(true); } catch (er) {} } }
+  else cd.hidden = true;
 }
 function showEnd() {
   endShown = S.round; const r = $("result");

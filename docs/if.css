@@ -48,3 +48,11 @@ body{position:relative}
 body.catching .betbar{opacity:.25;pointer-events:none}
 
 .result{top:8%;left:auto;right:3%;transform:none}@keyframes pop{from{transform:scale(.6);opacity:0}}
+
+/* stable layout on phones: the page never scrolls or shifts */
+html,body{height:100%;overflow:hidden}body{position:fixed;inset:0;height:auto}
+.hist{flex-direction:row;top:6px;left:max(8px,env(safe-area-inset-left));right:auto}
+.count{position:absolute;top:6%;left:58%;transform:translateX(-50%);z-index:5;text-align:center;background:#060c16cc;border:2px solid #8b6d3f;border-radius:16px;padding:4px 18px 6px;pointer-events:none}
+.count small{display:block;font:700 13px Heebo;color:#c7d4e5}.count b{display:block;font:900 clamp(34px,9vh,64px) Inter;color:#ffe27a;line-height:1}
+.count.hurry{border-color:#e5484d}.count.hurry b{color:#ff6b6b}.count.tick b{animation:ctk .35s ease-out}
+@keyframes ctk{from{transform:scale(1.5)}}
