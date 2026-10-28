@@ -637,7 +637,8 @@ function liveTick() {
   drawClock(); if (liveSt) liveButtons();
   const t = srvNow();
   const due = !liveSt || t >= liveSt.end || (liveSt.open && t >= liveSt.close + 200) || (!liveSt.open && liveSt.result === null);
-  if (due ? Date.now() - lastFetch > 700 : Date.now() - lastFetch > 2500) liveFetch();
+  if (document.hidden) return;   // nothing while the phone is locked or the tab is in the background
+  if (due ? Date.now() - lastFetch > 700 : Date.now() - lastFetch > 4000) liveFetch();
 }
 
 // ---------- Zeus's duel HUD ----------

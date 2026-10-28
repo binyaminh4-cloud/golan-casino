@@ -171,8 +171,21 @@ function err(t) { $("err").textContent = t; }
 function showBal() { $("bal").textContent = fmt(balance); drawRack(); }
 
 // ---------- server state ----------
+// smart clock: the round's timeline is known, so the server is asked exactly when something happens
+// (boosts at 10 s, the stop at 13 s, the result at 20 s, the next round) and only every 4 s in between; nothing while hidden
+let lastPoll = 0, polling = false;
+function smartPoll() {
+  setInterval(async () => {
+    if (document.hidden || polling || !S) return;
+    const e = (srvNow() - S.start) / 1000, since = (Date.now() - lastPoll) / 1000;
+    const marks = [10.05, 13.05, 20.05, 21.5], crossed = marks.some((m) => e >= m && e - since < m);
+    const ended = e >= (S.dur || 22) - 0.2;
+    if (crossed || (ended ? since > 0.8 : since > 4)) { polling = true; try { await poll(); } finally { polling = false; } }
+  }, 200);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) poll(); });
+}
 async function poll() {
-  let data;
+  lastPoll = Date.now(); let data;
   if (PREVIEW) data = fakeState(); else { const r = await db.rpc("if_state"); if (r.error) return; data = r.data; }
   skew = data.now - Date.now();
   if (lastRound !== null && data.round !== lastRound) {   // a new round: the last one's bets become "repeat"
@@ -195,7 +208,7 @@ function fakeState() {
 $("rulesBtn").onclick = () => $("rules").showModal();
 (async () => {
   if (!PREVIEW) { const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; } }
-  await loaded; await poll(); setInterval(poll, 1000); requestAnimationFrame(frame);
+  await loaded; await poll(); smartPoll(); requestAnimationFrame(frame);
   if (window.GC_LOADER) GC_LOADER.done();
   GC_GUIDE.init({ game: "fishing", db, mount: document.querySelector(".top"), steps: GC_STEPS.fishing() });
 })();
@@ -213,4 +226,4 @@ async function presence() { if (PREVIEW) { HERE = [{ id: "a", name: "דני" }, 
 function drawTable() { const m = new Map(); for (const p of HERE) m.set(p.id, { name: p.name, total: 0 });
   for (const p of (S && S.players) || []) m.set(p.id, { name: p.name, total: p.total, payout: p.payout });
   $("table").innerHTML = m.size ? `<b>🎣 ליד השולחן</b>` + [...m.values()].map((p) => `<span>🟢 ${p.name}${p.total ? ` · ${fmt(p.total)}` : ""}${p.payout ? ` <i>+${fmt(p.payout)}</i>` : ""}</span>`).join("") : ""; }
-presence(); setInterval(presence, 15000);
+presence(); setInterval(() => { if (!document.hidden) presence(); }, 30000);

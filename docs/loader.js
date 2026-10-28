@@ -2,6 +2,8 @@
    Each page calls GC_LOADER.done() when its data and graphics are in place (fallback: 15s). */
 (function () {
   const d = document.documentElement;
+  // keep pictures, sounds and code on the phone after the first visit (sw.js)
+  try { if ("serviceWorker" in navigator && location.protocol === "https:") addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {})); } catch (e) {}
   // no zoom by double tap or pinch: a stray tap must not move the table
   const vp = document.querySelector('meta[name="viewport"]');
   if (vp && !/maximum-scale/.test(vp.content)) vp.content += ",maximum-scale=1,user-scalable=no";

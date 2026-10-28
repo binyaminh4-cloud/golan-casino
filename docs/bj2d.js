@@ -517,5 +517,6 @@ async function tPoll() {
 function tableStart() {
   document.body.classList.add("tablemode"); $("dealBtn").textContent = "שלח הימור";
   document.title = "בלאק ג׳ק ביחד · גולן קזינו";
-  tPoll(); tTimer = setInterval(tPoll, 1000); setInterval(tBar, 250);
+  tPoll(); tTimer = setInterval(tPoll, 2000); setInterval(tBar, 250);   // every 2 s (was 1 s): half the traffic, the table still feels live
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) tPoll(); });
 }

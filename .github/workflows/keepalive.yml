@@ -1,0 +1,16 @@
+# Keeps the free Supabase project awake: free projects pause after a week without activity.
+# Once a day this asks the database one tiny public question (the publishable key is already public in docs/config.js).
+name: keep-supabase-awake
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -s -o /dev/null -w "%{http_code}\n" \
+            -H "apikey: sb_publishable_oGrn3IR2XdQvS5LcAJKwqA_2lpdQ0TV" \
+            -H "Content-Type: application/json" -X POST \
+            "https://mmoutbadlczgatdgcpvp.supabase.co/rest/v1/rpc/gc_buy_prices" -d '{}'

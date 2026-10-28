@@ -97,7 +97,7 @@
     try { const { data, error } = await db.rpc("chat_since", { p_room: ROOM, p_after: last, p_where: (location.pathname.split("/").pop() || "index.html") + location.search }); if (!error && Array.isArray(data)) add(data); } catch (e) {}
     busy = false;
   }
-  function schedule() { clearInterval(timer); timer = setInterval(poll, open ? 3000 : 15000); }
+  function schedule() { clearInterval(timer); timer = setInterval(poll, open ? 3000 : 30000); }
   function toggle(on) {
     open = on; box.classList.toggle("on", on);
     if (on) { qStart = (qStart + 3) % QUICK.length;   // each opening starts the quick messages somewhere else

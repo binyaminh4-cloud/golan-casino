@@ -97,7 +97,7 @@ async function showLobby(user) {
   soundAsk(); liveStrips();
   if (!document.querySelector(".top-guide")) { const m = document.createElement("div"); m.className = "top-guide"; document.querySelector("#lobbyView header .me").prepend(m);
     GC_GUIDE.init({ game: "lobby", db, mount: m, steps: GC_STEPS.lobby() }); }
-  clearInterval(timer); timer = setInterval(refresh, 15000);
+  clearInterval(timer); timer = setInterval(() => { if (!document.hidden) refresh(); }, 20000);
 }
 
 const LBAV = {};          // members' characters for the leaderboard (signed links, fetched once)
@@ -268,4 +268,4 @@ async function liveNow() {
       const names = ppl.map((p) => p.name).filter(Boolean); s.textContent = `🟢 ${names.length === 1 ? names[0] + " משחק עכשיו" : names.slice(0, 3).join(", ") + (names.length > 3 ? ` +${names.length - 3}` : "") + " משחקים עכשיו"}`; });
   } catch (e) {}
 }
-liveNow(); setInterval(liveNow, 20000);
+liveNow(); setInterval(() => { if (!document.hidden) liveNow(); }, 30000);
