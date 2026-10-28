@@ -409,7 +409,7 @@ function newRef() { return (crypto.randomUUID ? crypto.randomUUID() : Date.now()
 $("spinBtn").onclick = async () => {
   if (LIVE) return liveConfirm();
   if (busy || !bets.size) return;
-  busy = true; drawChips(); err("");
+  busy = true; betFocus(false); drawChips(); err("");
   const payload = [...bets].map(([k, v]) => ({ nums: k.split(",").map(Number), amt: v }));
   let res;
   try {
@@ -620,7 +620,7 @@ async function liveRun(d) {
   animRound = d.round;
   if (DUEL) { const z = await db.rpc("zeus_state", { p_duel: DUEL }); if (!z.error) { ZS = z.data; d.payout = ZS.my_payout; d.balance = ZS.my_chips; drawDuel(); } }
   if (srvNow() > d.close + SPIN_AFTER + 1500) return;      // joined mid-spin: just wait for the next round
-  busy = true; drawChips();
+  busy = true; betFocus(false); drawChips();
   const total = [...sent.values()].reduce((s, v) => s + v, 0);
   bets = new Map(sent);                               // unconfirmed chips don't play
   spinRes = { result: d.result, total, payout: d.payout || 0, balance: d.balance };
@@ -720,3 +720,12 @@ function rlStats() {
   db.rpc("rl_live_recent", { p_mode: MODE, p_limit: 500 }).then(({ data }) => { all = data || []; show(500); });
 }
 if (LIVE) { $("statsBtn").hidden = false; $("statsBtn").onclick = rlStats; }
+
+// betting focus: tapping a chip or the layout spreads the table over the whole room; 3 s without a tap shrinks it back
+let focusT = null;
+function betFocus(on) { clearTimeout(focusT); const was = document.body.classList.contains("betfocus");
+  if (on && busy) on = false;
+  if (on !== was) { document.body.classList.toggle("betfocus", on); requestAnimationFrame(() => { drawBoard(); drawChips(); layoutWheel(); }); }
+  if (on) focusT = setTimeout(() => betFocus(false), 3000); }
+$("chips").addEventListener("click", () => betFocus(true));
+board.addEventListener("click", () => betFocus(true), true);

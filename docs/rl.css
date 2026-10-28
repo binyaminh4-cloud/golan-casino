@@ -382,3 +382,7 @@ body.live #spinBtn{display:none}
 body.fishskin{background:#101b1c url(img/rlfish/lake_background.webp) center/cover fixed}
 body.fishskin::before{background:rgba(6,19,23,.35)!important}
 .fishov{position:fixed;inset:6vh 4vw;width:92vw;height:88vh;z-index:9300;border-radius:16px;border:2px solid #8b6d3f;box-shadow:0 0 0 9999px rgba(0,0,0,.5)}
+/* betting focus: while chips are being placed the layout takes the whole room (players and wheel hidden); 3 s idle → back */
+body.betfocus .room{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important}
+body.betfocus .room .side,body.betfocus #seatRow{display:none!important}
+.room .side,.room{transition:none}
