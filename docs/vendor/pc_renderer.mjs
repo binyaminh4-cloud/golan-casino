@@ -70,13 +70,13 @@ export class Renderer {
     const pinsAt=r=>{const xs=[];for(let col=0;col<13;col++){const px=150+col*104+(r%2)*44;if(px<=1450)xs.push(px);}return xs;};
     const pts=[{x:start,y:225}];let x=start;
     for(let r=0;r<8;r++){
-      const xs=pinsAt(r);let pin=xs.reduce((a,b)=>Math.abs(b-x)<Math.abs(a-x)?b:a);
+      const xs=pinsAt(r);let pin=xs.reduce((a,b)=>Math.abs(b-x)<Math.abs(a-x)?b:a);if(Math.abs(pin-x)>22||r===7)pin=x;
       pts.push({x:pin+(rnd()-.5)*8,y:268+r*43-14});
-      const left=7-r,need=end-pin,reach=52*left+60;   // keep the target reachable with the rows that are left
-      let dir=rnd()<.5?-1:1;if(need>reach-52)dir=1;else if(need<-(reach-52))dir=-1;else if(Math.abs(need)>40&&rnd()<.35)dir=Math.sign(need);
-      x=Math.max(120,Math.min(1480,pin+dir*52));
+      // drift toward the target a share at a time, so the last pin is already above the right cell (no late jump)
+      const left=Math.max(1,7-r),need=end-pin,jit=(rnd()-.5)*Math.min(90,26*left);
+      x=Math.max(120,Math.min(1480,pin+need/left+jit*(left>2?1:0)));
     }
-    pts.push({x:(x+end)/2,y:268+8*43+10});pts.push({x:end,y:640});pts.push({x:end,y:715});
+    pts.push({x:x+(end-x)*.6,y:268+8*43+10});pts.push({x:end,y:640});pts.push({x:end,y:715});
     return this._paths[key]=pts;
   }
   frame(state,time){

@@ -45,7 +45,7 @@ body{display:block!important}
 <script src="sfx.js?v=10"></script>
 <script type="module">
 import { scoreDrops } from "./vendor/pc_rules.mjs?v=1";
-import { Renderer, prepareArt } from "./vendor/pc_renderer.mjs?v=3";
+import { Renderer, prepareArt } from "./vendor/pc_renderer.mjs?v=4";
 // Golan Casino wiring: every spin and bonus is decided on the server (pc_spin); the kit's renderer only plays it back.
 const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 try { if (localStorage.getItem("gc_dev") !== "1") location.href = "./"; } catch (e) {}
