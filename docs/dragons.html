@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="loader.js?v=10"></script>
+<title>דרקוני הגולן LINK · גולן קזינו</title>
+<link rel="icon" href="img/brand/favicon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&family=Frank+Ruhl+Libre:wght@700;900&family=Inter:wght@700;800;900&display=swap">
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden}
+body{position:fixed;inset:0;background:#1a0606 url(img/dg/empty_interface.webp) center/cover;color:#ffe9b0;font:15px Heebo,Arial,sans-serif;display:grid;place-items:center}
+body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(14px) brightness(.45);-webkit-backdrop-filter:blur(14px) brightness(.45)}
+/* the machine is one 1536×1024 stage (the approved art), scaled to fit the screen without cropping */
+#stage{position:absolute;left:50%;top:50%;width:1536px;height:1024px;transform-origin:50% 50%;background:url(img/dg/empty_interface.webp) 0 0/100% 100%}
+.abs{position:absolute}
+#title{left:490px;top:72px;width:556px;height:124px;display:grid;place-content:center;text-align:center;line-height:1}
+#title h1{margin:0;font:900 58px "Frank Ruhl Libre",Heebo,serif;color:#ffd75e;text-shadow:0 3px 0 #7a3a00,0 0 18px #ff9d1e99;-webkit-text-stroke:1px #5a2600}
+#title b{font:900 34px Inter;letter-spacing:6px;color:#ffe9a0;text-shadow:0 2px 0 #7a3a00}
+#title.hw h1{font-size:44px}
+.jp{top:214px;height:80px;display:grid;grid-template-rows:30px 1fr;text-align:center}
+.jp small{font:900 22px Inter;letter-spacing:2px;color:#ffd75e;text-shadow:0 2px 0 #000;align-self:center}
+.jp b{font:900 34px Inter;color:#fff3cc;text-shadow:0 2px 4px #000;align-self:center}
+#jpG{left:156px;width:308px}#jpM{left:478px;width:288px}#jpN{left:778px;width:288px}#jpI{left:1078px;width:308px}
+.jp.hit{animation:jph .5s ease-in-out infinite alternate}@keyframes jph{to{filter:brightness(1.6) drop-shadow(0 0 20px #ffd75e)}}
+#reels{left:126px;top:310px;width:1284px;height:548px;display:grid;grid-template-columns:repeat(5,1fr);column-gap:5px;direction:ltr;overflow:hidden}
+.col{position:relative;display:grid;grid-template-rows:repeat(3,1fr);overflow:hidden}
+.cell{position:relative;display:grid;place-items:center;overflow:hidden}
+.cell img{width:92%;height:92%;object-fit:contain;filter:drop-shadow(0 4px 6px #000a);transition:transform .15s}
+.cell .ov{position:absolute;inset:0;display:grid;place-items:center;font:900 46px Inter;color:#4a1a00;text-shadow:0 0 8px #fff6b0,0 0 2px #fff;pointer-events:none}
+.cell .ov.jpL{font-size:30px;color:#fff;text-shadow:0 2px 0 #7a0000,0 0 10px #ff4040}
+.col.spin .cell img{animation:roll .09s linear infinite;filter:blur(3px) brightness(.9)}@keyframes roll{from{transform:translateY(-40%)}to{transform:translateY(40%)}}
+.col.stop{animation:bounce .22s ease-out}@keyframes bounce{40%{transform:translateY(10px)}}
+.cell.win{background:radial-gradient(#ffd75e55,transparent 70%)}.cell.win img{animation:pul .45s ease-in-out 3 alternate}@keyframes pul{to{transform:scale(1.12)}}
+.cell.dim img{opacity:.25}.cell.dim{background:#0006}
+.cell.lock{background:radial-gradient(#ff9d1e55,transparent 72%)}.cell.new{animation:nl .5s ease-out}@keyframes nl{from{filter:brightness(2.5)}}
+.side{top:506px;width:58px;height:124px;display:grid;place-content:center;text-align:center;font:900 26px Inter;color:#ffd75e;line-height:1}.side small{font:800 13px Inter}
+#sideL{left:50px}#sideR{left:1428px}
+/* bottom bar, on top of the art's frames */
+.bb{top:906px;height:80px;border:0;background:none;color:#ffd75e;display:grid;place-content:center;text-align:center;cursor:pointer;font:900 20px Inter;padding:0;border-radius:18px}
+.bb:active{transform:scale(.96)}.bb:disabled{opacity:.45;cursor:default}
+.bb img{width:48px;height:48px}
+#bMenu{left:18px;width:86px}#bInfo{left:118px;width:68px}#bSound{left:197px;width:66px}
+.box{top:906px;height:80px;display:grid;place-content:center;text-align:center;line-height:1.05}
+.box small{font:900 18px Inter;color:#ffd75e;letter-spacing:1px}.box b{font:900 30px Inter;color:#fff}
+#bal{left:272px;width:218px}#betBox{left:560px;width:104px}#winBox{left:733px;width:304px}
+#bMinus{left:510px;top:910px;width:48px;height:48px;border-radius:10px}#bPlus{left:666px;top:910px;width:48px;height:48px;border-radius:10px}
+#bMax{left:1052px;width:130px;font-size:24px;line-height:1}
+#bSpin{left:1202px;top:862px;width:178px;height:150px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#3fd16a,#0b7a2c 70%);box-shadow:inset 0 -6px 10px #0006;font:900 28px Heebo;color:#fff;text-shadow:0 2px 0 #064}
+#bSpin.auto{background:radial-gradient(circle at 50% 40%,#ffb03f,#a85a00 70%)}
+#bAuto{left:1396px;width:122px;font-size:22px;line-height:1}#bAuto[aria-pressed="true"]{color:#3fd16a}
+#err{left:0;right:0;top:868px;text-align:center;color:#ffb0b0;font:700 20px Heebo;pointer-events:none}
+#hwBar{left:126px;top:310px;width:1284px;height:548px;pointer-events:none}
+.toast{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);z-index:30;background:#3a0606f0;border:3px solid #ffd75e;border-radius:18px;padding:10px 26px;font:900 26px Heebo;color:#ffe9a0;text-align:center;pointer-events:none;animation:tp .25s ease-out;box-shadow:0 10px 40px #000c}
+.toast small{display:block;font:700 15px Heebo;color:#ffd7a0}.toast.big{font-size:34px;padding:16px 34px}
+@keyframes tp{from{transform:translate(-50%,-50%) scale(.6);opacity:0}}
+/* entrance */
+#enter{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:#000c}#enter[hidden]{display:none}
+#enter .card{position:relative;width:min(96vw,calc(92dvh * 1.777));aspect-ratio:1672/941;background:url(img/dg/entrance.webp) 0 0/100% 100%;border:3px solid #c8962c;border-radius:16px;overflow:hidden;box-shadow:0 0 60px #ff9d1e55}
+#enter .txt{position:absolute;right:0;top:0;bottom:0;width:44%;padding:4% 4% 4% 3%;display:flex;flex-direction:column;justify-content:center;gap:1.2vh;background:linear-gradient(270deg,#0b0302f0 55%,#0b030200)}
+#enter h2{margin:0;font:900 clamp(22px,4.4vh,46px) "Frank Ruhl Libre",Heebo,serif;color:#ffd75e;text-shadow:0 2px 0 #7a3a00}
+#enter h2 span{display:block;font:900 clamp(14px,2.6vh,26px) Inter;letter-spacing:4px}
+#enter p{margin:0;font:600 clamp(11px,2.1vh,17px) Heebo;color:#f6dfb4;line-height:1.35}
+#enter button{margin-top:1vh;height:clamp(36px,7vh,56px);border:0;border-radius:99px;background:linear-gradient(180deg,#ffd75e,#c8962c);color:#3a1200;font:900 clamp(15px,2.8vh,22px) Heebo;cursor:pointer}
+#enter .back{background:none;border:1px solid #c8962c;color:#ffd75e;height:auto;padding:4px;font-size:13px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=8"></script>
+<script src="landscape.js?v=1"></script>
+</head>
+<body>
+<div id="stage">
+  <div class="abs" id="title"><h1>דרקוני הגולן</h1><b>LINK</b></div>
+  <div class="abs jp" id="jpG"><small>GRAND</small><b>—</b></div>
+  <div class="abs jp" id="jpM"><small>MAJOR</small><b>—</b></div>
+  <div class="abs jp" id="jpN"><small>MINOR</small><b>—</b></div>
+  <div class="abs jp" id="jpI"><small>MINI</small><b>—</b></div>
+  <div class="abs side" id="sideL">25<small>LINES</small></div><div class="abs side" id="sideR">25<small>LINES</small></div>
+  <div class="abs" id="reels"></div>
+  <a class="abs bb" id="bMenu" href="./" title="ללובי"><img src="img/dg/menu.svg" alt="ללובי"></a>
+  <button class="abs bb" id="bInfo" title="חוקים"><img src="img/dg/info.svg" alt="חוקים"></button>
+  <button class="abs bb" id="bSound" title="צליל"><img src="img/dg/sound.svg" alt="צליל"></button>
+  <div class="abs box" id="bal"><small>היתרה</small><b id="balV">…</b></div>
+  <button class="abs bb" id="bMinus" aria-label="הימור קטן יותר"><img src="img/dg/minus.svg" alt=""></button>
+  <div class="abs box" id="betBox"><small>הימור</small><b id="betV">₪25</b></div>
+  <button class="abs bb" id="bPlus" aria-label="הימור גדול יותר"><img src="img/dg/plus.svg" alt=""></button>
+  <div class="abs box" id="winBox"><small>זכייה</small><b id="winV">₪0</b></div>
+  <button class="abs bb" id="bMax">הימור<br>מקסימלי</button>
+  <button class="abs bb" id="bSpin">סובב</button>
+  <button class="abs bb" id="bAuto" aria-pressed="false">אוטו<br>מטי</button>
+  <div class="abs" id="err"></div>
+</div>
+<div id="enter" hidden><div class="card"><div class="txt">
+  <h2>דרקוני הגולן<span>LINK</span></h2>
+  <p>5 גלגלים, 25 קווים. הדרקון מחליף כל סמל. רועי, עידו, בנימין ויואב משלמים הכי הרבה.</p>
+  <p>🔥 6 כדורי אש ומעלה פותחים את <b>החזק וזכה</b>: הכדורים ננעלים, מקבלים 3 סיבובים, וכל כדור חדש מחזיר ל־3.</p>
+  <p>כדור יכול להיות סכום או ג׳קפוט: MINI, MINOR, MAJOR. ממלאים את כל 15 המשבצות? <b>GRAND</b> פי 1,000.</p>
+  <button id="go">כניסה לארמון 🐉</button><button class="back" onclick="location.href='./'">חזרה ללובי</button>
+</div></div></div>
+<script src="sfx.js?v=11"></script>
+<script src="vendor/dg_engine.js?v=1"></script>
+<script>
+"use strict";
+// Golan Casino wiring: the server picks a pre-played spin (dg_spin → seed + total); the page replays it with the same engine.
+const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
+try { if (localStorage.getItem("gc_dev") !== "1" && localStorage.getItem("gc_open") !== "1") location.href = "./"; } catch (e) {}
+const $ = (id) => document.getElementById(id), E = DGEngine, JP = E.CFG.jackpots;
+const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : a >= 1e4 ? "₪" + +(n / 1e3).toFixed(1) + "K" : "₪" + Math.floor(n).toLocaleString("en-US"); };
+const IMG = { roy: "roy.webp", ido: "ido.webp", binyamin: "binyamin.webp", yoav: "yoav.webp", fortune: "fortune.webp", dragon: "dragon.webp", turtle: "turtle.webp",
+  ship: "ship.webp", lotus: "lotus.webp", orb: "orb.webp", A: "A.svg", K: "K.svg", Q: "Q.svg", J: "J.svg", "10": "10.svg", "9": "9.svg" };
+const SYMS = Object.keys(IMG).filter((k) => k !== "orb");
+let bet = 25, balance = 0, busy = false, auto = false, sound = true;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// stage: scale the whole machine to the screen, never cropping it
+function fit() { const s = Math.min(innerWidth / 1536, innerHeight / 1024); $("stage").style.transform = `translate(-50%,-50%) scale(${s})`; }
+addEventListener("resize", fit); fit();
+// reels
+const cells = []; for (let c = 0; c < 5; c++) { const col = document.createElement("div"); col.className = "col"; cells.push([]);
+  for (let r = 0; r < 3; r++) { const d = document.createElement("div"); d.className = "cell"; d.innerHTML = `<img alt=""><span class="ov"></span>`; col.appendChild(d); cells[c].push(d); }
+  $("reels").appendChild(col); }
+const cols = [...$("reels").children];
+function orbLabel(v) { return typeof v === "number" ? fmt(v * bet) : v; }
+function setCell(c, r, sym, orb) { const d = cells[c][r]; d.firstChild.src = "img/dg/" + IMG[sym]; const ov = d.lastChild;
+  if (sym === "orb" && orb != null) { ov.textContent = orbLabel(orb); ov.className = "ov" + (typeof orb === "number" ? "" : " jpL"); } else { ov.textContent = ""; ov.className = "ov"; } }
+function paint(g, o) { for (let c = 0; c < 5; c++) for (let r = 0; r < 3; r++) setCell(c, r, g[c][r], o ? o[c][r] : null); }
+function jackpots() { $("jpG").lastChild.textContent = fmt(JP.GRAND * bet); $("jpM").lastChild.textContent = fmt(JP.MAJOR * bet); $("jpN").lastChild.textContent = fmt(JP.MINOR * bet); $("jpI").lastChild.textContent = fmt(JP.MINI * bet); }
+const S = (k, a) => { if (!sound) return; try { SFX[k](a); } catch (e) {} };
+// spin animation: every column rolls, then stops left to right with a small bounce
+async function spinTo(g, o, mask) {
+  cols.forEach((col, c) => { if (!mask || mask[c].some((x) => !x)) { col.classList.add("spin"); col.classList.remove("stop"); } });
+  const t = setInterval(() => { cols.forEach((col, c) => { if (col.classList.contains("spin")) for (let r = 0; r < 3; r++) if (!mask || !mask[c][r]) setCell(c, r, SYMS[Math.floor(Math.random() * SYMS.length)]); }); }, 90);
+  await sleep(auto ? 450 : 700);
+  for (let c = 0; c < 5; c++) { if (!cols[c].classList.contains("spin")) continue; await sleep(auto ? 110 : 180);
+    cols[c].classList.remove("spin"); for (let r = 0; r < 3; r++) if (!mask || !mask[c][r]) setCell(c, r, g[c][r], o[c][r]);
+    void cols[c].offsetWidth; cols[c].classList.add("stop"); S("flip"); }
+  clearInterval(t);
+}
+function toast(html, ms, big) { const t = document.createElement("div"); t.className = "toast" + (big ? " big" : ""); t.innerHTML = html; document.body.appendChild(t); setTimeout(() => t.remove(), ms); }
+async function countWin(to) { const from = 0, steps = 18; for (let i = 1; i <= steps; i++) { $("winV").textContent = fmt(from + (to - from) * i / steps); await sleep(28); } }
+async function replay(seed, buy) {
+  const r = E.play(Number(seed), buy ? { buy: 1 } : {}); let won = 0;
+  for (const st of r.steps) {
+    if (st.t === "spin") {
+      await spinTo(st.g, st.o);
+      if (st.win > 0) { for (const w of st.wins) { const L = E.LINES[w.line]; for (let c = 0; c < w.n; c++) cells[c][L[c]].classList.add("win"); }
+        won += st.win; S("win", st.win >= 5); toast(`+${fmt(st.win * bet)}<small>${st.wins.length > 1 ? st.wins.length + " קווים" : "קו זוכה"}</small>`, auto ? 900 : 1400, st.win >= 10);
+        await countWin(won * bet); await sleep(auto ? 700 : 1200); cells.flat().forEach((d) => d.classList.remove("win")); }
+    } else if (st.t === "hw_start") {
+      // slow-motion entry: the orbs that triggered it glow, then the Hold & Win explanation
+      for (let c = 0; c < 5; c++) for (let r = 0; r < 3; r++) if (st.held[c][r] !== null) cells[c][r].classList.add("lock", "new");
+      S("zap"); toast("🔥 החזק וזכה!<small>הכדורים ננעלים · 3 סיבובים</small>", 2400, true); await sleep(2600);
+      await GC_BONUS_INTRO("🔥 החזק וזכה", ["כדורי האש שנחתו ננעלים במקום.", "יש 3 סיבובים. כל כדור חדש שנוחת מחזיר את הספירה ל־3.", "בסוף מקבלים את סכום כל הכדורים. ממלאים את כל 15 המשבצות? GRAND!"], "img/dg/orb.webp", auto ? "יאללה 🔥" : undefined);
+      held = st.held.map((c) => c.slice()); $("title").classList.add("hw");
+      for (let c = 0; c < 5; c++) for (let r = 0; r < 3; r++) if (held[c][r] === null) { cells[c][r].classList.add("dim"); }
+      hwTitle(3, countHeld());
+    } else if (st.t === "respin") {
+      const g = [], o = []; for (let c = 0; c < 5; c++) { g.push([]); o.push([]); for (let r = 0; r < 3; r++) { g[c].push(held[c][r] !== null ? "orb" : "lotus"); o[c].push(held[c][r]); } }
+      for (const [c, r, v] of st.fresh) { g[c][r] = "orb"; o[c][r] = v; }
+      const mask = held.map((col) => col.map((v) => v !== null));
+      await spinTo(g, o, mask);
+      for (let c = 0; c < 5; c++) for (let r = 0; r < 3; r++) if (held[c][r] === null && !st.fresh.some(([a, b]) => a === c && b === r)) { cells[c][r].firstChild.style.visibility = "hidden"; }
+      for (const [c, r, v] of st.fresh) { held[c][r] = v; const d = cells[c][r]; d.firstChild.style.visibility = ""; d.classList.remove("dim"); d.classList.add("lock", "new"); }
+      if (st.fresh.length) { S("win", false); toast(`🔥 +${st.fresh.length} כדור${st.fresh.length > 1 ? "ים" : ""}! חזרה ל־3`, 1300); }
+      hwTitle(st.left, st.count); await sleep(st.fresh.length ? 1500 : 900);
+    } else if (st.t === "hw_end") {
+      // collect the orbs one by one into the win box
+      let sum = 0;
+      for (const [c, r, v] of st.parts) { const d = cells[c][r]; d.classList.add("win"); sum += E.valueOf(v);
+        if (typeof v !== "number") { const id = { MINI: "jpI", MINOR: "jpN", MAJOR: "jpM" }[v]; $(id).classList.add("hit"); toast(`🏆 ${v}! ${fmt(JP[v] * bet)}`, 1800, true); await sleep(1600); $(id).classList.remove("hit"); }
+        $("winV").textContent = fmt((won + sum) * bet); S("chip"); await sleep(260); d.classList.remove("win"); }
+      if (st.grand) { $("jpG").classList.add("hit"); toast(`🐉 GRAND!!! ${fmt(JP.GRAND * bet)}`, 3500, true); await sleep(3500); $("jpG").classList.remove("hit"); }
+      won += st.sum; $("winV").textContent = fmt(won * bet);
+      toast(`🔥 סוף החזק וזכה<small>${fmt(st.sum * bet)}</small>`, 2200, true); await sleep(2400);
+      held = null; $("title").classList.remove("hw"); $("title").innerHTML = "<h1>דרקוני הגולן</h1><b>LINK</b>";
+      cells.flat().forEach((d) => { d.classList.remove("dim", "lock", "new"); d.firstChild.style.visibility = ""; });
+    }
+  }
+  cells.flat().forEach((d) => d.classList.remove("lock", "new"));
+  return r;
+}
+let held = null;
+const countHeld = () => held.flat().filter((v) => v !== null).length;
+function hwTitle(left, n) { $("title").innerHTML = `<h1>סיבובים: ${left}</h1><b>${n}/15 🔥</b>`; }
+function drawBet() { const ok = GC_LADDER(25, balance); if (!ok.includes(bet)) bet = ok.filter((v) => v <= bet).pop() || ok[0];
+  $("betV").textContent = fmt(bet); $("bMinus").disabled = busy || ok.indexOf(bet) <= 0; $("bPlus").disabled = busy || ok.indexOf(bet) >= ok.length - 1; $("bMax").disabled = busy; jackpots(); }
+function showBal(v) { balance = +v; $("balV").textContent = fmt(v); drawBet(); }
+function lock(v) { busy = v; $("bSpin").disabled = v && !auto; drawBet(); $("bInfo").disabled = v; }
+$("bMinus").onclick = () => { const ok = GC_LADDER(25, balance), i = ok.indexOf(bet); if (!busy && i > 0) { bet = ok[i - 1]; drawBet(); S("chip"); } };
+$("bPlus").onclick = () => { const ok = GC_LADDER(25, balance), i = ok.indexOf(bet); if (!busy && i < ok.length - 1) { bet = ok[i + 1]; drawBet(); S("chip"); } };
+$("bMax").onclick = () => { if (busy) return; const ok = GC_LADDER(25, balance); bet = ok[ok.length - 1]; drawBet(); S("chip"); };
+$("bSound").onclick = () => { sound = !sound; $("bSound").style.opacity = sound ? 1 : .45; };
+const errText = (e) => { const m = (e && e.message) || ""; return m.includes("insufficient") ? "אין מספיק שקלים." : m.includes("invalid_amount") ? "הסכום מעל המקסימום שלך." : "משהו השתבש."; };
+async function spinOnce() {
+  lock(true); $("err").textContent = ""; $("winV").textContent = "₪0";
+  const { data, error } = await db.rpc("dg_spin", { p_stake: bet, p_ref: crypto.randomUUID ? crypto.randomUUID() : Date.now() + "" + Math.random() });
+  if (error) { $("err").textContent = errText(error); auto = false; setAuto(); lock(false); return false; }
+  showBal(data.balance - data.payout);
+  const r = await replay(data.seed);
+  $("winV").textContent = fmt(data.payout); showBal(data.balance);
+  if (r.bonus && window.GC_BONUS) GC_BONUS(`🐉 החזק וזכה ×${Math.round(data.total)}`, data.payout, r.capped ? "הגעת לתקרה" : "");
+  else if (data.total >= 20 && window.GC_BONUS) GC_BONUS(`🐉 זכייה ענקית ×${Math.round(data.total)}`, data.payout, "");
+  lock(false); return !r.bonus;
+}
+$("bSpin").onclick = async () => { if (auto) { auto = false; setAuto(); return; } if (busy) return; await spinOnce(); };
+function setAuto() { $("bAuto").setAttribute("aria-pressed", auto); $("bSpin").classList.toggle("auto", auto); $("bSpin").textContent = auto ? "עצור" : "סובב"; $("bSpin").disabled = busy && !auto; }
+$("bAuto").onclick = async () => { auto = !auto; setAuto(); if (!auto || busy) return;
+  while (auto) { const go = await spinOnce(); if (!go) { auto = false; setAuto(); break; } await sleep(350); } };
+$("bInfo").onclick = () => GC_BONUS_INTRO("🐉 דרקוני הגולן LINK", ["25 קווים. ההימור מתחלק שווה על כל הקווים. הדרקון מחליף כל סמל (לא בגלגל הראשון).",
+  "5 בשורה בקו (לפי ההימור הכולל): דרקון ×" + (500 * E.CFG.payScale / 25).toFixed(0) + ", רועי / עידו / בנימין / יואב ×" + (200 * E.CFG.payScale / 25).toFixed(0) + ", בודהה ×" + (150 * E.CFG.payScale / 25).toFixed(0) + ".",
+  "🔥 6 כדורי אש ומעלה: החזק וזכה. 3 סיבובים, כל כדור חדש מחזיר ל־3.", "ג׳קפוטים לפי ההימור: MINI ×10 · MINOR ×25 · MAJOR ×100 · GRAND ×1,000 (כל 15 המשבצות).",
+  "🛒 אפשר לקנות כניסה ישירה להחזק וזכה בכפתור הקנייה."], "img/dg/dragon.webp", "הבנתי");
+// buy: long-press the max-bet? keep it clear: a small cart next to the balance
+const buyBtn = document.createElement("button"); buyBtn.className = "abs bb"; buyBtn.style.cssText = "left:272px;top:836px;width:218px;height:58px;font-size:22px;background:#3a0606d9;border:2px solid #c8962c";
+buyBtn.textContent = "🛒 קנה החזק וזכה"; $("stage").appendChild(buyBtn);
+buyBtn.onclick = async () => {
+  if (busy) return; const P = (await db.rpc("gc_buy_prices")).data || {};
+  const kind = await GC_BUYMENU([{ kind: "hw", label: "החזק וזכה", price: P["dragons:hw"] || 46, desc: "מתחילים עם 6 כדורי אש נעולים ו־3 סיבובים" }], bet, fmt);
+  if (!kind) return; lock(true); $("err").textContent = ""; $("winV").textContent = "₪0";
+  const { data, error } = await db.rpc("dg_buy", { p_stake: bet, p_ref: crypto.randomUUID ? crypto.randomUUID() : Date.now() + "" + Math.random() });
+  if (error) { $("err").textContent = (error.message || "").includes("insufficient") ? "אין מספיק שקלים." : "הקנייה נכשלה."; lock(false); return; }
+  showBal(data.balance - data.payout); await replay(data.seed, true);
+  $("winV").textContent = fmt(data.payout); showBal(data.balance);
+  if (window.GC_BONUS) GC_BONUS(`🐉 החזק וזכה ×${Math.round(data.total)}`, data.payout, `עלה ${fmt(data.cost)}`);
+  lock(false);
+};
+(async () => {
+  const p = E.play(11).steps[0]; paint(p.g, p.o); jackpots();
+  const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
+  const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single(); if (w.data) showBal(w.data.balance);
+  if (window.GC_LOADER) GC_LOADER.done();
+  $("enter").hidden = false; $("go").onclick = () => { $("enter").hidden = true; S("chip"); };
+})();
+</script>
+<script src="chat.js?v=10"></script>
+</body>
+</html>
