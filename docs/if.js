@@ -19,6 +19,15 @@ const loaded = Promise.all(NAMES.map((k) => new Promise((ok) => { const im = new
 const cv = $("cv"), ctx = cv.getContext("2d");
 const TH = Math.PI * 2 / 53;
 
+// boosts: a list of {seg, mult} (older rounds: one seg + maybe a whole colour)
+function segMult(B, i, k) { if (!B) return 0; if (B.list && B.list.length) { const h = B.list.find((x) => x.seg === i); return h ? h.mult : 0; }
+  return B.seg === i ? B.mult : B.cat === k ? B.cat_mult : 0; }
+// best boost per betting zone, shown on the zone itself
+function zoneBoosts(B) { const z = {}; for (let i = 0; i < 53; i++) { const m = segMult(B, i, LAYOUT[i]); if (m) z[LAYOUT[i]] = Math.max(z[LAYOUT[i]] || 0, m); } return z; }
+let zbKey = "";
+function paintZoneBoosts(B) { const z = zoneBoosts(B), key = JSON.stringify(z); if (key === zbKey) return; zbKey = key;
+  document.querySelectorAll(".zone").forEach((b) => { let t = b.querySelector(".zb"); const m = z[b.dataset.k];
+    if (!m) { if (t) t.remove(); return; } if (!t) { t = document.createElement("i"); t.className = "zb"; b.appendChild(t); } t.textContent = "×" + m; }); }
 // wheel scene (adapted from the kit's wheelFrame): rotation and boost badges come from the round
 function wheelScene(rot, t, B) {
   const C = FishingRender.contain;
@@ -30,12 +39,13 @@ function wheelScene(rot, t, B) {
     const a = -Math.PI / 2 + i * TH, b = a + TH, k = LAYOUT[i];
     const g = ctx.createRadialGradient(-70, -110, 25, 0, 0, r); g.addColorStop(0, "#0c1724"); g.addColorStop(.55, colors[k]); g.addColorStop(.88, colors[k]); g.addColorStop(1, "#101c2c");
     ctx.fillStyle = g; ctx.strokeStyle = "#91764b"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, r, a, b); ctx.closePath(); ctx.fill(); ctx.stroke();
-    if (B && (B.seg === i || B.cat === k) && t > 10.6) { ctx.save(); ctx.globalAlpha = .35 + .2 * Math.sin(t * 6); ctx.fillStyle = "#ffd34d"; ctx.fill(); ctx.restore(); }
+    const bm = segMult(B, i, k);
+    if (bm && t > 10.6) { ctx.save(); ctx.globalAlpha = .35 + .2 * Math.sin(t * 6); ctx.fillStyle = "#ffd34d"; ctx.fill(); ctx.restore(); }
     const mid = (a + b) / 2; ctx.save(); ctx.translate(Math.cos(mid) * 315, Math.sin(mid) * 315); ctx.rotate(mid + Math.PI / 2); if (I[ICON[k]]) C(ctx, I[ICON[k]], -20, -33, 40, 66);
     // boost badges: the one boosted friend-fish segment, or every segment of a boosted bonus colour
-    const m = B ? (B.seg === i ? B.mult : B.cat === k ? B.cat_mult : 0) : 0;
+    const m = bm;
     if (m) {   // boost badge: lands with a pop during the 3 s reveal, then keeps glowing
-      const age = Math.max(0, t - 10 - (B.seg === i ? 0.6 : 1.4)), pop = age < .35 ? 1.8 - age * 2.3 : 1 + .06 * Math.sin(t * 6);
+      const age = Math.max(0, t - 10 - 0.25 - (i % 11) * 0.2), pop = age < .35 ? 1.8 - age * 2.3 : 1 + .06 * Math.sin(t * 6);
       if (age > 0) { ctx.translate(0, -70); ctx.scale(pop, pop); ctx.shadowColor = "#ffcf40"; ctx.shadowBlur = 30; ctx.fillStyle = "#ffe27a"; ctx.beginPath(); ctx.arc(0, 0, 34, 0, Math.PI * 2); ctx.fill();
         ctx.shadowBlur = 0; ctx.lineWidth = 4; ctx.strokeStyle = "#8a5a00"; ctx.stroke(); ctx.fillStyle = "#3a2600"; ctx.font = "900 30px Inter, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("×" + m, 0, 2); }
     }
@@ -78,7 +88,7 @@ function frame() {
     const e = (srvNow() - S.start) / 1000;
     const isBonus = S.cat && ["blue", "orange", "red"].includes(S.cat) && S.total_mult;
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = "#060c16"; ctx.fillRect(0, 0, cv.width, cv.height);
-    view(e); wheelScene(rotAt(e), e, e >= 10 ? S.boosts : null);
+    view(e); wheelScene(rotAt(e), e, e >= 10 ? S.boosts : null); paintZoneBoosts(e >= 10 ? S.boosts : null);
     if (isBonus && e >= 20.8 && I[S.cat]) {   // the wheel stops; the catch opens in its own window over it
       pop.hidden = false; document.body.classList.add("catching");
       const p = FishingRender.bonusFrame(pctx, I, Math.max(0, e - 20.8), S.total_mult, S.cat);
@@ -99,12 +109,12 @@ function phaseText(e) {
       cd.classList.remove("tick"); void cd.offsetWidth; cd.classList.add("tick"); if (left <= 3) try { SFX.tick(true); } catch (er) {} } }
   else if (e >= 10 && e < 13 && S.boosts) { cd.hidden = false; const b = S.boosts, key = "boost" + S.round;
     if (cd.dataset.s !== key) { cd.dataset.s = key; cd.classList.remove("hurry");
-      cd.innerHTML = `<small>⚡ מכפילים על הגלגל</small><b style="font-size:clamp(24px,6vh,40px)">${CATNAME[LAYOUT[b.seg]]} ×${b.mult}${b.cat ? ` · ${CATNAME[b.cat]} ×${b.cat_mult}` : ""}</b>`; try { SFX.zap(); } catch (er) {} } }
+      const zb = zoneBoosts(b); cd.innerHTML = `<small>⚡ ${b.list ? b.list.length + " " : ""}מכפילים על הגלגל</small><b style="font-size:clamp(20px,5vh,34px)">${Object.entries(zb).map(([k, m]) => CATNAME[k] + " ×" + m).join(" · ")}</b>`; try { SFX.zap(); } catch (er) {} } }
   else cd.hidden = true;
 }
 function showEnd() {
   endShown = S.round; const r = $("result");
-  const x = S.history && S.cat ? (["dark", "light"].includes(S.cat) ? (S.boosts && S.boosts.seg === S.stop ? S.boosts.mult * 2 : 2) : S.total_mult) : null;
+  const x = S.history && S.cat ? (["dark", "light"].includes(S.cat) ? 2 * (segMult(S.boosts, S.stop, LAYOUT[S.stop]) || 1) : S.total_mult) : null;
   const pay = S.payout || 0, staked = Object.values(S.mine || {}).reduce((a, b) => a + b, 0);
   r.innerHTML = `<b>${CATNAME[S.cat] || ""}${x ? ` · ×${Number(x).toLocaleString("en-US")}` : ""}</b>${staked ? (pay > 0 ? `<span class="win">זכית ${fmt(pay)}</span>` : `<span>לא הפעם</span>`) : ""}`;
   r.hidden = false; setTimeout(() => { r.hidden = true; }, 3500);
@@ -177,7 +187,7 @@ function drawHist() {
 let FAKE0 = Date.now();
 function fakeState() {
   const t = Date.now(), e = ((t - FAKE0) / 1000) % 42, start = t - e * 1000;
-  return { now: t, round: Math.floor((t - FAKE0) / 42000), start, open: e < 10, boosts: e >= 10 ? { seg: 7, mult: 7, cat: "red", cat_mult: 3 } : null, stop: e >= 13 ? 25 : null,
+  return { now: t, round: Math.floor((t - FAKE0) / 42000), start, open: e < 10, boosts: e >= 10 ? { list: [{ seg: 1, mult: 2 }, { seg: 6, mult: 2 }, { seg: 9, mult: 3 }, { seg: 13, mult: 2 }, { seg: 20, mult: 2 }, { seg: 28, mult: 5 }, { seg: 33, mult: 2 }, { seg: 47, mult: 2 }, { seg: 25, mult: 2 }] } : null, stop: e >= 13 ? 25 : null,
     cat: e >= 20 ? "red" : null, total_mult: e >= 20 ? 600 : null, mine: {}, payout: null, history: [{ cat: "dark", x: 2 }, { cat: "blue", x: 12 }, { cat: "light", x: 14 }], max_bet: 50000, balance: 100000 };
 }
 $("rulesBtn").onclick = () => $("rules").showModal();

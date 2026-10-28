@@ -56,3 +56,5 @@ html,body{height:100%;overflow:hidden}body{position:fixed;inset:0;height:auto}
 .count small{display:block;font:700 13px Heebo;color:#c7d4e5}.count b{display:block;font:900 clamp(34px,9vh,64px) Inter;color:#ffe27a;line-height:1}
 .count.hurry{border-color:#e5484d}.count.hurry b{color:#ff6b6b}.count.tick b{animation:ctk .35s ease-out}
 @keyframes ctk{from{transform:scale(1.5)}}
+
+.zone{position:relative}.zone .zb{position:absolute;top:-8px;left:-6px;z-index:2;font:900 13px Inter;font-style:normal;color:#3a2600;background:#ffe27a;border:2px solid #8a5a00;border-radius:99px;padding:1px 6px;box-shadow:0 0 12px #ffcf40;animation:zbp .35s ease-out}@keyframes zbp{from{transform:scale(1.8)}}
