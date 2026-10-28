@@ -77,7 +77,7 @@
     src.connect(g).connect(master); const T = now(); src.start(T);
     if (dur) { g.gain.setValueAtTime(vol, T + Math.max(0, dur - 0.4)); g.gain.linearRampToValueAtTime(0.0001, T + dur); src.stop(T + dur + 0.05); }
     return true; }
-  const SAMPLES = ["chip", "tick", "card_flip", "shuffle", "win_small", "win_medium", "lose", "ball_roll", "ball_drop", "no_more_bets", "notify", "orb_lock", "splash", "reel_spin", "reel_stop", "card_deal", "bonus_trigger", "reel_tension", "error", "whoosh", "button", "win_big", "coins_count", "lightning"];
+  const SAMPLES = ["chip", "tick", "card_flip", "shuffle", "win_small", "win_medium", "lose", "ball_roll", "ball_drop", "no_more_bets", "notify", "orb_lock", "splash", "reel_spin", "reel_stop", "card_deal", "bonus_trigger", "reel_tension", "error", "whoosh", "button", "win_big", "coins_count", "lightning", "jackpot"];
   addEventListener("pointerdown", () => SAMPLES.forEach(load), { once: true, capture: true });
   const synth = { ...S };
   S.chip = () => play("chip", { vol: 0.8 }) || synth.chip();
@@ -92,6 +92,7 @@
   S.button = () => play("button", { vol: 0.5 });
   S.win = (big) => play(big ? "win_medium" : "win_small", { vol: big ? 0.8 : 0.7 }) || synth.win(big);
   S.bigWin = () => { S.musicDuck(true); setTimeout(() => S.musicDuck(false), 5200); return play("win_big", { vol: 0.85 }) || synth.win(true); };
+  S.jackpot = () => { S.musicDuck(true); setTimeout(() => S.musicDuck(false), 5500); return play("jackpot", { vol: 0.9 }) || synth.win(true); };
   S.coins = (sec) => play("coins_count", { vol: 0.5, dur: sec || 1.5 });
   S.zap = () => play("lightning", { vol: 0.7, dur: 2 }) || synth.zap();
   S.thunder = () => play("lightning", { vol: 0.85 }) || synth.thunder();
@@ -106,7 +107,7 @@
   S.reelSpin = (sec) => play("reel_spin", { vol: 0.45, dur: sec || 1.5 });
   // ---- background music per page (its own on/off, remembered; quieter than the effects) ----
   const PAGE = (location.pathname.split("/").pop() || "index.html") + location.search;
-  const MUSIC = /dragons/.test(PAGE) ? "music_dragons" : /wildwest/.test(PAGE) ? "music_wildwest" : /fisher90/.test(PAGE) ? "music_fisher90" : /kinneret/.test(PAGE) ? "music_kinneret" : /pachinko/.test(PAGE) ? "music_pachinko" : /fishing|skin=fish/.test(PAGE) ? "music_fishing" : /protein/.test(PAGE) ? "music_protein"
+  const MUSIC = /dragons/.test(PAGE) ? "music_dragons" : /wildwest/.test(PAGE) ? "music_wildwest" : /fisher90/.test(PAGE) ? "music_fisher90" : /kinneret/.test(PAGE) ? "music_kinneret" : /pachinko/.test(PAGE) ? "music_pachinko" : /fishing|skin=fish/.test(PAGE) ? "music_fishing" : /protein/.test(PAGE) ? "music_protein" : /slots/.test(PAGE) ? "music_slots"
     : /(roulette|blackjack|poker)/.test(PAGE) ? "music_tables" : /^(index\.html|)$/.test(PAGE.split("?")[0]) ? "music_lobby" : null;
   let musicOn = true, mSrc = null, mGain = null, mName = null; try { musicOn = localStorage.getItem("gc_music") !== "0"; } catch (e) {}
   async function startMusic(name) { name = name || MUSIC; if (!name || !musicOn || muted || !ac()) return; if (mName === name && mSrc) return;

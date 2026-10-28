@@ -97,7 +97,7 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(14px) bright
   <p>כדור יכול להיות סכום או ג׳קפוט: MINI, MINOR, MAJOR. ממלאים את כל 15 המשבצות? <b>GRAND</b> פי 1,000.</p>
   <button id="go">כניסה לארמון 🐉</button><button class="back" onclick="location.href='./'">חזרה ללובי</button>
 </div></div></div>
-<script src="sfx.js?v=13"></script>
+<script src="sfx.js?v=14"></script>
 <script src="vendor/dg_engine.js?v=1"></script>
 <script>
 "use strict";
@@ -166,9 +166,9 @@ async function replay(seed, buy) {
       // collect the orbs one by one into the win box
       let sum = 0;
       for (const [c, r, v] of st.parts) { const d = cells[c][r]; d.classList.add("win"); sum += E.valueOf(v);
-        if (typeof v !== "number") { const id = { MINI: "jpI", MINOR: "jpN", MAJOR: "jpM" }[v]; $(id).classList.add("hit"); toast(`🏆 ${v}! ${fmt(JP[v] * bet)}`, 1800, true); await sleep(1600); $(id).classList.remove("hit"); }
+        if (typeof v !== "number") { const id = { MINI: "jpI", MINOR: "jpN", MAJOR: "jpM" }[v]; $(id).classList.add("hit"); S("jackpot"); toast(`🏆 ${v}! ${fmt(JP[v] * bet)}`, 1800, true); await sleep(1600); $(id).classList.remove("hit"); }
         $("winV").textContent = fmt((won + sum) * bet); S("chip"); await sleep(260); d.classList.remove("win"); }
-      if (st.grand) { $("jpG").classList.add("hit"); toast(`🐉 GRAND!!! ${fmt(JP.GRAND * bet)}`, 3500, true); await sleep(3500); $("jpG").classList.remove("hit"); }
+      if (st.grand) { $("jpG").classList.add("hit"); S("jackpot"); toast(`🐉 GRAND!!! ${fmt(JP.GRAND * bet)}`, 3500, true); await sleep(3500); $("jpG").classList.remove("hit"); }
       won += st.sum; $("winV").textContent = fmt(won * bet);
       toast(`🔥 סוף החזק וזכה<small>${fmt(st.sum * bet)}</small>`, 2200, true); await sleep(2400);
       held = null; try { SFX.music("music_dragons"); } catch (e) {} $("title").classList.remove("hw"); $("title").innerHTML = "<h1>דרקוני הגולן</h1><b>LINK</b>";

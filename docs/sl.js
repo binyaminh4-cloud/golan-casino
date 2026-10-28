@@ -195,7 +195,7 @@ function tickGrand() {                     // the big number creeps up smoothly 
   $("grand").textContent = fmt(Math.floor(shownGrand)); requestAnimationFrame(tickGrand);
 }
 async function jackpotWin(res) {
-  const j = res.jackpot, grand = j.kind === "grand";
+  const j = res.jackpot, grand = j.kind === "grand"; try { SFX.jackpot(); } catch (e) {}
   const o = document.createElement("div"); o.className = "jpwin " + j.kind;
   o.innerHTML = `<img src="img/slots/fortune/${grand ? "ZEUS" : "BIN"}.webp" alt=""><div class="t">${grand ? "⚡ ג׳קפוט של זאוס ⚡" : "💼 ג׳קפוט של בנימין"}</div><div class="a num">${fmt(j.amount)}</div><button class="spin">אסוף</button>`;
   document.body.appendChild(o); SFX.win(true); setTimeout(() => SFX.win(true), 900);
