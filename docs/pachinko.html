@@ -9,15 +9,18 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;800&family=Inter:wght@700;800&display=swap">
 <style>
 *{box-sizing:border-box}html,body{margin:0;height:100%}
-body{background:#0d1b18;color:#f4e3be;font:15px Heebo,Arial,sans-serif;display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+body{position:fixed;inset:0;background:#0d1b18;color:#f4e3be;font:15px Heebo,Arial,sans-serif;display:flex;flex-direction:column;overflow:hidden}
 .top{display:flex;gap:10px;align-items:center;padding:5px max(10px,env(safe-area-inset-right)) 5px max(56px,calc(52px + env(safe-area-inset-left)));background:#081310e6;border-bottom:1px solid #8d7145}
 .top a{color:#ffe2a2;text-decoration:none;font-weight:700;border:1px solid #a78a53;border-radius:99px;padding:5px 12px;white-space:nowrap}
 .bal{white-space:nowrap;color:#b9bdad}.bal b{color:#ffe2a2;font:800 16px Inter}
-.ctl{display:flex;gap:6px;align-items:center;margin-inline-start:auto}
+.ctl{display:flex;gap:6px;align-items:center}
+.bottom{display:flex;gap:10px;align-items:center;justify-content:center;padding:6px max(10px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));background:#081310e6;border-top:1px solid #8d7145}
+#spin{min-width:130px;height:48px;font-size:20px!important;border-radius:99px!important}
+#err{margin-inline-start:auto}
 button{border:1px solid #a78a53;background:#203c32;color:#ffe2a2;padding:7px 12px;border-radius:8px;font:700 14px Heebo;cursor:pointer}
 button[aria-pressed="true"]{background:#a78a53;color:#0d1b18}#spin{background:linear-gradient(180deg,#ffe2a2,#a78a53);color:#0d1b18;min-width:90px;font-size:16px}
 button:disabled{opacity:.5}
-.wrap{flex:1;min-height:0;display:grid;place-items:center}canvas{display:block;border-radius:10px}
+.wrap{flex:1;min-height:0;display:grid;place-items:center;overflow:hidden}canvas{display:block;border-radius:10px}
 #err{color:#E89A9F;font-size:12px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -25,13 +28,13 @@ button:disabled{opacity:.5}
 <script src="landscape.js?v=1"></script>
 </head>
 <body>
-<header class="top"><a href="./">→ ללובי</a><span class="bal">הארנק שלי <b id="bal">…</b></span>
-  <div class="ctl" id="bets"></div><button id="spin">סובב</button><button id="buy" title="קניית בונוס">🛒 בונוס</button><span id="err"></span></header>
+<header class="top"><a href="./">→ ללובי</a><span class="bal">הארנק שלי <b id="bal">…</b></span><span id="err"></span></header>
 <div class="wrap"><canvas id="game" width="1600" height="900" aria-label="מכונת השירותים והפצ׳ינקו"></canvas></div>
+<footer class="bottom"><div class="ctl" id="bets"></div><button id="buy" title="קניית בונוס">🛒 בונוס</button><button id="spin">סובב</button></footer>
 <script src="sfx.js?v=10"></script>
 <script type="module">
 import { scoreDrops } from "./vendor/pc_rules.mjs?v=1";
-import { Renderer, prepareArt } from "./vendor/pc_renderer.mjs?v=2";
+import { Renderer, prepareArt } from "./vendor/pc_renderer.mjs?v=3";
 // Golan Casino wiring: every spin and bonus is decided on the server (pc_spin); the kit's renderer only plays it back.
 const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 try { if (localStorage.getItem("gc_dev") !== "1") location.href = "./"; } catch (e) {}
@@ -97,7 +100,7 @@ const load = (src) => new Promise((ok, no) => { const im = new Image(); im.onloa
   renderer = new Renderer($("game"), art);
   state = { mode: "slot", grid: [0, 1, 2, 3, 4, 6, 5, 2, 4, 1, 3, 2, 0, 5, 1], badges: {}, spinning: false, betLabel: "הימור " + fmt(bet), msg: "לחץ סובב" };
   const fit = () => { const w = $("game").parentElement, s = Math.min(w.clientWidth / 1600, w.clientHeight / 900); $("game").style.width = 1600 * s + "px"; $("game").style.height = 900 * s + "px"; };
-  addEventListener("resize", fit); fit();
+  addEventListener("resize", fit); fit(); setTimeout(fit, 400); try { new ResizeObserver(fit).observe($("game").parentElement); } catch (e) {}
   const frame = () => { renderer.frame(state, clock()); requestAnimationFrame(frame); }; requestAnimationFrame(frame);
   const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
   const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single(); if (w.data) showBal(w.data.balance);

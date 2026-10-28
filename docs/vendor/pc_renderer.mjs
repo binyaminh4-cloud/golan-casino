@@ -101,7 +101,7 @@ export class Renderer {
       c.restore();
     }
     // Keep full arms within side margins; originals supply the unchanged heads.
-    this.character('avichai',155,770,300,7);this.character('fisher',1440,770,300,7);
+    this.character('avichai',150,880,470,7);this.character('fisher',1450,880,470,7);
     this.plate(state.betLabel||'',580,820,300,48,23);this.plate(state.msg||'',910,820,220,48,23);
   }
   bonus(state,time){

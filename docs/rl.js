@@ -667,11 +667,11 @@ if (window.ResizeObserver) new ResizeObserver(relayout).observe($("boardScroll")
 setInterval(relayout, 1000);
 if (LIT) {
   document.body.classList.add("lit", "m-" + MODE);
-  document.title = (MODE === "xxx" ? "רולטת ברקים XXX" : "רולטת ברקים") + " · גולן קזינו";
-  const r = document.querySelector("#rules"); r.querySelector("h2").textContent = MODE === "xxx" ? "רולטת ברקים XXXtreme · חוקים" : "רולטת ברקים · חוקים";
+  document.title = (MODE === "xxx" ? "רולטת ברקים XXX" : "רולטת הברק המחומש") + " · גולן קזינו";
+  const r = document.querySelector("#rules"); r.querySelector("h2").textContent = MODE === "xxx" ? "רולטת ברקים XXXtreme · חוקים" : "רולטת הברק המחומש · חוקים";
   r.querySelector("h2").insertAdjacentHTML("afterend", MODE === "xxx"
     ? "<p><b>⚡ ברקים:</b> לפני כל סיבוב ברקים פוגעים ב־1 עד 5 מספרים עם מכפיל 50x עד 500x. לפעמים <b>שרשרת ברקים</b> מוסיפה מספרים (עד 10), ו<b>מכה כפולה</b> מקפיצה מספר ל־600x עד <b>2,000x</b>. הימור על מספר בודד שזוכה במספר מוכה ברק משלם את המכפיל. מספר בודד רגיל משלם 19:1. שאר ההימורים כרגיל.</p>"
-    : "<p><b>⚡ ברקים:</b> לפני כל סיבוב ברקים פוגעים ב־1 עד 5 מספרים, וכל אחד מקבל מכפיל של 50x עד 500x. הימור על מספר בודד שזוכה במספר מוכה ברק משלם את המכפיל. מספר בודד רגיל משלם 29:1. שאר ההימורים כרגיל.</p>");
+    : "<p><b>⚡ הברק המחומש:</b> לפני כל סיבוב בדיוק <b>5 מספרים</b> מקבלים ברק, כל אחד עם מכפיל ×50 עד ×500. הימור על מספר בודד שזוכה במספר מוכה ברק משלם את המכפיל. מספר בודד רגיל משלם 29:1. שאר ההימורים כרגיל.</p>");
   r.querySelector("table tr:nth-child(2) td:last-child").textContent = MODE === "xxx" ? "19:1 · ברק 50–2000x" : "29:1 · ברק 50–500x";
 }
 (async function boot() {
