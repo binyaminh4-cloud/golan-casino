@@ -378,3 +378,7 @@ body.live #spinBtn{display:none}
 #chipLayer.nofriends .gmark{display:none}
 .eyebtn[aria-pressed="false"]{opacity:.6}
 .chiplayer .chip:not(.gmark){z-index:2}
+/* Ido's fishing skin */
+body.fishskin{background:#101b1c url(img/rlfish/lake_background.webp) center/cover fixed}
+body.fishskin::before{background:rgba(6,19,23,.35)!important}
+.fishov{position:fixed;inset:6vh 4vw;width:92vw;height:88vh;z-index:9300;border-radius:16px;border:2px solid #8b6d3f;box-shadow:0 0 0 9999px rgba(0,0,0,.5)}

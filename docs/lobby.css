@@ -95,3 +95,4 @@ header{margin-bottom:14px}
 .ondot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-inline-end:6px;vertical-align:middle;background:#555;box-shadow:0 0 0 2px rgba(0,0,0,.4)}
 .ondot.on{background:#3ad16f;box-shadow:0 0 8px #3ad16f}.ondot.away{background:#e8b84a}
 .lb .seen{display:block;font:500 10.5px Heebo;color:#9b8a70;margin-top:1px}
+.game.soon{filter:saturate(.75)}.game.soon .tag{background:#3a3a3a;color:#ffe27a}

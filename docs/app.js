@@ -144,6 +144,14 @@ async function refresh() {
 }
 
 boot();
+// "coming soon" games: closed to members; the owner's test code opens them on this device
+document.addEventListener("click", (e) => { const g = e.target.closest(".game[data-soon]"); if (!g) return;
+  let dev = false; try { dev = localStorage.getItem("gc_dev") === "1"; } catch (er) {}
+  if (dev) return;
+  e.preventDefault(); e.stopPropagation();
+  const c = prompt("המשחק הזה עוד בבנייה ויפתח בקרוב 🔒\nקוד בדיקה:");
+  if (c && c.trim() === "456123") { try { localStorage.setItem("gc_dev", "1"); } catch (er) {} location.href = g.getAttribute("href"); }
+}, true);
 // private roulette table: a button inside the live-table card
 document.addEventListener("click", (e) => { const b = e.target.closest(".priv"); if (!b) return; e.preventDefault(); e.stopPropagation(); location.href = b.dataset.go; }, true);
 

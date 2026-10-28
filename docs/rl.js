@@ -436,7 +436,22 @@ async function loadZeus() {
   } catch (e) {}
 }
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+// Ido's fishing skin (?skin=fish, owner preview): Ido pulls each lightning number out of the lake instead of Zeus' bolts.
+// Same server numbers and multipliers; only the presentation changes.
+const FISH = /[?&]skin=fish/.test(location.search);
+let fishOv = null;
+if (FISH) { try { if (localStorage.getItem("gc_dev") !== "1") location.href = "./"; } catch (e) {} document.body.classList.add("fishskin"); }
+async function fishStrike(lucky, ms) {
+  LUCKY = lucky; const keys = Object.keys(lucky);
+  if (!fishOv) { const c = document.createElement("canvas"); c.className = "fishov"; c.hidden = true; document.body.appendChild(c); fishOv = new IdoFishingOverlay(c, { assetBase: "img/rlfish/" }); }
+  const t0 = Date.now(), dur = Math.max(2500, ms || 5200);
+  fishOv.play({ roundId: Date.now(), bonuses: keys.map((k) => ({ number: +k, multiplier: lucky[k] })), startAt: t0, endAt: t0 + dur });
+  await wait(dur); fishOv.stop();
+  for (const k of keys) markLucky(k, lucky[k], true);
+  try { SFX.zap(); } catch (e) {}
+}
 async function strike(lucky) {
+  if (FISH) return fishStrike(lucky, 5200);
   LUCKY = lucky; const keys = Object.keys(lucky);
   let z = null;
   if (ZEUS.idle) {
@@ -446,13 +461,13 @@ async function strike(lucky) {
   const fl = document.createElement("div"); fl.className = "flash"; document.body.appendChild(fl);
   for (const k of keys) {
     const sel = VIEW === "table" ? `.cell[data-k="${k}"]` : `.rc[data-n="${k}"]`, c = board.querySelector(sel);
-    if (z) { z.src = ZEUS.charge || ZEUS.idle; await wait(1.2 * keys.length > 5 ? 160 : 300); z.src = ZEUS.strike || ZEUS.idle; }
+    if (z) { z.src = ZEUS.charge || ZEUS.idle; await wait(1.2 * (keys.length > 5 ? 160 : 300)); z.src = ZEUS.strike || ZEUS.idle; }
     if (c) {
       const r = c.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
       if (IDO) {                                     // little Ido sits on the number... and jumps away just before the bolt
         const i = document.createElement("img"); i.className = "idorun"; i.src = IDO; i.alt = "";
         Object.assign(i.style, { left: x + "px", top: y + "px", height: Math.max(36, r.height * 1.5) + "px" }); document.body.appendChild(i);
-        await wait(1.2 * keys.length > 5 ? 120 : 260);
+        await wait(1.2 * (keys.length > 5 ? 120 : 260));
         i.classList.add(Math.random() < .5 ? "fl" : "fr"); setTimeout(() => i.remove(), 1080); await wait(1.2 * 90);
       }
       const b = document.createElement("div"); b.className = "bolt";
@@ -463,7 +478,7 @@ async function strike(lucky) {
     }
     fl.classList.remove("go"); void fl.offsetWidth; fl.classList.add("go");
     markLucky(k, lucky[k], true);
-    await wait(1.2 * keys.length > 5 ? 260 : 420);
+    await wait(1.2 * (keys.length > 5 ? 260 : 420));
   }
   if (z) { z.src = ZEUS.idle; await wait(1.2 * 500); z.classList.remove("in"); setTimeout(() => z.remove(), 500); }
   await wait(1.2 * 500); fl.remove();
