@@ -105,3 +105,8 @@ body.fortune .jp{aspect-ratio:3.2/1!important}
 body.fortune .jp img{object-fit:fill!important}
 body.fortune .jp b{left:30.2%!important;right:12.2%!important;top:41%!important;bottom:8.3%!important;display:flex!important;align-items:center;justify-content:center;
   font-size:clamp(10px,2.9vh,22px)!important;line-height:1;direction:ltr;overflow:hidden}
+.reel .strip{will-change:transform}
+.reel.blur .strip{filter:blur(1.6px) brightness(1.05)}
+#spinBtn.stopper{font-size:0}#spinBtn.stopper::after{content:"עצור";font-size:18px}
+.fastbtn{margin-inline-start:8px;height:40px;padding:0 12px;border-radius:99px;border:1px solid #C5A05A;background:rgba(11,9,8,.8);color:#F1D69A;font:700 13px Heebo;cursor:pointer}
+.fastbtn[aria-pressed="true"]{background:linear-gradient(180deg,#F1D69A,#C5A05A);color:#0B0908}

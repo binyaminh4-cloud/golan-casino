@@ -33,15 +33,54 @@ function setReel(r, idx, anim, ms) {
   const s = reels[r].firstChild; if (!s) return; s.style.transition = anim ? `transform ${ms}ms cubic-bezier(.15,.7,.25,1.04)` : "none";
   s.style.transform = `translateY(${-idx * cellH()}px)`;
 }
-function spinTo(stops) {
-  return Promise.all(stops.map((stop, r) => new Promise((res) => {
-    const top = ((stop - 1) % N + N) % N;              // index shown in the top row
-    const from = pos[r] % N; setReel(r, from, false);
-    const target = N * (LOOPS - 2) + top;               // land on the next-to-last copy, far from the start
-    const ms = 1400 + r * 550;
-    requestAnimationFrame(() => requestAnimationFrame(() => setReel(r, target, true, ms)));
-    setTimeout(() => { SFX.flip(); pos[r] = top; setReel(r, top + N, false); res(); }, ms + 30);
-  })));
+// Smooth reels: they start the moment you tap (while the server answers), then each one eases into its symbol
+// at the same speed it was running, so nothing jumps. Tap again to stop early; ⚡ toggles fast spins.
+let FAST = false; try { FAST = localStorage.getItem("gc_sl_fast") === "1"; } catch (e) {}
+const RS = [0, 1, 2].map(() => ({ off: 0, v: 0, run: false, stop: null }));
+let rollRaf = 0, stopNow = false;
+function rollFrame(now) {
+  let any = false; const ch = cellH();
+  RS.forEach((R, r) => {
+    if (!R.run) return; any = true;
+    const dt = Math.min(0.05, (now - (R.t || now)) / 1000); R.t = now;
+    if (R.stop && R.stop.t0 == null) {          // cruise at full speed until the symbol is exactly one braking distance away
+      R.off += R.v * dt;
+      if (R.off >= R.stop.c) { R.stop.t0 = now; R.stop.o0 = R.off; }
+    } else if (R.stop) {
+      const k = Math.min(1, (now - R.stop.t0) / R.stop.d), e = 1 - Math.pow(1 - k, 3);
+      R.off = R.stop.o0 + (R.stop.T - R.stop.o0) * e;
+      if (k >= 1) { R.run = false; R.stop.done(); }
+    } else { R.v = Math.min(R.v + dt * 60, FAST ? 26 : 20); R.off += R.v * dt; if (R.off >= 3 * N) R.off -= N; }
+    reels[r].firstChild.style.transform = `translateY(${-R.off * ch}px)`;
+    reels[r].classList.toggle("blur", R.run && !R.stop && R.v > 12);
+  });
+  rollRaf = any ? requestAnimationFrame(rollFrame) : 0;
+}
+function rollStart() {
+  stopNow = false;
+  RS.forEach((R, r) => { const s = reels[r].firstChild; s.style.transition = "none"; R.off = pos[r] + N; R.v = 4; R.run = true; R.stop = null; R.t = 0; });
+  if (!rollRaf) rollRaf = requestAnimationFrame(rollFrame);
+}
+function landReel(r, top, d0) {
+  return new Promise((res) => {
+    const R = RS[r]; if (!R.run) { pos[r] = top; setReel(r, top + N, false); return res(); }
+    while (R.off >= 2 * N) R.off -= N;
+    const v = Math.max(R.v, 6), d = d0 / 1000, brake = v * d / 3;
+    let T = R.off + brake; T = T + ((((top - T) % N) + N) % N);   // first spot ahead that shows our symbol on top
+    R.stop = { c: T - brake, T, d: d0, t0: null, done: () => { SFX.flip(); pos[r] = top; setReel(r, top + N, false); reels[r].classList.remove("blur"); res(); } };
+  });
+}
+async function spinTo(stops) {
+  const tops = stops.map((stop) => ((stop - 1) % N + N) % N);
+  const base = FAST ? 350 : 1100, gap = FAST ? 200 : 520, t0 = performance.now();
+  for (let r = 0; r < 3; r++) {
+    const wait = Math.max(0, base + r * gap - (performance.now() - t0));
+    await new Promise((ok) => { const step = () => { if (stopNow || performance.now() - t0 >= base + r * gap) ok(); else setTimeout(step, 30); }; step(); });
+    if (r < 2 && !stopNow) landReel(r, tops[r], FAST ? 420 : 900); else await Promise.all([landReel(r, tops[r], stopNow ? 380 : FAST ? 420 : 900)]);
+    if (stopNow) { for (let k = r + 1; k < 3; k++) landReel(k, tops[k], 380); }
+    if (stopNow) break;
+  }
+  await new Promise((ok) => { const chk = () => RS.some((R) => R.run) ? setTimeout(chk, 30) : ok(); chk(); });
 }
 
 // ---------- win lines ----------
@@ -68,16 +107,20 @@ function drawRack(bal) {
   $("chips").innerHTML = show.map((v) => `<button class="chip" data-v="${v}" aria-pressed="${v === lineBet}">${lab(v * 5)}</button>`).join("");
 }
 drawRack(0);
-$("chips").onclick = (e) => { const b = e.target.closest("button"); if (!b || busy || FREE_LEFT > 0) return; lineBet = +b.dataset.v; SFX.chip();
+$("chips").onclick = (e) => { const b = e.target.closest("button"); if (!b || busy || FREE_LEFT > 0) return; lineBet = +b.dataset.v; SFX.chip(); if (FO && JPS) jpState(JPS);
   $("chips").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); $("total").textContent = fmt(lineBet * 5); };
 $("rulesBtn").onclick = () => $("rules").showModal();
+{ const fb = document.createElement("button"); fb.type = "button"; fb.className = "fastbtn"; fb.title = "סיבוב מהיר";
+  const set = () => { fb.textContent = FAST ? "⚡ מהיר" : "🐢 רגיל"; fb.setAttribute("aria-pressed", FAST); };
+  fb.onclick = () => { FAST = !FAST; try { localStorage.setItem("gc_sl_fast", FAST ? "1" : "0"); } catch (e) {} set(); }; set(); $("spinBtn").after(fb); }
 $("paytable").innerHTML = "<tr><th>שלושה בקו</th><th>משלם (פי ההימור לסיבוב)</th></tr>" + Object.entries(PAY).map(([k, v]) => `<tr><td>${sym(k)} ${sym(k)} ${sym(k)} <small>${NAME[k]}</small></td><td class="num">${typeof v === "number" ? "×" + (v / 5) : v === "🎁" ? "10 חינם" : "ג׳קפוט"}</td></tr>`).join("");
 function showBal(v) { $("bal").textContent = fmt(v); drawRack(+v || 0); }
 function err(t) { $("err").textContent = t; }
 function newRef() { try { return crypto.randomUUID(); } catch { return Date.now().toString(36) + Math.random().toString(36).slice(2); } }
 
 $("spinBtn").onclick = async () => {
-  if (busy) return; busy = true; err(""); clearHits(); $("spinBtn").disabled = true;
+  if (busy) { if (RS.some((R) => R.run)) stopNow = true; return; }
+  busy = true; err(""); clearHits(); $("spinBtn").classList.add("stopper"); rollStart();
   $("winbar").textContent = "בהצלחה…"; $("winbar").className = "winbar";
   let res;
   try {
@@ -94,12 +137,12 @@ $("spinBtn").onclick = async () => {
       if (error) throw error; res = data;
     }
   } catch (e) {
-    busy = false; $("spinBtn").disabled = false;
+    busy = false; $("spinBtn").classList.remove("stopper"); RS.forEach((R, r) => { R.run = false; setReel(r, pos[r] + N, false); reels[r].classList.remove("blur"); });
     const m = (e && e.message) || "";
     return err(m.includes("insufficient_funds") ? "אין מספיק שקלים משחקיים. הקטן את ההימור." : m.includes("not_signed_in") ? (location.href = "./", "") : "משהו השתבש. נסה שוב.");
   }
   showBal(res.balance - res.payout); SFX.roll(1.4 + 2 * 0.55);
-  await spinTo(res.stops);
+  await spinTo(res.stops); $("spinBtn").classList.remove("stopper");
   showBal(res.balance); balance = res.balance;
   drawLines(res.wins);
   if (FO) { jpState(res); if (res.jackpot) return jackpotWin(res); }
@@ -131,9 +174,10 @@ function setFree(n) {
 
 // ---------- Golan Fortune: jackpots ----------
 let GRAND = 0, shownGrand = 0;
+let JPS = null;   // jackpots shown for the current bet: ₪500 a spin = the full amount, ₪1,000 = double
 function jpState(s) {
   if (!s || s.grand == null) return;
-  GRAND = s.grand; $("mini").innerHTML = `💼 <b class="num">${fmt(s.mini)}</b><small>ג׳קפוט חייב לצאת אחת לשבועיים${s.mini_deadline ? " · עד " + new Date(s.mini_deadline).toLocaleDateString("he-IL", { day: "numeric", month: "numeric" }) : ""}</small>`;
+  JPS = s; GRAND = s.grand * lineBet / 100; $("mini").innerHTML = `💼 <b class="num">${fmt(Math.floor(s.mini * lineBet / 100))}</b><small>ג׳קפוט חייב לצאת אחת לשבועיים${s.mini_deadline ? " · עד " + new Date(s.mini_deadline).toLocaleDateString("he-IL", { day: "numeric", month: "numeric" }) : ""}</small>`;
 }
 function tickGrand() {                     // the big number creeps up smoothly toward the server value
   const d = GRAND - shownGrand;
@@ -143,7 +187,7 @@ function tickGrand() {                     // the big number creeps up smoothly 
 async function jackpotWin(res) {
   const j = res.jackpot, grand = j.kind === "grand";
   const o = document.createElement("div"); o.className = "jpwin " + j.kind;
-  o.innerHTML = `<img src="img/slots/fortune/${grand ? "ZEUS" : "BIN"}.webp" alt=""><div class="t">${grand ? "⚡ ג׳קפוט של זאוס ⚡" : "💼 ג׳קפוט של בנימין"}</div><div class="a num">${fmt(j.amount)}</div>${grand && j.share < 1 ? `<small>${Math.round(j.share * 100)}% מהקופה (קופה מלאה בהימור של ₪500 לסיבוב)</small>` : ""}<button class="spin">אסוף</button>`;
+  o.innerHTML = `<img src="img/slots/fortune/${grand ? "ZEUS" : "BIN"}.webp" alt=""><div class="t">${grand ? "⚡ ג׳קפוט של זאוס ⚡" : "💼 ג׳קפוט של בנימין"}</div><div class="a num">${fmt(j.amount)}</div><button class="spin">אסוף</button>`;
   document.body.appendChild(o); SFX.win(true); setTimeout(() => SFX.win(true), 900);
   $("winbar").innerHTML = `💰 ג׳קפוט! <b class="num">${fmt(res.payout)}</b>`; $("winbar").className = "winbar win big";
   await new Promise((r) => o.querySelector("button").onclick = r); o.remove();
@@ -153,7 +197,7 @@ if (FO) {
   document.body.classList.add("fortune"); document.title = "מכונת האטרף של בנימין · גולן קזינו";
   document.querySelector(".marquee-top").innerHTML = `<div class="jp"><img src="img/slots/fortune/marquee.webp" alt=""><b id="grand" class="num">₪1,000,000</b></div><div class="mini" id="mini"></div>`;
   const r = $("rules"); r.querySelector("h2").textContent = "מכונת האטרף של בנימין · טבלת תשלומים";
-  r.querySelector("p").innerHTML = "3 גלגלים, 3 שורות, 5 קווי זכייה. בוחרים הימור לסיבוב. התוצאה נקבעת בשרת.<br><b>🎁 סיבובים חינם:</b> FREE SPINS בכל אחד משלושת הגלגלים (בכל שורה) = 10 סיבובים חינם באותו הימור. יוצא בערך פעם ב־100 סיבובים.<br><b>👑 ג׳קפוט זאוס:</b> מתחיל ב־₪1,000,000, ו־1% מכל סיבוב של כל השחקנים נכנס אליו. 3 זאוסים <b>בקו האמצעי</b> זוכים בו. בהימור של ₪500 לסיבוב ומעלה זוכים בכל הקופה, בהימור קטן יותר בחלק יחסי (₪250 = חצי).<br><b>💼 ג׳קפוט בנימין:</b> ₪250,000, חייב לצאת לפחות פעם בשבועיים: השרת בוחר רגע סודי, והסיבוב הראשון אחריו זוכה, לא משנה מי מסובב.";
+  r.querySelector("p").innerHTML = "3 גלגלים, 3 שורות, 5 קווי זכייה. בוחרים הימור לסיבוב. התוצאה נקבעת בשרת.<br><b>🎁 סיבובים חינם:</b> FREE SPINS בכל אחד משלושת הגלגלים (בכל שורה) = 10 סיבובים חינם באותו הימור. יוצא בערך פעם ב־100 סיבובים.<br><b>👑 ג׳קפוט זאוס:</b> מתחיל ב־₪1,000,000, ו־1% מכל סיבוב של כל השחקנים נכנס אליו. 3 זאוסים <b>בקו האמצעי</b> זוכים בו. הפרס גדל עם ההימור: ₪500 לסיבוב = הקופה המלאה, ₪250 = חצי, ₪1,000 = כפול. המספר על המכונה מראה כמה תזכה בהימור שבחרת.<br><b>💼 ג׳קפוט בנימין:</b> ₪250,000 בהימור של ₪500 לסיבוב (ובאותו יחס לכל הימור), חייב לצאת לפחות פעם בשבועיים: השרת בוחר רגע סודי, והסיבוב הראשון אחריו זוכה, לא משנה מי מסובב.";
   setInterval(async () => { if (busy || document.hidden || PREVIEW) return; const { data } = await db.rpc("fo_state"); jpState(data); }, 6000);
 }
 
