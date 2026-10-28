@@ -197,6 +197,7 @@ $("rulesBtn").onclick = () => $("rules").showModal();
   if (!PREVIEW) { const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; } }
   await loaded; await poll(); setInterval(poll, 1000); requestAnimationFrame(frame);
   if (window.GC_LOADER) GC_LOADER.done();
+  GC_GUIDE.init({ game: "fishing", db, mount: document.querySelector(".top"), steps: GC_STEPS.fishing() });
 })();
 addEventListener("resize", fit); function fit() {
   const box = document.querySelector(".stagewrap"), d = Math.min(2, devicePixelRatio || 1);

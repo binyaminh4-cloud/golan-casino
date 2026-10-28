@@ -62,6 +62,11 @@ main{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;padding:4p
 .bets button{flex:none!important;border:0;background:none;padding:3px 7px}.bets b{font:800 13px Inter;color:#ffe2a2;min-width:58px;text-align:center}
 #spin{width:54px;height:54px;padding:0!important;border-radius:50%!important;font-size:14px!important;margin-top:-14px}
 #buy,#skip{padding:4px 8px}#err:empty{display:none}
+
+/* overlay top bar: lobby (right) · Ido (next to it) · sound + wallet (left); nothing overlaps */
+.top .gd-btn{position:absolute;right:max(84px,calc(78px + env(safe-area-inset-right)));top:3px;padding:2px 9px 2px 3px;font-size:11px;gap:4px}
+.top .gd-btn img,.top .gd-btn .q{width:20px;height:20px}
+.top .sfx-btn{position:absolute;left:max(56px,calc(52px + env(safe-area-inset-left)));top:3px;width:32px;height:32px;font-size:15px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
@@ -81,6 +86,7 @@ main{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;padding:4p
   </div></div>
 </main>
 <script src="sfx.js?v=16"></script>
+<script src="guide.js?v=34"></script>
 <script src="vendor/kin_engine.js?v=1"></script>
 <script>
 "use strict";
@@ -160,6 +166,7 @@ $("buy").onclick = async () => {
   const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
   const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single(); if (w.data) showBal(w.data.balance);
   if (window.GC_LOADER) GC_LOADER.done();
+  GC_GUIDE.init({ game: "kinneret", db, mount: document.querySelector(".top"), steps: GC_STEPS.kinneret() });
 })();
 </script>
 <script src="chat.js?v=13"></script>

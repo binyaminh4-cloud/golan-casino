@@ -27,6 +27,11 @@ canvas{display:block;border-radius:8px;touch-action:manipulation;max-width:100%;
 #betInfo{display:none!important}.top{justify-content:space-between}.top>.bal{display:grid;line-height:1.1;text-align:center;font-size:10px;position:absolute;left:max(100px,calc(94px + env(safe-area-inset-left)));top:4px}.top>*{pointer-events:auto}.top a{padding:2px 9px!important;font-size:12px}.top .bal b{font-size:13px}
 .top button{transform:scale(.7)}
 .wrap{position:fixed!important;inset:0}
+
+/* overlay top bar: lobby (right) · Ido (next to it) · sound + wallet (left); nothing overlaps */
+.top .gd-btn{position:absolute;right:max(84px,calc(78px + env(safe-area-inset-right)));top:3px;padding:2px 9px 2px 3px;font-size:11px;gap:4px}
+.top .gd-btn img,.top .gd-btn .q{width:20px;height:20px}
+.top .sfx-btn{position:absolute;left:max(56px,calc(52px + env(safe-area-inset-left)));top:3px;width:32px;height:32px;font-size:15px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
@@ -39,6 +44,7 @@ canvas{display:block;border-radius:8px;touch-action:manipulation;max-width:100%;
   <button id="start" hidden>התחל</button><span id="betInfo" class="bal"></span><button id="newBet" hidden>הימור חדש</button><button id="cash" hidden style="display:none">קח וצא</button><button id="more" hidden style="display:none">עוד שלושה</button><span id="err"></span></div></header>
 <div class="wrap"><canvas id="game" width="1920" height="1080" aria-label="שדה החפירה. לחץ כדי לשלוח את הקרס"></canvas><small id="info">טוען…</small></div>
 <script src="sfx.js?v=16"></script>
+<script src="guide.js?v=34"></script>
 <script src="vendor/pm_scene.js?v=2"></script>
 <script>
 'use strict';
@@ -139,7 +145,7 @@ Promise.all(FILES.map((f) => new Promise((ok) => { const im = new Image(); im.on
   const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single(); if (w.data) el("bal").textContent = fmt(w.data.balance);
   const c = await db.rpc("pm_current"); if (c.data) { r.phase = c.data.phase; fromServer(c.data); }
   controls(); requestAnimationFrame(frame); if (window.GC_LOADER) GC_LOADER.done();
-  await GC_BONUS_INTRO("💪 שולה החלבון", ["בוחרים הימור ורמה (קל / רגיל / אקסטרים) ולוחצים התחל. יואב עובר ומחלק תגי מכפיל לחלק מהסלעים.", "הקרס של אביחי מתנדנד. לוחצים על המסך כדי לשלוח אותו לסלע.", "רואים מה יש בכל מקום: פטרייה או חזה עוף מוסיפים לקופה, פצצה מאפסת אותה. הכול זז, אז צריך לתזמן.", "החטאת ולא תפסת כלום? זה נחשב שליפה ריקה.", "פרס עם תג של יואב שווה יותר.", "אחרי כל 3 שליפות מחליטים: לקחת את הקופה או להמשיך לשכבה עמוקה ושווה יותר."], "img/pm/characters/avichai_idle.webp", "הבנתי, מתחילים");
+  await GC_GUIDE.init({ game: "protein", db, mount: document.querySelector(".top"), steps: GC_STEPS.protein() });
   if (!active()) betPop();
 });
 </script>

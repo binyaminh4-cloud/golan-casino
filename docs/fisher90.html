@@ -51,7 +51,7 @@ body{position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,#13314
 .top{position:fixed!important;top:0;left:0;right:0;z-index:5!important;pointer-events:none;background:linear-gradient(180deg,#0009,#0000)!important;border:0!important;padding:3px max(8px,env(safe-area-inset-right)) 12px max(56px,calc(52px + env(safe-area-inset-left)))!important;justify-content:space-between}
 .top>*{pointer-events:auto}.top a{padding:2px 9px!important;font-size:12px}.top h1,.top .score{display:none!important}
 .top .bal{position:absolute;left:max(100px,calc(94px + env(safe-area-inset-left)));top:3px;display:grid;line-height:1.1;font-size:10px;text-align:center}.top .bal b{font-size:13px!important}
-body{grid-template-rows:minmax(0,1fr)!important}.play{grid-row:1;padding-top:4px!important}.bank{top:30px!important}.stage{top:30px!important}
+body{grid-template-rows:minmax(0,1fr)!important}.play{grid-row:1;padding-top:4px!important}.bank{top:30px!important;left:max(54px,calc(50px + env(safe-area-inset-left)))!important}.stage{top:30px!important}
 
 /* move cards: a row of half-transparent cards in the corner, the pitch stays visible behind them */
 .panel.playing{inset:auto max(12px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) auto;width:auto;display:flex;flex-direction:row;gap:8px;align-items:stretch;margin:0}
@@ -65,6 +65,11 @@ body{grid-template-rows:minmax(0,1fr)!important}.play{grid-row:1;padding-top:4px
 .txt .amount{font:800 15px Heebo;color:#9bdbb6;white-space:nowrap}.txt .profit{font:600 11px Heebo;color:#cfe2ff;opacity:.85;white-space:nowrap}
 .cash .txt .amount{color:#c9f5d8}
 @media (max-height:420px){.ic{width:32px;height:32px;font-size:17px}#actions button,.cash{padding:5px 10px}.txt .name{font-size:14px}.txt .amount{font-size:13px}}
+
+/* overlay top bar: lobby (right) · Ido (next to it) · sound + wallet (left); nothing overlaps */
+.top .gd-btn{position:absolute;right:max(84px,calc(78px + env(safe-area-inset-right)));top:3px;padding:2px 9px 2px 3px;font-size:11px;gap:4px}
+.top .gd-btn img,.top .gd-btn .q{width:20px;height:20px}
+.top .sfx-btn{position:absolute;left:max(56px,calc(52px + env(safe-area-inset-left)));top:3px;width:32px;height:32px;font-size:15px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
@@ -88,13 +93,13 @@ body{grid-template-rows:minmax(0,1fr)!important}.play{grid-row:1;padding-top:4px
 </main>
 <div id="review"></div>
 <script src="sfx.js?v=16"></script>
+<script src="guide.js?v=34"></script>
 <script src="vendor/f90_engine.js?v=1"></script>
 <script src="f90.js?v=5"></script>
 <script>
 // bet in fixed jumps; the intro explains the game once per visit (skippable)
 GC_STEPPER(document.getElementById("stepper"), document.getElementById("stake"), { start: 100 });
-setTimeout(() => { if (window.GC_BONUS_INTRO) {
-  GC_BONUS_INTRO("⚽ פישר בדקה ה־90", ["1:1 בדקה ה־90, והכדור אצל פישר. יש לך עד חמש החלטות עד השער.", "בכל שלב בוחרים: מהלך בטוח יותר עם רווח קטן, או מסוכן יותר עם רווח גדול. על כל כפתור כתוב כמה תקבל והסיכוי.", "מהלך שנכשל מאבד את הקופה. אחרי כל הצלחה אפשר ללחוץ ״קח וצא״ ולקחת את הקופה.", "בעיטה (מרחוק או מול השוער) מסיימת את ההתקפה."], "", "הבנתי, למגרש ⚽"); } }, 900);
+setTimeout(() => GC_GUIDE.init({ game: "fisher90", db, mount: document.querySelector(".top"), steps: GC_STEPS.fisher90() }), 900);
 </script>
 <script src="chat.js?v=13"></script>
 </body>

@@ -100,6 +100,7 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(14px) bright
   <button id="go">כניסה לארמון 🐉</button><button class="back" onclick="location.href='./'">חזרה ללובי</button>
 </div></div></div>
 <script src="sfx.js?v=16"></script>
+<script src="guide.js?v=34"></script>
 <script src="vendor/dg_engine.js?v=1"></script>
 <script>
 "use strict";
@@ -209,7 +210,8 @@ $("bSpin").onclick = async () => { if (auto) { auto = false; setAuto(); return; 
 function setAuto() { $("bAuto").setAttribute("aria-pressed", auto); $("bSpin").classList.toggle("auto", auto); $("bSpin").textContent = auto ? "עצור" : "סובב"; $("bSpin").disabled = busy && !auto; }
 $("bAuto").onclick = async () => { auto = !auto; setAuto(); if (!auto || busy) return;
   while (auto) { const go = await spinOnce(); if (!go) { auto = false; setAuto(); break; } await sleep(350); } };
-$("bInfo").onclick = () => GC_BONUS_INTRO("🐉 דרקוני הגולן LINK", ["25 קווים. ההימור מתחלק שווה על כל הקווים. הדרקון מחליף כל סמל (לא בגלגל הראשון).",
+$("bInfo").onclick = () => GC_GUIDE.run(GC_STEPS.dragons());
+const OLD_INFO = () => GC_BONUS_INTRO("🐉 דרקוני הגולן LINK", ["25 קווים. ההימור מתחלק שווה על כל הקווים. הדרקון מחליף כל סמל (לא בגלגל הראשון).",
   "5 בשורה בקו (לפי ההימור הכולל): דרקון ×" + (500 * E.CFG.payScale / 25).toFixed(0) + ", רועי / עידו / בנימין / יואב ×" + (200 * E.CFG.payScale / 25).toFixed(0) + ", בודהה ×" + (150 * E.CFG.payScale / 25).toFixed(0) + ".",
   "🔥 6 כדורי אש ומעלה: החזק וזכה. 3 סיבובים, כל כדור חדש מחזיר ל־3.", "ג׳קפוטים לפי ההימור: MINI ×10 · MINOR ×25 · MAJOR ×100 · GRAND ×1,000 (כל 15 המשבצות).",
   "🛒 אפשר לקנות כניסה ישירה להחזק וזכה בכפתור הקנייה."], "img/dg/dragon.webp", "הבנתי");
@@ -232,6 +234,7 @@ buyBtn.onclick = async () => {
   const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
   const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single(); if (w.data) showBal(w.data.balance);
   if (window.GC_LOADER) GC_LOADER.done();
+  GC_GUIDE.init({ game: "dragons", db, mount: null, steps: GC_STEPS.dragons() });
   $("enter").hidden = false; $("go").onclick = () => { $("enter").hidden = true; S("chip"); };
 })();
 </script>
