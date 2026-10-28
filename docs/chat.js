@@ -12,9 +12,9 @@
 
   const css = document.createElement("style");
   css.textContent = `
-.gc-chat-btn{position:fixed;left:max(4px,env(safe-area-inset-left));top:42%;z-index:60;width:40px;height:40px;font-size:18px!important;padding:0;border-radius:50%;
+.gc-chat-btn{position:fixed;left:max(6px,env(safe-area-inset-left));top:max(54px,calc(env(safe-area-inset-top) + 50px));opacity:.62;transition:opacity .2s;z-index:950!important;z-index:60;width:40px;height:40px;font-size:18px!important;padding:0;border-radius:50%;
   border:1px solid #C5A05A;background:rgba(11,9,8,.85);color:#F1D69A;font-size:20px;box-shadow:0 4px 12px rgba(0,0,0,.6);cursor:pointer}
-.gc-chat-btn.lob{top:auto;bottom:max(16px,env(safe-area-inset-bottom));left:max(14px,env(safe-area-inset-left));width:52px;height:52px;font-size:24px!important}
+.gc-chat-btn.lob{width:48px;height:48px;font-size:22px!important}.gc-chat-btn:hover,.gc-chat-btn:active,.gc-chat-btn.drag{opacity:1}
 .gc-chat-btn .bdg{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:#B3162A;color:#fff;font:700 11px Inter,sans-serif;display:grid;place-items:center;padding:0 4px}
 .gc-chat{position:fixed;top:0;bottom:0;left:0;z-index:61;width:min(400px,92vw);display:flex;flex-direction:column;background:rgba(23,18,15,.97);border-right:1px solid #C5A05A;
   transform:translateX(-105%);transition:transform .25s ease;direction:rtl;font:14px Heebo,system-ui,sans-serif;color:#F5ECDD;padding-left:env(safe-area-inset-left)}
@@ -113,7 +113,7 @@
   }
   // the chat button floats: drag it anywhere; the spot is remembered per device
   let drag = null, moved = false;
-  const POSK = "gc_chat_pos_" + (IN_GAME ? "game" : "lobby");
+  const POSK = "gc_chat_pos2_" + (IN_GAME ? "game" : "lobby");   // v2: new default spot (top-left, see-through) for everyone
   const putAt = (x, y) => { x = Math.max(4, Math.min(innerWidth - btn.offsetWidth - 4, x)); y = Math.max(4, Math.min(innerHeight - btn.offsetHeight - 4, y));
     Object.assign(btn.style, { left: x + "px", top: y + "px", bottom: "auto", right: "auto" }); return [x, y]; };
   let saved = null; try { saved = JSON.parse(localStorage.getItem(POSK) || "null"); if (saved) requestAnimationFrame(() => putAt(saved[0], saved[1])); } catch (e) {}
@@ -126,7 +126,7 @@
     for (const [x, y] of C) { const pts = [[x + 2, y + 2], [x + s - 2, y + 2], [x + 2, y + s - 2], [x + s - 2, y + s - 2], [x + s / 2, y + s / 2]];
       if (!pts.some(([a, b]) => busy(a, b))) { putAt(x, y); return; } }
   }
-  setTimeout(freeSpot, 2500); addEventListener("orientationchange", () => setTimeout(freeSpot, 800));
+  // default spot: top-left corner of every screen, half see-through so nothing under it is hidden
   btn.addEventListener("pointerdown", (e) => { const r = btn.getBoundingClientRect(); drag = { dx: e.clientX - r.left, dy: e.clientY - r.top, x0: e.clientX, y0: e.clientY }; moved = false; btn.setPointerCapture(e.pointerId); });
   btn.addEventListener("pointermove", (e) => { if (!drag) return; if (Math.abs(e.clientX - drag.x0) + Math.abs(e.clientY - drag.y0) > 8) moved = true;
     if (moved) { const p2 = putAt(e.clientX - drag.dx, e.clientY - drag.dy); try { localStorage.setItem(POSK, JSON.stringify(p2)); } catch (er) {} } });
