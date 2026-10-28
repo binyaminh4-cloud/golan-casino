@@ -39,7 +39,7 @@ canvas{display:block;border-radius:8px;touch-action:manipulation;max-width:100%;
   <button id="start" hidden>התחל</button><span id="betInfo" class="bal"></span><button id="newBet" hidden>הימור חדש</button><button id="cash" hidden style="display:none">קח וצא</button><button id="more" hidden style="display:none">עוד שלושה</button><span id="err"></span></div></header>
 <div class="wrap"><canvas id="game" width="1920" height="1080" aria-label="שדה החפירה. לחץ כדי לשלוח את הקרס"></canvas><small id="info">טוען…</small></div>
 <script src="sfx.js?v=10"></script>
-<script src="vendor/pm_scene.js?v=1"></script>
+<script src="vendor/pm_scene.js?v=2"></script>
 <script>
 'use strict';
 // Golan Casino wiring for the art kit's scene: the server holds every rock's contents (pm_start / pm_collect / pm_next).
@@ -52,7 +52,7 @@ let r = { mode: "normal", rocks: [], layer: 0, successes: 0, bankUnits: 0, phase
 let introAt = 0, shot = null, reveal = null, angle = 0, busy = false;
 const active = () => ["intro", "playing", "checkpoint"].includes(r.phase);
 function fromServer(v) { runId = v.id; stake = +v.stake; r.mode = v.mode; r.layer = v.layer; r.successes = v.successes; r.bankUnits = +v.bank_units;
-  r.rocks = v.rocks.map((x) => ({ ...x, rewardUnits: x.units })); if (r.phase !== "intro") r.phase = v.phase; if (v.balance != null) el("bal").textContent = fmt(v.balance); }
+  r.rocks = v.rocks.map((x) => ({ ...x, bx: x.x, w: 70 + x.w * .6, rewardUnits: x.units })); if (r.phase !== "intro") r.phase = v.phase; if (v.balance != null) el("bal").textContent = fmt(v.balance); }
 // choosing the bet happens in the middle of the screen; afterwards only a small label stays on top
 function betPop(title) {
   GC_BI_CSS(); document.querySelectorAll(".gc-bi.bet").forEach((n) => n.remove());
@@ -110,19 +110,21 @@ function hitTest(a) { const ox = 1000, oy = 280, dx = Math.sin(a), dy = Math.cos
     if (t > 0 && d2 <= (k.w * .52 + 7) ** 2 && (!best || t < best.distance)) best = { rock: k, distance: t }; } return best; }
 canvas.addEventListener("pointerdown", () => { if (r.phase !== "playing" || shot || busy) return; const hit = hitTest(angle), max = (385 + r.layer * 155 + 100 - 280) / Math.cos(angle);
   shot = { start: performance.now() / 1000, angle, distance: hit ? hit.distance : max, rock: hit ? hit.rock : null, done: false, res: null };
-  if (shot.rock) { const s = shot; busy = true; db.rpc("pm_collect", { p_run: runId, p_rock: s.rock.id }).then(({ data, error }) => { busy = false; s.res = error ? { error } : data; }); }
+  { const s = shot; busy = true; db.rpc("pm_collect", { p_run: runId, p_rock: s.rock ? s.rock.id : -1 }).then(({ data, error }) => { busy = false; s.res = error ? { error } : data; }); }
   reveal = null; });
 function frame(now) {
   const t = now / 1000; let state = { round: r, time: r.phase === "intro" ? t - introAt : t, stake, angle, length: 45 };
   if (r.phase === "intro" && t - introAt >= 4.2) { r.phase = "playing"; controls(); }
-  if (!shot) { angle = Math.sin(t * 1.45) * 1.46; state.angle = r.phase === "playing" ? angle : 0; }
-  if (shot) { const sh = shot, e = t - sh.start, out = sh.distance / 1200, back = sh.distance / (sh.rock ? 650 : 1000), total = out + .18 + back;
+  // contents are visible, so the layer keeps drifting: hitting what you aim at takes timing
+  for (const k of r.rocks) if (!k.taken && !(shot && shot.rock === k)) k.x = k.bx + Math.sin(t * (0.9 + k.layer * 0.18) + (k.layer % 2 ? Math.PI : 0)) * 70;
+  if (!shot) { angle = Math.sin(t * 1.8) * 1.46; state.angle = r.phase === "playing" ? angle : 0; }
+  if (shot) { const sh = shot, e = t - sh.start, out = sh.distance / 1500, back = sh.distance / (sh.rock ? 820 : 1250), total = out + .18 + back;
     state.angle = sh.angle; state.closed = e >= out; state.pose = e >= out ? "pull" : "idle"; state.bodyTilt = Math.sin(t * 15) * .006; state.crankAngle = t * 10;
     if (e < out) state.length = 45 + (sh.distance - 45) * S.ease(e / out); else if (e < out + .18) state.length = sh.distance; else state.length = sh.distance - (sh.distance - 45) * S.ease((e - out - .18) / back);
     if (sh.rock && e >= out && e < total) { state.carried = sh.rock; state.hiddenRock = sh.rock.id; }
-    if (e >= total && !sh.done && (!sh.rock || sh.res)) { sh.done = true; shot = null;
-      if (sh.res && !sh.res.error) { const g = sh.res.got; fromServer(sh.res); if (!g.bomb) r.history.push({ ...g, rewardUnits: g.units }); reveal = { ...g, at: t }; controls();
-        try { g.bomb ? SFX.lose() : SFX.win(false); } catch (er) {}
+    if (e >= total && !sh.done && sh.res) { sh.done = true; shot = null;
+      if (sh.res && !sh.res.error) { const g = sh.res.got; fromServer(sh.res); if (g.miss) { reveal = null; controls(); } else { if (!g.bomb) r.history.push({ ...g, rewardUnits: g.units }); reveal = { ...g, at: t }; controls();
+        try { g.bomb ? SFX.lose() : SFX.win(false); } catch (er) {} }
         if (sh.res.phase === "finished" && window.GC_BONUS) GC_BONUS("🏆 החיטוב הושלם!", sh.res.paid, "12 שליפות"); }
       else if (sh.res && sh.res.error) el("err").textContent = errMsg(sh.res.error); } }
   if (reveal && t - reveal.at < 1.2) { state.reveal = reveal; state.pose = reveal.bomb ? "shock" : "celebrate"; if (reveal.bomb) state.fx = { bomb: true, x: 1000, y: 340, progress: (t - reveal.at) / 1.2 }; }
@@ -135,7 +137,7 @@ Promise.all(FILES.map((f) => new Promise((ok) => { const im = new Image(); im.on
   const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single(); if (w.data) el("bal").textContent = fmt(w.data.balance);
   const c = await db.rpc("pm_current"); if (c.data) { r.phase = c.data.phase; fromServer(c.data); }
   controls(); requestAnimationFrame(frame); if (window.GC_LOADER) GC_LOADER.done();
-  await GC_BONUS_INTRO("💪 שולה החלבון", ["בוחרים הימור ורמה (קל / רגיל / אקסטרים) ולוחצים התחל. יואב עובר ומחלק תגי מכפיל לחלק מהסלעים.", "הקרס של אביחי מתנדנד. לוחצים על המסך כדי לשלוח אותו לסלע.", "בכל סלע יש פרס (פטרייה או חזה עוף) או פצצה. פרס מוסיף לקופה, פצצה מאפסת אותה.", "סלע עם תג של יואב שווה יותר, אבל מסוכן הרבה יותר.", "אחרי כל 3 שליפות מחליטים: לקחת את הקופה או להמשיך לשכבה עמוקה ושווה יותר."], "img/pm/characters/avichai_idle.webp", "הבנתי, מתחילים");
+  await GC_BONUS_INTRO("💪 שולה החלבון", ["בוחרים הימור ורמה (קל / רגיל / אקסטרים) ולוחצים התחל. יואב עובר ומחלק תגי מכפיל לחלק מהסלעים.", "הקרס של אביחי מתנדנד. לוחצים על המסך כדי לשלוח אותו לסלע.", "רואים מה יש בכל מקום: פטרייה או חזה עוף מוסיפים לקופה, פצצה מאפסת אותה. הכול זז, אז צריך לתזמן.", "החטאת ולא תפסת כלום? זה נחשב שליפה ריקה.", "פרס עם תג של יואב שווה יותר.", "אחרי כל 3 שליפות מחליטים: לקחת את הקופה או להמשיך לשכבה עמוקה ושווה יותר."], "img/pm/characters/avichai_idle.webp", "הבנתי, מתחילים");
   if (!active()) betPop();
 });
 </script>
