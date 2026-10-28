@@ -100,3 +100,21 @@ window.GC_BONUS = function (title, amount, sub) {
   try { SFX.win(true); } catch (er) {}
   setTimeout(() => d.classList.add("out"), 3600); setTimeout(() => d.remove(), 4200);
 };
+// Total bet + bet limit, right next to the wallet. Tap it for the one-line why.
+window.GC_LIMIT = function (total, max, bal, fmt) {
+  const b = document.getElementById("bal"); if (!b) return;
+  let t = document.getElementById("gcLimit");
+  if (!t) {
+    const c = document.createElement("style");
+    c.textContent = `.gc-limit{display:inline-flex;gap:8px;align-items:center;margin-inline-start:10px;padding:3px 10px;border:1px solid #C5A05A;border-radius:99px;background:rgba(11,9,8,.8);font:600 12px Heebo,sans-serif;color:#e8d9b5;white-space:nowrap;cursor:pointer;vertical-align:middle}
+.gc-limit b{font:800 13px Inter,sans-serif;color:#ffe27a;direction:ltr;unicode-bidi:isolate}.gc-limit i{font-style:normal;color:#9b8a70}
+.gc-limit-tip{position:fixed;z-index:9600;top:52px;left:50%;transform:translateX(-50%);max-width:90vw;background:#17120F;border:1px solid #C5A05A;border-radius:10px;padding:8px 14px;font:500 13px Heebo,sans-serif;color:#F5ECDD;direction:rtl;box-shadow:0 8px 20px rgba(0,0,0,.6)}`;
+    document.head.appendChild(c);
+    t = document.createElement("span"); t.id = "gcLimit"; t.className = "gc-limit";
+    b.parentElement.after(t);
+    t.onclick = () => { document.querySelectorAll(".gc-limit-tip").forEach((n) => n.remove()); const d = document.createElement("div"); d.className = "gc-limit-tip";
+      d.textContent = t.dataset.why; document.body.appendChild(d); setTimeout(() => d.remove(), 4000); };
+  }
+  t.innerHTML = `סה״כ הימור <b>${fmt(total)}</b><i>·</i>מקס׳ להימור <b>${fmt(max)}</b>`;
+  t.dataset.why = `היתרה שלך ${fmt(bal)}, ולכן ההימור המקסימלי כרגע הוא ${fmt(max)}. כשהיתרה עולה, המקסימום עולה במדרגות.`;
+};

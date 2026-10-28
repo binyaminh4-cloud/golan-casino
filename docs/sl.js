@@ -1,6 +1,6 @@
 /* Golan Casino · slots. The server picks the reel stops (sl_spin); this file only animates them. */
 const $ = (id) => document.getElementById(id);
-const fmt = (n) => { n = Number(n); return Math.abs(n) >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };   // a million and up: ₪1.58M
+const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e12 ? "₪" + +(n / 1e12).toFixed(2) + "T" : a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };   // ₪1.58M · ₪2.4B · ₪1T
 const PREVIEW = /[?#&]preview/.test(location.href);
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 const FO = new URLSearchParams(location.search).get("m") === "fortune";      // Golan Fortune: the friends' machine with two jackpots
@@ -61,10 +61,10 @@ function clearHits() { document.querySelectorAll(".sym.hit").forEach((t) => t.cl
 // bet per spin (5 lines). Bigger bets show once the wallet holds 20× the spin; the max spin follows the wallet like every game
 let rackKey = "";
 function drawRack(bal) {
-  const max = (bal >= 500000 ? 100000 * Math.floor(bal / 500000) : 50000);
+  const max = ((b) => { if (b < 500000) return 50000; let v = 500000, k = 0; for (;;) { const m = k % 3 === 1 ? 2.5 : 2; if (v * m > b) break; v *= m; k++; } return v / 5; })(bal);
   const ok = CHIPS.filter((v, i) => i < 7 || (v * 5 * 20 <= bal && v * 5 <= max)), show = ok.slice(-7), k = show.join(",");
   if (k === rackKey) return; rackKey = k; if (!show.includes(lineBet) && FREE_LEFT === 0) { lineBet = show[0]; $("total").textContent = fmt(lineBet * 5); }
-  const lab = (t) => t >= 1e6 ? +(t / 1e6).toFixed(1) + "M" : t >= 1000 ? t / 1000 + "K" : t;
+  const lab = (t) => String(fmt(t)).slice(1).replace(/,000$/, "K");
   $("chips").innerHTML = show.map((v) => `<button class="chip" data-v="${v}" aria-pressed="${v === lineBet}">${lab(v * 5)}</button>`).join("");
 }
 drawRack(0);

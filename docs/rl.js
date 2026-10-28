@@ -1,13 +1,13 @@
 /* Golan Casino · roulette table (betting layout, flow, camera). The wheel itself lives in rl_wheel.js. */
 const $ = (id) => document.getElementById(id);
-const fmt = (n) => { n = Number(n); return Math.abs(n) >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };   // a million and up: ₪1.58M
+const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e12 ? "₪" + +(n / 1e12).toFixed(2) + "T" : a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };   // ₪1.58M · ₪2.4B · ₪1T
 const PREVIEW = /[?#&]preview/.test(location.href);
 const MODE = (new URLSearchParams(location.search).get("mode") || "classic").replace(/[^a-z]/g, "");
 const LIT = MODE === "lightning" || MODE === "xxx";
 const LIVE = !PREVIEW && !/[?&]private/.test(location.search);   // shared live table (default) vs. private table
 const DUEL = LIVE ? new URLSearchParams(location.search).get("duel") : null;   // Zeus's duel: duel chips instead of the wallet
 let ZS = null;
-let sent = new Map(), liveSt = null, clockOff = 0, animRound = -1, MY_ID = null;
+let landed = -1, sent = new Map(), liveSt = null, clockOff = 0, animRound = -1, MY_ID = null;
 const BASE_STRAIGHT = MODE === "xxx" ? 20 : MODE === "lightning" ? 30 : 36;
 let LUCKY = {};
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
@@ -106,10 +106,11 @@ function betAt(u, w) {
 const board = $("board");
 let bets = new Map(), lastBets = null, history = [], chipVal = 25, busy = false, balance = 0;
 // chip series keeps going (×5 / ×4); a chip shows once the wallet holds 20× its value; 7 chips on screen
-const CHIP_V = [1, 5, 25, 100, 500, 1000, 5000, 25000, 100000, 500000, 2500000, 10000000, 50000000, 250000000];
-const CHIP_C = ["c1", "c5", "c25", "c100", "c500", "c1k", "c5k", "c25", "c100", "c500", "c1k", "c5k", "c25", "c100"];
+const CHIP_V = [5, 25, 100, 500, ...[1e3, 1e6, 1e9].flatMap((m) => [1, 5, 25, 100, 500].map((c) => c * m)), 1e12, 5e12];   // 21 chips: 5 … 5T
+const CHIP_C = CHIP_V.map((v, i) => ["c5", "c25", "c100", "c500", "c1k", "c5k"][i % 6]);
 const CHIPS = CHIP_V.map((v, i) => [v, CHIP_C[i]]);
-const maxBet = () => balance >= 500000 ? 100000 * Math.floor(balance / 500000) : 50000;   // same rule as the server
+const stepMax = (b) => { if (b < 500000) return 50000; let v = 500000, k = 0; for (;;) { const m = k % 3 === 1 ? 2.5 : 2; if (v * m > b) break; v *= m; k++; } return v / 5; };   // same steps as the server
+const maxBet = () => stepMax(balance);
 let chipKey = "";
 function drawChipRack() {
   const ok = CHIPS.filter(([v], i) => i < 7 || v * 20 <= balance), show = ok.slice(-7), k = show.map(([v]) => v).join(",");
@@ -117,7 +118,7 @@ function drawChipRack() {
   if (!show.some(([v]) => v === chipVal)) chipVal = show[Math.min(2, show.length - 1)][0];
   $("chips").innerHTML = show.map(([v, c]) => `<button class="chip ${c}${v >= 25000 ? " big" : ""}" data-v="${v}" aria-pressed="${v === chipVal}">${chipLabel(v)}</button>`).join("");
 }
-const chipLabel = (v) => v >= 1e6 ? +(v / 1e6).toFixed(1) + "M" : v >= 1000 ? v / 1000 + "K" : String(v);
+const chipLabel = (v) => v >= 1e12 ? +(v / 1e12).toFixed(1) + "T" : v >= 1e9 ? +(v / 1e9).toFixed(1) + "B" : v >= 1e6 ? +(v / 1e6).toFixed(1) + "M" : v >= 1000 ? +(v / 1000).toFixed(1) + "K" : String(v);
 const chipClass = (v) => (CHIPS.slice().reverse().find(([c]) => v >= c) || CHIPS[0])[1];
 
 let zoom = 1, VIEW = "table", NB = 2;
@@ -179,14 +180,15 @@ function drawChips(win) {
     return `<div class="chip ${chipClass(v)}${st}" style="left:${p.x}px;top:${p.y}px"><b>${chipLabel(v)}</b></div>`;
   }).join("");
   const tot = [...bets.values()].reduce((s, v) => s + v, 0);
-  $("total").textContent = fmt(tot);
+  $("total").textContent = fmt(tot); GC_LIMIT(tot, maxBet(), balance, fmt);
   $("spinBtn").disabled = busy || tot === 0; $("undoBtn").disabled = busy || !undoStack.length;
   $("clearBtn").disabled = busy || !bets.size; $("dblBtn").disabled = busy || !bets.size;
   $("rebetBtn").disabled = busy || !lastBets || bets.size > 0;
   if (LIVE) { liveButtons(tot); drawPlayers(); autoSend(); }
 }
 const undoStack = [];
-let ERASE = false;                    // eraser: tap a bet on the layout to take it back
+let ERASE = false;
+let SHOW_FRIENDS = true; try { SHOW_FRIENDS = localStorage.getItem("gc_rl_friends") !== "0"; } catch (e) {}                    // eraser: tap a bet on the layout to take it back
 function place(key, amt) {
   if (!key || busy) return;
   if (ERASE) { if (!bets.has(key) || (sent.get(key) || 0) > 0) return; undoStack.push(new Map(bets)); bets.delete(key); err(""); drawChips(); SFX.chip(); return; }
@@ -239,6 +241,10 @@ $("zIn").onclick = () => setZoom(zoom + 0.15); $("zOut").onclick = () => setZoom
 drawChipRack();
 $("chips").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; chipVal = +b.dataset.v;
   $("chips").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); };
+if (LIVE) { const eb = document.createElement("button"); eb.className = "btn ghost eyebtn"; eb.id = "eyeBtn"; eb.title = "הימורי החברים";
+  const setEye = () => { eb.innerHTML = SHOW_FRIENDS ? "👁️ חברים" : "🙈 חברים"; eb.setAttribute("aria-pressed", SHOW_FRIENDS); $("chipLayer")?.classList.toggle("nofriends", !SHOW_FRIENDS); };
+  eb.onclick = () => { SHOW_FRIENDS = !SHOW_FRIENDS; try { localStorage.setItem("gc_rl_friends", SHOW_FRIENDS ? "1" : "0"); } catch (e) {} setEye(); };
+  setEye(); $("undoBtn").before(eb); }
 $("undoBtn").onclick = () => { if (undoStack.length) { bets = undoStack.pop(); drawChips(); } };
 $("clearBtn").onclick = () => { undoStack.push(new Map(bets)); bets = new Map(sent); drawChips(); };
 $("dblBtn").onclick = () => { const tot = [...bets.values()].reduce((s, v) => s + v, 0);
@@ -253,7 +259,7 @@ function drawHist() {
   const h = history, c = (f) => h.length ? Math.round(100 * h.filter(f).length / h.length) : 0;
   $("pct").innerHTML = h.length ? `<span class="p red">${c((n) => R.color(n) === "red")}%</span><span class="p green">${c((n) => n === 0)}%</span><span class="p black">${c((n) => R.color(n) === "black")}%</span>` : "";
 }
-function showBal(v) { $("bal").textContent = fmt(v); drawChipRack(); }
+function showBal(v) { $("bal").textContent = fmt(v); drawChipRack(); GC_LIMIT([...bets.values()].reduce((a, b) => a + b, 0), maxBet(), balance, fmt); }
 
 // ---------- wheel + camera ----------
 let W, plan = null, t0 = 0, last = performance.now(), cine = false;
@@ -342,7 +348,7 @@ function drawPotList() {
 function drawTicker() {
   let T = $("winTicker"); if (!T) { T = document.createElement("div"); T.id = "winTicker"; T.className = "wticker"; T.innerHTML = "<div class=\"wt-in\"></div>"; document.body.appendChild(T); }
   const ps = (liveSt && liveSt.result != null ? liveSt.players || [] : []).filter((p) => p.payout != null);
-  if (!ps.length || liveSt.open) { T.hidden = true; T.dataset.k = ""; return; }
+  if (!ps.length || liveSt.open || landed !== liveSt.round) { T.hidden = true; T.dataset.k = ""; return; }   // only after the ball has landed on screen
   const k = liveSt.round + ":" + ps.length; if (T.dataset.k === k) return; T.dataset.k = k;
   ps.sort((a, b) => b.payout - a.payout);
   const items = ps.map((p) => `<span class="${p.payout > 0 ? "up" : "dn"}">${esc(p.name)} <b class="num">${p.payout > 0 ? "▲ " + fmt(p.payout) : "▼ " + fmt(p.total)}</b></span>`).join("");
@@ -372,6 +378,7 @@ function showResult() {
   if (W.under() !== n) console.error("wheel/result mismatch", W.under(), n);   // never expected; checked by tests
 }
 function finish() {
+  landed = animRound; setTimeout(() => { if (typeof drawTicker === "function" && LIVE) drawTicker(); }, 50);
   const n = spinRes.result, win = new Set([...bets.keys()].filter((k) => k.split(",").map(Number).includes(n)));
   plan = null; $("resultCard").hidden = true; setCine(false);
   history.unshift(n); drawHist();
@@ -527,7 +534,7 @@ function drawPlayers() {
   const row = $("seatRow"), pres = liveSt.present || [];
   if (row) { row.hidden = !pres.length; const bet = {}; ps.forEach((p) => bet[p.id] = p.total);
     pres.forEach((p) => { if (!(p.id in PAV) && db) { PAV[p.id] = null; GC_CHAR(db, p.id).then((c) => { PAV[p.id] = c.url || ""; drawPlayers(); }); } });
-    row.innerHTML = pres.map((p) => `<div class="sitter${p.id === MY_ID ? " mine" : ""}${bet[p.id] ? " bet" : ""}">${PAV[p.id] ? `<img src="${PAV[p.id]}" alt="">` : `<i>${esc(String(p.name)[0] || "?")}</i>`}
+    row.innerHTML = pres.map((p) => `<div data-u="${p.id}" class="sitter${p.id === MY_ID ? " mine" : ""}${bet[p.id] ? " bet" : ""}">${PAV[p.id] ? `<img src="${PAV[p.id]}" alt="">` : `<i>${esc(String(p.name)[0] || "?")}</i>`}
       <span>${esc(p.name)}</span>${p.bal != null ? `<em class="num">${fmt(p.bal)}</em>` : ""}${bet[p.id] ? `<b class="num">${fmt(bet[p.id])}</b>` : ""}</div>`).join(""); }
   drawTicker();
   // other players' bets as faint markers on the layout
@@ -536,8 +543,9 @@ function drawPlayers() {
   for (const p of ps) { if (p.id === MY_ID) continue;
     const per = {}; for (const b of p.bets || (p.nums || []).map((nums) => ({ nums, amt: 0 }))) { const k = b.nums.slice().sort((x, y) => x - y).join(","); per[k] = (per[k] || 0) + b.amt; }
     for (const [k, amt] of Object.entries(per)) { if (!LEGAL.has(k)) continue;
-      const a = anchor(k), q = toXY(a.u, a.w), g = document.createElement("i"); g.className = "gmark"; g.title = p.name + " " + fmt(amt);
-      g.style.left = q.x + "px"; g.style.top = q.y + "px"; g.innerHTML = `${esc(String(p.name).slice(0, 1))}${amt ? `<small>${chipLabel(amt)}</small>` : ""}`; layer.appendChild(g); } }
+      const a = anchor(k), q = toXY(a.u, a.w), g = document.createElement("div"); g.className = `chip ${chipClass(amt || 5)} gmark`; g.title = p.name + " " + fmt(amt);
+      g.style.left = q.x + 7 + "px"; g.style.top = q.y - 7 + "px"; g.innerHTML = `<b>${amt ? chipLabel(amt) : ""}</b><em>${esc(String(p.name).slice(0, 1))}</em>`; layer.appendChild(g); } }
+  layer.classList.toggle("nofriends", !SHOW_FRIENDS);
 }
 function drawBigClock(t) {          // countdown ring over the wheel: time left to bet before the next throw
   const b = $("bigClock"); if (!b || !liveSt) return; b.hidden = cine;

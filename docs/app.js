@@ -1,7 +1,7 @@
 const { createClient } = supabase;
 const db = createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 const $ = (id) => document.getElementById(id);
-const fmt = (n) => { n = Number(n); return Math.abs(n) >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };   // a million and up: ₪1.58M
+const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e12 ? "₪" + +(n / 1e12).toFixed(2) + "T" : a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };   // ₪1.58M · ₪2.4B · ₪1T
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 let me = null, timer = null;
 
@@ -105,7 +105,19 @@ async function lbAvatars(list) {
   for (const m of list) { if (m.id in LBAV) continue; LBAV[m.id] = "";
     GC_CHAR(db, m.id).then((c) => { if (!c.url) return; LBAV[m.id] = c.url; const el = document.querySelector(`.lb .av[data-u="${m.id}"]`); if (el) el.innerHTML = `<img src="${esc(c.url)}" alt="">`; }); }
 }
+// money from the house (admin grant): a popup the first time the member sees it
+async function grantNote() {
+  const { data } = await db.from("wallet_transactions").select("id,amount").eq("game", "admin").eq("kind", "grant").order("id", { ascending: false }).limit(5);
+  if (!data || !data.length) return;
+  let seen = 0; try { seen = +(localStorage.getItem("gc_grant_seen") || 0); } catch (e) {}
+  const fresh = data.filter((t) => t.id > seen); try { localStorage.setItem("gc_grant_seen", data[0].id); } catch (e) {}
+  if (!seen || !fresh.length) return;   // first visit on this device: just remember where we are
+  const sum = fresh.reduce((a, t) => a + Number(t.amount), 0);
+  if (window.GC_BONUS) GC_BONUS("💸 קיבלת כסף מבעל הבית", sum, "");
+  else alert("💸 קיבלת " + fmt(sum) + " מבעל הבית");
+}
 async function refresh() {
+  grantNote().catch(() => {});
   const [w, lb, on] = await Promise.all([
     db.from("wallets").select("balance").eq("user_id", me.id).single(),
     db.from("leaderboard").select("id,nickname,wealth").order("wealth", { ascending: false }),
@@ -114,12 +126,19 @@ async function refresh() {
   const ON = (on && on.data) || {};
   const dot = (id) => { const s = id === me.id ? 0 : ON[id]; const [c, t] = s == null || s > 1800 ? ["off", "מנותק"] : s < 90 ? ["on", "מחובר"] : ["away", "היה לאחרונה"];
     return `<i class="ondot ${c}" title="${t}"></i>`; };
+  const seenTxt = (id) => { const s = ON[id]; if (id === me.id || s == null || s < 90) return "";
+    const d = new Date(Date.now() - s * 1000), now = new Date(), day0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const days = Math.floor((day0 - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 864e5);
+    const t = days === 0 ? d.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" }) : days === 1 ? "אתמול" : days === 2 ? "לפני יומיים"
+      : days < 7 ? "ביום " + d.toLocaleDateString("he-IL", { weekday: "long" }).replace("יום ", "") : days < 14 ? "לפני שבוע" : days < 30 ? "לפני שבועיים"
+      : days < 60 ? "לפני חודש" : days < 365 ? `לפני ${Math.floor(days / 30)} חודשים` : "לפני יותר משנה";
+    return `<small class="seen">נראה לאחרונה ${t}</small>`; };
   if (!w.error) { $("hdrBal").textContent = fmt(w.data.balance); $("walBal").textContent = fmt(w.data.balance); $("walSub").textContent = w.data.balance === 0 ? "נגמרו השקלים. מנהל המועדון יכול לאפס." : "יתרה בשרת · מתעדכנת אוטומטית"; }
   const box = $("lbBox");
   if (lb.error) { box.innerHTML = '<p class="msg err">לא הצלחנו לטעון את הטבלה. בדוק חיבור ונסה שוב.</p>'; return; }
   if (!lb.data.length) { box.innerHTML = '<p class="msg">עוד אין חברים במועדון.</p>'; return; }
   box.innerHTML = "<ol>" + lb.data.map((m, i) =>
-    `<li class="${m.id === me.id ? "you" : ""}"><span class="rk num">${i < 3 ? `<img src="img/lobby/medal_${i + 1}.webp" alt="${i + 1}">` : i + 1}</span><span class="avatar av" data-u="${m.id}">${LBAV[m.id] ? `<img src="${esc(LBAV[m.id])}" alt="">` : esc((m.nickname || "?")[0].toUpperCase())}</span><span class="nm">${dot(m.id)}${esc(m.nickname)}${m.id === me.id ? " (אתה)" : ""}</span><span class="w num">${fmt(m.wealth)}</span></li>`
+    `<li class="${m.id === me.id ? "you" : ""}"><span class="rk num">${i < 3 ? `<img src="img/lobby/medal_${i + 1}.webp" alt="${i + 1}">` : i + 1}</span><span class="avatar av" data-u="${m.id}">${LBAV[m.id] ? `<img src="${esc(LBAV[m.id])}" alt="">` : esc((m.nickname || "?")[0].toUpperCase())}</span><span class="nm">${dot(m.id)}${esc(m.nickname)}${m.id === me.id ? " (אתה)" : ""}${seenTxt(m.id)}</span><span class="w num">${fmt(m.wealth)}</span></li>`
   ).join("") + "</ol>";
   lbAvatars(lb.data);
 }

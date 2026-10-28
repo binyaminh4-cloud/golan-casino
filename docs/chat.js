@@ -26,6 +26,13 @@
 .gc-chat .m.mine{align-self:flex-end;background:rgba(197,160,90,.18);border-color:#C5A05A}
 .gc-chat .m b{display:block;font-size:11px;color:#C5A05A}.gc-chat .m time{display:block;font:10px Inter,sans-serif;color:#8a7558;text-align:left;margin-top:1px}
 .gc-chat-btn{touch-action:none}
+.gc-bubble{position:fixed;z-index:9400;max-width:min(240px,60vw);background:#fff;color:#141414;border:2px solid #141414;border-radius:14px;padding:5px 10px;font:600 13px Heebo,sans-serif;direction:rtl;
+  box-shadow:3px 3px 0 #141414;pointer-events:none;animation:gcbub .25s cubic-bezier(.2,1.6,.4,1)}
+.gc-bubble b{display:block;font-size:10px;color:#80602E}
+.gc-bubble::after{content:"";position:absolute;left:calc(var(--tail) - 8px);bottom:-10px;border:8px solid transparent;border-top:10px solid #141414;border-bottom:0}
+.gc-bubble.below::after{bottom:auto;top:-10px;border-top:0;border-bottom:10px solid #141414}
+.gc-bubble.out{opacity:0;transition:opacity .4s}
+@keyframes gcbub{from{transform:scale(.4);opacity:0}}
 .gc-chat .m.qk{background:linear-gradient(180deg,#14100b,#000);border:1px solid #F1D69A;color:#ffe27a;font-weight:700;text-shadow:0 0 8px rgba(255,214,110,.75);box-shadow:0 0 12px rgba(241,214,154,.35)}
 .gc-chat .m.sys{align-self:center;background:none;border:0;color:#ffe27a;font-weight:700;text-align:center}
 .gc-chat .quick{display:flex;gap:5px;flex-wrap:nowrap;overflow-x:auto;padding:0 10px 6px;scrollbar-width:none}.gc-chat .quick button{flex:none;white-space:nowrap}
@@ -40,7 +47,7 @@
   btn.className = "gc-chat-btn" + (IN_GAME ? "" : " lob"); btn.type = "button"; btn.setAttribute("aria-label", "צ׳אט"); btn.innerHTML = "💬";
   const box = document.createElement("aside");
   box.className = "gc-chat"; box.setAttribute("aria-label", "צ׳אט");
-  const title = "צ׳אט החבורה";
+  const title = "חדר צ׳אט לייב";
   box.innerHTML = `<h3>${title}<button type="button" aria-label="סגור">✕</button></h3><div class="log" aria-live="polite"></div>
     <div class="quick"></div><div class="err"></div><form><input maxlength="200" placeholder="כתבו הודעה…" enterkeyhint="send"><button>שלח</button></form>`;
   const log = box.querySelector(".log"), input = box.querySelector("input"), errEl = box.querySelector(".err");
@@ -62,10 +69,27 @@
       d.innerHTML = (m.kind === "sys" ? esc(m.body) : (m.uid === me ? "" : `<b>${esc(m.name || "")}</b>`) + esc(m.body)) + ts;
       log.appendChild(d);
       if (!open && m.uid !== me && m.id > seen) unread++;
+      if (!open && booted && m.kind !== "sys") bubble(m);
     }
     while (log.children.length > 80) log.firstChild.remove();
     if (open) { log.scrollTop = log.scrollHeight; try { localStorage.setItem(seenKey, last); } catch (e) {} }
     badge();
+  }
+  // while the chat is closed, a new message pops as a small comic speech bubble next to the sender's character for 3 s
+  let booted = false;
+  function bubble(m) {
+    const who = document.querySelector(`[data-u="${m.uid}"]`);
+    const r = (who && who.getClientRects().length ? who : btn).getBoundingClientRect();
+    const b = document.createElement("div"); b.className = "gc-bubble";
+    b.innerHTML = `<b>${esc(m.name || "")}</b>${esc(m.body)}`;
+    document.body.appendChild(b);
+    const w = b.offsetWidth, h = b.offsetHeight;
+    let x = r.left + r.width / 2 - w / 2, y = r.top - h - 10, below = false;
+    if (y < 4) { y = r.bottom + 10; below = true; }
+    x = Math.max(6, Math.min(innerWidth - w - 6, x));
+    b.style.left = x + "px"; b.style.top = y + "px"; b.classList.toggle("below", below);
+    b.style.setProperty("--tail", Math.max(12, Math.min(w - 12, r.left + r.width / 2 - x)) + "px");
+    setTimeout(() => b.classList.add("out"), 2700); setTimeout(() => b.remove(), 3100);
   }
   async function poll() {
     if (busy || document.hidden) return; busy = true;
@@ -107,7 +131,7 @@
     const { data: { session } } = await db.auth.getSession(); if (!session) return;
     me = session.user.id;
     document.body.append(btn, box);
-    await poll(); schedule();
+    await poll(); booted = true; schedule();
   })();
   window.GC_CHAT = { toggle, room: ROOM };
 })();

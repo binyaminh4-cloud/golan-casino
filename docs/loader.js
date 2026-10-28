@@ -88,3 +88,23 @@
     if (ref && ref.origin === location.origin && /\/(index\.html)?$/.test(ref.pathname) && window.history.length > 1) { e.preventDefault(); show(); window.history.back(); }
   });
 })();
+// ---------- new version: the app refreshes itself (no need to close and reopen) ----------
+(function () {
+  if (/preview/.test(location.href)) return;
+  let mine = null;
+  const check = async () => {
+    try {
+      const v = (await (await fetch("version.json?t=" + Date.now(), { cache: "no-store" })).json()).v;
+      if (mine === null) { mine = v; return; }
+      if (v === mine) return;
+      const lobby = /(^|\/)(index\.html)?$/.test(location.pathname);
+      if (lobby || document.hidden) { location.reload(); return; }
+      if (document.getElementById("gcUpd")) return;
+      const b = document.createElement("button"); b.id = "gcUpd"; b.type = "button"; b.textContent = "✨ יש עדכון חדש · לחץ לרענון";
+      b.style.cssText = "position:fixed;top:6px;left:50%;transform:translateX(-50%);z-index:9800;padding:7px 16px;border-radius:99px;border:1px solid #C5A05A;background:linear-gradient(180deg,#F1D69A,#C5A05A);color:#0B0908;font:700 14px Heebo,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.6)";
+      b.onclick = () => location.reload(); document.body.appendChild(b);
+    } catch (e) {}
+  };
+  check(); setInterval(check, 60000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) check(); else if (document.getElementById("gcUpd")) location.reload(); });
+})();

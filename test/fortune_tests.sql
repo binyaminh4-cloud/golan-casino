@@ -28,8 +28,8 @@ update sl_jackpots set drop_at = now() - interval '1 second' where kind = 'mini'
 delete from sl_free;
 do $$ declare r jsonb; begin
   r := fo_spin(1, 'M1');
-  perform t_assert(r->'jackpot'->>'kind' = 'mini' and (r->'jackpot'->>'amount')::int = 250000, 'mini drops once its moment passed');
-  perform t_assert((r->>'payout')::bigint = 250000 + 400 + (select coalesce(sum((w->>'pay')::int),0) from jsonb_array_elements(r->'wins') w) - 400, 'mini + line pays');
+  perform t_assert(r->'jackpot'->>'kind' = 'mini' and (r->'jackpot'->>'amount')::int = 2500, 'mini drops, scaled to the bet');
+  perform t_assert((r->>'payout')::bigint = 2500 + 400 + (select coalesce(sum((w->>'pay')::int),0) from jsonb_array_elements(r->'wins') w) - 400, 'mini + line pays');
   perform t_assert((select drop_at > now() and deadline > now() + interval '13 days' from sl_jackpots where kind='mini'), 'next mini drawn inside 14 days');
   perform t_assert((select count(*) from chat_messages where body like '%בנימין:%' and kind='sys') = 1, 'chat announces the mini');
   r := fo_spin(1, 'M2'); perform t_assert(r->'jackpot' = 'null'::jsonb, 'no second mini right away');

@@ -286,7 +286,6 @@ body{grid-template-columns:minmax(0,1fr)}
 .players .pl{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);background:#0b0806;border:1px solid rgba(128,96,46,.5);border-radius:99px;padding:2px 8px}
 .players .pl b{color:var(--champ);font-size:12px}.players .pl.me{border-color:var(--champ)}.players .pl.empty{border:0;background:none}
 .liveclock{font-weight:700;color:var(--champ)!important;min-width:9em}.liveclock.hurry{color:#ffb35c!important;animation:hit .5s ease-in-out infinite alternate}.liveclock.shut{color:#E89A9F!important}
-.gmark{position:absolute;width:18px;height:18px;border-radius:50%;background:rgba(197,160,90,.35);border:1px dashed var(--champ);color:#fff;font:700 10px Heebo;display:grid;place-items:center;pointer-events:none;transform:translate(-50%,-50%);z-index:1}
 @keyframes hit{to{opacity:.6}}
 body.live .side{grid-template-rows:auto auto 1fr}body.live.short .side{grid-template-rows:auto auto auto 1fr}body.short .players{max-height:44px}
 
@@ -356,8 +355,6 @@ body.live #spinBtn{display:none}
 .sitter.bet img{filter:drop-shadow(0 0 8px rgba(255,226,122,.9))}
 .sitter i{width:46px;height:46px}
 @media (max-height:560px) and (orientation:landscape){.sitter img{height:48px!important}.sitter i{width:36px;height:36px}.sitter b{display:none}}
-.gmark{width:auto;min-width:20px;height:20px;padding:0 4px;border-radius:10px;background:rgba(150,170,200,.45);border:1px dashed #cfe0ff;gap:2px;grid-auto-flow:column;font-size:10px}
-.gmark small{font:700 9px Inter;color:#e8f0ff}
 .sitter em{font:600 9px Inter;font-style:normal;color:#b9d7a8}
 .potlist{right:auto;left:max(12px,env(safe-area-inset-left))}
 .pt-row{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center;font:600 13px Heebo;color:#F5ECDD;animation:llIn .4s both}
@@ -371,7 +368,13 @@ body.live #spinBtn{display:none}
 /* one fixed frame for every character at the table: same box, feet on the same line */
 .sitter img{width:52px!important;height:62px!important;object-fit:contain!important;object-position:50% 100%!important}
 @media (max-height:560px) and (orientation:landscape){.sitter img{width:42px!important;height:50px!important}}
-.gmark{font-size:9px;height:17px;padding:0 3px;opacity:.85}
 .me img{width:52px!important;height:62px!important;object-fit:contain;object-position:50% 100%}
 @media (max-height:560px) and (orientation:landscape){.me img{width:42px!important;height:50px!important}}
 .chip.big{box-shadow:0 0 0 2px #ffe27a,0 0 10px rgba(255,226,122,.6)}
+/* friends' bets: real chips, a dashed silver ring + the friend's initial; the 👁️ button hides them */
+.chiplayer .chip.gmark{pointer-events:none;opacity:.9;z-index:1;transform:translate(-50%,-50%) scale(.8);border-color:rgba(223,232,255,.95)}
+#chipLayer .chip.gmark{outline:2px dashed #dfe8ff;outline-offset:1px;border-radius:50%}
+.chip.gmark em{position:absolute;top:-7px;right:-7px;width:15px;height:15px;border-radius:50%;background:#dfe8ff;color:#111;font:800 9px Heebo;font-style:normal;display:grid;place-items:center}
+#chipLayer.nofriends .gmark{display:none}
+.eyebtn[aria-pressed="false"]{opacity:.6}
+.chiplayer .chip:not(.gmark){z-index:2}

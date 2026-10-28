@@ -3,7 +3,7 @@
 // This file only draws the state and sends the player's choices.
 const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 const $ = (id) => document.getElementById(id);
-const fmt = (n) => { n = Number(n); return Math.abs(n) >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };   // a million and up: ₪1.58M
+const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e12 ? "₪" + +(n / 1e12).toFixed(2) + "T" : a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };   // ₪1.58M · ₪2.4B · ₪1T
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MODE = new URLSearchParams(location.search).get("mode") === "lightning" ? "lightning" : "classic";
@@ -79,7 +79,7 @@ function chipStack(x, y, amount, key, small = false) {
   if (!amount) return null;
   const w = el("cstack" + (small ? " small" : ""), x, y); w.dataset.k = key;
   const col = chipColor(amount);
-  w.innerHTML = `<div class="chip3" style="background:${col};color:${col}"><span>${amount >= 1000 ? +(amount / 1000).toFixed(1) + "K" : amount}</span></div><div class="camt">${fmt(amount)}</div>`;
+  w.innerHTML = `<div class="chip3" style="background:${col};color:${col}"><span>${String(fmt(amount)).slice(1)}</span></div><div class="camt">${fmt(amount)}</div>`;
   w.title = fmt(amount); return w;
 }
 async function slide(node, x, y, ms = 500) {
@@ -107,11 +107,11 @@ function drawSeats() {
   $("seats").innerHTML = list.map((m, i) => {
     const s = SEATS[i], src = urls[m.character_key];
     const img = src ? `<img src="${esc(src)}" alt="">` : `<img src="img/dealer/idle.webp" alt="" style="visibility:hidden">`;
-    return `<div class="char ${i === 0 ? "me" : ""} ${src ? "" : "ghost"}" id="seat${i}" style="left:${s.x}px;top:${s.top}px;width:${s.w}px">${img}
+    return `<div data-u="${m.id}" class="char ${i === 0 ? "me" : ""} ${src ? "" : "ghost"}" id="seat${i}" style="left:${s.x}px;top:${s.top}px;width:${s.w}px">${img}
       <div class="tag"><div class="name">${esc(m.nickname)}${i === 0 ? "" : ""}</div><div class="b" data-bal="${i}">${fmt(m.wealth)}</div></div></div>`;
   }).join("");
 }
-function setMyBalance(v) { if (!CH) { myBal = +v || 0; drawRack(); } if (CH) v = CH.chips; $("bal").textContent = fmt(v); const b = document.querySelector('[data-bal="0"]'); if (b) b.textContent = fmt(v); }
+function setMyBalance(v) { if (!CH) { myBal = +v || 0; drawRack(); GC_LIMIT(Object.values(bets).reduce((a, b) => a + b, 0), maxBet(), myBal, fmt); } if (CH) v = CH.chips; $("bal").textContent = fmt(v); const b = document.querySelector('[data-bal="0"]'); if (b) b.textContent = fmt(v); }
 
 // ---------- round rendering ----------
 let st = null, busy = false, dealerEls = [], handEls = [], totals = [], ring = null;
@@ -208,19 +208,22 @@ async function finish(r) {
     else { const t = el("sidelose", p.x, p.y - 40, `${SIDE_NAME[k]} ✕`); setTimeout(() => t.remove(), 2200); c.style.opacity = "0"; await slide(c, TRAY.x, TRAY.y, 600); }
   }));
   await sleep(1200); pose("idle");
+  const rid = r.id;   // a few seconds later the dealer clears the felt by herself
+  setTimeout(() => { if (st && st.id === rid && st.status === "done" && !busy) { clearRound(); renderBets(); showControls(); if (TABLE) drawOthers(); } }, 4500);
 }
 let msgT; function showMsg(t, sub) { const m = $("msg"); m.innerHTML = esc(t) + (sub ? `<small>${esc(sub)}</small>` : ""); m.classList.add("show"); clearTimeout(msgT); msgT = setTimeout(() => m.classList.remove("show"), 3600); }
 
 // ---------- betting: pick a chip, then tap the main circle or a side-bet circle ----------
 let chip = 25; const bets = { main: 0, pp: 0, t3: 0, ll: 0, bust: 0 }; let lastBets = null;
 // chips grow with the wallet: a chip shows once the wallet holds 20× its value; 5 chips on screen
-const BJ_CHIPS = [10, 25, 100, 500, 1000, 5000, 25000, 100000, 500000, 2500000, 10000000, 50000000], BJ_CC = ["c10", "c25", "c100", "c500", "c1000"];
+const BJ_CHIPS = [10, 25, 100, 500, ...[1e3, 1e6, 1e9].flatMap((m) => [1, 5, 25, 100, 500].map((c) => c * m)), 1e12, 5e12], BJ_CC = ["c10", "c25", "c100", "c500", "c1000"];
 let myBal = 0, rackKey = "";
-const maxBet = () => myBal >= 500000 ? 100000 * Math.floor(myBal / 500000) : 50000;   // same rule as the server
+const stepMax = (b) => { if (b < 500000) return 50000; let v = 500000, k = 0; for (;;) { const m = k % 3 === 1 ? 2.5 : 2; if (v * m > b) break; v *= m; k++; } return v / 5; };
+const maxBet = () => stepMax(myBal);   // same steps as the server
 function drawRack() {
   const ok = BJ_CHIPS.filter((v, i) => i < 5 || v * 20 <= myBal), show = ok.slice(-5), k = show.join(",");
   if (k === rackKey) return; rackKey = k; if (!show.includes(chip)) chip = show[1];
-  const lab = (v) => v >= 1e6 ? +(v / 1e6).toFixed(1) + "M" : v >= 1000 ? v / 1000 + "K" : v;
+  const lab = (v) => v >= 1e12 ? +(v / 1e12).toFixed(1) + "T" : v >= 1e9 ? +(v / 1e9).toFixed(1) + "B" : v >= 1e6 ? +(v / 1e6).toFixed(1) + "M" : v >= 1000 ? +(v / 1000).toFixed(1) + "K" : v;
   document.querySelector(".betui .row").innerHTML = show.map((v, i) => `<button class="chip ${BJ_CC[BJ_CHIPS.indexOf(v) % 5]}" data-v="${v}" aria-pressed="${v === chip}">${lab(v)}</button>`).join("");
   document.querySelectorAll(".betui .chip").forEach((b) => b.onclick = () => { chip = +b.dataset.v; document.querySelectorAll(".betui .chip").forEach((x) => x.setAttribute("aria-pressed", x === b)); });
 }
@@ -282,6 +285,7 @@ async function fisherDrop(strikes) {      // DJ Fisher builds up... drops lightn
   await sleep(1300);
 }
 function renderBets() {
+  GC_LIMIT(Object.values(bets).reduce((a, b) => a + b, 0), maxBet(), myBal, fmt);
   chipStack(SPOTS[0].x, SPOTS[0].y, bets.main, "hand0");
   for (const [k, p] of Object.entries(SIDE_SPOTS)) chipStack(p.x, p.y, bets[k], "side_" + k, true);
   $("dealBtn").disabled = !bets.main; $("rebetBtn").disabled = !lastBets;
