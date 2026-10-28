@@ -44,6 +44,12 @@ button[aria-pressed="true"]{background:var(--brass);color:#120c08}
 @keyframes cin{from{transform:scale(.96)}}@keyframes fade{from{opacity:0}}
 .toast{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:40;background:#120c08e6;border:2px solid #ffd08a;border-radius:14px;padding:8px 20px;font:800 22px Heebo;color:#ffe2a2;animation:fade .2s}
 #err{color:#E89A9F;font-size:12px;min-height:14px}
+
+/* top bar floats over the game; the game uses the full height */
+.top{position:fixed!important;top:0;left:0;right:0;z-index:5!important;pointer-events:none;background:linear-gradient(180deg,#0009,#0000)!important;border:0!important;padding:3px max(8px,env(safe-area-inset-right)) 12px max(56px,calc(52px + env(safe-area-inset-left)))!important;justify-content:space-between}
+.top>*{pointer-events:auto}.top a{padding:2px 9px!important;font-size:12px}.top h1,.top .score{display:none!important}
+.top .bal{position:absolute;left:max(100px,calc(94px + env(safe-area-inset-left)));top:3px;display:grid;line-height:1.1;font-size:10px;text-align:center}.top .bal b{font-size:13px!important}
+main{height:100dvh}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
