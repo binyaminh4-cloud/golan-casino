@@ -264,7 +264,7 @@ function drawHist() {
 function showBal(v) { $("bal").textContent = fmt(v); drawChipRack(); GC_LIMIT([...bets.values()].reduce((a, b) => a + b, 0), maxBet(), balance, fmt); }
 
 // ---------- wheel + camera ----------
-let W, plan = null, t0 = 0, last = performance.now(), cine = false;
+let W, plan = null, t0 = 0, last = performance.now(), cine = false, dropPlayed = false;
 const host = $("wheelHost");
 function hostSize() { return host.getBoundingClientRect().width || 300; }
 function layoutWheel() {
@@ -302,7 +302,9 @@ function frame(now) {
       const b = W.pose(), sh = shot(t, b), k = 1 - Math.pow(0.002, dt);   // smooth camera
       W.cam.z = lerp(W.cam.z, sh.z, k); W.cam.tilt = lerp(W.cam.tilt, sh.tilt, k);
       W.cam.fx = lerp(W.cam.fx, lerp(600, b.x, sh.f), k); W.cam.fy = lerp(W.cam.fy, lerp(600, b.y, sh.f), k);
-      if (t > R.T.hit && t < R.T.settle && lastLift <= prevLift && lastLift <= s.lift && lastLift < 0.2 && t - lastTick > 0.12) { SFX.pocket(); lastTick = t; }
+      // the recorded fret bounces start exactly when the ball first hits the frets; the synth ticks only when the file is missing
+      if (t > R.T.hit && !dropPlayed) { dropPlayed = true; try { SFX.ballDrop(); } catch (er) {} }
+      if (!SFX.hasSample?.("ball_drop") && t > R.T.hit && t < R.T.settle && lastLift <= prevLift && lastLift <= s.lift && lastLift < 0.2 && t - lastTick > 0.12) { SFX.pocket(); lastTick = t; }
       prevLift = lastLift; lastLift = s.lift;
       onTime(t);
     } else { W.idle(dt); W.cam.z = lerp(W.cam.z, 1, 0.1); W.cam.tilt = lerp(W.cam.tilt, 48, 0.1);
@@ -428,7 +430,7 @@ $("spinBtn").onclick = async () => {
   spinRes = res; showBal(res.balance - res.payout);
   if (LIT) await strike(res.lucky || {});
   marks = {}; setCine(true);
-  plan = R.plan(res.result, W.rotor); t0 = performance.now(); SFX.roll(R.T.hit + 0.6); lastLift = prevLift = 1; lastTick = 0;
+  plan = R.plan(res.result, W.rotor); t0 = performance.now(); SFX.roll(R.T.hit + 0.6); lastLift = prevLift = 1; lastTick = 0; dropPlayed = false;
 };
 // ---------- lightning: strike the lucky numbers on the layout, then spin ----------
 // Zeus (the owner's caricature, private bucket) throws a bolt at each lucky number
@@ -629,7 +631,7 @@ async function liveRun(d) {
   if (LIT) await strike(d.lucky || {});
   const w = d.close + SPIN_AFTER - srvNow(); if (w > 0) await wait(w);
   marks = {}; setCine(true);
-  plan = R.plan(d.result, W.rotor); t0 = performance.now(); SFX.roll(R.T.hit + 0.6); lastLift = prevLift = 1; lastTick = 0;
+  plan = R.plan(d.result, W.rotor); t0 = performance.now(); SFX.roll(R.T.hit + 0.6); lastLift = prevLift = 1; lastTick = 0; dropPlayed = false;
 }
 function liveTick() {
   drawClock(); if (liveSt) liveButtons();

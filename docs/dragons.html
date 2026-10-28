@@ -35,7 +35,9 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(14px) bright
 .cell.dim img{opacity:.25}.cell.dim{background:#0006}
 .cell.lock{background:radial-gradient(#ff9d1e55,transparent 72%)}.cell.new{animation:nl .5s ease-out}@keyframes nl{from{filter:brightness(2.5)}}
 .side{top:506px;width:58px;height:124px;display:grid;place-content:center;text-align:center;font:900 26px Inter;color:#ffd75e;line-height:1}.side small{font:800 13px Inter}
-#sideL{left:50px}#sideR{left:1428px}
+#bBuy{left:12px;top:330px;width:106px;height:290px;border-radius:20px;background:linear-gradient(180deg,#ffe28a,#c8962c 55%,#8a5a12);border:3px solid #fff1b8;color:#3a1200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;box-shadow:0 0 24px #ffbf3c99,inset 0 -6px 12px #0004;animation:bglow 2.4s ease-in-out infinite}
+#bBuy span{font-size:44px}#bBuy b{font:900 26px Heebo;line-height:1.05}#bBuy small{font:800 17px Heebo;line-height:1.1;opacity:.85}
+@keyframes bglow{50%{box-shadow:0 0 40px #ffcf5c,inset 0 -6px 12px #0004}}#sideR{left:1428px}
 /* bottom bar, on top of the art's frames */
 .bb{top:906px;height:80px;border:0;background:none;color:#ffd75e;display:grid;place-content:center;text-align:center;cursor:pointer;font:900 20px Inter;padding:0;border-radius:18px}
 .bb:active{transform:scale(.96)}.bb:disabled{opacity:.45;cursor:default}
@@ -75,7 +77,7 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(14px) bright
   <div class="abs jp" id="jpM"><small>MAJOR</small><b>—</b></div>
   <div class="abs jp" id="jpN"><small>MINOR</small><b>—</b></div>
   <div class="abs jp" id="jpI"><small>MINI</small><b>—</b></div>
-  <div class="abs side" id="sideL">25<small>LINES</small></div><div class="abs side" id="sideR">25<small>LINES</small></div>
+  <div class="abs side" id="sideR">25<small>LINES</small></div>
   <div class="abs" id="reels"></div>
   <a class="abs bb" id="bMenu" href="./" title="ללובי"><img src="img/dg/menu.svg" alt="ללובי"></a>
   <button class="abs bb" id="bInfo" title="חוקים"><img src="img/dg/info.svg" alt="חוקים"></button>
@@ -97,7 +99,7 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(14px) bright
   <p>כדור יכול להיות סכום או ג׳קפוט: MINI, MINOR, MAJOR. ממלאים את כל 15 המשבצות? <b>GRAND</b> פי 1,000.</p>
   <button id="go">כניסה לארמון 🐉</button><button class="back" onclick="location.href='./'">חזרה ללובי</button>
 </div></div></div>
-<script src="sfx.js?v=15"></script>
+<script src="sfx.js?v=16"></script>
 <script src="vendor/dg_engine.js?v=1"></script>
 <script>
 "use strict";
@@ -136,7 +138,7 @@ async function spinTo(g, o, mask) {
   clearInterval(t);
 }
 function toast(html, ms, big) { const t = document.createElement("div"); t.className = "toast" + (big ? " big" : ""); t.innerHTML = html; document.body.appendChild(t); setTimeout(() => t.remove(), ms); }
-async function countWin(to) { const from = 0, steps = 18; for (let i = 1; i <= steps; i++) { $("winV").textContent = fmt(from + (to - from) * i / steps); await sleep(28); } }
+async function countWin(to) { const from = 0, steps = 18; S("coins", 0.55); for (let i = 1; i <= steps; i++) { $("winV").textContent = fmt(from + (to - from) * i / steps); await sleep(28); } }
 async function replay(seed, buy) {
   const r = E.play(Number(seed), buy ? { buy: 1 } : {}); let won = 0;
   for (const st of r.steps) {
@@ -164,10 +166,10 @@ async function replay(seed, buy) {
       hwTitle(st.left, st.count); await sleep(st.fresh.length ? 1500 : 900);
     } else if (st.t === "hw_end") {
       // collect the orbs one by one into the win box
-      let sum = 0;
+      let sum = 0; S("coins", st.parts.length * 0.27);   // coins pour while the orbs are counted one by one
       for (const [c, r, v] of st.parts) { const d = cells[c][r]; d.classList.add("win"); sum += E.valueOf(v);
         if (typeof v !== "number") { const id = { MINI: "jpI", MINOR: "jpN", MAJOR: "jpM" }[v]; $(id).classList.add("hit"); S("jackpot"); toast(`🏆 ${v}! ${fmt(JP[v] * bet)}`, 1800, true); await sleep(1600); $(id).classList.remove("hit"); }
-        $("winV").textContent = fmt((won + sum) * bet); S("chip"); await sleep(260); d.classList.remove("win"); }
+        $("winV").textContent = fmt((won + sum) * bet); await sleep(260); d.classList.remove("win"); }
       if (st.grand) { $("jpG").classList.add("hit"); S("jackpot"); toast(`🐉 GRAND!!! ${fmt(JP.GRAND * bet)}`, 3500, true); await sleep(3500); $("jpG").classList.remove("hit"); }
       won += st.sum; $("winV").textContent = fmt(won * bet);
       toast(`🔥 סוף החזק וזכה<small>${fmt(st.sum * bet)}</small>`, 2200, true); await sleep(2400);
@@ -212,8 +214,8 @@ $("bInfo").onclick = () => GC_BONUS_INTRO("🐉 דרקוני הגולן LINK", [
   "🔥 6 כדורי אש ומעלה: החזק וזכה. 3 סיבובים, כל כדור חדש מחזיר ל־3.", "ג׳קפוטים לפי ההימור: MINI ×10 · MINOR ×25 · MAJOR ×100 · GRAND ×1,000 (כל 15 המשבצות).",
   "🛒 אפשר לקנות כניסה ישירה להחזק וזכה בכפתור הקנייה."], "img/dg/dragon.webp", "הבנתי");
 // buy: long-press the max-bet? keep it clear: a small cart next to the balance
-const buyBtn = document.createElement("button"); buyBtn.className = "abs bb"; buyBtn.style.cssText = "left:272px;top:836px;width:218px;height:58px;font-size:22px;background:#3a0606d9;border:2px solid #c8962c";
-buyBtn.textContent = "🛒 קנה החזק וזכה"; $("stage").appendChild(buyBtn);
+const buyBtn = document.createElement("button"); buyBtn.className = "abs bb"; buyBtn.id = "bBuy";
+buyBtn.innerHTML = "<span>🛒</span><b>קנה<br>בונוס</b><small>החזק<br>וזכה</small>"; $("stage").appendChild(buyBtn);
 buyBtn.onclick = async () => {
   if (busy) return; const P = (await db.rpc("gc_buy_prices")).data || {};
   const kind = await GC_BUYMENU([{ kind: "hw", label: "החזק וזכה", price: P["dragons:hw"] || 46, desc: "מתחילים עם 6 כדורי אש נעולים ו־3 סיבובים" }], bet, fmt);

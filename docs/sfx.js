@@ -72,12 +72,12 @@
   const BUF = {}, LOADING = {};
   function load(name) { if (BUF[name] || LOADING[name] || !ac()) return; LOADING[name] = fetch("snd/" + name + ".mp3").then((r) => r.ok ? r.arrayBuffer() : Promise.reject())
     .then((a) => new Promise((ok, no) => ctx.decodeAudioData(a, ok, no))).then((b) => { BUF[name] = b; }).catch(() => {}); }
-  function play(name, { vol = 0.9, dur = null, rate = 1 } = {}) { if (!ac() || muted || !BUF[name]) return false;
+  function play(name, { vol = 0.9, dur = null, rate = 1, offset = 0 } = {}) { if (!ac() || muted || !BUF[name]) return false;
     const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = BUF[name]; src.playbackRate.value = rate; g.gain.value = vol;
-    src.connect(g).connect(master); const T = now(); src.start(T);
+    src.connect(g).connect(master); const T = now(); src.start(T, offset);
     if (dur) { g.gain.setValueAtTime(vol, T + Math.max(0, dur - 0.4)); g.gain.linearRampToValueAtTime(0.0001, T + dur); src.stop(T + dur + 0.05); }
     return true; }
-  const SAMPLES = ["chip", "tick", "card_flip", "shuffle", "win_small", "win_medium", "lose", "ball_roll", "ball_drop", "no_more_bets", "notify", "orb_lock", "splash", "reel_spin", "reel_stop", "card_deal", "bonus_trigger", "reel_tension", "error", "whoosh", "button", "win_big", "coins_count", "lightning", "jackpot"];
+  const SAMPLES = ["chip", "tick", "ball_drop", "card_flip", "shuffle", "win_small", "win_medium", "lose", "ball_roll", "ball_drop", "no_more_bets", "notify", "orb_lock", "splash", "reel_spin", "reel_stop", "card_deal", "bonus_trigger", "reel_tension", "error", "whoosh", "button", "win_big", "coins_count", "lightning", "jackpot"];
   addEventListener("pointerdown", () => SAMPLES.forEach(load), { once: true, capture: true });
   const synth = { ...S };
   S.chip = () => play("chip", { vol: 0.8 }) || synth.chip();
@@ -93,12 +93,13 @@
   S.win = (big) => play(big ? "win_medium" : "win_small", { vol: big ? 0.8 : 0.7 }) || synth.win(big);
   S.bigWin = () => { S.musicDuck(true); setTimeout(() => S.musicDuck(false), 5200); return play("win_big", { vol: 0.85 }) || synth.win(true); };
   S.jackpot = () => { S.musicDuck(true); setTimeout(() => S.musicDuck(false), 5500); return play("jackpot", { vol: 0.9 }) || synth.win(true); };
-  S.coins = (sec) => play("coins_count", { vol: 0.5, dur: sec || 1.5 });
+  S.coins = (sec) => play("coins_count", { vol: 0.35, dur: Math.max(0.6, sec || 1.5) });
   S.zap = () => play("lightning", { vol: 0.7, dur: 2 }) || synth.zap();
   S.thunder = () => play("lightning", { vol: 0.85 }) || synth.thunder();
   S.lose = () => play("lose", { vol: 0.6, dur: 1.6 }) || synth.lose();
   S.roll = (sec) => play("ball_roll", { vol: 0.7, dur: sec }) || synth.roll(sec);
-  S.ballDrop = () => play("ball_drop", { vol: 0.8, dur: 2.2 }) || synth.pocket();
+  S.ballDrop = () => play("ball_drop", { vol: 0.85, offset: 0.45, dur: 2.6 });   // trimmed so the first fret hit is at 0 s
+  S.hasSample = (n) => !!BUF[n];
   S.gong = () => play("no_more_bets", { vol: 0.7, dur: 2.5 }) || synth.drop();
   S.notify = () => play("notify", { vol: 0.6 });
   S.orbLock = () => play("orb_lock", { vol: 0.8, dur: 1.8 }) || synth.zap();
