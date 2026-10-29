@@ -242,3 +242,31 @@ body.lbfull #lobbyView .lb li .av{width:40px;height:40px}
 @media (max-width:380px){#lobbyView .lx-me .avatar{width:38px;height:38px}#lobbyView .lx-bal{padding:4px 10px 4px 6px;font-size:14px}#lobbyView .lx-bal img{width:20px;height:20px}#lobbyView .lx-logo img{max-width:28vw;height:22px!important}}
 #lobbyView .notice{overflow:hidden}
 @media (max-height:700px){#lobbyView .notice{font-size:12px;line-height:1.4;padding-top:10px;padding-bottom:10px}#lobbyView .notice b{font-size:20px;margin-bottom:2px}#lobbyView .notice b::after{margin-top:4px}}
+/* ===== lobby pack (approved art) ===== */
+body:has(#lobbyView:not([hidden])){background-image:url(img/lobby2/bg_hall_mobile.webp)!important}
+@media (min-width:800px){body:has(#lobbyView:not([hidden])){background-image:url(img/lobby2/bg_hall_desktop.webp)!important}}
+body:has(#lobbyView:not([hidden]))::before{background:linear-gradient(180deg,rgba(11,8,6,.25),rgba(11,8,6,.45) 45%,rgba(11,8,6,.7))!important}
+#lobbyView .gfr::after{inset:-2px;border:22px solid transparent;border-image:url(img/lobby2/frame_gold.png) 62 / 22px stretch}
+#lobbyView .notice.gfr::after,#lobbyView .lb.gfr::after,#lobbyView .lx-jobs.gfr::after{border-image:url(img/lobby2/frame_gold_wide.png) 70 120 / 22px 30px stretch}
+#lobbyView .notice{background:linear-gradient(to left,rgba(14,10,7,.0) 0,rgba(14,10,7,0) 40%,rgba(14,10,7,.25) 100%),url(img/lobby2/banner_welcome.webp) left center/cover no-repeat,#140e0a!important}
+#lobbyView .cat[data-c="bj"]{--art:url(../img/lobby2/card_blackjack.webp)}
+#lobbyView .cat[data-c="rl"]{--art:url(../img/lobby2/card_roulette.webp)}
+#lobbyView .cat[data-c="sl"]{--art:url(../img/lobby2/card_slots.webp)}
+#lobbyView .cat[data-c="poker"]{--art:url(../img/lobby2/card_poker.webp)}
+#lobbyView .cat{background-size:cover!important;background-position:center 35%!important}
+#lobbyView .lx-jobs{background:linear-gradient(to left,rgba(14,10,7,.55) 0,rgba(14,10,7,.2) 60%,rgba(14,10,7,0) 100%),url(img/lobby2/card_jobs_wide.webp) left center/cover no-repeat,#140e0a!important}
+#lobbyView .lx-nav i{display:block;width:26px;height:26px;background:center/contain no-repeat;font-size:0;filter:none;opacity:.75}
+#lobbyView .lx-nav .on i{opacity:1;filter:drop-shadow(0 0 6px rgba(241,214,154,.7))}
+#lobbyView .lx-nav [data-nav=home] i{background-image:url(img/lobby2/ic_home.png)}
+#lobbyView .lx-nav [data-nav=games] i{background-image:url(img/lobby2/ic_games.png)}
+#lobbyView .lx-nav [data-nav=ch] i{background-image:url(img/lobby2/ic_trophy.png)}
+#lobbyView .lx-nav [data-nav=jobs] i{background-image:url(img/lobby2/ic_jobs.png)}
+#lobbyView .lx-nav [data-nav=more] i{background-image:url(img/lobby2/ic_more.png)}
+#lobbyView .lx-nav [data-nav=lb] i{background-image:url(img/lobby2/ic_coins.png)}
+#lobbyView .lx-bal img{content:url(img/lobby2/ic_coins.png);width:24px;height:24px}
+#lobbyView .gfr::after{inset:0!important;border-width:16px!important;border-image:url(img/lobby2/frame_gold.png) 40 / 16px stretch!important}
+#lobbyView .notice.gfr::after,#lobbyView .lb.gfr::after,#lobbyView .lx-jobs.gfr::after{border-image:url(img/lobby2/frame_gold_wide.png) 40 60 / 16px 22px stretch!important}
+#lobbyView .notice{background:linear-gradient(to left,rgba(10,7,5,.92) 0,rgba(10,7,5,.75) 38%,rgba(10,7,5,0) 62%),url(img/lobby2/banner_welcome.webp) left center/cover no-repeat,#140e0a!important}
+#lobbyView .lx-jobs{background:linear-gradient(to left,rgba(10,7,5,.9) 0,rgba(10,7,5,.6) 45%,rgba(10,7,5,0) 75%),url(img/lobby2/card_jobs_wide.webp) left center/cover no-repeat,#140e0a!important}
+#lobbyView .lb{background:linear-gradient(180deg,rgba(18,12,8,.92),rgba(10,7,5,.95))!important;padding:12px 18px 10px!important}
+#lobbyView .lb h2{color:#F1D69A}
