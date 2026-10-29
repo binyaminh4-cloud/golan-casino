@@ -104,3 +104,5 @@ async function loadCharacters() {
   await loadSettings(); loadMembers(); loadInvites(); loadGrantList(); loadCharacters();
   GC_LOADER.done();
 })();
+
+$("clearChat").onclick = async () => { if (!confirm("למחוק את כל הודעות הצ׳אט לכולם?")) return; const { error } = await db.rpc("admin_clear_chat"); alert(error ? "שגיאה: " + error.message : "הצ׳אט נמחק ✔"); };
