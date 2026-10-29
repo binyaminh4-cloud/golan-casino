@@ -366,3 +366,27 @@ body.gpage #lobbyView .promo{display:none!important}
 body:not(.gpage) #lobbyView .lb li{flex-basis:76px!important}
 body:not(.gpage) #lobbyView .lb li .av{width:56px!important;height:56px!important}
 body:not(.gpage) #lobbyView .lb li .nm{font-size:12px!important}
+/* ===== pack 2: vertical posters, new logo, chat icon, avatar rings, new card art, tab icons ===== */
+body.gpage #lobbyView .games .game[data-poster]{background:linear-gradient(180deg,rgba(8,6,4,0) 45%,rgba(8,6,4,.92) 80%),var(--poster) center top/cover no-repeat!important}
+#lobbyView .game[data-poster="poker"]{--poster:url(../img/lobby2/poster_poker.webp)}#lobbyView .game[data-poster="blackjack"]{--poster:url(../img/lobby2/poster_blackjack.webp)}
+#lobbyView .game[data-poster="bj_together"]{--poster:url(../img/lobby2/poster_bj_together.webp)}#lobbyView .game[data-poster="bj_fisher"]{--poster:url(../img/lobby2/poster_bj_fisher.webp)}
+#lobbyView .game[data-poster="fisher90"]{--poster:url(../img/lobby2/poster_fisher90.webp)}#lobbyView .game[data-poster="protein"]{--poster:url(../img/lobby2/poster_protein.webp)}
+#lobbyView .game[data-poster="pachinko"]{--poster:url(../img/lobby2/poster_pachinko.webp)}#lobbyView .game[data-poster="kinneret"]{--poster:url(../img/lobby2/poster_kinneret.webp)}
+#lobbyView .game[data-poster="chicken"]{--poster:url(../img/lobby2/poster_chicken.webp)}#lobbyView .game[data-poster="dragons"]{--poster:url(../img/lobby2/poster_dragons.webp)}
+#lobbyView .game[data-poster="wildwest"]{--poster:url(../img/lobby2/poster_wildwest.webp)}#lobbyView .game[data-poster="fishing"]{--poster:url(../img/lobby2/poster_fishing.webp)}
+#lobbyView .game[data-poster="roulette_fish"]{--poster:url(../img/lobby2/poster_roulette_fish.webp)}#lobbyView .game[data-poster="roulette"]{--poster:url(../img/lobby2/poster_roulette.webp)}
+#lobbyView .game[data-poster="roulette_lightning"]{--poster:url(../img/lobby2/poster_roulette_lightning.webp)}#lobbyView .game[data-poster="roulette_xxx"]{--poster:url(../img/lobby2/poster_roulette_xxx.webp)}
+#lobbyView .game[data-poster="fortune"]{--poster:url(../img/lobby2/poster_fortune.webp)}#lobbyView .game[data-poster="slots"]{--poster:url(../img/lobby2/poster_slots.webp)}
+#lobbyView .game[data-poster="jobs"]{--poster:url(../img/lobby2/poster_jobs.webp)}
+body.gpage #lobbyView .games .game.soon{filter:none!important}
+body.gpage #lobbyView .games .game.soon::before{content:"";position:absolute;inset:0;background:rgba(5,3,2,.35);border-radius:16px;pointer-events:none}
+#lobbyView .lx-logo img{content:url(img/lobby2/logo_golan.png)!important;height:40px!important;max-width:30vw!important}
+.gc-chat-btn.lob{font-size:0!important;background:url(img/lobby2/ic_chat.png) center/26px no-repeat!important}
+.gc-chat-btn.lob>*:not(.bdg){display:none!important}
+#lobbyView .lb li .av{border:0!important;background-clip:padding-box;position:relative;overflow:visible}
+#lobbyView .lb li .av::after{content:"";position:absolute;inset:-5px;background:url(img/lobby2/avatar_frame.png) center/contain no-repeat;pointer-events:none}
+#lobbyView .lb li .av img{border-radius:50%}
+#lobbyView .lx-me .avatar{border:0!important;position:relative;overflow:visible}#lobbyView .lx-me .avatar::after{content:"";position:absolute;inset:-4px;background:url(img/lobby2/avatar_frame.png) center/contain no-repeat}
+#lobbyView .cat[data-c="bj"]{--art:url(../img/lobby2/card_blackjack_v2.webp)}#lobbyView .cat[data-c="sl"]{--art:url(../img/lobby2/card_slots_v2.webp)}
+#lobbyView .gtabs button{display:flex;align-items:center;gap:6px}#lobbyView .gtabs img{width:20px;height:20px}
+#lobbyView .gtabs button.on img{filter:brightness(.3)}

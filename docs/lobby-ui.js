@@ -28,7 +28,7 @@
   const build = () => {
     const soon = [...document.querySelectorAll('#gamesBox .game[data-soon], #gamesBox .game.soon')];
     const list = soon.length ? soon : [...document.querySelectorAll("#gamesBox .game")].slice(0, 6);
-    host.innerHTML = list.map((g, i) => { const art = getComputedStyle(g).getPropertyValue("--art") || "", t = g.querySelector("h3")?.textContent || "", p = g.querySelector("p")?.textContent || "";
+    host.innerHTML = list.map((g, i) => { const art = getComputedStyle(g).getPropertyValue("--poster") || getComputedStyle(g).getPropertyValue("--art") || "", t = g.querySelector("h3")?.textContent || "", p = g.querySelector("p")?.textContent || "";
       return `<button type="button" class="sl${i ? "" : " on"}" data-c="${g.dataset.cat}" style="background-image:linear-gradient(to left,rgba(10,7,5,.92),rgba(10,7,5,.55) 45%,rgba(10,7,5,0) 70%),${art}"><span><em>${soon.length ? "בקרוב 🔒" : "חדש"}</em><b>${t}</b><small>${p}</small></span></button>`; }).join("");
     dots.innerHTML = list.map((_, i) => `<i class="${i ? "" : "on"}"></i>`).join("");
     host.onclick = (e) => { const b = e.target.closest(".sl"); if (b && window.GC_SHOWCAT) GC_SHOWCAT(b.dataset.c); };
