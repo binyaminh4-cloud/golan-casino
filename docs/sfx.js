@@ -195,7 +195,11 @@ window.GC_BI_CSS = function () {
 window.GC_BONUS_INTRO = function (title, lines, img, btn) {
   GC_BI_CSS();
   return new Promise((done) => {
-    const o = document.createElement("div"); o.className = "gc-bi";
+    const o = document.createElement("div"); o.className = "gc-bi gc-buy";
+    if (!document.getElementById("gcBuyCss")) { const c = document.createElement("style"); c.id = "gcBuyCss";
+      c.textContent = `.gc-bi.gc-buy .box{width:min(560px,92vw);max-height:none;overflow:visible;padding:14px 18px;background:radial-gradient(ellipse at 50% 0%,#3a2a10,#120c08)!important}.gc-buy h2{font-size:clamp(18px,4.5vmin,28px);margin-bottom:6px}
+.gc-buy ul{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}.gc-buy li{flex:1 1 160px;background:rgba(255,255,255,.07)!important;border:1px solid #80602E;border-radius:12px!important;font-size:13px!important;padding:8px!important;text-align:center!important}.gc-buy li:hover{background:rgba(255,226,122,.15)}
+.gc-buy button{padding:8px 14px!important;font-size:15px!important}`; document.head.appendChild(c); }
     const e = (s) => String(s).replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[x]));
     o.innerHTML = `<div class="box">${img ? `<img src="${e(img)}" alt="">` : ""}<h2>${e(title)}</h2><ul>${lines.map((l) => `<li>${e(l)}</li>`).join("")}</ul><button type="button">${e(btn || "יאללה, לבונוס!")}</button></div>`;
     o.querySelector("button").onclick = () => { o.remove(); done(); };
@@ -223,7 +227,11 @@ window.GC_BONUS_INTRO = function (title, lines, img, btn) {
 window.GC_BUYMENU = function (opts, stake, fmt) {
   GC_BI_CSS();
   return new Promise((done) => {
-    const o = document.createElement("div"); o.className = "gc-bi";
+    const o = document.createElement("div"); o.className = "gc-bi gc-buy";
+    if (!document.getElementById("gcBuyCss")) { const c = document.createElement("style"); c.id = "gcBuyCss";
+      c.textContent = `.gc-bi.gc-buy .box{width:min(560px,92vw);max-height:none;overflow:visible;padding:14px 18px;background:radial-gradient(ellipse at 50% 0%,#3a2a10,#120c08)!important}.gc-buy h2{font-size:clamp(18px,4.5vmin,28px);margin-bottom:6px}
+.gc-buy ul{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}.gc-buy li{flex:1 1 160px;background:rgba(255,255,255,.07)!important;border:1px solid #80602E;border-radius:12px!important;font-size:13px!important;padding:8px!important;text-align:center!important}.gc-buy li:hover{background:rgba(255,226,122,.15)}
+.gc-buy button{padding:8px 14px!important;font-size:15px!important}`; document.head.appendChild(c); }
     const e = (s) => String(s).replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[x]));
     o.innerHTML = `<div class="box"><h2>🛒 קניית בונוס</h2><ul>${opts.map((p, i) => `<li style="cursor:pointer;display:grid;gap:2px" data-i="${i}"><b style="color:#ffe27a;font-size:17px">${e(p.label)} · ${fmt(stake * p.price)}</b><span>${e(p.desc)}</span><small style="color:#B9AA94">${p.price}× מההימור (${fmt(stake)})</small></li>`).join("")}</ul><button type="button" class="no" style="background:#2a1c10;color:#F1D69A;border:1px solid #C5A05A">ביטול</button></div>`;
     let chosen = null;

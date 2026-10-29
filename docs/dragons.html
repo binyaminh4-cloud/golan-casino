@@ -28,6 +28,7 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(14px) bright
 .cell{position:relative;display:grid;place-items:center;overflow:hidden}
 .cell img{width:92%;height:92%;object-fit:contain;filter:drop-shadow(0 4px 6px #000a);transition:transform .15s}
 .cell .ov{position:absolute;inset:0;display:grid;place-items:center;font:900 46px Inter;color:#4a1a00;text-shadow:0 0 8px #fff6b0,0 0 2px #fff;pointer-events:none}
+.cell .gl{display:flex;align-items:center;justify-content:center;height:var(--h);max-width:82%;gap:1px;filter:drop-shadow(0 2px 2px #0008)}.cell .gl img{height:100%;width:auto;min-width:0;object-fit:contain;filter:none}.cell .gl .dot{width:7px;height:7px;border-radius:50%;background:#c8962c;align-self:flex-end;margin-bottom:6%}
 .cell .ov.jpL{font-size:30px;color:#fff;text-shadow:0 2px 0 #7a0000,0 0 10px #ff4040}
 .col.spin .cell img{animation:roll .09s linear infinite;filter:blur(3px) brightness(.9)}@keyframes roll{from{transform:translateY(-40%)}to{transform:translateY(40%)}}
 .col.stop{animation:bounce .22s ease-out}@keyframes bounce{40%{transform:translateY(10px)}}
@@ -43,8 +44,8 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(14px) bright
 .bb:active{transform:scale(.96)}.bb:disabled{opacity:.45;cursor:default}
 .bb img{width:48px;height:48px}
 #bMenu{left:18px;width:86px}#bInfo{left:118px;width:68px}#bSound{left:197px;width:66px}
-.box{top:906px;height:80px;display:grid;place-content:center;text-align:center;line-height:1.05}
-.box small{font:900 18px Inter;color:#ffd75e;letter-spacing:1px}.box b{font:900 30px Inter;color:#fff}
+#stage .box{top:906px;height:80px;display:grid;place-content:center;text-align:center;line-height:1.05}
+#stage .box small{font:900 18px Inter;color:#ffd75e;letter-spacing:1px}.box b{font:900 30px Inter;color:#fff}
 #bal{left:272px;width:218px}#betBox{left:560px;width:104px}#winBox{left:733px;width:304px}
 #bMinus{left:510px;top:910px;width:48px;height:48px;border-radius:10px}#bPlus{left:666px;top:910px;width:48px;height:48px;border-radius:10px}
 #bMax{left:1052px;width:130px;font-size:24px;line-height:1}
@@ -99,7 +100,7 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(14px) bright
   <p>כדור יכול להיות סכום או ג׳קפוט: MINI, MINOR, MAJOR. ממלאים את כל 15 המשבצות? <b>GRAND</b> פי 1,000.</p>
   <button id="go">כניסה לארמון 🐉</button><button class="back" onclick="location.href='./'">חזרה ללובי</button>
 </div></div></div>
-<script src="sfx.js?v=16"></script>
+<script src="sfx.js?v=17"></script>
 <script src="guide.js?v=35"></script>
 <script src="vendor/dg_engine.js?v=1"></script>
 <script>
@@ -123,8 +124,13 @@ const cells = []; for (let c = 0; c < 5; c++) { const col = document.createEleme
   $("reels").appendChild(col); }
 const cols = [...$("reels").children];
 function orbLabel(v) { return typeof v === "number" ? fmt(v * bet) : v; }
+// the orb's amount is built from the gold glyph pack (0–9 K M B T), all at one height, centred; long amounts shrink together
+const GL = "0123456789KMBT"; GL.split("").forEach((ch) => { const i = new Image(); i.src = `img/dg/glyph/${ch}.webp`; });
+function orbGlyphs(v) { const n = Math.floor(v * bet), t = n >= 1e12 ? +(n / 1e12).toFixed(1) + "T" : n >= 1e9 ? +(n / 1e9).toFixed(1) + "B" : n >= 1e6 ? +(n / 1e6).toFixed(1) + "M" : n >= 1e4 ? +(n / 1e3).toFixed(1) + "K" : String(n);
+  const chars = t.replace(".", "·").split(""), h = Math.min(30, 120 / Math.max(3, chars.length));
+  return `<span class="gl" style="--h:${h}%">${chars.map((c) => c === "·" ? `<i class="dot"></i>` : `<img src="img/dg/glyph/${c}.webp" alt="${c}">`).join("")}</span>`; }
 function setCell(c, r, sym, orb) { const d = cells[c][r]; d.firstChild.src = "img/dg/" + IMG[sym]; const ov = d.lastChild;
-  if (sym === "orb" && orb != null) { ov.textContent = orbLabel(orb); ov.className = "ov" + (typeof orb === "number" ? "" : " jpL"); } else { ov.textContent = ""; ov.className = "ov"; } }
+  if (sym === "orb" && orb != null) { if (typeof orb === "number") { ov.innerHTML = orbGlyphs(orb); ov.className = "ov"; } else { ov.textContent = orb; ov.className = "ov jpL"; } } else { ov.textContent = ""; ov.className = "ov"; } }
 function paint(g, o) { for (let c = 0; c < 5; c++) for (let r = 0; r < 3; r++) setCell(c, r, g[c][r], o ? o[c][r] : null); }
 function jackpots() { $("jpG").lastChild.textContent = fmt(JP.GRAND * bet); $("jpM").lastChild.textContent = fmt(JP.MAJOR * bet); $("jpN").lastChild.textContent = fmt(JP.MINOR * bet); $("jpI").lastChild.textContent = fmt(JP.MINI * bet); }
 const S = (k, a) => { if (!sound) return; try { SFX[k](a); } catch (e) {} };
