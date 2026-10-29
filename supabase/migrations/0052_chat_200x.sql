@@ -22,7 +22,7 @@ end $$;
 create or replace function if_settle() returns void language plpgsql volatile as $$
 declare b record; v_pay bigint;
 begin
-  for b in select ib.id, ib.user_id, ib.bets, r as rr from if_bets ib join if_rounds r using (round_no)
+  for b in select ib.id, ib.user_id, ib.bets, ib.total, r as rr from if_bets ib join if_rounds r using (round_no)
            where not ib.settled and rl_live_now() >= r.start_at + 20 for update of ib skip locked loop
     v_pay := if_gross(b.bets, b.rr);
     if v_pay > 0 then perform apply_tx(b.user_id, 'ido_fishing', 'payout', v_pay, 'ifpay:' || b.id); end if;
