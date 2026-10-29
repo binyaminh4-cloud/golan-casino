@@ -722,6 +722,12 @@ function rlStats() {
   o.querySelectorAll(".seg button").forEach((b) => b.onclick = () => show(+b.dataset.n));
   db.rpc("rl_live_recent", { p_mode: MODE, p_limit: 500 }).then(({ data }) => { all = data || []; show(500); });
 }
+// auto-play: repeats your last bet for 10/25/50/100/∞ rounds (live tables: once per round, sent by itself)
+{ const h = document.createElement("span"); $("spinBtn").before(h);
+  GC_AUTO({ mount: h, spin: $("spinBtn"),
+    busy: () => LIVE ? (!liveSt || !liveSt.open || busy || sent.size > 0 || srvNow() > liveSt.close - 3000) : busy,
+    err: () => (!lastBets && !bets.size) ? (err("קודם שים הימור אחד, ואז האוטומטי יחזור עליו."), "x") : "",
+    act: () => { if (!bets.size && lastBets) $("rebetBtn").click(); if (!LIVE) setTimeout(() => $("spinBtn").click(), 150); } }); }
 if (LIVE) { $("statsBtn").hidden = false; $("statsBtn").onclick = rlStats; }
 
 // betting focus: tapping a chip or the layout spreads the table over the whole room; 3 s without a tap shrinks it back

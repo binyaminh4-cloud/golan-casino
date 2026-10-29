@@ -46,7 +46,7 @@ function wheelScene(rot, t, B) {
     const m = bm;
     if (m) {   // boost badge: lands with a pop during the 3 s reveal, then keeps glowing
       const age = Math.max(0, t - 10 - 0.25 - (i % 11) * 0.2), pop = age < .35 ? 1.8 - age * 2.3 : 1 + .06 * Math.sin(t * 6);
-      if (age > 0) { ctx.translate(0, -70); ctx.scale(pop, pop); ctx.shadowColor = "#ffcf40"; ctx.shadowBlur = 30; ctx.fillStyle = "#ffe27a"; ctx.beginPath(); ctx.arc(0, 0, 34, 0, Math.PI * 2); ctx.fill();
+      if (age > 0) { ctx.translate(0, 95); ctx.scale(pop, pop); ctx.shadowColor = "#ffcf40"; ctx.shadowBlur = 30; ctx.fillStyle = "#ffe27a"; ctx.beginPath(); ctx.arc(0, 0, 34, 0, Math.PI * 2); ctx.fill();
         ctx.shadowBlur = 0; ctx.lineWidth = 4; ctx.strokeStyle = "#8a5a00"; ctx.stroke(); ctx.fillStyle = "#3a2600"; ctx.font = "900 30px Inter, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("×" + m, 0, 2); }
     }
     ctx.restore();

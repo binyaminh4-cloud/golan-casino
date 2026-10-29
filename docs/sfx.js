@@ -268,7 +268,7 @@ window.GC_LADDER = function (min, bal) { const max = GC_MAXBET(bal), out = []; l
   if (out[out.length - 1] !== max) out.push(max); return out; };
 // Auto-spin: one small 🔁 button → 10 / 25 / 50 / 100 / ∞ spins. It presses the machine's own spin button, waits for each
 // spin (and any bonus or popup) to finish, and stops on an error, when out of money, or when the player taps it again.
-window.GC_AUTO = function ({ mount, spin, busy, err, before }) {
+window.GC_AUTO = function ({ mount, spin, busy, err, before, act }) {
   if (!document.getElementById("gcAutoCss")) { const c = document.createElement("style"); c.id = "gcAutoCss";
     c.textContent = `.gc-auto{position:relative;flex:none}.gc-auto>button{min-width:44px;height:36px;border-radius:99px;border:1px solid #C5A05A;background:rgba(23,18,15,.9);color:#F1D69A;font:800 14px Heebo,sans-serif;cursor:pointer;padding:0 10px;white-space:nowrap}
 .gc-auto>button.on{background:linear-gradient(180deg,#ffb03f,#a85a00);color:#1b0f06;border-color:#ffd970}
@@ -287,7 +287,7 @@ window.GC_AUTO = function ({ mount, spin, busy, err, before }) {
     while (running && left > 0) {
       while (running && isBusy()) await wait(200); if (!running) break;
       if (err && err()) break; if (before) before();
-      spin.click(); left--; draw();
+      if (act) act(); else spin.click(); left--; draw();
       for (let i = 0; i < 15 && !isBusy(); i++) await wait(100);   // the spin starts
       while (running && isBusy()) await wait(200);               // …and finishes (bonuses included)
       await wait(450); if (err && err()) break;
@@ -297,5 +297,8 @@ window.GC_AUTO = function ({ mount, spin, busy, err, before }) {
   b.onclick = (e) => { e.stopPropagation(); if (running) { running = false; draw(); return; } m.hidden = !m.hidden; };
   m.onclick = (e) => { const x = e.target.closest("button"); if (!x) return; m.hidden = true; left = x.dataset.n === "∞" ? Infinity : +x.dataset.n; loop(); };
   document.addEventListener("pointerdown", (e) => { if (!w.contains(e.target)) m.hidden = true; });
-  return { stop: () => { running = false; draw(); }, get running() { return running; } };
+  // leaving the game (another tab, home screen, locked phone, another page) always stops auto-play
+  const halt = () => { if (running) { running = false; left = 0; draw(); } };
+  document.addEventListener("visibilitychange", () => { if (document.hidden) halt(); }); addEventListener("pagehide", halt);
+  return { stop: halt, get running() { return running; } };
 };
