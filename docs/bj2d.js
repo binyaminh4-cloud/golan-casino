@@ -117,12 +117,15 @@ function setMyBalance(v) { if (!CH) { myBal = +v || 0; drawRack(); GC_LIMIT(Obje
 // ---------- round rendering ----------
 let st = null, busy = false, dealerEls = [], handEls = [], totals = [], ring = null;
 function clearRound() {
-  layer.innerHTML = ""; dealerEls = []; handEls = []; totals = []; ring = null; st = null;
+  layer.innerHTML = ""; dLab = null; dealerEls = []; handEls = []; totals = []; ring = null; st = null;
   $("seat0")?.classList.remove("jump", "sad"); pose("idle");
 }
 function label(txt, x, y, cls = "") { const t = el("total " + cls, x, y, esc(txt)); return t; }
 function placeActs(h) { if (PHONE || $("acts").classList.contains("zoombar")) return; const s = spot(h); const a = $("acts"); a.style.left = s.x + "px"; a.style.top = (s.y + 62) + "px"; }
 
+let dLab = null;
+function dTot(cards) { let t = 0, a = 0; for (const c of cards) { if (!c || c === "??") continue; const r = c.slice(0, -1); if (r === "A") { t += 11; a++; } else t += /[JQKT]|10/.test(r) ? 10 : +r; } while (t > 21 && a) { t -= 10; a--; } return t; }
+function dLabel(cards) { if (!dLab && totals.length) totals.pop().remove(); if (dLab) dLab.remove(); dLab = label(dTot(cards), 905 + Math.max(0, cards.length - 2) * 60, 384); }
 async function render(next) {
   busy = true; lockActs();
   if (LIT && next.strikes && JSON.stringify(next.strikes) !== JSON.stringify(STRIKES)) { STRIKES = next.strikes; drawBoost(); }
@@ -154,9 +157,10 @@ async function render(next) {
   }
   // dealer reveals the hole card, then draws
   if (dealerEls[1] && !dealerEls[1].dataset.card && next.dealer[1] !== "??") {
-    pose("flip"); await sleep(260); faceUp(dealerEls[1], next.dealer[1]); await sleep(420); pose("idle");
+    pose("flip"); await sleep(260); faceUp(dealerEls[1], next.dealer[1]); dLabel(next.dealer.slice(0, 2)); await sleep(420); pose("idle");
   }
-  for (let c = dealerEls.length; c < next.dealer.length; c++) { dealerEls.push(await flyCard(next.dealer[c], dealerPos(c))); await sleep(450); }
+  for (let c = dealerEls.length; c < next.dealer.length; c++) { dealerEls.push(await flyCard(next.dealer[c], dealerPos(c))); dLabel(next.dealer.slice(0, c + 1)); await sleep(450); }
+  if (dLab) { dLab.remove(); dLab = null; }
   // totals
   totals.forEach((t) => t.remove()); totals = [];
   const OUT = { win: "ניצחון", blackjack: "בלאק ג׳ק!", push: "תיקו", lose: "הפסד", bust: "נשרף", surrender: "ויתור" };
