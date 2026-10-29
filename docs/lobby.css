@@ -137,11 +137,11 @@ body:has(#lobbyView:not([hidden])){background:#0b0806 url(img/brand/login_bg_mob
 #lobbyView .cat small{position:relative;z-index:2;color:#e7d9bd;text-shadow:0 1px 4px #000}
 #lobbyView .cat h3::after{content:"›";position:absolute;left:calc(-1 * (100cqw));display:none}
 #lobbyView .cat .go{position:absolute;left:14px;bottom:14px;z-index:2;width:38px;height:38px;border-radius:50%;background:#123b2b;border:1.5px solid #C5A05A;color:#fff;display:grid;place-items:center;font:700 22px/1 Heebo;box-shadow:0 3px 8px #0009}
-#lobbyView .cat[data-c="bj"]{--art:url(../img/tiles/tile_blackjack.webp)}
-#lobbyView .cat[data-c="rl"]{--art:url(../img/tiles/tile_roulette.webp)}
-#lobbyView .cat[data-c="sl"]{--art:url(../img/tiles/tile_slots.webp)}
-#lobbyView .cat[data-c="poker"]{--art:url(../img/tiles/tile_poker.webp)}
-#lobbyView .cat[data-c="jobs"]{--art:url(../img/tiles/tile_jobs.webp)}
+#lobbyView .cat[data-c="bj"]{--art:url(img/tiles/tile_blackjack.webp)}
+#lobbyView .cat[data-c="rl"]{--art:url(img/tiles/tile_roulette.webp)}
+#lobbyView .cat[data-c="sl"]{--art:url(img/tiles/tile_slots.webp)}
+#lobbyView .cat[data-c="poker"]{--art:url(img/tiles/tile_poker.webp)}
+#lobbyView .cat[data-c="jobs"]{--art:url(img/tiles/tile_jobs.webp)}
 #lobbyView .cat.soon{filter:saturate(.55) brightness(.8)}
 /* wide cards: wallet, leaderboard (online dots), challenges */
 #lobbyView .wallet,#lobbyView .lb,#lobbyView .chbanner{background:linear-gradient(180deg,rgba(26,18,12,.92),rgba(14,10,7,.94))!important;padding:16px 18px}
@@ -249,10 +249,10 @@ body:has(#lobbyView:not([hidden]))::before{background:linear-gradient(180deg,rgb
 #lobbyView .gfr::after{inset:-2px;border:22px solid transparent;border-image:url(img/lobby2/frame_gold.png) 62 / 22px stretch}
 #lobbyView .notice.gfr::after,#lobbyView .lb.gfr::after,#lobbyView .lx-jobs.gfr::after{border-image:url(img/lobby2/frame_gold_wide.png) 70 120 / 22px 30px stretch}
 #lobbyView .notice{background:linear-gradient(to left,rgba(14,10,7,.0) 0,rgba(14,10,7,0) 40%,rgba(14,10,7,.25) 100%),url(img/lobby2/banner_welcome.webp) left center/cover no-repeat,#140e0a!important}
-#lobbyView .cat[data-c="bj"]{--art:url(../img/lobby2/card_blackjack.webp)}
-#lobbyView .cat[data-c="rl"]{--art:url(../img/lobby2/card_roulette.webp)}
-#lobbyView .cat[data-c="sl"]{--art:url(../img/lobby2/card_slots.webp)}
-#lobbyView .cat[data-c="poker"]{--art:url(../img/lobby2/card_poker.webp)}
+#lobbyView .cat[data-c="bj"]{--art:url(img/lobby2/card_blackjack.webp)}
+#lobbyView .cat[data-c="rl"]{--art:url(img/lobby2/card_roulette.webp)}
+#lobbyView .cat[data-c="sl"]{--art:url(img/lobby2/card_slots.webp)}
+#lobbyView .cat[data-c="poker"]{--art:url(img/lobby2/card_poker.webp)}
 #lobbyView .cat{background-size:cover!important;background-position:center 35%!important}
 #lobbyView .lx-jobs{background:linear-gradient(to left,rgba(14,10,7,.55) 0,rgba(14,10,7,.2) 60%,rgba(14,10,7,0) 100%),url(img/lobby2/card_jobs_wide.webp) left center/cover no-repeat,#140e0a!important}
 #lobbyView .lx-nav i{display:block;width:26px;height:26px;background:center/contain no-repeat;font-size:0;filter:none;opacity:.75}
@@ -368,16 +368,16 @@ body:not(.gpage) #lobbyView .lb li .av{width:56px!important;height:56px!importan
 body:not(.gpage) #lobbyView .lb li .nm{font-size:12px!important}
 /* ===== pack 2: vertical posters, new logo, chat icon, avatar rings, new card art, tab icons ===== */
 body.gpage #lobbyView .games .game[data-poster]{background:linear-gradient(180deg,rgba(8,6,4,0) 45%,rgba(8,6,4,.92) 80%),var(--poster) center top/cover no-repeat!important}
-#lobbyView .game[data-poster="poker"]{--poster:url(../img/lobby2/poster_poker.webp)}#lobbyView .game[data-poster="blackjack"]{--poster:url(../img/lobby2/poster_blackjack.webp)}
-#lobbyView .game[data-poster="bj_together"]{--poster:url(../img/lobby2/poster_bj_together.webp)}#lobbyView .game[data-poster="bj_fisher"]{--poster:url(../img/lobby2/poster_bj_fisher.webp)}
-#lobbyView .game[data-poster="fisher90"]{--poster:url(../img/lobby2/poster_fisher90.webp)}#lobbyView .game[data-poster="protein"]{--poster:url(../img/lobby2/poster_protein.webp)}
-#lobbyView .game[data-poster="pachinko"]{--poster:url(../img/lobby2/poster_pachinko.webp)}#lobbyView .game[data-poster="kinneret"]{--poster:url(../img/lobby2/poster_kinneret.webp)}
-#lobbyView .game[data-poster="chicken"]{--poster:url(../img/lobby2/poster_chicken.webp)}#lobbyView .game[data-poster="dragons"]{--poster:url(../img/lobby2/poster_dragons.webp)}
-#lobbyView .game[data-poster="wildwest"]{--poster:url(../img/lobby2/poster_wildwest.webp)}#lobbyView .game[data-poster="fishing"]{--poster:url(../img/lobby2/poster_fishing.webp)}
-#lobbyView .game[data-poster="roulette_fish"]{--poster:url(../img/lobby2/poster_roulette_fish.webp)}#lobbyView .game[data-poster="roulette"]{--poster:url(../img/lobby2/poster_roulette.webp)}
-#lobbyView .game[data-poster="roulette_lightning"]{--poster:url(../img/lobby2/poster_roulette_lightning.webp)}#lobbyView .game[data-poster="roulette_xxx"]{--poster:url(../img/lobby2/poster_roulette_xxx.webp)}
-#lobbyView .game[data-poster="fortune"]{--poster:url(../img/lobby2/poster_fortune.webp)}#lobbyView .game[data-poster="slots"]{--poster:url(../img/lobby2/poster_slots.webp)}
-#lobbyView .game[data-poster="jobs"]{--poster:url(../img/lobby2/poster_jobs.webp)}
+#lobbyView .game[data-poster="poker"]{--poster:url(img/lobby2/poster_poker.webp)}#lobbyView .game[data-poster="blackjack"]{--poster:url(img/lobby2/poster_blackjack.webp)}
+#lobbyView .game[data-poster="bj_together"]{--poster:url(img/lobby2/poster_bj_together.webp)}#lobbyView .game[data-poster="bj_fisher"]{--poster:url(img/lobby2/poster_bj_fisher.webp)}
+#lobbyView .game[data-poster="fisher90"]{--poster:url(img/lobby2/poster_fisher90.webp)}#lobbyView .game[data-poster="protein"]{--poster:url(img/lobby2/poster_protein.webp)}
+#lobbyView .game[data-poster="pachinko"]{--poster:url(img/lobby2/poster_pachinko.webp)}#lobbyView .game[data-poster="kinneret"]{--poster:url(img/lobby2/poster_kinneret.webp)}
+#lobbyView .game[data-poster="chicken"]{--poster:url(img/lobby2/poster_chicken.webp)}#lobbyView .game[data-poster="dragons"]{--poster:url(img/lobby2/poster_dragons.webp)}
+#lobbyView .game[data-poster="wildwest"]{--poster:url(img/lobby2/poster_wildwest.webp)}#lobbyView .game[data-poster="fishing"]{--poster:url(img/lobby2/poster_fishing.webp)}
+#lobbyView .game[data-poster="roulette_fish"]{--poster:url(img/lobby2/poster_roulette_fish.webp)}#lobbyView .game[data-poster="roulette"]{--poster:url(img/lobby2/poster_roulette.webp)}
+#lobbyView .game[data-poster="roulette_lightning"]{--poster:url(img/lobby2/poster_roulette_lightning.webp)}#lobbyView .game[data-poster="roulette_xxx"]{--poster:url(img/lobby2/poster_roulette_xxx.webp)}
+#lobbyView .game[data-poster="fortune"]{--poster:url(img/lobby2/poster_fortune.webp)}#lobbyView .game[data-poster="slots"]{--poster:url(img/lobby2/poster_slots.webp)}
+#lobbyView .game[data-poster="jobs"]{--poster:url(img/lobby2/poster_jobs.webp)}
 body.gpage #lobbyView .games .game.soon{filter:none!important}
 body.gpage #lobbyView .games .game.soon::before{content:"";position:absolute;inset:0;background:rgba(5,3,2,.35);border-radius:16px;pointer-events:none}
 #lobbyView .lx-logo img{content:url(img/lobby2/logo_golan.png)!important;height:40px!important;max-width:30vw!important}
@@ -387,7 +387,7 @@ body.gpage #lobbyView .games .game.soon::before{content:"";position:absolute;ins
 #lobbyView .lb li .av::after{content:"";position:absolute;inset:-5px;background:url(img/lobby2/avatar_frame.png) center/contain no-repeat;pointer-events:none}
 #lobbyView .lb li .av img{border-radius:50%}
 #lobbyView .lx-me .avatar{border:0!important;position:relative;overflow:visible}#lobbyView .lx-me .avatar::after{content:"";position:absolute;inset:-4px;background:url(img/lobby2/avatar_frame.png) center/contain no-repeat}
-#lobbyView .cat[data-c="bj"]{--art:url(../img/lobby2/card_blackjack_v2.webp)}#lobbyView .cat[data-c="sl"]{--art:url(../img/lobby2/card_slots_v2.webp)}
+#lobbyView .cat[data-c="bj"]{--art:url(img/lobby2/card_blackjack_v2.webp)}#lobbyView .cat[data-c="sl"]{--art:url(img/lobby2/card_slots_v2.webp)}
 #lobbyView .gtabs button{display:flex;align-items:center;gap:6px}#lobbyView .gtabs img{width:20px;height:20px}
 #lobbyView .gtabs button.on img{filter:brightness(.3)}
 #lobbyView .promo .slides{touch-action:pan-y}#lobbyView .promo .sl{text-decoration:none}#lobbyView div.sl{cursor:default!important}#lobbyView .promo .dots i{cursor:pointer;padding:0}
