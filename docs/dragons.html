@@ -28,10 +28,10 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(14px) bright
 .cell{position:relative;display:grid;place-items:center;overflow:hidden}
 .cell img{width:92%;height:92%;object-fit:contain;filter:drop-shadow(0 4px 6px #000a);transition:transform .15s}
 .cell .ov{position:absolute;inset:0;display:grid;place-items:center;font:900 46px Inter;color:#4a1a00;text-shadow:0 0 8px #fff6b0,0 0 2px #fff;pointer-events:none}
-.cell .gl{display:flex;align-items:center;justify-content:center;height:var(--h);max-width:82%;gap:1px;filter:drop-shadow(0 2px 2px #0008)}.cell .gl img{height:100%;width:auto;min-width:0;object-fit:contain;filter:none}.cell .gl .dot{width:7px;height:7px;border-radius:50%;background:#c8962c;align-self:flex-end;margin-bottom:6%}
+.cell .gl{display:flex;align-items:center;justify-content:center;height:var(--h);max-width:82%;gap:1px;filter:drop-shadow(0 2px 2px #0008)}.cell .gl img{height:100%;width:auto;min-width:0;object-fit:contain;filter:none}.cell .gl .dot{flex:none;width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe9a0,#c8962c 60%,#6b3a00);border:2px solid #4a1a00;align-self:flex-end;margin:0 3px 4%}
 .cell .ov.jpL{font-size:30px;color:#fff;text-shadow:0 2px 0 #7a0000,0 0 10px #ff4040}
-.col.spin .cell img{animation:roll .09s linear infinite;filter:blur(3px) brightness(.9)}@keyframes roll{from{transform:translateY(-40%)}to{transform:translateY(40%)}}
-.col.stop{animation:bounce .22s ease-out}@keyframes bounce{40%{transform:translateY(10px)}}
+.cell.spinc img{animation:roll .09s linear infinite;filter:blur(3px) brightness(.9)}@keyframes roll{from{transform:translateY(-40%)}to{transform:translateY(40%)}}
+.cell.stopc{animation:bounce .22s ease-out}@keyframes bounce{40%{transform:translateY(10px)}}
 .cell.win{background:radial-gradient(#ffd75e55,transparent 70%)}.cell.win img{animation:pul .45s ease-in-out 3 alternate}@keyframes pul{to{transform:scale(1.12)}}
 .cell.dim img{opacity:.25}.cell.dim{background:#0006}
 .cell.lock{background:radial-gradient(#ff9d1e55,transparent 72%)}.cell.new{animation:nl .5s ease-out}@keyframes nl{from{filter:brightness(2.5)}}
@@ -136,12 +136,15 @@ function jackpots() { $("jpG").lastChild.textContent = fmt(JP.GRAND * bet); $("j
 const S = (k, a) => { if (!sound) return; try { SFX[k](a); } catch (e) {} };
 // spin animation: every column rolls, then stops left to right with a small bounce
 async function spinTo(g, o, mask) {
-  cols.forEach((col, c) => { if (!mask || mask[c].some((x) => !x)) { col.classList.add("spin"); col.classList.remove("stop"); } });
-  const t = setInterval(() => { cols.forEach((col, c) => { if (col.classList.contains("spin")) for (let r = 0; r < 3; r++) if (!mask || !mask[c][r]) setCell(c, r, SYMS[Math.floor(Math.random() * SYMS.length)]); }); }, 90);
-  S("reelSpin", auto ? 1.2 : 1.6); await sleep(auto ? 450 : 700);
-  for (let c = 0; c < 5; c++) { if (!cols[c].classList.contains("spin")) continue; await sleep(auto ? 110 : 180);
-    cols[c].classList.remove("spin"); for (let r = 0; r < 3; r++) if (!mask || !mask[c][r]) setCell(c, r, g[c][r], o[c][r]);
-    void cols[c].offsetWidth; cols[c].classList.add("stop"); S("flip"); }
+  // in Hold & Win (mask) only the empty cells spin, showing fire orbs flying past; locked orbs never move
+  const free = (c, r) => !mask || !mask[c][r];
+  for (let c = 0; c < 5; c++) for (let r = 0; r < 3; r++) if (free(c, r)) { cells[c][r].classList.add("spinc"); cells[c][r].firstChild.style.visibility = ""; }
+  const pass = () => { if (!mask) return SYMS[Math.floor(Math.random() * SYMS.length)]; return Math.random() < .5 ? "orb" : "lotus"; };
+  const t = setInterval(() => { for (let c = 0; c < 5; c++) for (let r = 0; r < 3; r++) if (cells[c][r].classList.contains("spinc")) setCell(c, r, pass()); }, 90);
+  S("reelSpin", auto ? 1.2 : 1.6); await sleep(auto ? 450 : mask ? 900 : 700);
+  for (let c = 0; c < 5; c++) { if (![0, 1, 2].some((r) => free(c, r))) continue; await sleep(auto ? 110 : mask ? 260 : 180);
+    for (let r = 0; r < 3; r++) if (free(c, r)) { const d = cells[c][r]; d.classList.remove("spinc"); setCell(c, r, g[c][r], o[c][r]); d.classList.remove("stopc"); void d.offsetWidth; d.classList.add("stopc"); }
+    S("flip"); }
   clearInterval(t);
 }
 function toast(html, ms, big) { const t = document.createElement("div"); t.className = "toast" + (big ? " big" : ""); t.innerHTML = html; document.body.appendChild(t); setTimeout(() => t.remove(), ms); }
