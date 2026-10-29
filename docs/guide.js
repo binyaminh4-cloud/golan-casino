@@ -125,7 +125,7 @@
         b.innerHTML = (imgUrl ? `<img src="${imgUrl}" alt="">` : `<span class="q">?</span>`) + "איך משחקים";
         b.onclick = () => run(steps); mount.appendChild(b);
       }
-      let seen = false; try { seen = localStorage.getItem("gc_guide_" + game) === "1"; localStorage.setItem("gc_guide_" + game, "1"); } catch (e) {}
+      let seen = false; try { seen = localStorage.getItem("gc_guide2_" + game) === "1"; localStorage.setItem("gc_guide2_" + game, "1"); } catch (e) {}
       // first visit: Ido explains once — only when no other popup (game intro, entrance, sound menu, loader) is on screen
       if (auto && !seen) {
         const ready = () => !document.getElementById("gcLoad") && !document.querySelector(".soundask, .gc-sit, .gc-bi, .gc-bonus, .gi, #frSheet.on, #enter:not([hidden]), .sfx-menu:not([hidden]), #lxMenu:not([hidden])") && ![...document.querySelectorAll(".rotate-gate,.portrait-gate")].some((g) => getComputedStyle(g).display !== "none") && (game !== "lobby" || document.querySelector("#promoSlides > *")) && !(game !== "lobby" && matchMedia("(pointer: coarse) and (orientation: portrait)").matches);
