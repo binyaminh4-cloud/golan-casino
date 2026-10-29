@@ -11,7 +11,7 @@
     .portrait-gate::before{content:"";position:absolute;inset:0;background:rgba(11,9,8,.84)}.portrait-gate>*{position:relative}
     .pg-ico{font-size:56px;transform:rotate(-90deg);animation:pg 1.8s ease-in-out infinite}.pg-t{font:700 24px 'Frank Ruhl Libre',serif;color:#F1D69A}.pg-s{color:#B9AA94;max-width:320px}
     @keyframes pg{0%,20%{transform:rotate(-90deg)}50%,80%{transform:rotate(0)}100%{transform:rotate(-90deg)}}
-    @media (orientation: landscape) and (max-height:600px){.portrait-gate{display:grid}}`;
+    @media (orientation: landscape){.portrait-gate{display:grid}}`;
   document.head.appendChild(st);
   addEventListener("pointerdown", () => { try { if (screen.orientation && screen.orientation.lock && matchMedia("(display-mode: standalone)").matches) screen.orientation.lock("portrait").catch(() => {}); } catch (e) {} }, { once: true });
 })();
