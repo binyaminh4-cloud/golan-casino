@@ -396,3 +396,4 @@ body.gpage #lobbyView .games .game.soon::before{content:"";position:absolute;ins
 #lobbyView .lb li .av img,#lobbyView .lx-me .avatar img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:50% 0!important;transform:scale(2.4);transform-origin:50% 14%;border-radius:0!important}
 #lobbyView .lb li .av::after,#lobbyView .lx-me .avatar::after{display:none!important}
 #lobbyView .lb li .av,#lobbyView .lx-me .avatar{box-shadow:0 0 0 2px #C5A05A,0 0 0 4px rgba(197,160,90,.25)!important}
+body.gpage #lobbyView .games .game .suits,body.gpage #lobbyView .games .game:not(.soon) .tag{display:none!important}
