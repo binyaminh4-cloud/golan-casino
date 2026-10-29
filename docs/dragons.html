@@ -51,7 +51,8 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(14px) bright
 #bMax{left:1052px;width:130px;font-size:24px;line-height:1}
 #bSpin{left:1202px;top:862px;width:178px;height:150px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#3fd16a,#0b7a2c 70%);box-shadow:inset 0 -6px 10px #0006;font:900 28px Heebo;color:#fff;text-shadow:0 2px 0 #064}
 #bSpin.auto{background:radial-gradient(circle at 50% 40%,#ffb03f,#a85a00 70%)}
-#bAuto{left:1396px;width:122px;font-size:22px;line-height:1}#bAuto[aria-pressed="true"]{color:#3fd16a}
+#autoH{left:1396px;top:906px;width:122px;height:80px;display:grid;place-items:center}#autoH .gc-auto>button{width:118px;height:76px;font-size:34px;border-radius:18px;border:3px solid #c8962c;background:#120606}#autoH .gc-auto .m button{min-width:70px;height:60px;font-size:26px}
+#bAutoX{left:1396px;width:122px;font-size:22px;line-height:1}#bAuto[aria-pressed="true"]{color:#3fd16a}
 #err{left:0;right:0;top:868px;text-align:center;color:#ffb0b0;font:700 20px Heebo;pointer-events:none}
 #hwBar{left:126px;top:310px;width:1284px;height:548px;pointer-events:none}
 .toast{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);z-index:30;background:#3a0606f0;border:3px solid #ffd75e;border-radius:18px;padding:10px 26px;font:900 26px Heebo;color:#ffe9a0;text-align:center;pointer-events:none;animation:tp .25s ease-out;box-shadow:0 10px 40px #000c}
@@ -90,7 +91,7 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(14px) bright
   <div class="abs box" id="winBox"><small>זכייה</small><b id="winV">₪0</b></div>
   <button class="abs bb" id="bMax">הימור<br>מקסימלי</button>
   <button class="abs bb" id="bSpin">סובב</button>
-  <button class="abs bb" id="bAuto" aria-pressed="false">אוטו<br>מטי</button>
+  <span class="abs" id="autoH"></span>
   <div class="abs" id="err"></div>
 </div>
 <div id="enter" hidden><div class="card"><div class="txt">
@@ -100,7 +101,7 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(14px) bright
   <p>כדור יכול להיות סכום או ג׳קפוט: MINI, MINOR, MAJOR. ממלאים את כל 15 המשבצות? <b>GRAND</b> פי 1,000.</p>
   <button id="go">כניסה לארמון 🐉</button><button class="back" onclick="location.href='./'">חזרה ללובי</button>
 </div></div></div>
-<script src="sfx.js?v=17"></script>
+<script src="sfx.js?v=18"></script>
 <script src="guide.js?v=35"></script>
 <script src="vendor/dg_engine.js?v=1"></script>
 <script>
@@ -216,9 +217,7 @@ async function spinOnce() {
   lock(false); return !r.bonus;
 }
 $("bSpin").onclick = async () => { if (auto) { auto = false; setAuto(); return; } if (busy) return; await spinOnce(); };
-function setAuto() { $("bAuto").setAttribute("aria-pressed", auto); $("bSpin").classList.toggle("auto", auto); $("bSpin").textContent = auto ? "עצור" : "סובב"; $("bSpin").disabled = busy && !auto; }
-$("bAuto").onclick = async () => { auto = !auto; setAuto(); if (!auto || busy) return;
-  while (auto) { const go = await spinOnce(); if (!go) { auto = false; setAuto(); break; } await sleep(350); } };
+function setAuto() { $("bSpin").classList.toggle("auto", auto); $("bSpin").textContent = auto ? "עצור" : "סובב"; $("bSpin").disabled = busy && !auto; }
 $("bInfo").onclick = () => GC_GUIDE.run(GC_STEPS.dragons());
 const OLD_INFO = () => GC_BONUS_INTRO("🐉 דרקוני הגולן LINK", ["25 קווים. ההימור מתחלק שווה על כל הקווים. הדרקון מחליף כל סמל (לא בגלגל הראשון).",
   "5 בשורה בקו (לפי ההימור הכולל): דרקון ×" + (500 * E.CFG.payScale / 25).toFixed(0) + ", רועי / עידו / בנימין / יואב ×" + (200 * E.CFG.payScale / 25).toFixed(0) + ", בודהה ×" + (150 * E.CFG.payScale / 25).toFixed(0) + ".",
@@ -238,6 +237,7 @@ buyBtn.onclick = async () => {
   if (window.GC_BONUS) GC_BONUS(`🐉 החזק וזכה ×${Math.round(data.total)}`, data.payout, `עלה ${fmt(data.cost)}`);
   lock(false);
 };
+GC_AUTO({ mount: $("autoH"), spin: $("bSpin"), busy: () => busy, err: () => $("err").textContent });
 (async () => {
   const p = E.play(11).steps[0]; paint(p.g, p.o); jackpots();
   const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }

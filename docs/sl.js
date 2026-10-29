@@ -213,6 +213,7 @@ if (FO) {
 
 // ---------- boot ----------
 addEventListener("resize", () => reels.forEach((el, r) => { if (!el.firstChild) return; el.style.setProperty("--ch", cellH() + "px"); setReel(r, pos[r] + N, false); }));
+{ const h = document.createElement("span"); $("spinBtn").before(h); GC_AUTO({ mount: h, spin: $("spinBtn"), busy: () => busy, err: () => ($("err") || {}).textContent }); }
 (async function boot() {
   pos[0] = 3; pos[1] = 9; pos[2] = 17;
   // use the real symbol art if it has been added

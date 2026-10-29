@@ -266,3 +266,36 @@ window.GC_MAXBET = function (bal) { bal = Number(bal) || 0; if (bal < 500000) re
 window.GC_LADDER = function (min, bal) { const max = GC_MAXBET(bal), out = []; let p = 1;
   for (; p <= max * 10; p *= 10) for (const m of [1, 2.5, 5]) { const v = m * p; if (v >= min && v <= max && Number.isInteger(v)) out.push(v); }
   if (out[out.length - 1] !== max) out.push(max); return out; };
+// Auto-spin: one small 🔁 button → 10 / 25 / 50 / 100 / ∞ spins. It presses the machine's own spin button, waits for each
+// spin (and any bonus or popup) to finish, and stops on an error, when out of money, or when the player taps it again.
+window.GC_AUTO = function ({ mount, spin, busy, err, before }) {
+  if (!document.getElementById("gcAutoCss")) { const c = document.createElement("style"); c.id = "gcAutoCss";
+    c.textContent = `.gc-auto{position:relative;flex:none}.gc-auto>button{min-width:44px;height:36px;border-radius:99px;border:1px solid #C5A05A;background:rgba(23,18,15,.9);color:#F1D69A;font:800 14px Heebo,sans-serif;cursor:pointer;padding:0 10px;white-space:nowrap}
+.gc-auto>button.on{background:linear-gradient(180deg,#ffb03f,#a85a00);color:#1b0f06;border-color:#ffd970}
+.gc-auto .m{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);z-index:9600;display:flex;gap:4px;background:#17120ff5;border:1px solid #C5A05A;border-radius:12px;padding:6px;box-shadow:0 8px 24px #000a}
+.gc-auto .m[hidden]{display:none}.gc-auto .m button{min-width:40px;height:34px;border-radius:8px;border:1px solid #80602E;background:#2a1c10;color:#ffe27a;font:800 15px Inter,Heebo,sans-serif;cursor:pointer}`;
+    document.head.appendChild(c); }
+  const w = document.createElement("span"); w.className = "gc-auto";
+  w.innerHTML = `<button type="button" aria-label="סיבובים אוטומטיים">🔁</button><div class="m" hidden>${[10, 25, 50, 100, "∞"].map((n) => `<button type="button" data-n="${n}">${n}</button>`).join("")}</div>`;
+  mount.appendChild(w); const b = w.firstChild, m = w.lastChild;
+  let left = 0, running = false;
+  const isBusy = () => (busy ? busy() : spin.disabled) || !!document.querySelector(".gc-bi, .gc-bonus, .gd, #enter:not([hidden])");
+  const draw = () => { b.classList.toggle("on", running); b.textContent = running ? (left === Infinity ? "∞ ⏹" : left + " ⏹") : "🔁"; };
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  async function loop() {
+    running = true; draw();
+    while (running && left > 0) {
+      while (running && isBusy()) await wait(200); if (!running) break;
+      if (err && err()) break; if (before) before();
+      spin.click(); left--; draw();
+      for (let i = 0; i < 15 && !isBusy(); i++) await wait(100);   // the spin starts
+      while (running && isBusy()) await wait(200);               // …and finishes (bonuses included)
+      await wait(450); if (err && err()) break;
+    }
+    running = false; left = 0; draw();
+  }
+  b.onclick = (e) => { e.stopPropagation(); if (running) { running = false; draw(); return; } m.hidden = !m.hidden; };
+  m.onclick = (e) => { const x = e.target.closest("button"); if (!x) return; m.hidden = true; left = x.dataset.n === "∞" ? Infinity : +x.dataset.n; loop(); };
+  document.addEventListener("pointerdown", (e) => { if (!w.contains(e.target)) m.hidden = true; });
+  return { stop: () => { running = false; draw(); }, get running() { return running; } };
+};
