@@ -441,3 +441,5 @@ body:not(.gpage) #lobbyView .lb li .w{grid-column:4;grid-row:1/3;font:800 16px I
   #lobbyView .gtabs button{font-size:17px;padding:10px 20px}
   body.gpage #lobbyView .games .game{flex-basis:46%}
 }
+/* animal avatars (simple round icons) are shown whole, not zoomed like the character faces */
+#lobbyView .lb li .av img[src*="animals/"],#lobbyView .lx-me .avatar img[src*="animals/"],#frSheet li .av img[src*="animals/"]{transform:none!important;object-fit:cover!important;object-position:50% 50%!important;border-radius:50%!important}
