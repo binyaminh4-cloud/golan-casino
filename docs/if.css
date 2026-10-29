@@ -21,7 +21,7 @@ button{font:inherit;cursor:pointer}
 .zone{position:relative;flex:1;min-width:0;display:grid;justify-items:center;gap:0;padding:4px 2px;border-radius:12px;border:2px solid #3c4a5e;background:#0d1828;color:#dbe6ef}
 .zone img{height:40px}.zone .zn{font:700 13px Heebo}.zone small{font:700 11px Inter;color:#9fb0c4}
 .z-blue{border-color:#2f6fbf}.z-orange{border-color:#c47a2a}.z-red{border-color:#c03b4a}
-.zone .amt{position:absolute;top:-8px;left:-6px;min-width:34px;padding:2px 6px;border-radius:99px;background:radial-gradient(circle at 50% 30%,#fff3cf,#F1D69A 45%,#C5A05A);color:#0B0908;font:800 12px Inter;box-shadow:0 2px 6px #000}
+.zone .amt{position:absolute;top:auto;bottom:-9px;left:50%;transform:translateX(-50%);z-index:3;min-width:34px;padding:2px 6px;border-radius:99px;background:radial-gradient(circle at 50% 30%,#fff3cf,#F1D69A 45%,#C5A05A);color:#0B0908;font:800 12px Inter;box-shadow:0 2px 6px #000}
 .zone .amt:empty{display:none}.zone .amt.pending{outline:2px dashed #fff}
 .zone:active{transform:scale(.96)}
 body.closed .zone,body.closed #allBtn,body.closed #rebetBtn{opacity:.45;pointer-events:none}
@@ -57,7 +57,7 @@ html,body{height:100%;overflow:hidden}body{position:fixed;inset:0;height:auto}
 .count.hurry{border-color:#e5484d}.count.hurry b{color:#ff6b6b}.count.tick b{animation:ctk .35s ease-out}
 @keyframes ctk{from{transform:scale(1.5)}}
 
-.zone{position:relative}.zone .zb{position:absolute;top:-8px;left:-6px;z-index:2;font:900 13px Inter;font-style:normal;color:#3a2600;background:#ffe27a;border:2px solid #8a5a00;border-radius:99px;padding:1px 6px;box-shadow:0 0 12px #ffcf40;animation:zbp .35s ease-out}@keyframes zbp{from{transform:scale(1.8)}}
+.zone{position:relative}.zone .zb{position:absolute;top:-2px;left:-2px;right:-2px;z-index:2;font:900 12px Inter;font-style:normal;letter-spacing:.5px;color:#fff;text-align:center;background:linear-gradient(90deg,#7a1fd6,#d6246e);border-radius:10px 10px 4px 4px;padding:1px 0;text-shadow:0 1px 2px #000;box-shadow:0 0 10px #d6246e99;animation:zbp .45s ease-out}.zone .zb::before{content:'⚡'}@keyframes zbp{from{transform:translateY(-10px);opacity:0}}
 
 .table{position:absolute;top:40px;left:max(8px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:2px;z-index:4;pointer-events:none;max-width:30%}.table b{font:800 11px Heebo;color:#ffe27a;text-shadow:0 1px 3px #000}.table span{background:#080f1dcc;border:1px solid #3c4a5e;border-radius:99px;padding:1px 8px;font:700 11px Heebo;color:#d7e6f5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.table i{font-style:normal;color:#9bdbb6}
 
