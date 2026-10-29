@@ -148,7 +148,7 @@ boot();
 const TILE = { "blackjack.html": "blackjack", "blackjack.html?table=1": "bj_together", "blackjack.html?mode=lightning": "bj_fisher", "roulette.html": "roulette",
   "roulette.html?mode=lightning": "roulette_lightning", "roulette.html?mode=xxx": "roulette_xxx", "roulette.html?mode=xxx&skin=fish": "roulette_fish", "slots.html": "slots",
   "slots.html?m=fortune": "fortune", "poker.html": "poker", "jobs.html": "jobs", "fishing.html": "fishing", "fisher90.html": "fisher90", "protein.html": "protein",
-  "pachinko.html": "pachinko", "kinneret.html": "kinneret", "wildwest.html": "wildwest", "dragons.html": "dragons" };
+  "pachinko.html": "pachinko", "kinneret.html": "kinneret", "wildwest.html": "wildwest", "dragons.html": "dragons", "chicken.html": "chicken" };
 document.querySelectorAll(".games .game[href]").forEach((g) => { const t = TILE[g.getAttribute("href")]; if (t) { g.classList.add("art"); g.style.setProperty("--art", `url(img/tiles/tile_${t}.webp)`); } });
 // what's new: once per release, after the sound question and the guide are out of the way
 (async function whatsNew() {
