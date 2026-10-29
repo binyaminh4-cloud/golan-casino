@@ -194,10 +194,16 @@ function salaryToast(s) {
   function show(c) {
     if (c) box.querySelectorAll(".game").forEach((g) => g.hidden = g.dataset.cat !== c);
     box.hidden = !c; cs.hidden = !!c; $("catBack").hidden = !c;
+    // games page: the whole screen belongs to this category's games; tabs on top switch category
+    document.body.classList.toggle("gpage", !!c); $("gTabs").hidden = !c;
+    $("gTabs").querySelectorAll("button").forEach((t) => t.classList.toggle("on", t.dataset.c === c)); box.scrollLeft = 0;
+    document.querySelectorAll(".lx-nav [data-nav]").forEach((t) => t.classList.toggle("on", t.dataset.nav === (c ? "games" : "home")));
     $("roomsH").textContent = c ? NAME[c] : "חדרי המשחק";
     try { c ? sessionStorage.setItem("gc_cat", c) : sessionStorage.removeItem("gc_cat"); } catch (e) {}
   }
   $("catBack").onclick = () => show(null);
+  $("gTabs").onclick = (e) => { const t = e.target.closest("button"); if (t) show(t.dataset.c); };
+  window.GC_SHOWCAT = show;
   try { const c = sessionStorage.getItem("gc_cat"); if (c && NAME[c]) show(c); } catch (e) {}
 })();
 

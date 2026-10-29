@@ -334,3 +334,18 @@ body:has(#lobbyView:not([hidden]))::before{background:linear-gradient(180deg,rgb
 #lobbyView a.lx-jobs .go{order:2!important}
 #lobbyView a.lx-jobs.gfr{background:linear-gradient(to left,rgba(10,7,5,.97) 0,rgba(10,7,5,.95) 52%,rgba(10,7,5,.2) 64%,rgba(10,7,5,0) 72%),url(img/lobby2/card_jobs_wide.webp) -10px center/auto 100% no-repeat,#140e0a!important}
 #lobbyView a.lx-jobs .t{margin-left:38%}
+/* ===== games page: category tabs on top, the screen is all games of that category, swipe sideways ===== */
+body.gpage #lobbyView #lxBanner,body.gpage #lobbyView .lb,body.gpage #lobbyView .lx-jobs,body.gpage #lobbyView #catBack{display:none!important}
+#lobbyView .gtabs{flex:none;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0}
+#lobbyView .gtabs[hidden]{display:none!important}#lobbyView .gtabs::-webkit-scrollbar{display:none}
+#lobbyView .gtabs button{flex:none;padding:7px 16px;border-radius:99px;border:1px solid rgba(197,160,90,.45);background:rgba(12,9,7,.7);color:#e9dcc2;font:700 14px Heebo;cursor:pointer;white-space:nowrap}
+#lobbyView .gtabs button.on{background:linear-gradient(180deg,#F1D69A,#C5A05A);color:#1b0f06;border-color:#F1D69A}
+body.gpage #lobbyView .games{flex:1 1 0;gap:12px;padding:4px 2px 10px}
+body.gpage #lobbyView .games .game{flex:0 0 86%;max-width:520px;height:100%;border-radius:16px;display:flex;flex-direction:column;justify-content:flex-end;
+  background-size:cover!important;background-position:center top!important;padding:16px!important;position:relative}
+body.gpage #lobbyView .games .game.art{background:linear-gradient(180deg,rgba(8,6,4,0) 35%,rgba(8,6,4,.92) 78%),var(--art) center top/cover no-repeat!important}
+body.gpage #lobbyView .games .game h3{font:800 24px Heebo;color:#fff}body.gpage #lobbyView .games .game p{max-width:none;font-size:14px;-webkit-line-clamp:4}
+body.gpage #lobbyView .games .game .tag{position:absolute;top:12px;right:12px}
+body.gpage #lobbyView .games .game .suits{position:absolute;top:12px;left:12px}
+body.gpage #lobbyView .games .game::after{content:"";position:absolute;inset:0;border:16px solid transparent;border-image:url(img/lobby2/frame_gold.png) 40 / 16px stretch;pointer-events:none}
+@media (min-width:800px){body.gpage #lobbyView .games .game{flex-basis:32%}}

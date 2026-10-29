@@ -14,7 +14,7 @@
     lbOff(); menu.hidden = true;
     if (k === "lb") { document.body.classList.add("lbfull"); mark("lb"); return; }
     if (k === "home") { if (!$("gamesBox").hidden) $("catBack").click(); mark("home"); return; }
-    if (k === "games") { const box = $("gamesBox"); box.querySelectorAll(".game").forEach((g) => g.hidden = false); box.hidden = false; $("cats").hidden = true; $("catBack").hidden = false; mark("games"); }
+    if (k === "games") { let c = "rl"; try { c = sessionStorage.getItem("gc_cat") || "rl"; } catch (er) {} window.GC_SHOWCAT && GC_SHOWCAT(c); }
   };
   $("lxLock").onclick = () => ($("lxLock").hidden = true);
   document.addEventListener("click", (e) => { if (document.body.classList.contains("lbfull") && !e.target.closest(".lb, .lx-nav")) { lbOff(); mark("home"); } });
