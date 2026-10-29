@@ -46,7 +46,8 @@
   @media (max-width:560px){.gd-host{inset-inline:8px;flex-direction:column;align-items:flex-start;gap:0;max-width:none}
     .gd-ido{width:96px;margin-inline-start:6px;margin-bottom:-4px}.gd-bub{margin-bottom:0;min-width:0;width:100%;font-size:14.5px;max-height:52vh;overflow:auto}
     .gd-bub::before{inset-inline-start:34px;bottom:auto;top:-9px;border:10px solid transparent;border-bottom-color:#F5ECDD;border-top:0}}
-  @media (max-height:520px){.gd-bub{font-size:14px;padding:10px 12px;margin-bottom:24px}.gd-ido{width:112px}}`;
+  @media (max-height:520px){.gd-bub{font-size:14px;padding:10px 12px;margin-bottom:24px;max-height:calc(100dvh - 70px);overflow:auto}.gd-ido{width:112px}.gd.neon-on .gd-host{bottom:max(8px,min(175px,calc(100dvh - var(--gdh,0px) - 8px)))}}
+  .gd-host{max-height:calc(100dvh - 16px)}`;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
   let imgUrl = null;
@@ -104,7 +105,8 @@
         }
       } else { ring.hidden = true; dim.style.background = ""; if (host.dataset.step !== String(i)) { host.dataset.step = i; host.classList.remove("top"); } }
     };
-    const follow = setInterval(() => { if (!document.body.contains(o)) return clearInterval(follow); place(); }, 300);
+    const keepIn = () => { const host = o.querySelector(".gd-host"); if (!host) return; const h = host.getBoundingClientRect(); o.style.setProperty("--gdh", h.height + "px"); if (h.top < 0 && !host.classList.contains("top")) host.classList.add("top"); else if (h.bottom > innerHeight && host.classList.contains("top")) host.classList.remove("top"); };
+    const follow = setInterval(() => { if (!document.body.contains(o)) return clearInterval(follow); place(); keepIn(); }, 300);
     let done; const closed = new Promise((r) => done = r);
     const close = () => { clearInterval(follow); o.remove(); done(); };
     o.querySelector(".gd-next").onclick = () => { if (i < steps.length - 1) { i++; show(); } else close(); };
