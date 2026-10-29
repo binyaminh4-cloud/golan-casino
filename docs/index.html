@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="styles.css?v=9">
 <link rel="stylesheet" href="gate.css?v=11">
-<link rel="stylesheet" href="lobby.css?v=36">
+<link rel="stylesheet" href="lobby.css?v=37">
 <link rel="icon" href="img/brand/favicon.png">
 <link rel="apple-touch-icon" href="img/brand/apple-touch-icon.png">
 <link rel="preload" as="image" href="img/brand/emblem.webp">
@@ -55,16 +55,18 @@
 
   <!-- Lobby -->
   <div id="lobbyView" hidden>
-    <header>
-      <div class="brand"><img class="b-emb" src="img/brand/emblem.webp" alt=""><div><img class="b-word" src="img/brand/wordmark.webp" alt="גולן קזינו"><small>מועדון פרטי · בהזמנה בלבד</small></div></div>
-      <div class="me">
-        <div><div class="lbl" id="hdrName"></div><div class="bal num" id="hdrBal">…</div></div>
-        <div class="avatar" id="hdrAv" aria-hidden="true"></div>
+    <header class="lx-top">
+      <button type="button" class="lx-me" id="meBtn" aria-label="התפריט שלי" aria-expanded="false"><span class="avatar" id="hdrAv" aria-hidden="true"></span><span class="chev" aria-hidden="true">⌄</span></button>
+      <a class="lx-bal" href="jobs.html" title="הארנק שלי · להרוויח עוד בעבודות"><img src="img/lobby/wallet_icon.webp" alt=""><b class="num" id="hdrBal">…</b></a>
+      <div class="lx-logo"><img src="img/brand/wordmark.webp" alt="גולן קזינו"><small>מועדון פרטי · בהזמנה בלבד</small></div>
+      <span class="lx-chat" id="lxChat" aria-hidden="true"></span>
+      <div class="me lx-menu" id="lxMenu" hidden>
+        <div class="lx-who"><div class="lbl" id="hdrName"></div><div class="sub" id="walSub"></div></div>
         <a class="linkbtn adminlink" id="adminLink" href="admin.html" hidden>⚙️ ניהול</a>
         <button class="linkbtn" id="logout">יציאה</button>
       </div>
     </header>
-    <p class="notice gfr"><b>שקלים משחקיים בלבד.</b> אין כסף אמיתי, אין קניות ואין פרסים. היתרה נשמרת בשרת ומשותפת לכל המשחקים.</p>
+    <p class="notice gfr" id="lxBanner"><b>שקלים משחקיים בלבד.</b> אין כסף אמיתי, אין קניות ואין פרסים. היתרה נשמרת בשרת ומשותפת לכל המשחקים.</p>
 
     <div class="grid">
       <main>
@@ -103,7 +105,7 @@
       </main>
 
       <aside>
-        <div class="wallet gfr">
+        <div class="wallet gfr" hidden>
           <div class="sub wlbl"><img src="img/lobby/wallet_icon.webp" alt="">הארנק שלי</div>
           <div class="big num" id="walBal">…</div>
           <div class="sub" id="walSub"></div>
@@ -115,6 +117,16 @@
         </section>
       </aside>
     </div>
+    <a class="lx-jobs gfr" href="jobs.html"><span class="t"><b>עבודות</b><small>משימות קצרות שמשלמות שכר: דילר מתלמד, ועוד בדרך.</small></span><span class="go" aria-hidden="true">‹</span></a>
+    <nav class="lx-nav" aria-label="ניווט">
+      <button type="button" data-nav="more"><i>⋯</i><span>עוד</span></button>
+      <button type="button" data-nav="ch" id="navCh"><i>🏆</i><span>אתגרים</span></button>
+      <button type="button" data-nav="home" class="on"><i>🏠</i><span>בית</span></button>
+      <button type="button" data-nav="games"><i>🎰</i><span>משחקים</span></button>
+      <a href="jobs.html" data-nav="jobs"><i>💼</i><span>עבודות</span></a>
+      <button type="button" data-nav="lb"><i>👥</i><span>דירוג</span></button>
+    </nav>
+    <div class="lx-lock" id="lxLock" hidden><div><b>🔒</b><span>האתגרים נעולים כרגע</span><small>בנימין יפתח אותם בקרוב</small></div></div>
     <footer>גולן קזינו · שקלים משחקיים בלבד</footer>
   </div>
 </div>
@@ -123,7 +135,8 @@
 <script src="char.js?v=2"></script>
 <script src="guide.js?v=35"></script>
 <script src="sfx.js?v=19"></script>
-<script src="app.js?v=39"></script>
+<script src="app.js?v=40"></script>
+<script src="lobby-ui.js?v=1"></script>
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});</script>
 <script src="chat.js?v=14"></script>
 </body>

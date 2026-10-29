@@ -95,7 +95,7 @@ async function showLobby(user) {
   await refresh();
   GC_LOADER.done();
   soundAsk(); liveStrips();
-  if (!document.querySelector(".top-guide")) { const m = document.createElement("div"); m.className = "top-guide"; document.querySelector("#lobbyView header .me").prepend(m);
+  if (!document.querySelector(".top-guide")) { const m = document.createElement("div"); m.className = "top-guide"; document.querySelector("#lobbyView header .me").append(m);
     GC_GUIDE.init({ game: "lobby", db, mount: m, steps: GC_STEPS.lobby() }); }
   clearInterval(timer); timer = setInterval(() => { if (!document.hidden) refresh(); }, 20000);
 }
@@ -196,7 +196,6 @@ function salaryToast(s) {
     box.hidden = !c; cs.hidden = !!c; $("catBack").hidden = !c;
     $("roomsH").textContent = c ? NAME[c] : "חדרי המשחק";
     try { c ? sessionStorage.setItem("gc_cat", c) : sessionStorage.removeItem("gc_cat"); } catch (e) {}
-    if (c) $("roomsH").scrollIntoView({ block: "start", behavior: "smooth" });
   }
   $("catBack").onclick = () => show(null);
   try { const c = sessionStorage.getItem("gc_cat"); if (c && NAME[c]) show(c); } catch (e) {}

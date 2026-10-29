@@ -162,3 +162,83 @@ body:has(#lobbyView:not([hidden]))::before{background:linear-gradient(180deg,rgb
   #lobbyView .notice{padding-left:42%;min-height:190px;background-size:auto,auto 100%,auto!important}
 }
 #lobbyView .cat.gfr::after{z-index:3}
+
+/* ===== Lobby v2: one screen, no vertical scrolling; top bar + bottom bar like the approved mock ===== */
+#lobbyView:not([hidden]){position:fixed;inset:0;display:flex;flex-direction:column;gap:10px;padding:max(8px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));overflow:hidden;max-width:1180px;margin:0 auto}
+#lobbyView footer,#lobbyView .chbanner,#lobbyView .cat.jobs,#lobbyView #roomsH{display:none!important}
+#lobbyView .grid{display:contents}
+#lobbyView main,#lobbyView aside{display:contents}
+/* top bar */
+#lobbyView .lx-top{flex:none;position:relative;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;margin:0;padding:2px 0;border:0;direction:ltr;min-height:56px}
+#lobbyView .lx-top::after{display:none}
+#lobbyView .lx-logo{grid-column:2;grid-row:1;justify-self:center;text-align:center;direction:rtl;pointer-events:none}
+#lobbyView .lx-logo img{height:clamp(26px,5.2vh,44px);display:block;margin:0 auto}#lobbyView .lx-logo small{font:600 10px Heebo;color:#C5A05A;letter-spacing:.25em}
+#lobbyView .lx-left{display:flex;align-items:center;gap:8px}
+#lobbyView .lx-me{grid-column:1;grid-row:1;display:flex;align-items:center;gap:2px;background:none;border:0;cursor:pointer;padding:0;color:#F1D69A}
+#lobbyView .lx-me .avatar{width:46px;height:46px;border:2px solid #C5A05A;box-shadow:0 0 0 3px rgba(197,160,90,.15)}
+#lobbyView .lx-me .chev{font:700 18px/1 Heebo;margin-inline-start:2px}
+#lobbyView .lx-bal{position:absolute;left:68px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:8px;padding:5px 14px 5px 8px;border-radius:99px;background:rgba(14,10,7,.78);border:1px solid rgba(197,160,90,.45);text-decoration:none;color:#fff;font:800 clamp(14px,4.2vw,18px) Inter;box-shadow:inset 0 0 12px rgba(0,0,0,.6)}
+#lobbyView .lx-bal img{width:26px;height:26px}
+#lobbyView .lx-chat{grid-column:3;grid-row:1;width:46px;height:46px}
+.gc-chat-btn.lob{left:auto!important;right:max(12px,env(safe-area-inset-right))!important;top:max(14px,calc(env(safe-area-inset-top) + 10px))!important;opacity:1!important;width:44px!important;height:44px!important;background:rgba(14,10,7,.7)!important;border:1px solid rgba(197,160,90,.5)!important}
+#lobbyView .lx-menu{position:absolute;left:0;top:calc(100% + 6px);z-index:50;display:grid!important;gap:8px;min-width:220px;padding:12px;border-radius:14px;background:#17120ff7;border:1px solid #C5A05A;box-shadow:0 14px 34px #000c;direction:rtl}
+#lobbyView .lx-menu[hidden]{display:none!important}
+#lobbyView .lx-menu .lbl{font:800 16px Heebo;color:#F1D69A}#lobbyView .lx-menu .sub{font:500 12px Heebo;color:#B9AA94}
+#lobbyView .lx-menu .linkbtn,#lobbyView .lx-menu .gd-btn{width:100%;justify-content:center;text-align:center}
+#lobbyView .lx-menu .sfx-btn{width:100%;border-radius:10px}
+/* banner */
+#lobbyView .notice{flex:0 1 auto;margin:0;min-height:0;height:clamp(110px,19vh,190px)}
+/* categories: 2x2 that shrinks to fit; inside a category the games scroll sideways */
+#lobbyView #catBack{flex:none;align-self:flex-start;margin:-2px 0}
+#lobbyView .cats{flex:1 1 0;min-height:0;grid-template-rows:1fr 1fr;grid-template-columns:1fr 1fr}
+#lobbyView .cats .cat{aspect-ratio:auto;min-height:0}
+#lobbyView .games{flex:1 1 0;min-height:0;display:flex!important;gap:12px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;padding:4px 2px 6px;grid-template-columns:none}
+#lobbyView .games[hidden]{display:none!important}
+#lobbyView .games .game{flex:0 0 min(78vw,330px);scroll-snap-align:start;min-height:0;height:100%;overflow:hidden}
+#lobbyView .games .game p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+/* leaderboard as the "friends" strip: medal, face, name, wealth, online dot; sideways if many */
+#lobbyView .lb{flex:none;padding:10px 14px 8px!important;margin:0}
+#lobbyView .lb h2{font-size:15px;margin:0 0 6px;display:flex;align-items:center;gap:8px}#lobbyView .lb h2::before{content:"";width:9px;height:9px;border-radius:50%;background:#3fd16a;box-shadow:0 0 6px #3fd16a}
+#lobbyView .lb h2 .joke{font-size:11px}
+#lobbyView .lb ol{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;padding:0 0 2px;margin:0;scrollbar-width:none}
+#lobbyView .lb ol::-webkit-scrollbar{display:none}
+#lobbyView .lb li{flex:0 0 76px;display:grid!important;grid-template-columns:1fr;justify-items:center;gap:1px;padding:4px 2px!important;border:0!important;background:none!important;position:relative;text-align:center}
+#lobbyView .lb li .rk{position:absolute;top:0;inset-inline-start:6px;z-index:2}#lobbyView .lb li .rk img{width:20px;height:20px}#lobbyView .lb li .rk:not(:has(img)){font-size:11px;color:#B9AA94}
+#lobbyView .lb li .av{width:50px;height:50px;font-size:18px;border:2px solid #80602E}
+#lobbyView .lb li.you .av{border-color:#F1D69A;box-shadow:0 0 10px rgba(241,214,154,.6)}
+#lobbyView .lb li .nm{font:600 12px Heebo;color:#efe4cf;max-width:74px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+#lobbyView .lb li .nm .seen{display:none}
+#lobbyView .lb li .w{font:700 11px Inter;color:#F1D69A}
+/* jobs wide card */
+#lobbyView .lx-jobs{flex:none;position:relative;display:flex;align-items:center;justify-content:space-between;min-height:clamp(64px,10vh,96px);padding:10px 18px;text-decoration:none;color:#fff;
+  background:linear-gradient(to left,rgba(14,10,7,.95) 0,rgba(14,10,7,.85) 55%,rgba(14,10,7,.15) 100%),url(img/tiles/tile_jobs.webp) left center/auto 160% no-repeat,#140e0a!important}
+#lobbyView .lx-jobs b{display:block;font:800 clamp(18px,5vw,24px) Heebo}#lobbyView .lx-jobs small{font:500 12px Heebo;color:#d9ccb2}
+#lobbyView .lx-jobs .go{width:40px;height:40px;border-radius:50%;background:#C5A05A;color:#1b0f06;display:grid;place-items:center;font:800 22px Heebo;flex:none}
+/* bottom bar (no ornate frame) */
+#lobbyView .lx-nav{flex:none;display:flex;justify-content:space-around;align-items:stretch;margin:0 calc(-1 * max(12px,env(safe-area-inset-left)));padding:6px 4px max(6px,env(safe-area-inset-bottom));background:rgba(12,9,7,.94);border-top:1px solid rgba(197,160,90,.35);direction:ltr}
+#lobbyView .lx-nav>*{flex:1;display:grid;justify-items:center;gap:1px;background:none;border:0;color:#d8cbb3;text-decoration:none;font:600 12px Heebo;cursor:pointer;padding:2px 0}
+#lobbyView .lx-nav i{font-style:normal;font-size:22px;line-height:1.1;filter:grayscale(.3)}
+#lobbyView .lx-nav .on{color:#F1D69A}#lobbyView .lx-nav .on i{filter:none;transform:scale(1.12)}
+#lobbyView .lx-nav .locked{opacity:.5}
+/* full leaderboard sheet (דירוג) */
+body.lbfull #lobbyView .lb{position:fixed;inset:70px 12px 80px;z-index:40;overflow:auto}
+body.lbfull #lobbyView .lb ol{display:grid;overflow:visible}
+body.lbfull #lobbyView .lb li{grid-template-columns:30px 44px 1fr auto!important;justify-items:start;text-align:right;flex:none;padding:6px!important;border-bottom:1px solid rgba(255,255,255,.06)!important}
+body.lbfull #lobbyView .lb li .rk{position:static}body.lbfull #lobbyView .lb li .nm{max-width:none}body.lbfull #lobbyView .lb li .nm .seen{display:block}
+body.lbfull #lobbyView .lb li .av{width:40px;height:40px}
+.lx-lock{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(6,4,3,.78);backdrop-filter:blur(3px)}.lx-lock[hidden]{display:none}
+.lx-lock div{display:grid;justify-items:center;gap:6px;color:#F1D69A;text-align:center}.lx-lock b{font-size:64px}.lx-lock span{font:800 22px Heebo}.lx-lock small{font:500 14px Heebo;color:#B9AA94}
+@media (min-width:800px){#lobbyView .cats{grid-template-columns:repeat(4,1fr);grid-template-rows:1fr}#lobbyView .notice{height:clamp(120px,22vh,220px)}}
+@media (max-height:700px){#lobbyView .lx-jobs small{display:none}#lobbyView .lb li .av{width:42px;height:42px}#lobbyView .notice{height:96px}}
+#lobbyView .lx-logo img{width:auto!important;max-width:46vw;height:clamp(24px,4.6vh,40px)!important;object-fit:contain}
+#lobbyView .lx-top{overflow:visible}
+#lobbyView .lb h2.orn::before,#lobbyView .lb h2.orn::after{content:none}
+#lobbyView .lb h2{border:0;padding:0}
+#lobbyView .lb #lbBox{min-height:0}
+#lobbyView .lx-top{display:flex!important;align-items:center;gap:8px}
+#lobbyView .lx-me{order:1}#lobbyView .lx-bal{order:2;position:static;transform:none}#lobbyView .lx-logo{order:3;margin-inline-start:auto;margin-left:auto;margin-right:6px}#lobbyView .lx-chat{order:4;flex:none}
+@media (max-width:420px){#lobbyView .lx-logo small{display:none}#lobbyView .lx-logo img{max-width:34vw}}
+#lobbyView .lx-top{flex-wrap:nowrap}
+@media (max-width:380px){#lobbyView .lx-me .avatar{width:38px;height:38px}#lobbyView .lx-bal{padding:4px 10px 4px 6px;font-size:14px}#lobbyView .lx-bal img{width:20px;height:20px}#lobbyView .lx-logo img{max-width:28vw;height:22px!important}}
+#lobbyView .notice{overflow:hidden}
+@media (max-height:700px){#lobbyView .notice{font-size:12px;line-height:1.4;padding-top:10px;padding-bottom:10px}#lobbyView .notice b{font-size:20px;margin-bottom:2px}#lobbyView .notice b::after{margin-top:4px}}
