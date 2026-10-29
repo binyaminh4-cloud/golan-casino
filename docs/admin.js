@@ -71,12 +71,14 @@ $("grantForm").addEventListener("submit", async (e) => {
 
 // ---------- Admin: assign characters (stored in the private "characters" bucket) ----------
 const CHAR_KEYS = Array.from({ length: 8 }, (_, i) => "char_" + String(i).padStart(2, "0"));
+const PUB_CHARS = ["pub_01", "pub_02"];   // newer characters, served from img/chars
 const ANIMALS = ["animal_1", "animal_2", "animal_3", "animal_4", "animal_5"];   // public, any number of members may share one
 let charUrls = {};
 async function loadCharacters() {
   if (!Object.keys(charUrls).length) {
     const { data } = await db.storage.from("characters").createSignedUrls(CHAR_KEYS.map((k) => k + ".webp"), 3600);
     (data || []).forEach((s, i) => { if (s.signedUrl) charUrls[CHAR_KEYS[i]] = s.signedUrl; });
+    PUB_CHARS.forEach((k) => { charUrls[k] = "img/chars/" + k + ".webp"; });
   }
   const { data: people } = await db.from("profiles").select("id,nickname,character_key").order("created_at");
   const taken = new Set((people || []).map((p) => p.character_key).filter((k) => k && !k.startsWith("animal_")));
@@ -84,7 +86,7 @@ async function loadCharacters() {
   $("charList").innerHTML = (people || []).map((p) => `
     <div class="crow">
       <div class="cname">${esc(p.nickname)}</div>
-      <div class="cpick">${[...CHAR_KEYS, ...ANIMALS].map((k) => `<button class="cthumb${p.character_key === k ? " on" : ""}${taken.has(k) && p.character_key !== k ? " taken" : ""}"
+      <div class="cpick">${[...CHAR_KEYS, ...PUB_CHARS, ...ANIMALS].map((k) => `<button class="cthumb${p.character_key === k ? " on" : ""}${taken.has(k) && p.character_key !== k ? " taken" : ""}"
         data-u="${p.id}" data-k="${k}" title="${k}" aria-pressed="${p.character_key === k}"><img src="${esc(charUrls[k] || "")}" alt="${k}"></button>`).join("")}
         <button class="cthumb none" data-u="${p.id}" data-k="" title="בלי דמות">✕</button></div>
     </div>`).join("") || '<p class="msg">עוד אין חברים רשומים.</p>';
