@@ -93,7 +93,19 @@ function frame() {
     view(e); wheelScene(rotAt(e), e, e >= 10 ? S.boosts : null); paintZoneBoosts(e >= 10 ? S.boosts : null);
     if (isBonus && e >= 20.8 && I[S.cat]) {   // the wheel stops; the catch opens in its own window over it
       if (pop.hidden) try { SFX.splash(); } catch (er) {} pop.hidden = false; document.body.classList.add("catching");
-      const p = FishingRender.bonusFrame(pctx, I, Math.max(0, e - 20.8), S.total_mult, S.cat);
+      // slow motion while the fish comes out of the water, with its value counting up live on screen
+      const raw = Math.max(0, e - 20.8), RV = revealWin(S.total_mult), k = slowK(S.total_mult, RV);
+      const at = raw < RV.a ? raw : raw < RV.a + (RV.b - RV.a) * k ? RV.a + (raw - RV.a) / k : raw - (RV.b - RV.a) * (k - 1);
+      const p = FishingRender.bonusFrame(pctx, I, at, S.total_mult, S.cat);
+      const pose = FishingMotion.poseAt(at, S.total_mult), rv = Math.min(1, Math.max(0, pose.reveal));
+      if (rv > 0) { const stake = (S.mine && S.mine[S.cat]) || 0, show = p && p.shownMultiplier != null ? p.shownMultiplier : Math.round(S.total_mult * FishingMotion.smooth(rv));
+        pctx.save(); pctx.textAlign = "center"; pctx.lineJoin = "round";
+        const big = stake ? fmt(stake * show) : "×" + show.toLocaleString("en-US"), sz = 120 + 40 * rv;
+        pctx.font = `900 ${sz}px Inter, Heebo, sans-serif`; pctx.lineWidth = 16; pctx.strokeStyle = "#2a1600"; pctx.strokeText(big, 780, 330); 
+        pctx.fillStyle = "#ffe27a"; pctx.shadowColor = "#ffb000"; pctx.shadowBlur = 30; pctx.fillText(big, 780, 330);
+        if (stake) { pctx.shadowBlur = 0; pctx.font = "800 52px Inter, Heebo, sans-serif"; pctx.lineWidth = 8; pctx.strokeText("×" + show.toLocaleString("en-US"), 780, 400); pctx.fillStyle = "#fff"; pctx.fillText("×" + show.toLocaleString("en-US"), 780, 400); }
+        pctx.restore();
+        if (rv < 1 && (!frame.ct || performance.now() - frame.ct > 110)) { frame.ct = performance.now(); try { SFX.chip(); } catch (er) {} } }
       if (p.done && endShown !== S.round) showEnd();
     } else { pop.hidden = true; document.body.classList.remove("catching"); }
     if (e >= 20 && S.cat && !isBonus && endShown !== S.round) showEnd();
@@ -227,3 +239,10 @@ function drawTable() { const m = new Map(); for (const p of HERE) m.set(p.id, { 
   for (const p of (S && S.players) || []) m.set(p.id, { name: p.name, total: p.total, payout: p.payout });
   $("table").innerHTML = m.size ? `<b>🎣 ליד השולחן</b>` + [...m.values()].map((p) => `<span>🟢 ${p.name}${p.total ? ` · ${fmt(p.total)}` : ""}${p.payout ? ` <i>+${fmt(p.payout)}</i>` : ""}</span>`).join("") : ""; }
 presence(); setInterval(() => { if (!document.hidden) presence(); }, 30000);
+
+// when the fish starts and finishes coming out (from the motion kit), and how much to slow that part down
+const RVC = {};
+function revealWin(tot) { if (RVC[tot]) return RVC[tot]; let a = -1, b = -1;
+  for (let t = 0; t < 25; t += .02) { const p = FishingMotion.poseAt(t, tot); if (a < 0 && p.reveal > 0) a = t; if (b < 0 && p.reveal >= 1) { b = t; break; } }
+  return (RVC[tot] = { a: Math.max(0, a), b: b < 0 ? a + 1 : b }); }
+function slowK(tot, R) { const L = R.b - R.a; return L < 1.5 ? 3 / L : tot < 1500 ? 1.4 : 1.2; }   // a quick catch lasts ~3 s; big ones run 20–40% slower

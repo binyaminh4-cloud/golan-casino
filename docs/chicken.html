@@ -92,8 +92,8 @@ const LANE = [420, 718, 1000, 1280, 1557], SIDE = 190, CARS = ["harel_truck", "r
 let balance = 0, bet = 100, mode = "normal", run = null, busy = false;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const S = (k, a) => { try { SFX[k](a); } catch (e) {} };
-function fit() { const s = Math.min(innerWidth / 1672, innerHeight / 941); $("stage").style.transform = `translate(-50%,-50%) scale(${s})`; }
-addEventListener("resize", fit); fit();
+function fit() { const vw = document.documentElement.clientWidth || innerWidth, vh = document.documentElement.clientHeight || innerHeight, s = Math.min(vw / 1672, vh / 941); $("stage").style.transform = `translate(-50%,-50%) scale(${s})`; }
+addEventListener("resize", fit); addEventListener("orientationchange", () => setTimeout(fit, 300)); try { new ResizeObserver(fit).observe(document.documentElement); } catch (e) {} setInterval(fit, 1000); fit();   // phones report the new size late after rotating
 const step = () => (run && run.status === "active" ? run.step : 0), active = () => run && run.status === "active";
 const offset = () => Math.max(0, Math.min(5, step() - 2));
 function idoX() { return step() === 0 ? SIDE : LANE[step() - 1 - offset()]; }

@@ -116,8 +116,8 @@ const SYMS = Object.keys(IMG).filter((k) => k !== "orb");
 let bet = 25, balance = 0, busy = false, auto = false, sound = true;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // stage: scale the whole machine to the screen, never cropping it
-function fit() { const s = Math.min(innerWidth / 1536, innerHeight / 1024); $("stage").style.transform = `translate(-50%,-50%) scale(${s})`; }
-addEventListener("resize", fit); fit();
+function fit() { const vw = document.documentElement.clientWidth || innerWidth, vh = document.documentElement.clientHeight || innerHeight, s = Math.min(vw / 1536, vh / 1024); $("stage").style.transform = `translate(-50%,-50%) scale(${s})`; }
+addEventListener("resize", fit); addEventListener("orientationchange", () => setTimeout(fit, 300)); try { new ResizeObserver(fit).observe(document.documentElement); } catch (e) {} setInterval(fit, 1000); fit();   // phones report the new size late after rotating
 // reels
 const cells = []; for (let c = 0; c < 5; c++) { const col = document.createElement("div"); col.className = "col"; cells.push([]);
   for (let r = 0; r < 3; r++) { const d = document.createElement("div"); d.className = "cell"; d.innerHTML = `<img alt=""><span class="ov"></span>`; col.appendChild(d); cells[c].push(d); }
