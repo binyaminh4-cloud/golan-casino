@@ -96,7 +96,10 @@ async function showLobby(user) {
   GC_LOADER.done();
   soundAsk(); liveStrips();
   if (!document.querySelector(".top-guide")) { const m = document.createElement("div"); m.className = "top-guide"; document.querySelector("#lobbyView header .me").append(m);
-    GC_GUIDE.init({ game: "lobby", db, mount: m, steps: GC_STEPS.lobby() }); }
+    // whoever skipped saving the app gets the save-to-home-screen popup again, before Ido's tour
+    (async () => { let s = null; try { s = localStorage.getItem("gc_install_seen"); } catch (e) {}
+      if (window.GC_INSTALL && !GC_INSTALL.standalone() && s !== "done") await GC_INSTALL.show("again");
+      GC_GUIDE.init({ game: "lobby", db, mount: m, steps: GC_STEPS.lobby() }); })(); }
   clearInterval(timer); timer = setInterval(() => { if (!document.hidden) refresh(); }, 20000);
 }
 
