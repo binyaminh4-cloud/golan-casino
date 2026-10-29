@@ -386,3 +386,4 @@ body.fishskin::before{background:rgba(6,19,23,.35)!important}
 body.betfocus .room{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important}
 body.betfocus .room .side,body.betfocus #seatRow{display:none!important}
 .room .side,.room{transition:none}
+@media (min-width:1000px) and (min-height:700px) and (pointer:coarse){.room{grid-template-columns:minmax(240px,27%) minmax(0,1fr)!important}.controls{transform-origin:50% 100%}.controls .chip{width:58px;height:58px}.controls .btn{font-size:17px;padding:10px 16px}}

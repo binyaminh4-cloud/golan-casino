@@ -116,10 +116,10 @@
   async function startMusic(name) { name = name || MUSIC; if (!name || !musicOn || !ac()) return; if (mName === name && mSrc) return;
     load(name); await LOADING[name]; if (!BUF[name] || !musicOn) return; stopMusic(); mName = name;
     mSrc = ctx.createBufferSource(); mGain = ctx.createGain(); mSrc.buffer = BUF[name]; mSrc.loop = true;
-    mGain.gain.setValueAtTime(0.0001, now()); mGain.gain.linearRampToValueAtTime(0.22, now() + 1.5); mSrc.connect(mGain).connect(master); mSrc.start(); }
+    mGain.gain.setValueAtTime(0.0001, now()); mGain.gain.linearRampToValueAtTime(0.143, now() + 1.5); mSrc.connect(mGain).connect(master); mSrc.start(); }
   function stopMusic() { if (mSrc) { const s = mSrc, g = mGain; g.gain.linearRampToValueAtTime(0.0001, now() + 0.6); setTimeout(() => { try { s.stop(); } catch (e) {} }, 700); } mSrc = mGain = null; mName = null; }
   S.music = (name) => startMusic(name);                // a page can switch tracks (e.g. a bonus)
-  S.musicDuck = (on) => { if (mGain) mGain.gain.linearRampToValueAtTime(on ? 0.06 : 0.22, now() + 0.3); };
+  S.musicDuck = (on) => { if (mGain) mGain.gain.linearRampToValueAtTime(on ? 0.04 : 0.143, now() + 0.3); };
   S.setMusic = (on) => { musicOn = on; try { localStorage.setItem("gc_music", on ? "1" : "0"); } catch (e) {} if (on) startMusic(); else stopMusic(); };
   Object.defineProperty(S, "musicOn", { get: () => musicOn });
   addEventListener("pointerdown", () => startMusic(), { once: true, capture: true });

@@ -141,10 +141,18 @@ async function refresh() {
   if (lb.error) { box.innerHTML = '<p class="msg err">לא הצלחנו לטעון את הטבלה. בדוק חיבור ונסה שוב.</p>'; return; }
   if (!lb.data.length) { box.innerHTML = '<p class="msg">עוד אין חברים במועדון.</p>'; return; }
   box.innerHTML = "<ol>" + lb.data.map((m, i) =>
-    `<li class="${m.id === me.id ? "you" : ""}"><span class="rk num">${i < 3 ? `<img src="img/lobby/medal_${i + 1}.webp" alt="${i + 1}">` : i + 1}</span><span class="avatar av" data-u="${m.id}">${LBAV[m.id] ? `<img src="${esc(LBAV[m.id])}" alt="">` : esc((m.nickname || "?")[0].toUpperCase())}</span><span class="nm">${dot(m.id)}${esc(m.nickname)}${m.id === me.id ? " (אתה)" : ""}${seenTxt(m.id)}</span><span class="w num">${fmt(m.wealth)}</span></li>`
+    `<li class="${m.id === me.id ? "you" : ""}"><span class="rk num">${i < 3 ? `<img src="img/lobby/medal_${i + 1}.webp" alt="${i + 1}">` : i + 1}</span><span class="avatar av" data-u="${m.id}">${LBAV[m.id] ? `<img src="${esc(LBAV[m.id])}" alt="">` : esc((m.nickname || "?")[0].toUpperCase())}</span><span class="nm">${dot(m.id)}${esc(m.nickname)}${m.id === me.id ? " (אתה)" : ""}${seenTxt(m.id)}</span><span class="w num">${fmt(m.wealth)}</span><span class="fav" data-u="${m.id}">${FAV[m.id] ? "🎮 " + favName(FAV[m.id]) : ""}</span></li>`
   ).join("") + "</ol>";
   lbAvatars(lb.data);
+  if (!FAV._t) { FAV._t = 1; db.rpc("gc_fav_games").then(({ data }) => { if (!data) return; Object.assign(FAV, data);
+    document.querySelectorAll(".lb .fav[data-u]").forEach((s) => { const g = FAV[s.dataset.u]; s.textContent = g ? "🎮 " + favName(g) : ""; }); }); }
 }
+// most-played game per member (lobby top 3)
+const FAV = {};
+const FAVN = { roulette: "רולטה", lightning_roulette: "רולטת הברק", xxx_roulette: "רולטת XXX", blackjack: "בלאק ג׳ק", poker: "פוקר", slots: "מכונות מזל",
+  fortune_slots: "מכונת האטרף", fortune: "מכונת האטרף", dragons: "דרקוני הגולן", wild_west: "המערב הפרוע", kinneret: "על האש בכינרת", pachinko: "מכונת השירותים",
+  protein_miner: "שולה החלבון", ido_fishing: "גלגל הדגים של עידו", ido_chicken: "עידו חוצה את הכביש", fisher90: "פישר בדקה ה־90" };
+function favName(g) { return FAVN[g] || g; }
 
 boot();
 // lobby art: every game box gets its poster; the text sits on the calm right side (the art leaves it free)

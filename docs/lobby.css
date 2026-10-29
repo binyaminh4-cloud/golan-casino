@@ -415,3 +415,29 @@ body.gpage #lobbyView .games .game .suits,body.gpage #lobbyView .games .game:not
 #frSheet li .nm{font:700 15px Heebo;color:#f3e9d6;display:grid;gap:1px}#frSheet li .nm .seen{font:500 11px Heebo;color:#9b8a70}
 #frSheet li .w{font:800 15px Inter;color:#F1D69A;direction:ltr}
 #lobbyView .lx-nav{position:relative;z-index:80}#frSheet .fr-box{margin-bottom:calc(68px + env(safe-area-inset-bottom))}
+/* ===== home: no jobs card; leaderboard = top 3, top to bottom, with each one's most played game ===== */
+body:not(.gpage) #lobbyView .lx-jobs{display:none!important}
+#lobbyView .lb .fav{display:none}
+body:not(.gpage) #lobbyView .lb{flex:1 1 0;min-height:0;display:flex;flex-direction:column}
+body:not(.gpage) #lobbyView .lb #lbBox{flex:1;min-height:0}
+body:not(.gpage) #lobbyView .lb ol{display:grid!important;grid-template-rows:repeat(3,1fr);gap:6px;height:100%;overflow:hidden}
+body:not(.gpage) #lobbyView .lb li:nth-child(n+4){display:none!important}
+body:not(.gpage) #lobbyView .lb li{display:grid!important;grid-template-columns:30px 54px 1fr auto;grid-template-rows:auto auto;column-gap:10px;align-items:center;justify-items:start;text-align:right;
+  padding:6px 10px!important;border-radius:12px;background:rgba(255,255,255,.04)!important;flex:none}
+body:not(.gpage) #lobbyView .lb li.you{background:rgba(197,160,90,.14)!important}
+body:not(.gpage) #lobbyView .lb li .rk{position:static!important;grid-row:1/3;grid-column:1}body:not(.gpage) #lobbyView .lb li .rk img{width:28px;height:28px}
+body:not(.gpage) #lobbyView .lb li .av{grid-row:1/3;grid-column:2;width:50px!important;height:50px!important}
+body:not(.gpage) #lobbyView .lb li .nm{grid-column:3;grid-row:1;max-width:none;font:700 15px Heebo!important}
+body:not(.gpage) #lobbyView .lb li .fav{display:block;grid-column:3;grid-row:2;font:500 12px Heebo;color:#c9b894}
+body:not(.gpage) #lobbyView .lb li .w{grid-column:4;grid-row:1/3;font:800 16px Inter!important}
+/* iPad: roomier spacing and bigger type, centred column */
+@media (min-width:700px) and (pointer:coarse){
+  #lobbyView:not([hidden]){max-width:760px;padding-left:24px;padding-right:24px;gap:14px!important}
+  #lobbyView .notice{height:22vh!important}#lobbyView .notice b{font-size:44px!important}#lobbyView .notice .pre,#lobbyView .notice .sub{font-size:18px}
+  #lobbyView .lx-me .avatar{width:54px;height:54px}#lobbyView .lx-bal{font-size:20px!important}#lobbyView .lx-logo img{height:52px!important}
+  #lobbyView .promo .sl b{font-size:40px}#lobbyView .promo .sl small{font-size:17px}
+  body:not(.gpage) #lobbyView .lb li .av{width:68px!important;height:68px!important}body:not(.gpage) #lobbyView .lb li .nm{font-size:20px!important}body:not(.gpage) #lobbyView .lb li .w{font-size:21px!important}body:not(.gpage) #lobbyView .lb li .fav{font-size:15px}
+  #lobbyView .lx-nav>*{font-size:14px!important}#lobbyView .lx-nav i{width:34px;height:34px}
+  #lobbyView .gtabs button{font-size:17px;padding:10px 20px}
+  body.gpage #lobbyView .games .game{flex-basis:46%}
+}

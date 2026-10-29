@@ -543,7 +543,7 @@ async function liveConfirm() {
                                  : await db.rpc("rl_live_bet", { p_round: liveSt.round, p_mode: MODE, p_bets: list, p_ref: newRef() });
     if (error) throw error;
     if (DUEL) { ZS = data; drawDuel(); }
-    sent = new Map(bets); undoStack.length = 0; balance = DUEL ? data.my_chips : data.balance; showBal(balance); err(""); SFX.chip(); lastFetch = 0; setTimeout(liveFetch, 50);
+    sent = new Map(bets); undoStack.length = 0; balance = DUEL ? data.my_chips : data.balance; showBal(balance); err(""); lastFetch = 0; setTimeout(liveFetch, 50);
   } catch (e) { err(liveErr(e)); }
   drawChips();
 }
