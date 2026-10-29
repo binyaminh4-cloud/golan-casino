@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="styles.css?v=9">
 <link rel="stylesheet" href="gate.css?v=11">
-<link rel="stylesheet" href="lobby.css?v=39">
+<link rel="stylesheet" href="lobby.css?v=40">
 <link rel="icon" href="img/brand/favicon.png">
 <link rel="apple-touch-icon" href="img/brand/apple-touch-icon.png">
 <link rel="preload" as="image" href="img/brand/emblem.webp">
@@ -66,7 +66,7 @@
         <button class="linkbtn" id="logout">יציאה</button>
       </div>
     </header>
-    <p class="notice gfr" id="lxBanner"><b>שקלים משחקיים בלבד.</b> אין כסף אמיתי, אין קניות ואין פרסים. היתרה נשמרת בשרת ומשותפת לכל המשחקים.</p>
+    <p class="notice gfr" id="lxBanner"><span class="pre">ברוכים הבאים ל־</span><b>מועדון גולן</b><span class="sub">אותם חברים. משחקים טובים יותר.</span><small class="real">שקלים משחקיים בלבד · אין כסף אמיתי, אין קניות ואין פרסים</small></p>
 
     <div class="grid">
       <main>
@@ -112,19 +112,19 @@
         </div>
         
         <section class="lb gfr">
-          <h2 class="orn">דירוג העשירים ביותר <small class="joke">(אחרי פישר כמובן)</small></h2>
+          <h2 class="orn">דירוג העשירים ביותר <small class="joke">(אחרי פישר כמובן)</small><button type="button" class="all" onclick="document.querySelector('[data-nav=lb]').click()">הצג הכל ‹</button></h2>
           <div id="lbBox"><ol><li><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel" style="width:60px"></div></li></ol></div>
         </section>
       </aside>
     </div>
-    <a class="lx-jobs gfr" href="jobs.html"><span class="t"><b>עבודות</b><small>משימות קצרות שמשלמות שכר: דילר מתלמד, ועוד בדרך.</small></span><span class="go" aria-hidden="true">‹</span></a>
+    <a class="lx-jobs gfr" href="jobs.html"><span class="t"><b><i class="star">★</i>עבודות</b><small>משימות קצרות שמשלמות שכר: דילר מתלמד, ועוד בדרך.</small></span><span class="go" aria-hidden="true">‹</span></a>
     <nav class="lx-nav" aria-label="ניווט">
-      <button type="button" data-nav="more"><i>⋯</i><span>עוד</span></button>
-      <button type="button" data-nav="ch" id="navCh"><i>🏆</i><span>אתגרים</span></button>
-      <button type="button" data-nav="home" class="on"><i>🏠</i><span>בית</span></button>
-      <button type="button" data-nav="games"><i>🎰</i><span>משחקים</span></button>
-      <a href="jobs.html" data-nav="jobs"><i>💼</i><span>עבודות</span></a>
-      <button type="button" data-nav="lb"><i>👥</i><span>דירוג</span></button>
+      <button type="button" data-nav="more"><i></i><span>עוד</span></button>
+      <button type="button" data-nav="ch" id="navCh"><i></i><span>אתגרים</span></button>
+      <button type="button" data-nav="home" class="on"><i></i><span>דף הבית</span></button>
+      <button type="button" data-nav="games"><i></i><span>משחקים</span></button>
+      <a href="jobs.html" data-nav="jobs"><i></i><span>עבודות</span></a>
+      <button type="button" data-nav="lb"><i></i><span>חברים</span></button>
     </nav>
     <div class="lx-lock" id="lxLock" hidden><div><b>🔒</b><span>האתגרים נעולים כרגע</span><small>בנימין יפתח אותם בקרוב</small></div></div>
     <footer>גולן קזינו · שקלים משחקיים בלבד</footer>

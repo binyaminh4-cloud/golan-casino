@@ -270,3 +270,67 @@ body:has(#lobbyView:not([hidden]))::before{background:linear-gradient(180deg,rgb
 #lobbyView .lx-jobs{background:linear-gradient(to left,rgba(10,7,5,.9) 0,rgba(10,7,5,.6) 45%,rgba(10,7,5,0) 75%),url(img/lobby2/card_jobs_wide.webp) left center/cover no-repeat,#140e0a!important}
 #lobbyView .lb{background:linear-gradient(180deg,rgba(18,12,8,.92),rgba(10,7,5,.95))!important;padding:12px 18px 10px!important}
 #lobbyView .lb h2{color:#F1D69A}
+/* ===== mock match pass ===== */
+#lobbyView{gap:8px!important}
+#lobbyView .lx-top{min-height:48px}
+#lobbyView .lx-me .avatar{width:40px;height:40px;border-width:2px}
+#lobbyView .lx-bal{padding:4px 12px 4px 8px;font:700 16px Inter;background:rgba(10,7,5,.55);border-color:rgba(197,160,90,.35)}
+#lobbyView .lx-logo img{height:30px!important;max-width:30vw}#lobbyView .lx-logo small{display:none}
+#lobbyView .lx-logo{position:absolute;left:50%;transform:translateX(-50%);margin:0!important}
+.gc-chat-btn.lob{background:none!important;border:0!important;font-size:24px!important}
+/* banner like the mock: pre-line, big title, gold underline, subtitle */
+#lobbyView .notice{display:flex!important;flex-direction:column;justify-content:center;align-items:flex-start;gap:2px;padding:10px 18px 10px 42%!important;height:clamp(118px,17vh,180px)}
+#lobbyView .notice .pre{font:500 14px Heebo;color:#efe4cf}
+#lobbyView .notice b{font:800 clamp(26px,7.4vw,36px)/1.05 Heebo!important;margin:0!important;color:#fff}
+#lobbyView .notice b::after{width:40px!important;margin-top:6px!important}
+#lobbyView .notice .sub{font:italic 500 13px Heebo;color:#e8dcc4;margin-top:4px}
+#lobbyView .notice .real{font:500 10px Heebo;color:#b9aa94;margin-top:2px}
+/* category cards: title + arrow on one line at the bottom, count small and subtle */
+#lobbyView .cat{padding:10px 14px!important;flex-direction:row!important;align-items:flex-end!important;justify-content:space-between!important;flex-wrap:wrap}
+#lobbyView .cat h3{font-size:clamp(18px,5vw,24px)!important;order:1;line-height:1}
+#lobbyView .cat small{order:3;width:100%;font-size:11px!important;opacity:.85}
+#lobbyView .cat .go{position:static!important;order:2;width:30px!important;height:30px!important;font-size:18px!important;background:#123b2b;border-width:1px}
+#lobbyView .cats{gap:8px!important}
+/* leaderboard strip like "חברים אונליין" */
+#lobbyView .lb{padding:8px 14px 6px!important}
+#lobbyView .lb h2{font:700 13px Heebo!important;justify-content:flex-start}
+#lobbyView .lb h2 .joke{display:none}
+#lobbyView .lb h2 .all{margin-inline-start:auto;background:none;border:0;color:#d8cbb3;font:500 11px Heebo;cursor:pointer}
+#lobbyView .lb li{flex:0 0 64px!important}
+#lobbyView .lb li .av{width:46px!important;height:46px!important;border:2px solid #C5A05A!important}
+#lobbyView .lb li .nm{font-size:11px!important}
+/* jobs card like the mock: compass left, star badge + title + text, gold round arrow */
+#lobbyView .lx-jobs{min-height:clamp(70px,11vh,100px);padding:8px 16px}
+#lobbyView .lx-jobs .t{display:grid;gap:4px;justify-items:start;max-width:58%}
+#lobbyView .lx-jobs b{display:flex!important;align-items:center;gap:8px;font-size:18px!important}
+#lobbyView .lx-jobs .star{font-style:normal;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(#ffe39a,#b8862a);color:#3a2400;font-size:14px;border:1px solid #fff1b8}
+#lobbyView .lx-jobs small{font-size:11px!important}
+#lobbyView .lx-jobs .go{order:-1;background:radial-gradient(#e2bd6c,#a8792a)!important;width:36px!important;height:36px!important}
+/* bottom bar like the mock */
+#lobbyView .lx-nav{background:rgba(8,6,4,.92)!important;padding-top:8px}
+#lobbyView .lx-nav>*{font:500 11px Heebo!important;color:#cfc3ab}
+#lobbyView .lx-nav .on{color:#F1D69A!important;font-weight:700!important}
+#lobbyView .lx-nav [data-nav=lb] i{background-image:url(img/lobby2/ic_friends.png)!important}
+#lobbyView .lx-top{display:flex!important;justify-content:flex-start}
+#lobbyView .lx-logo{position:absolute!important;left:auto!important;right:56px!important;transform:none!important}
+#lobbyView .lx-logo img{content:url(img/brand/wordmark.webp);height:26px!important;max-width:34vw!important}
+#lobbyView .cat{display:grid!important;grid-template-columns:1fr auto;grid-template-rows:1fr auto auto;align-items:end!important;row-gap:0!important}
+#lobbyView .cat h3{grid-column:1;grid-row:2;align-self:end}
+#lobbyView .cat .go{grid-column:2;grid-row:2;align-self:end}
+#lobbyView .cat small{grid-column:1/-1;grid-row:3}
+#lobbyView .cat::before{background:linear-gradient(180deg,rgba(0,0,0,0) 50%,rgba(0,0,0,.65) 100%)!important}
+#lobbyView .lx-jobs{background:linear-gradient(to left,rgba(10,7,5,.95) 0,rgba(10,7,5,.92) 48%,rgba(10,7,5,.3) 62%,rgba(10,7,5,0) 75%),url(img/lobby2/card_jobs_wide.webp) left center/auto 150% no-repeat,#140e0a!important}
+#lobbyView .lx-jobs .t{max-width:52%}
+#lobbyView .lb h2{flex-wrap:nowrap}#lobbyView .lb h2 .all{white-space:nowrap}
+#lobbyView .lx-top{justify-content:space-between!important}
+#lobbyView .lx-logo{position:static!important;order:3!important;margin:0!important;flex:0 1 auto}
+#lobbyView .lx-logo img{height:22px!important;max-width:28vw!important}
+#lobbyView .lx-chat{order:4!important;width:40px!important}
+#lobbyView .lx-bal{font-size:15px!important;padding:3px 10px 3px 6px!important}
+#lobbyView a.lx-jobs.gfr{background:linear-gradient(to left,rgba(10,7,5,.96) 0,rgba(10,7,5,.92) 50%,rgba(10,7,5,.25) 64%,rgba(10,7,5,0) 78%),url(img/lobby2/card_jobs_wide.webp) left center/auto 150% no-repeat,#140e0a!important}
+#lobbyView .notice .real{display:none}
+#lobbyView a.lx-jobs{direction:ltr;justify-content:flex-end!important;gap:14px}
+#lobbyView a.lx-jobs .t{direction:rtl;order:1;text-align:right;justify-items:end!important;margin-right:auto;margin-left:42%}
+#lobbyView a.lx-jobs .go{order:2!important}
+#lobbyView a.lx-jobs.gfr{background:linear-gradient(to left,rgba(10,7,5,.97) 0,rgba(10,7,5,.95) 52%,rgba(10,7,5,.2) 64%,rgba(10,7,5,0) 72%),url(img/lobby2/card_jobs_wide.webp) -10px center/auto 100% no-repeat,#140e0a!important}
+#lobbyView a.lx-jobs .t{margin-left:38%}
