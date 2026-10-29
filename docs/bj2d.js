@@ -93,8 +93,8 @@ let me = null, members = [], urls = {};
 async function loadSeats() {
   const { data } = await db.from("leaderboard").select("id,nickname,character_key,wealth").order("wealth", { ascending: false });
   members = data || [];
-  members.forEach((m) => { if (m.character_key?.startsWith("animal_")) urls[m.character_key] = "img/animals/" + m.character_key + ".svg"; });
-  const keys = [...new Set(members.map((m) => m.character_key).filter((k) => k && !k.startsWith("animal_")))];
+  members.forEach((m) => { if (m.character_key?.startsWith("animal_")) urls[m.character_key] = "img/animals/" + m.character_key + ".svg"; if (m.character_key?.startsWith("pub_")) urls[m.character_key] = "img/chars/" + m.character_key + ".webp"; });
+  const keys = [...new Set(members.map((m) => m.character_key).filter((k) => k && !k.startsWith("animal_") && !k.startsWith("pub_")))];
   if (keys.length) {
     const { data: signed } = await db.storage.from("characters").createSignedUrls(keys.map((k) => k + ".webp"), 3600);
     (signed || []).forEach((s, i) => { if (s.signedUrl) urls[keys[i]] = s.signedUrl; });
