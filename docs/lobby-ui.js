@@ -11,8 +11,8 @@
     if (k === "jobs") return;
     if (k === "more") { menu.hidden = false; me.setAttribute("aria-expanded", true); return; }
     if (k === "ch") { const on = document.querySelector(".chbanner") && !document.querySelector(".chbanner").hidden; if (on) location.href = "challenges.html"; else { $("lxLock").hidden = false; } return; }
-    lbOff(); menu.hidden = true;
-    if (k === "lb") { document.body.classList.add("lbfull"); mark("lb"); return; }
+    lbOff(); menu.hidden = true; if (k !== "lb") document.getElementById("frSheet")?.classList.remove("on");
+    if (k === "lb") { const f = document.getElementById("frSheet"); if (f && f.classList.contains("on")) f.classList.remove("on"); else openFriends(); return; }
     if (k === "home") { if (!$("gamesBox").hidden) $("catBack").click(); mark("home"); return; }
     if (k === "games") { let c = "rl"; try { c = sessionStorage.getItem("gc_cat") || "rl"; } catch (er) {} window.GC_SHOWCAT && GC_SHOWCAT(c); }
   };
@@ -45,3 +45,15 @@
   host.addEventListener("click", (e) => { if (moved) { e.preventDefault(); moved = false; } }, true);
   setTimeout(build, 1200);
 })();
+
+// friends sheet: works from home and from the games page; closes with ✕, a tap outside, or Esc
+function openFriends() {
+  let o = document.getElementById("frSheet");
+  if (!o) { o = document.createElement("div"); o.id = "frSheet"; o.innerHTML = `<div class="fr-box" role="dialog" aria-label="החברים"><div class="fr-h"><b>החברים</b><small>דירוג העשירים · (אחרי פישר כמובן)</small><button type="button" class="fr-x" aria-label="סגור">✕</button></div><div class="fr-list"></div></div>`;
+    document.body.appendChild(o);
+    o.addEventListener("click", (e) => { if (e.target === o || e.target.closest(".fr-x")) o.classList.remove("on"); });
+    addEventListener("keydown", (e) => { if (e.key === "Escape") o.classList.remove("on"); }); }
+  const src = document.querySelector("#lbBox ol");
+  o.querySelector(".fr-list").innerHTML = src ? src.outerHTML : '<p class="fr-empty">טוען…</p>';
+  o.classList.add("on");
+}
