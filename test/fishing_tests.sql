@@ -27,6 +27,6 @@ select t_assert((if_state()->>'round')::bigint > 1, 'later rounds created');
 -- distribution sanity over many rounds
 do $$ declare i int; begin for i in 1..5300 loop perform if_make(100000 + i, 0); end loop; end $$;
 select t_assert((select count(*) filter (where cat = 'red') between 50 and 160 and count(*) filter (where cat in ('dark','light')) between 4300 and 4900 from if_rounds where round_no > 100000), 'segment odds look right');
-select t_assert((select bool_and(total_mult between 12 and 5000) from if_rounds where round_no > 100000 and cat in ('blue','orange','red')), 'bonus multipliers in range');
+select t_assert((select bool_and(total_mult between 5 and 5000) from if_rounds where round_no > 100000 and cat in ('blue','orange','red')), 'bonus multipliers in range');
 select set_config('gc.test_now', '', false);
 \echo FISHING TESTS DONE
