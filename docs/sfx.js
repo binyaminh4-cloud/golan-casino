@@ -77,7 +77,7 @@
     src.connect(g).connect(master); const T = now(); src.start(T, offset);
     if (dur) { g.gain.setValueAtTime(vol, T + Math.max(0, dur - 0.4)); g.gain.linearRampToValueAtTime(0.0001, T + dur); src.stop(T + dur + 0.05); }
     return true; }
-  const SAMPLES = ["chip", "tick", "ball_drop", "card_flip", "shuffle", "win_small", "win_medium", "lose", "ball_roll", "ball_drop", "no_more_bets", "notify", "orb_lock", "splash", "reel_spin", "reel_stop", "card_deal", "bonus_trigger", "reel_tension", "error", "whoosh", "button", "win_big", "coins_count", "lightning", "jackpot"];
+  const SAMPLES = ["chip", "tick", "ball_drop", "card_flip", "shuffle", "win_small", "win_medium", "lose", "ball_roll", "ball_drop", "no_more_bets", "notify", "orb_lock", "splash", "reel_spin", "reel_stop", "card_deal", "bonus_trigger", "reel_tension", "error", "whoosh", "button", "win_big", "coins_count", "lightning", "jackpot", "ck_squawk", "ck_impact"];
   addEventListener("pointerdown", () => SAMPLES.forEach(load), { once: true, capture: true });
   const synth = { ...S };
   S.chip = () => play("chip", { vol: 0.8 }) || synth.chip();
@@ -92,6 +92,8 @@
   S.button = () => play("button", { vol: 0.5 });
   S.win = (big) => play(big ? "win_medium" : "win_small", { vol: big ? 0.8 : 0.7 }) || synth.win(big);
   S.bigWin = () => { S.musicDuck(true); setTimeout(() => S.musicDuck(false), 5200); return play("win_big", { vol: 0.85 }) || synth.win(true); };
+  S.ckSquawk = () => play("ck_squawk", { vol: 0.85, dur: 1.3 });
+  S.ckImpact = () => play("ck_impact", { vol: 1, dur: 1.6 }) || synth.drop();
   S.jackpot = () => { S.musicDuck(true); setTimeout(() => S.musicDuck(false), 5500); return play("jackpot", { vol: 0.9 }) || synth.win(true); };
   S.coins = (sec) => play("coins_count", { vol: 0.35, dur: Math.max(0.6, sec || 1.5) });
   S.zap = () => play("lightning", { vol: 0.7, dur: 2 }) || synth.zap();

@@ -77,7 +77,7 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(12px) bright
   <p>אחרי כל צעד מחליטים: <b>להמשיך</b> או <b>לקחת את הכסף</b>. באקסטרים עד <b>×175</b>.</p>
   <button id="goIn">יאללה, לכביש 🐔</button><button class="back" onclick="location.href='./'">חזרה ללובי</button>
 </div></div></div>
-<script src="sfx.js?v=19"></script>
+<script src="sfx.js?v=20"></script>
 <script src="guide.js?v=35"></script>
 <script>
 "use strict";
@@ -133,9 +133,9 @@ async function animate(before, after) {
     await sleep(420); ido.classList.remove("hop");
     void car.offsetWidth; car.style.transition = "top 1.6s cubic-bezier(.25,.6,.4,1)"; car.style.top = "-60px";   // rolls in, slowing down
     setTimeout(() => { tag.hidden = false; }, 500);
-    await sleep(1500);
+    await sleep(800); S("ckSquawk"); await sleep(700);   // Ido panics as the vehicle closes in…
     car.style.transition = "top .35s ease-in"; car.style.top = "250px"; await sleep(330);            // the bump
-    ido.classList.add("hit"); S("lose");
+    ido.classList.add("hit"); S("ckImpact");   // …and the crash lands exactly on contact
     for (let i = 0; i < 9; i++) { const f = document.createElement("div"); f.className = "feather"; f.textContent = "🪶"; f.style.left = tx + "px"; f.style.top = "430px";
       f.style.setProperty("--dx", (Math.random() * 320 - 160) + "px"); f.style.setProperty("--dy", (Math.random() * -280) + "px"); $("stage").appendChild(f); setTimeout(() => f.remove(), 1200); }
     await sleep(1100);                                                                                   // a moment to see who did it
