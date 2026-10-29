@@ -391,3 +391,8 @@ body.gpage #lobbyView .games .game.soon::before{content:"";position:absolute;ins
 #lobbyView .gtabs button{display:flex;align-items:center;gap:6px}#lobbyView .gtabs img{width:20px;height:20px}
 #lobbyView .gtabs button.on img{filter:brightness(.3)}
 #lobbyView .promo .slides{touch-action:pan-y}#lobbyView .promo .sl{text-decoration:none}#lobbyView div.sl{cursor:default!important}#lobbyView .promo .dots i{cursor:pointer;padding:0}
+/* leaderboard + header avatar: zoom into the face so it fills the circle like a profile photo */
+#lobbyView .lb li .av,#lobbyView .lx-me .avatar{overflow:hidden!important;border-radius:50%}
+#lobbyView .lb li .av img,#lobbyView .lx-me .avatar img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:50% 0!important;transform:scale(2.4);transform-origin:50% 14%;border-radius:0!important}
+#lobbyView .lb li .av::after,#lobbyView .lx-me .avatar::after{display:none!important}
+#lobbyView .lb li .av,#lobbyView .lx-me .avatar{box-shadow:0 0 0 2px #C5A05A,0 0 0 4px rgba(197,160,90,.25)!important}
