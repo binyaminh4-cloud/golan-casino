@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="styles.css?v=9">
 <link rel="stylesheet" href="gate.css?v=11">
-<link rel="stylesheet" href="lobby.css?v=35">
+<link rel="stylesheet" href="lobby.css?v=36">
 <link rel="icon" href="img/brand/favicon.png">
 <link rel="apple-touch-icon" href="img/brand/apple-touch-icon.png">
 <link rel="preload" as="image" href="img/brand/emblem.webp">
@@ -64,19 +64,19 @@
         <button class="linkbtn" id="logout">יציאה</button>
       </div>
     </header>
-    <p class="notice"><b>שקלים משחקיים בלבד.</b> אין כסף אמיתי, אין קניות ואין פרסים. היתרה נשמרת בשרת ומשותפת לכל המשחקים.</p>
+    <p class="notice gfr"><b>שקלים משחקיים בלבד.</b> אין כסף אמיתי, אין קניות ואין פרסים. היתרה נשמרת בשרת ומשותפת לכל המשחקים.</p>
 
     <div class="grid">
       <main>
-        <a class="chbanner" href="challenges.html" hidden><span class="ci"><img src="img/lobby/cat_challenges.webp" alt=""></span><span><b>אתגרים · העונה בעיצומה</b><small>דו־קרבות עם החברים, טבלת עונה, ₪500,000 לאלוף</small></span><span class="arr">←</span></a>
+        <a class="chbanner gfr" href="challenges.html" hidden><span class="ci"><img src="img/lobby/cat_challenges.webp" alt=""></span><span><b>אתגרים · העונה בעיצומה</b><small>דו־קרבות עם החברים, טבלת עונה, ₪500,000 לאלוף</small></span><span class="arr">←</span></a>
         <h2 class="orn" id="roomsH">חדרי המשחק</h2>
         <button type="button" class="catback" id="catBack" hidden>→ כל הקטגוריות</button>
         <div class="cats" id="cats">
-          <button type="button" class="cat" data-c="bj"><span class="ci"><img src="img/lobby/cat_blackjack.webp" alt=""></span><h3>בלאק ג׳ק</h3><small></small></button>
-          <button type="button" class="cat" data-c="rl"><span class="ci"><img src="img/lobby/cat_roulette.webp" alt=""></span><h3>רולטה</h3><small></small></button>
-          <button type="button" class="cat" data-c="sl"><span class="ci"><img src="img/lobby/cat_slots.webp" alt=""></span><h3>מכונות מזל</h3><small></small></button>
-          <button type="button" class="cat" data-c="poker"><span class="ci"><img src="img/lobby/cat_poker.webp" alt=""></span><h3>פוקר</h3><small></small></button>
-          <button type="button" class="cat jobs" data-c="jobs"><span class="ci"><img src="img/lobby/cat_jobs.webp" alt=""></span><h3>עבודות</h3><small></small></button>
+          <button type="button" class="cat gfr" data-c="bj"><span class="ci"><img src="img/lobby/cat_blackjack.webp" alt=""></span><h3>בלאק ג׳ק</h3><small></small><span class="go" aria-hidden="true">‹</span></button>
+          <button type="button" class="cat gfr" data-c="rl"><span class="ci"><img src="img/lobby/cat_roulette.webp" alt=""></span><h3>רולטה</h3><small></small><span class="go" aria-hidden="true">‹</span></button>
+          <button type="button" class="cat gfr" data-c="sl"><span class="ci"><img src="img/lobby/cat_slots.webp" alt=""></span><h3>מכונות מזל</h3><small></small><span class="go" aria-hidden="true">‹</span></button>
+          <button type="button" class="cat gfr" data-c="poker"><span class="ci"><img src="img/lobby/cat_poker.webp" alt=""></span><h3>פוקר</h3><small></small><span class="go" aria-hidden="true">‹</span></button>
+          <button type="button" class="cat jobs gfr" data-c="jobs"><span class="ci"><img src="img/lobby/cat_jobs.webp" alt=""></span><h3>עבודות</h3><small></small><span class="go" aria-hidden="true">‹</span></button>
         </div>
         <div class="games" id="gamesBox" hidden>
           <a data-cat="poker" class="game" href="poker.html" style="text-decoration:none"><span class="tag multi">חדש ♠</span><span class="suits">♠♥♦♣</span><h3>פוקר טקסס הולדם</h3><p>שולחנות פתוחים עם החברים, עד 6 כיסאות. 5 גדלים, מ־₪10/₪20 ועד השולחן של זאוס.</p></a>
@@ -103,13 +103,13 @@
       </main>
 
       <aside>
-        <div class="wallet">
+        <div class="wallet gfr">
           <div class="sub wlbl"><img src="img/lobby/wallet_icon.webp" alt="">הארנק שלי</div>
           <div class="big num" id="walBal">…</div>
           <div class="sub" id="walSub"></div>
         </div>
         
-        <section class="lb">
+        <section class="lb gfr">
           <h2 class="orn">דירוג העשירים ביותר <small class="joke">(אחרי פישר כמובן)</small></h2>
           <div id="lbBox"><ol><li><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel" style="width:60px"></div></li></ol></div>
         </section>

@@ -110,3 +110,55 @@ header{margin-bottom:14px}
 .game.art .suits{opacity:.85}
 
 .game{position:relative}.game .livenow{position:absolute;top:-10px;inset-inline-start:10px;z-index:3;max-width:calc(100% - 20px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#0b0806f2;border:1px solid #3fd16a;color:#b8f5c8;border-radius:99px;padding:1px 9px;font:700 11px Heebo;box-shadow:0 2px 8px #000a;pointer-events:none}
+
+/* ===== Lobby redesign (approved mock): Monte-Carlo hall behind, gold-framed photo cards, all text and actions unchanged ===== */
+body:has(#lobbyView:not([hidden])){background:#0b0806 url(img/brand/login_bg_mobile.jpg) center top/cover fixed}
+@media (min-width:800px){body:has(#lobbyView:not([hidden])){background-image:url(img/brand/login_bg_desktop.jpg)}}
+#lobbyView{position:relative}
+#lobbyView::before{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(10,7,5,.55),rgba(10,7,5,.78) 40%,rgba(10,7,5,.88));pointer-events:none}
+#lobbyView header::after{display:none}
+#lobbyView .orn{font-weight:700}
+/* gold frame with corner ornaments, laid over the card, never catching taps */
+#lobbyView .gfr{position:relative;border:0!important;border-radius:16px!important;box-shadow:0 10px 26px rgba(0,0,0,.55)!important}
+#lobbyView .gfr::after{content:"";position:absolute;inset:-3px;border:20px solid transparent;border-image:url(img/lobby/frame.png) 60 / 20px stretch;pointer-events:none;z-index:3}
+/* welcome banner = the existing notice, photo on one side, its own text on the other */
+#lobbyView .notice{position:relative;display:flex;align-items:center;justify-content:flex-start;min-height:150px;margin:6px 0 16px;padding:18px 20px 18px 46%;
+  background:linear-gradient(to left,rgba(14,10,7,.96) 0,rgba(14,10,7,.9) 52%,rgba(14,10,7,.2) 72%,rgba(14,10,7,0) 100%),url(img/tiles/tile_poker.webp) left center/auto 100% no-repeat,#140e0a!important;
+  font:500 14px/1.6 Heebo,sans-serif;color:#efe4cf;overflow:hidden}
+#lobbyView .notice b{display:block;font:800 clamp(22px,6vw,30px)/1.15 Heebo,sans-serif;color:#fff;margin-bottom:6px}
+#lobbyView .notice b::after{content:"";display:block;width:56px;height:2px;margin-top:8px;background:#C5A05A}
+/* category cards: full photo, title + count at the bottom, round arrow — same buttons, same taps */
+#lobbyView .cats{grid-template-columns:1fr 1fr;gap:12px}
+#lobbyView .cat{position:relative;aspect-ratio:1.18;display:flex!important;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:2px;padding:14px 16px!important;
+  background:#120c08 var(--art) left center/cover no-repeat!important;text-align:right;overflow:hidden}
+#lobbyView .cat::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 35%,rgba(0,0,0,.72) 100%);z-index:1;border-radius:16px}
+#lobbyView .cat .ci{display:none}
+#lobbyView .cat h3{position:relative;z-index:2;background:none!important;border:0!important;padding:0!important;font:800 clamp(20px,5.6vw,28px) Heebo,sans-serif;color:#fff;text-shadow:0 2px 8px #000}
+#lobbyView .cat small{position:relative;z-index:2;color:#e7d9bd;text-shadow:0 1px 4px #000}
+#lobbyView .cat h3::after{content:"›";position:absolute;left:calc(-1 * (100cqw));display:none}
+#lobbyView .cat .go{position:absolute;left:14px;bottom:14px;z-index:2;width:38px;height:38px;border-radius:50%;background:#123b2b;border:1.5px solid #C5A05A;color:#fff;display:grid;place-items:center;font:700 22px/1 Heebo;box-shadow:0 3px 8px #0009}
+#lobbyView .cat[data-c="bj"]{--art:url(../img/tiles/tile_blackjack.webp)}
+#lobbyView .cat[data-c="rl"]{--art:url(../img/tiles/tile_roulette.webp)}
+#lobbyView .cat[data-c="sl"]{--art:url(../img/tiles/tile_slots.webp)}
+#lobbyView .cat[data-c="poker"]{--art:url(../img/tiles/tile_poker.webp)}
+#lobbyView .cat[data-c="jobs"]{--art:url(../img/tiles/tile_jobs.webp)}
+#lobbyView .cat.soon{filter:saturate(.55) brightness(.8)}
+/* wide cards: wallet, leaderboard (online dots), challenges */
+#lobbyView .wallet,#lobbyView .lb,#lobbyView .chbanner{background:linear-gradient(180deg,rgba(26,18,12,.92),rgba(14,10,7,.94))!important;padding:16px 18px}
+#lobbyView .lb ol{border:0!important;background:none}
+#lobbyView .lb li{background:rgba(255,255,255,.03)}
+#lobbyView footer{opacity:.85}
+@media (max-width:420px){#lobbyView .notice{padding-left:42%;min-height:136px;font-size:13px}}
+#lobbyView .wallet.gfr::after{display:block!important;content:""!important;left:-3px!important;top:-3px!important;width:auto!important;height:auto!important;background:none!important}
+#lobbyView .cat{background-size:auto 118%!important;background-position:8% 40%!important}
+#lobbyView .cat.jobs{grid-column:1/-1;aspect-ratio:2.7}
+#lobbyView .cat.jobs{background-size:auto 130%!important;background-position:0 55%!important}
+#lobbyView .notice{padding-left:44%;font-size:13px}#lobbyView .notice b{font-size:clamp(20px,5.4vw,28px)}
+body:has(#lobbyView:not([hidden]))::before{background:linear-gradient(180deg,rgba(11,8,6,.35),rgba(11,8,6,.6) 45%,rgba(11,8,6,.82));backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+#lobbyView::before{display:none}
+@media (min-width:800px){
+  #lobbyView .cats{grid-template-columns:repeat(3,1fr)}
+  #lobbyView .cat.jobs{grid-column:auto;aspect-ratio:1.18}
+  #lobbyView .notice{padding-left:42%;min-height:190px;background-size:auto,auto 100%,auto!important}
+}
+#lobbyView .cat.gfr::after{z-index:3}
