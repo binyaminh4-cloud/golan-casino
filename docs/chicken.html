@@ -21,7 +21,8 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(12px) bright
 #ido{width:250px;height:240px;margin:-200px 0 0 -125px;top:600px;object-fit:contain;z-index:5;filter:drop-shadow(0 10px 8px #0009);transition:left .42s cubic-bezier(.3,.7,.4,1)}
 #ido.hop{animation:hop .42s ease-out}@keyframes hop{50%{transform:translateY(-90px) rotate(-6deg)}}
 #ido.hit{animation:hit .7s ease-out}@keyframes hit{20%{transform:translate(18px,-30px) rotate(25deg)}60%{transform:translate(-10px,10px) rotate(-12deg) scale(.9)}}
-#car{width:260px;height:360px;margin-left:-130px;top:-420px;object-fit:contain;z-index:6;filter:drop-shadow(0 12px 8px #0008);pointer-events:none}
+#car{width:300px;height:420px;margin-left:-150px;top:-420px;object-fit:contain;z-index:6;filter:drop-shadow(0 12px 8px #0008);pointer-events:none}
+#who{top:40px;margin-left:-110px;width:220px;text-align:center;z-index:9;background:rgba(14,16,22,.9);border:3px solid #ffd970;border-radius:99px;padding:6px 0;font:900 34px Heebo;color:#ffe9a8;animation:wp .3s ease-out}#who[hidden]{display:none}@keyframes wp{from{transform:scale(.5)}}
 .feather{position:absolute;z-index:7;font-size:40px;pointer-events:none;animation:fe 1.1s ease-out forwards}@keyframes fe{to{transform:translate(var(--dx),var(--dy)) rotate(260deg);opacity:0}}
 /* bottom bar, like the approved screen */
 #bar{left:40px;top:770px;width:1592px;height:150px;border-radius:30px;background:rgba(18,20,26,.88);border:2px solid #3a3f4a;box-shadow:0 12px 30px #000a;display:flex;align-items:center;gap:18px;padding:0 20px;direction:ltr}
@@ -58,7 +59,7 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(12px) bright
 <div id="stage">
   <div id="marks"></div>
   <img class="abs" id="ido" src="img/ck/ido.webp" alt="עידו התרנגולת">
-  <img class="abs" id="car" alt="">
+  <img class="abs" id="car" alt=""><div class="abs" id="who" hidden></div>
   <div class="abs" id="top"><a class="pill" href="./">→ ללובי</a><span class="pill">הארנק שלי <b id="bal">…</b></span><span class="top" id="topMount"></span></div>
   <div class="abs" id="msg" hidden></div>
   <div class="abs" id="err"></div>
@@ -125,13 +126,20 @@ async function animate(before, after) {
   const from = before ? before.step : 0, lost = after.status === "lost";
   const o = Math.max(0, Math.min(5, from - 2)), tx = LANE[Math.min(4, from - o)];
   const ido = $("ido"); ido.classList.remove("hop", "hit"); void ido.offsetWidth; ido.classList.add("hop"); ido.style.left = tx + "px"; S("whoosh");
-  if (lost) {   // a friend's vehicle comes down that lane and meets Ido on landing (the vehicle is decoration only)
-    const car = $("car"), k = CARS[Math.floor(Math.random() * 3)]; car.src = `img/ck/${k}.webp`; car.style.transition = "none"; car.style.left = tx + "px"; car.style.top = "-420px";
-    void car.offsetWidth; car.style.transition = "top .55s cubic-bezier(.5,0,1,1)"; car.style.top = "300px";
-    await sleep(480); ido.classList.remove("hop"); void ido.offsetWidth; ido.classList.add("hit"); S("lose");
-    for (let i = 0; i < 7; i++) { const f = document.createElement("div"); f.className = "feather"; f.textContent = "🪶"; f.style.left = tx + "px"; f.style.top = "430px";
-      f.style.setProperty("--dx", (Math.random() * 300 - 150) + "px"); f.style.setProperty("--dy", (Math.random() * -260) + "px"); $("stage").appendChild(f); setTimeout(() => f.remove(), 1200); }
-    car.style.transition = "top .9s linear"; car.style.top = "1100px"; await sleep(900);
+  if (lost) {   // a friend's vehicle comes down that lane slowly enough to see who it is, stops on Ido, then drives off (decoration only)
+    const car = $("car"), k = CARS[Math.floor(Math.random() * 3)], who = { harel_truck: "🚚 הראל", roy_motorcycle: "🏍️ רועי", avichai_bicycle: "🚲 אביחי" }[k];
+    car.src = `img/ck/${k}.webp`; car.style.transition = "none"; car.style.left = tx + "px"; car.style.top = "-420px";
+    const tag = $("who"); tag.textContent = who; tag.style.left = tx + "px"; tag.hidden = true;
+    await sleep(420); ido.classList.remove("hop");
+    void car.offsetWidth; car.style.transition = "top 1.6s cubic-bezier(.25,.6,.4,1)"; car.style.top = "-60px";   // rolls in, slowing down
+    setTimeout(() => { tag.hidden = false; }, 500);
+    await sleep(1500);
+    car.style.transition = "top .35s ease-in"; car.style.top = "250px"; await sleep(330);            // the bump
+    ido.classList.add("hit"); S("lose");
+    for (let i = 0; i < 9; i++) { const f = document.createElement("div"); f.className = "feather"; f.textContent = "🪶"; f.style.left = tx + "px"; f.style.top = "430px";
+      f.style.setProperty("--dx", (Math.random() * 320 - 160) + "px"); f.style.setProperty("--dy", (Math.random() * -280) + "px"); $("stage").appendChild(f); setTimeout(() => f.remove(), 1200); }
+    await sleep(1100);                                                                                   // a moment to see who did it
+    car.style.transition = "top 1.5s ease-in"; car.style.top = "1100px"; setTimeout(() => (tag.hidden = true), 700); await sleep(1300);
   } else { await sleep(430); S("chip"); }
 }
 async function send(fn, args) { busy = true; controls(); $("err").textContent = "";
