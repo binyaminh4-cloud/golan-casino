@@ -42,6 +42,13 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(12px) bright
 #msg{left:50%;top:150px;transform:translateX(-50%);background:rgba(14,16,22,.88);border:2px solid #ffd970;border-radius:22px;padding:14px 34px;font:900 36px Heebo;color:#ffe9a8;z-index:8;white-space:nowrap;pointer-events:none;transition:opacity .3s}
 #msg.bad{border-color:#ff7b7b;color:#ffd0d0}#msg[hidden]{display:block;opacity:0}
 #err{left:0;right:0;top:722px;text-align:center;color:#ffb0b0;font:800 26px Heebo;pointer-events:none;text-shadow:0 2px 4px #000}
+#enter{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:#000c}#enter[hidden]{display:none}
+#enter .card{position:relative;width:min(96vw,calc(92dvh * 1.777));aspect-ratio:1672/941;background:url(img/ck/entrance.webp) 0 0/100% 100%;border:3px solid #ffd970;border-radius:16px;overflow:hidden;box-shadow:0 0 60px #ffb04455}
+#enter .txt{position:absolute;right:0;top:0;bottom:0;width:40%;padding:4% 4% 4% 2%;display:flex;flex-direction:column;justify-content:center;gap:1.4vh}
+#enter h2{margin:0;font:900 clamp(22px,5vh,48px) Heebo;color:#ffd970;text-shadow:0 2px 0 #6b4a00}
+#enter p{margin:0;font:600 clamp(11px,2.2vh,18px) Heebo;color:#f3e6c8;line-height:1.4}
+#enter button{margin-top:1vh;height:clamp(36px,7vh,56px);border:0;border-radius:99px;background:linear-gradient(#53dd88,#178a46);color:#062012;font:900 clamp(15px,2.8vh,22px) Heebo;cursor:pointer}
+#enter .back{background:none;border:1px solid #ffd970;color:#ffd970;height:auto;padding:4px;font-size:13px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
@@ -62,6 +69,13 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(12px) bright
     <button id="go">▶ התחל</button>
   </div>
 </div>
+<div id="enter" hidden><div class="card"><div class="txt">
+  <h2>🐔 עידו חוצה את הכביש</h2>
+  <p>עידו התרנגולת צריך לעבור 10 נתיבים. כל קפיצה מוצלחת מעלה את הסכום.</p>
+  <p>הראל במשאית, רועי באופנוע ואביחי באופניים כבר בדרך. רכב בנתיב, וההימור נעלם.</p>
+  <p>אחרי כל צעד מחליטים: <b>להמשיך</b> או <b>לקחת את הכסף</b>. באקסטרים עד <b>×175</b>.</p>
+  <button id="goIn">יאללה, לכביש 🐔</button><button class="back" onclick="location.href='./'">חזרה ללובי</button>
+</div></div></div>
 <script src="sfx.js?v=16"></script>
 <script src="guide.js?v=35"></script>
 <script>
@@ -147,6 +161,7 @@ $("cash").onclick = async () => {
   const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single(); if (w.data) showBal(w.data.balance);
   const c = await db.rpc("ck_current"); if (c.data) { run = c.data; mode = run.mode; say(`חזרת לריצה: צעד ${run.step}`, false, 2000); }   // an unfinished run continues where it stopped
   controls(); if (window.GC_LOADER) GC_LOADER.done();
+  if (!run) { $("enter").hidden = false; await new Promise((ok) => $("goIn").onclick = () => { $("enter").hidden = true; S("button"); ok(); }); }
   GC_GUIDE.init({ game: "chicken", db, mount: $("topMount"), steps: GC_STEPS.chicken() });
 })();
 </script>
