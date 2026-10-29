@@ -77,7 +77,7 @@
     src.connect(g).connect(master); const T = now(); src.start(T, offset);
     if (dur) { g.gain.setValueAtTime(vol, T + Math.max(0, dur - 0.4)); g.gain.linearRampToValueAtTime(0.0001, T + dur); src.stop(T + dur + 0.05); }
     return true; }
-  const SAMPLES = ["chip", "tick", "ball_drop", "card_flip", "shuffle", "win_small", "win_medium", "lose", "ball_roll", "ball_drop", "no_more_bets", "notify", "orb_lock", "splash", "reel_spin", "reel_stop", "card_deal", "bonus_trigger", "reel_tension", "error", "whoosh", "button", "win_big", "coins_count", "lightning", "jackpot", "ck_squawk", "ck_impact"];
+  const SAMPLES = ["chip", "tick", "ball_drop", "card_flip", "shuffle", "win_small", "win_medium", "ball_roll", "ball_drop", "no_more_bets", "notify", "orb_lock", "splash", "reel_spin", "reel_stop", "card_deal", "bonus_trigger", "reel_tension", "error", "whoosh", "button", "win_big", "coins_count", "lightning", "jackpot", "ck_squawk", "ck_impact"];
   addEventListener("pointerdown", () => SAMPLES.forEach(load), { once: true, capture: true });
   const synth = { ...S };
   S.chip = () => play("chip", { vol: 0.8 }) || synth.chip();
@@ -98,7 +98,7 @@
   S.coins = (sec) => play("coins_count", { vol: 0.35, dur: Math.max(0.6, sec || 1.5) });
   S.zap = () => play("lightning", { vol: 0.7, dur: 2 }) || synth.zap();
   S.thunder = () => play("lightning", { vol: 0.85 }) || synth.thunder();
-  S.lose = () => play("lose", { vol: 0.6, dur: 1.6 }) || synth.lose();
+  S.lose = () => {};   // no losing sound (owner found it annoying)
   S.roll = (sec) => play("ball_roll", { vol: 0.7, dur: sec }) || synth.roll(sec);
   S.ballDrop = () => play("ball_drop", { vol: 0.85, offset: 0.45, dur: 2.6 });   // trimmed so the first fret hit is at 0 s
   S.hasSample = (n) => !!BUF[n];
