@@ -36,7 +36,8 @@
 <text x="100" y="118" text-anchor="middle" font-family="Didot,'Bodoni 72',Georgia,serif" font-size="38" fill="url(#gcGold)" letter-spacing="3">GC</text>
 <g class="orb"><g transform="translate(100,-6) scale(.6)"><path d="M0,-10 L7,-3 L0,10 L-7,-3Z" fill="url(#gcDia)" stroke="#fff" stroke-width=".4"/><path d="M-7,-3 H7 M0,-10 L-2.5,-3 L0,10 L2.5,-3Z" fill="none" stroke="#9fb3cf" stroke-width=".4"/></g></g></svg><img class="wm" src="img/brand/wordmark.webp" alt="גולן קזינו">
     <div class="bar"><i></i></div><div class="tip"></div>`;
-  const tips = ["מערבבים את החפיסות…", "מצחצחים את הגלגל…", "סופרים צ׳יפים…", "מדליקים את הנברשות…", "עידו מחפש חניה…", "מסדרים את השולחן…"];
+  const tips = ["מערבבים את החפיסות…", "מצחצחים את הגלגל…", "סופרים צ׳יפים…", "מדליקים את הנברשות…", "עידו מחפש חניה…", "מסדרים את השולחן…",
+    "עידו מחפש את הכספומט הקרוב…", "אביחי סופר כמה גרם חלבון יש בצ׳יפ…", "בנימין מנסה להיזכר איפה החנה את המיניבוס…", "פישר מחכה לדקה ה־90…"];
   let o, tip, bar, tipT, progT, ti, p, finished;
   function build() {
     o = document.createElement("div"); o.id = "gcLoad"; o.setAttribute("role", "status"); o.setAttribute("aria-label", "טוען");
