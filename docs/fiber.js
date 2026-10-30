@@ -23,7 +23,8 @@ const IMG = {}; const NAMES = ["cabinet_bg", "cable_left", "glow_ok", "spark", "
 const loadImg = (src) => new Promise((r) => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = src; });
 const ready = Promise.all(NAMES.map(async (n) => { IMG[n] = await loadImg(`img/fiber/${n}.webp?v=1`); }));
 const TOP = () => H * .16, BOT = () => H * .74;
-const TIP_X = 250, SLOT_X = 560, CABLE = () => ({ x: 120, y: H * .8 });
+const SPLIT = NFIB > 12;   // extreme: slots in two columns, one on each side of the fibers (bigger targets)
+const TIP_X = SPLIT ? 360 : 250, SLOT_X = 560, CABLE = () => ({ x: SPLIT ? 360 : 120, y: H * .8 });
 
 // ---------- state ----------
 let G = null, run = null;
@@ -36,7 +37,8 @@ function cabinet() {
   const rowY = (k) => TOP() + (BOT() - TOP()) * (n === 1 ? .5 : k / (n - 1));
   const fibers = kinds.map((f, i) => ({ ...f, tip: { x: TIP_X + (n > 12 ? (tipOrder.indexOf(i) % 2 ? -70 : 50) : (Math.random() - .5) * (TRACE ? 70 : 16)), y: rowY(tipOrder.indexOf(i)) },
     bend: { x: 120 + Math.random() * 260, y: TOP() + Math.random() * (BOT() - TOP()) }, done: false }));
-  const slots = slotOrder.map((fi, k) => ({ fi, y: rowY(k), done: false }));
+  const half = Math.ceil(n / 2), rowY2 = (k) => TOP() + (BOT() - TOP()) * (k / (half - 1));
+  const slots = slotOrder.map((fi, k) => SPLIT ? { fi, x: k < half ? 610 : 110, y: rowY2(k % half), done: false } : { fi, x: SLOT_X, y: rowY(k), done: false });
   return { fibers, slots, sel: null, left: SECS, startedAt: G ? G.time : 0 };
 }
 
@@ -48,18 +50,18 @@ function tap(x, y) {
   if (!G || G.done || G.pause > 0) return; const c = G.cab, R = Math.max(22, (BOT() - TOP()) / NFIB / 1.6);
   const fi = c.fibers.findIndex((f) => !f.done && Math.hypot(f.tip.x - x, f.tip.y - y) < R + 14);
   if (fi >= 0) { c.sel = fi; try { SFX.button(); } catch (e) {} return; }
-  const sk = c.slots.findIndex((s) => !s.done && Math.abs(s.y - y) < R + 6 && Math.abs(SLOT_X - x) < 80);
+  const sk = c.slots.findIndex((s) => !s.done && Math.abs(s.y - y) < (SPLIT ? (BOT() - TOP()) / 24 + 4 : R + 6) && Math.abs(s.x + 14 - x) < 70);
   if (sk < 0 || c.sel == null) return;
   const s = c.slots[sk], f = c.fibers[c.sel];
   if (s.fi === c.sel || (f.c === c.fibers[s.fi].c && f.stripe === c.fibers[s.fi].stripe)) {      // same colour (and stripe) = right
     const real = c.fibers[s.fi]; if (s.fi !== c.sel) { const t = real.tip; real.tip = f.tip; f.tip = t; }   // identical fibers are interchangeable
-    s.done = true; c.fibers[s.fi].done = true; c.fibers[s.fi].slotY = s.y;
-    G.fx.push({ img: "spark", x: SLOT_X - 40, y: s.y, t: 0, life: .5, size: 110 }, { img: "glow_ok", x: SLOT_X + 40, y: s.y, t: 0, life: .7, size: 70 });
+    s.done = true; c.fibers[s.fi].done = true; c.fibers[s.fi].slotY = s.y; c.fibers[s.fi].slotX = s.x;
+    G.fx.push({ img: "spark", x: s.x - 40, y: s.y, t: 0, life: .5, size: 110 }, { img: "glow_ok", x: s.x + 40, y: s.y, t: 0, life: .7, size: 70 });
     try { SFX.chip(); } catch (e) {}
     c.sel = null;
     if (c.slots.every((q) => q.done)) cabinetDone(true);
   } else {
-    c.left = Math.max(0, c.left - PENALTY); G.pop.push({ txt: `−${PENALTY} שנ׳`, x: SLOT_X, y: s.y, t: 0 }); c.sel = null;
+    c.left = Math.max(0, c.left - PENALTY); G.pop.push({ txt: `−${PENALTY} שנ׳`, x: s.x, y: s.y, t: 0 }); c.sel = null;
     try { SFX.error(); navigator.vibrate && navigator.vibrate(80); } catch (e) {}
   }
 }
@@ -80,13 +82,14 @@ function draw() {
   const bg = IMG.cabinet_bg; if (bg) { const s = Math.max(W / bg.width, H / bg.height), w = bg.width * s, h = bg.height * s; cx.drawImage(bg, (W - w) / 2, (H - h) / 2, w, h); }
   const img = (n, x, y, w, h, a = 1) => { const i = IMG[n]; if (!i) return; cx.save(); cx.globalAlpha = a; cx.drawImage(i, x - w / 2, y - h / 2, w, h); cx.restore(); };
   const c = G.cab, R = Math.max(14, Math.min(26, (BOT() - TOP()) / NFIB / 2.2));
-  img("splice_tray", SLOT_X, (TOP() + BOT()) / 2, 150, (BOT() - TOP()) + 90);
+  if (SPLIT) { img("splice_tray", 624, (TOP() + BOT()) / 2, 140, (BOT() - TOP()) + 90); img("splice_tray", 124, (TOP() + BOT()) / 2, 140, (BOT() - TOP()) + 90); }
+  else img("splice_tray", SLOT_X, (TOP() + BOT()) / 2, 150, (BOT() - TOP()) + 90);
   img("cable_left", CABLE().x, CABLE().y + 120, 110, 330);
   img("splicer", W - 130, H * .86, 210, 168);
   // fibers: coloured jacket from the cable, through the mess, to the tip (or to its slot once spliced)
   const col = (f) => COLORS[f.c][1];
   c.fibers.forEach((f, i) => {
-    const a = CABLE(), end = f.done ? { x: SLOT_X - 60, y: f.slotY } : f.tip;
+    const a = CABLE(), end = f.done ? { x: f.slotX + (f.slotX < 360 ? 70 : -60), y: f.slotY } : f.tip;
     cx.save(); cx.lineCap = "round";
     cx.strokeStyle = "rgba(0,0,0,.45)"; cx.lineWidth = 9; cx.beginPath(); cx.moveTo(a.x, a.y - 30); cx.bezierCurveTo(f.bend.x, f.bend.y, f.bend.x + 60, end.y, end.x, end.y); cx.stroke();
     cx.strokeStyle = col(f); cx.lineWidth = 6; if (c.sel === i) { cx.shadowColor = "#ffe27a"; cx.shadowBlur = 16; }
@@ -101,10 +104,11 @@ function draw() {
   });
   // tray slots: the colour each slot wants
   c.slots.forEach((s) => { const f = c.fibers[s.fi];
-    cx.beginPath(); cx.roundRect ? cx.roundRect(SLOT_X - 14, s.y - R * .7, 56, R * 1.4, 8) : cx.rect(SLOT_X - 14, s.y - R * .7, 56, R * 1.4);
+    const sh = SPLIT ? (BOT() - TOP()) / 13 : R * 1.4;
+    cx.beginPath(); cx.roundRect ? cx.roundRect(s.x - 14, s.y - sh / 2, 56, sh, 8) : cx.rect(s.x - 14, s.y - sh / 2, 56, sh);
     cx.fillStyle = s.done ? "#3ad16f" : col(f); cx.fill(); cx.lineWidth = 2; cx.strokeStyle = "rgba(0,0,0,.6)"; cx.stroke();
-    if (f.stripe && !s.done) { cx.fillStyle = f.c === 7 ? "#fff" : "#000"; cx.fillRect(SLOT_X - 14, s.y - 3, 56, 6); }
-    if (s.done) { cx.fillStyle = "#fff"; cx.font = "800 22px Heebo"; cx.textAlign = "center"; cx.fillText("✔", SLOT_X + 14, s.y + 8); } });
+    if (f.stripe && !s.done) { cx.fillStyle = f.c === 7 ? "#fff" : "#000"; cx.fillRect(s.x - 14, s.y - 4, 56, 8); }
+    if (s.done) { cx.fillStyle = "#fff"; cx.font = "800 22px Heebo"; cx.textAlign = "center"; cx.fillText("✔", s.x + 14, s.y + 8); } });
   for (const e of G.fx) img(e.img, e.x, e.y, e.size * (1 + e.t), e.size * (1 + e.t), Math.max(0, 1 - e.t / e.life));
   cx.textAlign = "center";
   for (const p of G.pop) { cx.globalAlpha = Math.max(0, 1 - p.t); cx.font = "800 30px Heebo"; cx.fillStyle = "#ffb3b3"; cx.strokeStyle = "#000"; cx.lineWidth = 4; cx.strokeText(p.txt, p.x, p.y - p.t * 60); cx.fillText(p.txt, p.x, p.y - p.t * 60); cx.globalAlpha = 1; }
