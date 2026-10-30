@@ -82,8 +82,8 @@
   const synth = { ...S };
   S.chip = () => play("chip", { vol: 0.8 }) || synth.chip();
   S.tick = (u) => play("tick", { vol: u ? 1 : 0.6, rate: u ? 1.15 : 1 }) || synth.tick(u);
-  S.card = () => play("card_deal", { vol: 0.8 }) || synth.card();
-  S.cardFlip = () => play("card_flip", { vol: 0.8 }) || synth.flip();
+  S.card = () => play("card_deal", { vol: 0.35 }) || synth.card();
+  S.cardFlip = () => play("card_flip", { vol: 0.4 }) || synth.flip();
   S.flip = () => play("reel_stop", { vol: 0.55, dur: 0.6 }) || synth.flip();
   S.bonus = () => play("bonus_trigger", { vol: 0.8 }) || synth.riser(1.2);
   S.riser = (sec) => play("reel_tension", { vol: 0.6, dur: sec || 2.5 }) || synth.riser(sec);
