@@ -47,7 +47,8 @@
     .gd-ido{width:96px;margin-inline-start:6px;margin-bottom:-4px}.gd-bub{margin-bottom:0;min-width:0;width:100%;font-size:14.5px;max-height:52vh;overflow:auto}
     .gd-bub::before{inset-inline-start:34px;bottom:auto;top:-9px;border:10px solid transparent;border-bottom-color:#F5ECDD;border-top:0}}
   @media (max-height:520px){.gd-bub{font-size:14px;padding:10px 12px;margin-bottom:24px;max-height:calc(100dvh - 70px);overflow:auto}.gd-ido{width:112px}.gd.neon-on .gd-host{bottom:max(8px,min(175px,calc(100dvh - var(--gdh,0px) - 8px)))}}
-  .gd-host{max-height:calc(100dvh - 16px)}`;
+  .gd-host{max-height:calc(100dvh - 16px)}
+  .gd .gd-host.top{bottom:auto!important;align-items:flex-start}`;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
   let imgUrl = null;

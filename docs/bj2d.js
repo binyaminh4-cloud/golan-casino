@@ -52,9 +52,9 @@ addEventListener("resize", fit); fit();
 
 // ---------- dealer poses ----------
 const FR = ["i01","i02","i03","d01_reach","d02_pull","d03_lift","d04_slide","d05_release","d06_return","f01_touch","f02_turn","f03_done","p01_pay","p02_back","c01_collect","c02_rest"];
-FR.forEach((f) => { const i = new Image(); i.src = `img/dealer2/${f}.webp`; }); { const i = new Image(); i.src = "img/dealer/m_celebrate.webp?v=2"; }
+FR.forEach((f) => { const i = new Image(); i.src = `img/dealer2/${f}.webp?v=2`; }); { const i = new Image(); i.src = "img/dealer/m_celebrate.webp?v=2"; }
 let poseTok = 0, curFrame = "i01";
-function frame(f) { curFrame = f; $("dealer").src = f === "celebrate" ? "img/dealer/m_celebrate.webp?v=2" : `img/dealer2/${f}.webp`; }
+function frame(f) { curFrame = f; $("dealer").src = f === "celebrate" ? "img/dealer/m_celebrate.webp?v=2" : `img/dealer2/${f}.webp?v=2`; }
 async function seq(list) { const tok = ++poseTok; for (const [f, ms] of list) { if (tok !== poseTok) return false; frame(f); await sleep(ms); } return tok === poseTok; }
 function pose(p) {
   if (p === "pay") return seq([["p01_pay", 900], ["p02_back", 700], ["i01", 0]]);
