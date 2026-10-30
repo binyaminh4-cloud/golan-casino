@@ -106,7 +106,7 @@ end $$;
 \echo POKER TESTS DONE
 -- jackpot tournament
 do $$ begin perform ch_season(); end $$;
-update wallets set balance = 100000 where user_id in ('00000000-0000-0000-0000-00000000000a','00000000-0000-0000-0000-00000000000b','00000000-0000-0000-0000-00000000000c');
+update wallets set balance = 10000000 where user_id in ('00000000-0000-0000-0000-00000000000a','00000000-0000-0000-0000-00000000000b','00000000-0000-0000-0000-00000000000c');
 delete from poker_seats;
 do $$ declare u text; r jsonb; tb uuid; st jsonb; i int; tot bigint; pz bigint; begin
   foreach u in array array['00000000-0000-0000-0000-00000000000a','00000000-0000-0000-0000-00000000000b','00000000-0000-0000-0000-00000000000c'] loop
@@ -114,11 +114,15 @@ do $$ declare u text; r jsonb; tb uuid; st jsonb; i int; tot bigint; pz bigint; 
   end loop;
   perform t_assert(r->>'status' = 'running', 'third player starts the tournament');
   tb := (r->>'table')::uuid; pz := (select prize from tourneys where table_id = tb);
-  perform t_assert(pz in (15000, 20000, 50000, 100000, 250000, 500000), 'wheel prize ' || pz);
-  perform t_assert((select sum(balance) from wallets where user_id in ('00000000-0000-0000-0000-00000000000a','00000000-0000-0000-0000-00000000000b','00000000-0000-0000-0000-00000000000c')) = 270000, 'buy-ins taken');
-  perform t_assert((select wealth from leaderboard where id = '00000000-0000-0000-0000-00000000000a') = 90000, 'tournament chips are not wealth');
+  perform t_assert(pz in (1500000, 2000000, 5000000, 10000000, 25000000, 50000000), 'wheel prize ' || pz);
+  perform poker_tick(tb);
+  perform t_assert((select hand_no from poker_hands where table_id = tb) = 0, 'waits until everyone connects');
+  update poker_seats set last_seen = now() where table_id = tb;
+  perform t_assert((select sum(balance) from wallets where user_id in ('00000000-0000-0000-0000-00000000000a','00000000-0000-0000-0000-00000000000b','00000000-0000-0000-0000-00000000000c')) = 27000000, 'buy-ins taken');
+  perform t_assert((select wealth from leaderboard where id = '00000000-0000-0000-0000-00000000000a') = 9000000, 'tournament chips are not wealth');
   for i in 1..3000 loop
     update poker_hands set next_at = now() where table_id = tb and street in ('done','idle');
+    update poker_seats set last_seen = now() where table_id = tb;
     perform poker_tick(tb);
     exit when (select status from tourneys where table_id = tb) = 'done';
     st := (select to_jsonb(h) from poker_hands h where table_id = tb);
@@ -128,7 +132,23 @@ do $$ declare u text; r jsonb; tb uuid; st jsonb; i int; tot bigint; pz bigint; 
     exception when others then begin perform poker_act(tb, 'check'); exception when others then perform poker_act(tb, 'call'); end; end;
   end loop;
   perform t_assert((select status from tourneys where table_id = tb) = 'done', 'tournament finished');
-  perform t_assert((select sum(balance) from wallets where user_id in ('00000000-0000-0000-0000-00000000000a','00000000-0000-0000-0000-00000000000b','00000000-0000-0000-0000-00000000000c')) = 270000 + pz, 'winner paid the prize');
+  perform t_assert((select sum(balance) from wallets where user_id in ('00000000-0000-0000-0000-00000000000a','00000000-0000-0000-0000-00000000000b','00000000-0000-0000-0000-00000000000c')) = 27000000 + pz, 'winner paid the prize');
   perform t_assert((select sum(points) from ch_points where kind = 'tourney') = 40, 'points: winner 30 + runner-up 10');
+end $$;
+-- a player who disconnects for 15 s is out, the other two go on
+update wallets set balance = 10000000 where user_id in ('00000000-0000-0000-0000-00000000000a','00000000-0000-0000-0000-00000000000b','00000000-0000-0000-0000-00000000000c');
+do $$ declare u text; r jsonb; tb uuid; begin
+  foreach u in array array['00000000-0000-0000-0000-00000000000a','00000000-0000-0000-0000-00000000000b','00000000-0000-0000-0000-00000000000c'] loop
+    perform set_config('request.jwt.sub', u, false); r := tourney_join();
+  end loop;
+  tb := (r->>'table')::uuid;
+  update poker_seats set last_seen = now() where table_id = tb; perform poker_tick(tb);
+  perform t_assert((select hand_no from poker_hands where table_id = tb) = 1, 'starts as soon as all 3 are in');
+  update poker_seats set last_seen = now() - interval '20 seconds' where table_id = tb and user_id = '00000000-0000-0000-0000-00000000000c';
+  update poker_seats set last_seen = now() where table_id = tb and user_id <> '00000000-0000-0000-0000-00000000000c';
+  perform poker_tick(tb);
+  perform t_assert((select leaving from poker_seats where table_id = tb and user_id = '00000000-0000-0000-0000-00000000000c'), 'away 15 s = out');
+  perform t_assert((select to_act from poker_hands where table_id = tb) is distinct from (select seat_index from poker_seats where table_id = tb and user_id = '00000000-0000-0000-0000-00000000000c')
+     or (select street from poker_hands where table_id = tb) not in ('preflop','flop','turn','river'), 'nobody waits for him');
 end $$;
 \echo TOURNEY TESTS DONE

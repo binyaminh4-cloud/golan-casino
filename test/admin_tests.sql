@@ -2,9 +2,11 @@
 select set_config('request.jwt.sub', '00000000-0000-0000-0000-00000000000a', false);
 update profiles set is_admin = (id = '00000000-0000-0000-0000-00000000000a');
 update gc_settings set value = 'false' where key = 'challenges';
+update profiles set is_admin = false;  -- the owner may test while paused; check a regular member
 select t_assert((ch_state()->>'paused')::boolean, 'challenges paused');
 select t_assert(t_raises($$select ch_start_fisher()$$, 'challenges_paused'), 'no runs while paused');
 select t_assert(t_raises($$select tourney_join()$$, 'challenges_paused'), 'no tournaments while paused');
+update profiles set is_admin = (id = '00000000-0000-0000-0000-00000000000a');
 select admin_set('challenges', 'true');
 select t_assert((ch_state()->>'season')::int >= 1, 'challenges on');
 select admin_set('games', '{"poker":false}');
