@@ -3,10 +3,10 @@ const $ = (id) => document.getElementById(id);
 const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e12 ? "₪" + +(n / 1e12).toFixed(2) + "T" : a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };   // ₪1.58M · ₪2.4B · ₪1T
 const PREVIEW = /[?#&]preview/.test(location.href);
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
-const PAY = { driver: [200000, 300000, 400000], dealer: [170000, 250000, 330000] };
+const PAY = { driver: [560000, 840000, 1120000], dealer: [170000, 250000, 330000] };
 const LVL = ["⭐ קל", "⭐⭐ בינוני", "⭐⭐⭐ קשה"];
 const LVL_TXT = {
-  driver: ["2 נוסעים, מפה קטנה", "3 נוסעים, תקציב צפוף יותר", "4 נוסעים, כמעט בלי מרווח"],
+  driver: ["נסיעה רגועה, משבצת גדולה", "מהר יותר, משבצת קטנה יותר", "דוהרים, משבצת צרה והרבה פרות"],
   dealer: ["4 ידיים של 2 קלפים, 15 שניות", "5 ידיים של 3–4 קלפים, 30 שניות", "6 ידיים ארוכות, הרבה אסים, 35 שניות"],
 };
 let balance = 0, earned = 0, job = null, tick = null, sending = false;
@@ -14,11 +14,11 @@ let balance = 0, earned = 0, job = null, tick = null, sending = false;
 function showBal() { $("bal").textContent = fmt(balance); $("earned").textContent = earned ? `הרווחת היום ${fmt(earned)}` : ""; }
 
 // ---------- pick screen ----------
-document.querySelectorAll(".job").forEach((card) => {
+document.querySelectorAll(".job[data-game]").forEach((card) => {
   const g = card.dataset.game;
   card.querySelector(".levels").innerHTML = [0, 1, 2].map((i) =>
     `<button class="lvl l${i + 1}" data-l="${i + 1}"><span class="st">${LVL[i]}</span><span class="ds">${LVL_TXT[g][i]}</span><b class="num">${fmt(PAY[g][i])}</b></button>`).join("");
-  card.querySelectorAll(".lvl").forEach((b) => b.onclick = () => start(g, +b.dataset.l));
+  card.querySelectorAll(".lvl").forEach((b) => b.onclick = () => g === "driver" ? (location.href = `bus.html?l=${b.dataset.l}`) : start(g, +b.dataset.l));
 });
 
 // ---------- server ----------
