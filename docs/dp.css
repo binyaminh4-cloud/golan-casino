@@ -1,0 +1,53 @@
+[hidden]{display:none!important}
+:root{--gold:#C5A05A;--champ:#F1D69A;--ink:#F5ECDD}
+html,body{margin:0;height:100%;background:#0b0806;color:var(--ink);font:500 15px Heebo,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}
+.top{position:fixed;top:0;left:0;right:0;z-index:20;height:44px;display:flex;align-items:center;gap:12px;padding:0 max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));background:linear-gradient(rgba(11,9,8,.95),rgba(11,9,8,.6))}
+.top a.back,.top .rules{color:var(--champ);text-decoration:none;border:1px solid rgba(241,214,154,.45);border-radius:99px;padding:4px 12px;font:700 13px Heebo;background:none;cursor:pointer}
+.top .title{font:700 20px 'Frank Ruhl Libre',serif;color:var(--champ)}.top .mode{font-size:12px;color:#cdbb98;border:1px solid rgba(255,255,255,.15);border-radius:99px;padding:2px 8px}
+.top .bal{margin-inline-start:auto;font-size:13px;color:#cdbb98}.top .bal b{font:800 18px Inter;color:#ffe27a;direction:ltr;unicode-bidi:isolate}
+.fit{position:fixed;inset:0;overflow:hidden}
+.stage{position:absolute;left:0;top:0;width:1672px;height:941px;transform-origin:0 0}
+.bg{position:absolute;inset:0;background:url(img/table_bj.jpg) center/cover}
+.feltname{position:absolute;left:836px;top:452px;transform:translate(-50%,-50%);width:820px;height:230px;border-radius:50%;padding-top:70px;box-sizing:border-box;
+  background:radial-gradient(ellipse at 50% 50%,#1f5c3c 58%,rgba(31,92,60,0) 72%);display:grid;place-items:center;text-align:center;
+  font:700 30px 'Frank Ruhl Libre',serif;color:#e9cf8a;letter-spacing:2px;text-shadow:0 1px 0 rgba(0,0,0,.4)}
+.feltname small{display:block;font:600 15px Heebo;letter-spacing:0;color:#d9c08a}
+.dealerclip{position:absolute;left:0;right:0;top:0;height:560px;overflow:hidden;pointer-events:none}
+.dealer{position:absolute;left:836px;bottom:114px;width:430px;transform:translateX(-50%);filter:drop-shadow(0 10px 20px rgba(0,0,0,.55))}
+.layer{position:absolute;inset:0}
+.card{position:absolute;width:84px;height:118px;margin:-59px 0 0 -42px;border-radius:8px;background:#fff center/cover;box-shadow:0 8px 14px rgba(0,0,0,.45);
+  transition:left .42s cubic-bezier(.2,.7,.25,1),top .42s cubic-bezier(.2,.7,.25,1),transform .3s;transform:perspective(900px) rotateX(38deg)}
+.card.back{background-image:url(cards3/back.webp)}.card.small{width:58px;height:82px;margin:-41px 0 0 -29px}.card.flip{transform:perspective(900px) rotateX(38deg) rotateY(90deg)}
+.card.win{box-shadow:0 0 0 3px #ffe27a,0 8px 14px rgba(0,0,0,.45)}
+.lab{position:absolute;transform:translate(-50%,-50%);background:rgba(11,9,8,.85);border:1px solid var(--gold);border-radius:99px;padding:4px 16px;font:800 24px Heebo;white-space:nowrap;z-index:3}
+.lab.win{background:#1f5a34;border-color:#3ad16f}.lab.lose{background:#5a1f22;border-color:#E5484D}
+.spot{position:absolute;transform:translate(-50%,-50%);width:92px;height:92px;border-radius:50%;border:3px solid rgba(241,214,154,.75);display:grid;place-items:center;text-align:center;
+  font:700 13px Heebo;color:#f1e3c0;cursor:pointer;background:rgba(0,0,0,.12)}
+.spot.sel{box-shadow:0 0 0 4px rgba(255,226,122,.45);border-color:#ffe27a}.spot.dim{opacity:.55;cursor:default}
+.spot .chip{position:absolute;inset:6px;border-radius:50%}.spot small{position:absolute;bottom:-24px;left:50%;transform:translateX(-50%);background:rgba(11,9,8,.85);border-radius:99px;padding:1px 8px;font:800 13px Inter;color:#ffe27a;white-space:nowrap}
+.seat{position:absolute;transform:translate(-50%,0);text-align:center;width:180px}
+.seat img{height:120px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6))}.seat .nm{font:700 20px Heebo;background:rgba(11,9,8,.8);border-radius:8px;padding:2px 8px;display:inline-block}
+.seat .bt{font:800 20px Inter;color:#ffe27a}.seat .st{font-size:18px;color:#cdbb98}
+.clock{position:fixed;top:50px;left:50%;transform:translateX(-50%);z-index:15;width:min(360px,60vw);height:22px;border-radius:99px;background:rgba(11,9,8,.8);border:1px solid var(--gold);overflow:hidden}
+.clock i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#C5A05A,#F1D69A);transition:width .25s linear}.clock span{position:relative;display:block;text-align:center;font:700 13px Heebo;line-height:22px;color:#fff;text-shadow:0 1px 2px #000}
+.msg{position:fixed;left:22%;top:52%;transform:translate(-50%,-50%);z-index:16;background:rgba(11,9,8,.9);border:2px solid var(--gold);border-radius:16px;padding:12px 22px;text-align:center;font:800 22px Heebo;pointer-events:none}
+.msg small{display:block;font:600 15px Heebo;color:#cdbb98}.msg.win{border-color:#3ad16f}.msg.lose{border-color:#E5484D}
+.betbar{position:fixed;left:0;right:0;bottom:0;z-index:12;display:flex;align-items:center;justify-content:center;gap:12px;padding:8px max(12px,env(safe-area-inset-left)) max(8px,env(safe-area-inset-bottom));
+  background:linear-gradient(transparent,rgba(8,5,4,.92) 30%)}
+.chips{display:flex;gap:6px}.chips button{width:54px;height:54px;border-radius:50%;border:0;cursor:pointer;font:800 12px Inter;color:#fff;background:#333}
+.chips button[aria-pressed=true]{box-shadow:0 0 0 3px #ffe27a;transform:translateY(-4px)}
+.btns{display:flex;gap:6px}.btns button,.acts button{border:0;border-radius:12px;padding:10px 16px;font:800 16px Heebo;cursor:pointer}
+.go{background:linear-gradient(#F1D69A,#C5A05A);color:#1b0f06}.ghost{background:rgba(11,9,8,.7);color:var(--champ);border:1px solid rgba(241,214,154,.45)!important}
+button:disabled{opacity:.45;cursor:default}
+.acts{position:fixed;left:0;right:0;bottom:max(10px,env(safe-area-inset-bottom));z-index:13;display:flex;justify-content:space-between;padding:0 max(14px,env(safe-area-inset-left)) 0 max(14px,env(safe-area-inset-right));pointer-events:none}
+.acts .grp{display:flex;gap:8px;pointer-events:auto}.acts button{min-width:110px;padding:13px 16px;font-size:17px}
+.acts .fold{background:#5a1f22;color:#ffd9d9;border:1px solid #E5484D}.acts .check{background:#203a4a;color:#dff1ff;border:1px solid #6fb6e3}
+.err{position:fixed;left:50%;bottom:82px;transform:translateX(-50%);z-index:14;color:#ffb3b3;font:700 14px Heebo;text-shadow:0 1px 3px #000;text-align:center}
+.pick,.rulesbox{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:rgba(8,6,4,.86)}
+.pick .card,.rulesbox .card{position:static;margin:0;width:min(460px,90vw);height:auto;max-height:86dvh;overflow:auto;background:radial-gradient(ellipse at 50% 0%,#3a2a10,#120c08);border:2px solid var(--champ);
+  border-radius:18px;padding:18px;text-align:center;transform:none;box-shadow:0 0 40px rgba(255,214,110,.3);color:var(--ink)}
+.pick h2{margin:0 0 6px;font:700 26px 'Frank Ruhl Libre',serif;color:var(--champ)}.pick p{color:#cdbb98;margin:0 0 12px}
+.pick button{display:block;width:100%;margin-top:10px;padding:14px;border:0;border-radius:12px;font:800 18px Heebo;cursor:pointer}.pick .alt{background:linear-gradient(#2e5a3e,#173523);color:#e2f7e9}
+.ghostlink{display:block;margin-top:12px;color:#cdbb98}
+.rulesbox .card{text-align:right;font-size:14px;line-height:1.6}.rulesbox h3{color:var(--champ);margin:10px 0 4px}.rulesbox table{width:100%;border-collapse:collapse}.rulesbox td{padding:2px 4px;border-bottom:1px solid rgba(255,255,255,.08)}
+.rulesbox td:last-child{text-align:left;font:700 14px Inter;color:#ffe27a}

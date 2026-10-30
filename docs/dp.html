@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<script src="loader.js?v=13"></script>
+<title>פוקר מול הדילר · גולן קזינו</title>
+<link rel="icon" href="img/brand/favicon.png?v=2">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@500;700;800&family=Frank+Ruhl+Libre:wght@700&family=Inter:wght@700;800&display=swap">
+<link rel="stylesheet" href="dp.css?v=1">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=8"></script>
+<script src="landscape.js?v=1"></script>
+</head>
+<body>
+<header class="top">
+  <a href="./" class="back">→ ללובי</a>
+  <b class="title" id="title">פוקר</b><span class="mode" id="modeTag"></span>
+  <button class="rules" id="rulesBtn" type="button">חוקים ותשלומים</button>
+  <div class="bal">הארנק שלי <b id="bal" class="num">…</b></div>
+</header>
+<div id="fit" class="fit"><div id="stage" class="stage">
+  <div class="bg"></div><div class="feltname" id="feltName"></div>
+  <div class="dealerclip"><img id="dealer" class="dealer" src="img/dealer2/i01.webp?v=2" alt="הדילרית"></div>
+  <div id="layer" class="layer"></div>
+</div></div>
+<div class="clock" id="clock" hidden><i id="clockBar"></i><span id="clockTxt"></span></div>
+<div class="msg" id="msg" hidden></div>
+<div class="betbar" id="betUI" hidden>
+  <div class="spots" id="spots"></div>
+  <div class="chips" id="chips"></div>
+  <div class="btns"><button id="clearBtn" class="ghost">נקה</button><button id="rebetBtn" class="ghost">אותו הימור</button><button id="dealBtn" class="go">חלק קלפים</button></div>
+</div>
+<div class="acts" id="acts" hidden></div>
+<div class="err" id="err" aria-live="polite"></div>
+<div class="pick" id="pick" hidden><div class="card"><h2 id="pickTitle"></h2><p id="pickSub"></p>
+  <button class="go" data-t="1">👥 שולחן לייב עם החברים</button><button class="go alt" data-t="0">🎩 שולחן פרטי</button><a class="ghostlink" href="./">חזרה ללובי</a></div></div>
+<div class="rulesbox" id="rulesBox" hidden><div class="card" id="rulesTxt"></div></div>
+<script src="sfx.js?v=27"></script>
+<script src="dp.js?v=1"></script>
+<script src="chat.js?v=15"></script>
+</body>
+</html>
