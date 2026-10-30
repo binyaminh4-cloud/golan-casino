@@ -6,10 +6,16 @@ const PREVIEW = /[?#&]preview/.test(location.href);
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 let S = null;
 const runUrl = (kind, run) => kind === "fisher" ? `blackjack.html?mode=lightning&ch=${run}` : `blackjack.html?ch=${run}`;
-function err(t) { $("err").textContent = t || ""; }
+// errors show as a toast on screen (the old line sat at the very bottom of the page, out of sight)
+function err(t) { $("err").textContent = t || ""; let x = document.getElementById("chToast");
+  if (!t) { if (x) x.remove(); return; }
+  if (!x) { x = document.createElement("div"); x.id = "chToast"; x.setAttribute("role", "alert");
+    x.style.cssText = "position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:50;width:min(420px,90vw);box-sizing:border-box;background:#2a0e0e;border:1.5px solid #e5484d;color:#fff;border-radius:14px;padding:12px 14px;font:700 15px/1.4 Heebo;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.6)";
+    document.body.appendChild(x); }
+  x.innerHTML = t; clearTimeout(err.t); err.t = setTimeout(() => x.remove(), 7000); }
 function errText(e) {
   const m = (e && e.message) || "";
-  if (m.includes("challenge_in_progress")) return "יש לך כבר אתגר פתוח. סיים אותו קודם.";
+  if (m.includes("challenge_in_progress")) { const r = S.my_run; return r ? `קודם תסיים את האתגר הפתוח: ${r.kind === "fisher" ? "הסט של פישר" : "החפיסה של עידו"} (יד ${r.hands}/${r.max}). <a href="${runUrl(r.kind, r.id)}" style="color:#ffe27a">להמשיך אותו ←</a>` : "יש לך כבר אתגר פתוח. סיים אותו קודם."; }
   if (m.includes("slow_down")) return "כבר אתגרת את החבר הזה פעמיים היום.";
   if (m.includes("challenge_closed")) return "האתגר הזה כבר נסגר.";
   return "משהו השתבש. נסה שוב.";
@@ -25,9 +31,9 @@ function draw() {
   const r = S.my_run; $("openRun").hidden = !r;
   if (r) $("openRun").innerHTML = `יש לך אתגר פתוח: ${r.kind === "fisher" ? "🎧 הסט של פישר" : "🃏 החפיסה של עידו"} · יד ${r.hands}/${r.max} · ${fmt(r.chips)} <a class="go" href="${runUrl(r.kind, r.id)}">המשך</a>`;
   // friends
-  $("zopp").innerHTML = (S.members || []).map((m) => `<option value="${m.id}">${esc(m.name)}</option>`).join("") || "<option disabled>אין עוד חברים</option>";
+  $("zopp").innerHTML = (S.members || []).filter((m) => !/^(test|בדיקה)/i.test(m.name || "")).map((m) => `<option value="${m.id}">${esc(m.name)}</option>`).join("") || "<option disabled>אין עוד חברים</option>";
   drawZeus();
-  $("opp").innerHTML = (S.members || []).map((m) => `<option value="${m.id}">${esc(m.name)}</option>`).join("") || "<option disabled>אין עוד חברים</option>";
+  $("opp").innerHTML = (S.members || []).filter((m) => !/^(test|בדיקה)/i.test(m.name || "")).map((m) => `<option value="${m.id}">${esc(m.name)}</option>`).join("") || "<option disabled>אין עוד חברים</option>";
   // duels
   $("duels").innerHTML = (S.duels || []).slice(0, 8).map((d) => {
     const mine = d.challenger === S.me, other = esc(mine ? d.opponent_name : d.challenger_name);
