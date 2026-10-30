@@ -59,13 +59,16 @@ $("leaveBtn").onclick = () => { if (G && !G.done && !G.shot) end(); };
 function cast() {
   if (!G || G.done || G.shot || G.casts >= CASTS) return;
   const p = G.p, ty = NEAR() - p * (NEAR() - FAR());
-  G.shot = { t: 0, dur: .45 + p * .35, p, ty, tx: W / 2 + rnd(-6, 6) };
+  // the catch is decided the moment you tap (the fish can't swim away while the bait flies); the flight is only a quick animation
+  const tx = W / 2; let best = null;
+  for (const f of G.fish) { if (Math.abs(f.x - tx) < f.w * .45 && Math.abs(f.y - ty) < f.h * .55 + 12) { if (!best || KINDS[f.kind].val > KINDS[best.kind].val) best = f; } }
+  if (best) best.hooked = true;
+  G.shot = { t: 0, dur: .14, p, ty: best ? best.y : ty, tx: best ? best.x : tx, best };
   G.casts++; hud(); try { SFX.button(); } catch (e) {}
 }
 function land() {
   const s = G.shot; G.shot = null;
-  let best = null;
-  for (const f of G.fish) { if (Math.abs(f.x - s.tx) < f.w * .45 && Math.abs(f.y - s.ty) < f.h * .55 + 12) { if (!best || KINDS[f.kind].val > KINDS[best.kind].val) best = f; } }
+  const best = s.best && G.fish.includes(s.best) ? s.best : null;
   G.fx.push({ img: "splash", x: s.tx, y: s.ty, t: 0, life: .6, size: 120 });
   if (best) {
     G.count[best.kind]++; G.fx.push({ img: "catch_burst", x: best.x, y: best.y, t: 0, life: .8, size: 200 });
@@ -83,7 +86,7 @@ function hud() { $("hCast").textContent = `${G.casts}/${CASTS}`; $("hEarn").text
 function step(dt) {
   const g = G; g.time += dt;
   if (!g.shot && !g.done) { g.ph += dt * BAR * Math.PI; g.p = (1 - Math.cos(g.ph)) / 2; }
-  for (const f of g.fish) { f.x += f.dir * f.v * dt; f.wob += dt * 4;
+  for (const f of g.fish) { if (f.hooked) continue; f.x += f.dir * f.v * dt; f.wob += dt * 4;
     if ((f.dir > 0 && f.x > W + f.w) || (f.dir < 0 && f.x < -f.w)) g.fish[g.fish.indexOf(f)] = refill(g.fish, f.kind); }
   if (g.shot) { g.shot.t += dt; if (g.shot.t >= g.shot.dur) land(); }
   for (const a of [g.fx, g.pop, g.flying]) for (let i = a.length - 1; i >= 0; i--) { a[i].t += dt; if (a[i].t > (a[i].life || 1.1)) a.splice(i, 1); }
