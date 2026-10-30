@@ -7,7 +7,7 @@
 <title>אתגרים · גולן קזינו</title>
 <link rel="icon" href="img/brand/favicon.png?v=2">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@500;700;800&display=swap">
-<link rel="stylesheet" href="ch.css?v=3">
+<link rel="stylesheet" href="ch.css?v=5">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
 <script src="portrait.js?v=2"></script>
@@ -19,46 +19,54 @@
 </header>
 <main class="wrap">
   <section class="season">
-    <div class="trophy">🏆</div>
+    <div class="hero" style="background-image:url(img/ch/ch_header.webp?v=1)"><img class="tro" src="img/ch/ch_trophy.webp?v=1" alt=""></div>
     <h1 id="seasonTitle">עונה</h1>
     <div class="left" id="left"></div>
-    <div class="prizes">🥇 אלוף העונה <b class="num">₪500,000</b> · ⭐ מצטיין בכל אתגר <b class="num">₪100,000</b></div>
+    <div class="prizes"><div class="champ">🏆 אלוף כל האתגרים <b class="num">₪1,000,000,000</b></div><div class="podium"><img src="img/ch/ch_medals.webp?v=1" alt=""><span>בכל אתגר: 🥇 <b class="num">₪100M</b> · 🥈 <b class="num">₪50M</b> · 🥉 <b class="num">₪25M</b></span></div></div>
   </section>
   <div id="openRun" class="openrun" hidden></div>
 
   <div class="chs">
     <section class="ch zeus">
-      <div class="hd"><span class="ic">⚡</span><div><h2>הדו־קרב של זאוס</h2><small>ראש בראש בלייב · רולטת ברקים</small></div></div>
+      <div class="art" style="background-image:url(img/ch/ch_zeus.webp?v=1)"><div class="tt"><h2>הדו־קרב של זאוס</h2><small>ראש בראש בלייב · רולטת ברקים</small></div></div>
       <p>שניכם מחוברים יחד: 10 סיבובים על אותה רולטה חיה, 10,000 צ׳יפים לכל אחד. בסיבוב האחרון זאוס מכפיל את כל ההימורים פי 2. ניצחון 30 נקודות.</p>
       <div class="row"><select id="zopp" aria-label="בחר חבר"></select><button class="go" id="zeusBtn">הזמן</button></div>
       <div class="duels" id="zduels"></div>
     </section>
 
     <section class="ch ido">
-      <div class="hd"><span class="ic">🃏</span><div><h2>החפיסה של עידו</h2><small>ראש בראש בהזמנה · בלאק ג׳ק</small></div></div>
+      <div class="art" style="background-image:url(img/ch/ch_ido.webp?v=1)"><div class="tt"><h2>החפיסה של עידו</h2><small>ראש בראש בהזמנה · בלאק ג׳ק</small></div></div>
       <p>20 ידיים, 10,000 צ׳יפים של אתגר. החבר מקבל בדיוק את אותה חפיסה ורואה רק את התוצאה שלך. ניצחון 30 נקודות, תיקו 10.</p>
       <div class="row"><select id="opp" aria-label="בחר חבר"></select><button class="go" id="idoBtn">אתגר</button></div>
       <div class="duels" id="duels"></div>
     </section>
 
     <section class="ch fisher">
-      <div class="hd"><span class="ic">🎧</span><div><h2>הסט של פישר</h2><small>אתגר בודד · בלאק ג׳ק הכפולות</small></div></div>
+      <div class="art" style="background-image:url(img/ch/ch_fisher.webp?v=1)"><div class="tt"><h2>הסט של פישר</h2><small>אתגר בודד · בלאק ג׳ק הכפולות</small></div></div>
       <p>15 ידיים עם הברקים של פישר, 10,000 צ׳יפים. כל ₪100 רווח = נקודה. אפשר לנסות שוב (3 סטים ביום נספרים).</p>
       <div class="row"><span class="best" id="fBest"></span><button class="go" id="fisherBtn">התחל סט</button></div>
     </section>
 
     <section class="ch tourney">
-      <div class="hd"><span class="ic">🎡</span><div><h2>טורניר ג׳קפוט</h2><small>3 שחקנים · פוקר</small></div></div>
-      <p>כניסה ₪10,000. כשנרשמים 3 שחקנים, גלגל קובע את הפרס: מ־₪15,000 ועד ₪500,000, והכול הולך למנצח. כולם מתחילים עם 500 צ׳יפים, והבליינדים עולים כל 5 ידיים. ניצחון 30 נקודות, מקום שני 10.</p>
+      <div class="art" style="background-image:url(img/ch/ch_tourney.webp?v=1)"><div class="tt"><h2>טורניר ג׳קפוט</h2><small>3 שחקנים · פוקר</small></div></div>
+      <p>כניסה ₪1,000,000. כשנרשמים 3 שחקנים, גלגל קובע את הפרס: מ־₪1.5M ועד ₪50M, והכול הולך למנצח. כולם מתחילים עם 500 צ׳יפים, והבליינדים עולים כל 5 ידיים. ניצחון 30 נקודות, מקום שני 10.</p>
       <div class="row"><span class="best" id="tnInfo"></span><button class="go" id="tnBtn">הירשם</button></div>
     </section>
 
     <section class="ch vault">
-      <div class="hd"><span class="ic">💼</span><div><h2>הכספת של בנימין</h2><small>קבוצתי · מכונת האטרף של בנימין</small></div></div>
-      <p>כל שקל שמישהו זוכה בו במכונת האטרף של בנימין ממלא את הכספת. ממלאים עד סוף העונה, וכל אחד מקבל <b>₪50,000</b>.</p>
+      <div class="art" style="background-image:url(img/ch/ch_vault.webp?v=1)"><div class="tt"><h2>הכספת של בנימין</h2><small>קבוצתי · מכונת האטרף של בנימין</small></div></div>
+      <p>כל שקל שמישהו זוכה בו במכונת האטרף של בנימין ממלא את הכספת. ממלאים עד ₪3B עד סוף העונה, וכל אחד מקבל <b>₪50,000,000</b>.</p>
       <div class="meter"><i id="vaultBar"></i><span id="vaultTxt" class="num"></span></div>
       <a class="go link" href="slots.html?m=fortune">למכונה</a>
     </section>
+  </div>
+
+  <h2 class="orn">בקרוב · אתגרים מול הבוטים</h2>
+  <div class="bots"><img src="img/ch/bot_1.webp?v=1" alt=""><img src="img/ch/bot_2.webp?v=1" alt=""><img src="img/ch/bot_3.webp?v=1" alt=""><img src="img/ch/bot_4.webp?v=1" alt=""><img src="img/ch/bot_5.webp?v=1" alt=""></div>
+  <div class="chs soon">
+    <section class="ch off"><div class="art" style="background-image:url(img/ch/ch_bots_poker.webp?v=1)"><div class="tt"><h2>פוקר מול הבוטים</h2><small>בקרוב 🔒</small></div></div><p>שולחן הולדם מול בוטים עם אופי משלהם — בוט בנימין, בוט עידו, בוט פישר ועוד.</p></section>
+    <section class="ch off"><div class="art" style="background-image:url(img/ch/ch_bots_race.webp?v=1)"><div class="tt"><h2>מרוץ מול הבוט</h2><small>בקרוב 🔒</small></div></div><p>אותם קלפים לך ולבוט. מי שמסיים עם יותר צ׳יפים — מנצח.</p></section>
+    <section class="ch off"><div class="art" style="background-image:url(img/ch/ch_bots_ladder.webp?v=1)"><div class="tt"><h2>סולם הבוטים</h2><small>בקרוב 🔒</small></div></div><p>5 בוטים, כל אחד חזק מהקודם. בראש הסולם מחכה הבוס.</p></section>
   </div>
 
   <h2 class="orn">טבלת העונה</h2>
@@ -67,7 +75,7 @@
   <p class="err" id="err" aria-live="polite"></p>
 </main>
 <script src="sfx.js?v=27"></script>
-<script src="ch.js?v=4b"></script>
+<script src="ch.js?v=6"></script>
 <script src="chat.js?v=18"></script>
 </body>
 </html>

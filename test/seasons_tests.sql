@@ -54,7 +54,7 @@ update seasons set ends_at = now() - interval '1 second' where no = 1;
 select ch_state();
 select t_assert((select settled from seasons where no = 1), 'season 1 settled');
 select t_assert((select count(*) from wallet_transactions where settlement_ref like 'season:1:%') in (2, 3), 'champion + challenge bests paid');
-select t_assert((select balance from wallets where user_id = '00000000-0000-0000-0000-00000000000a') >= 1100 + 500000 + 100000, 'a wins the prizes');
+select t_assert((select balance from wallets where user_id = '00000000-0000-0000-0000-00000000000a') >= 1100 + 1000000000 + 100000000, 'a wins the prizes');
 select ch_state();
 select t_assert((select count(*) from wallet_transactions where settlement_ref like 'season:1:%') in (2, 3), 'paid once');
 select t_assert((select no from seasons where now() >= starts_at and now() < ends_at) = 2, 'season 2 opened');

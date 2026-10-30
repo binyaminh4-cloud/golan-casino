@@ -39,3 +39,16 @@ tr.me td{background:rgba(197,160,90,.12)}td.tot{color:var(--champ);font-weight:8
 [hidden]{display:none!important}
 .ghost.sm{height:34px;padding:0 10px;border-radius:99px;border:1px solid var(--line);background:none;color:var(--muted);cursor:pointer}.duel .acts{display:flex;gap:6px}
 .ch.tourney{background:linear-gradient(180deg,rgba(150,30,40,.4),rgba(11,9,8,.9))}
+
+/* challenge pack art */
+.season .hero{position:relative;margin:-16px -16px 8px;height:170px;border-radius:16px 16px 0 0;background:center/cover no-repeat}
+.season .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 55%,rgba(11,9,8,.95));border-radius:inherit}
+.season .hero .tro{position:absolute;z-index:1;left:50%;bottom:-18px;transform:translateX(-50%);height:120px;filter:drop-shadow(0 6px 16px rgba(255,214,110,.55))}
+.season .prizes .champ{font:800 17px Heebo;color:var(--champ)}.season .prizes .champ b{font:800 20px Inter;color:#ffe27a}
+.season .podium{display:grid;justify-items:center;gap:4px;margin-top:6px;font-size:15px}.season .podium img{height:44px}
+.ch .art{position:relative;margin:-14px -14px 4px;aspect-ratio:1600/700;border-radius:14px 14px 0 0;background:center/cover no-repeat;overflow:hidden}
+.ch .art::after{content:"";position:absolute;inset:0;background:linear-gradient(to left,rgba(11,9,8,.88),rgba(11,9,8,.2) 52%,rgba(11,9,8,0) 62%)}
+.ch .art .tt{position:absolute;z-index:1;right:14px;top:50%;transform:translateY(-50%);max-width:50%;text-align:right}
+.ch .art h2{margin:0;font:700 22px 'Frank Ruhl Libre',serif;color:var(--champ);text-shadow:0 2px 8px #000}.ch .art small{color:#e3d6bf;font-size:13px}
+.ch.off{opacity:.6;filter:grayscale(.35)}
+.bots{display:flex;justify-content:center;gap:6px;margin:4px 0 10px}.bots img{width:18%;max-width:110px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6))}

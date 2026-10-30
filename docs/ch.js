@@ -47,7 +47,7 @@ function draw() {
   const tn = S.tourney;
   if (tn && tn.status === "running") { $("tnInfo").innerHTML = `🎡 הטורניר שלך רץ! פרס <b class="num">${fmt(tn.prize)}</b>`; $("tnBtn").textContent = "לשולחן"; $("tnBtn").dataset.go = `poker.html?t=${tn.table}`; }
   else if (tn) { $("tnInfo").innerHTML = `נרשמת · ${(tn.players || []).length}/3 שחקנים: ${(tn.players || []).map(esc).join(", ")}`; $("tnBtn").textContent = "בטל הרשמה"; $("tnBtn").dataset.go = "leave"; }
-  else { $("tnInfo").innerHTML = S.tourney_open ? "יש טורניר שמחכה לשחקנים!" : "אין כרגע טורניר פתוח. פתח אחד!"; $("tnBtn").textContent = "הירשם · ₪10,000"; $("tnBtn").dataset.go = ""; }
+  else { $("tnInfo").innerHTML = S.tourney_open ? "יש טורניר שמחכה לשחקנים!" : "אין כרגע טורניר פתוח. פתח אחד!"; $("tnBtn").textContent = "הירשם · ₪1,000,000"; $("tnBtn").dataset.go = ""; }
   $("fBest").innerHTML = S.fisher_best ? `השיא שלך העונה: <b class="num">${fmt(S.fisher_best)}</b>` : "עוד לא שיחקת סט העונה";
   // vault
   const p = Math.min(100, S.vault / S.vault_target * 100);
@@ -77,7 +77,7 @@ function drawZeus() {
 }
 async function rpc(name, args) { if (PREVIEW) return { data: null, error: { message: "preview" } }; return db.rpc(name, args); }
 async function load() {
-  if (PREVIEW) { S = { season: 1, ends_at: new Date(Date.now() + 9.3 * 864e5).toISOString(), me: "a", vault: 1240000, vault_target: 3000000, fisher_best: 14350,
+  if (PREVIEW) { S = { season: 1, ends_at: new Date(Date.now() + 9.3 * 864e5).toISOString(), me: "a", vault: 1240000000, vault_target: 3000000000, fisher_best: 14350,
     members: [{ id: "b", name: "דני" }, { id: "c", name: "פישר" }], my_run: null,
     duels: [{ id: "1", status: "waiting", challenger: "b", challenger_name: "דני", opponent: "a", opponent_name: "בנימין", score_a: 12800 }, { id: "2", status: "done", challenger: "a", opponent_name: "פישר", challenger_name: "בנימין", winner: "a" }],
     board: [{ id: "a", name: "בנימין", fisher: 43, ido: 60, zeus: 0, total: 103 }, { id: "b", name: "דני", fisher: 20, ido: 30, zeus: 0, total: 50 }] }; draw(); return; }
