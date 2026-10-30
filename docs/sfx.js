@@ -124,14 +124,15 @@
     : /(roulette|blackjack|poker)/.test(PAGE) ? "music_tables" : /^(index\.html|)$/.test(PAGE.split("?")[0]) ? "music_lobby" : null;
   const MUSIC_VOL = 0.027;   // background music ≈ 20%, game sounds ≈ 80% (all music files are loudness-matched)
   let musicOn = true, mSrc = null, mGain = null, mName = null; try { musicOn = localStorage.getItem("gc_music") !== "0"; } catch (e) {}
+  const MV = () => MUSIC_VOL * ({ music_bus: 2, music_fishjob: 2, music_fiber: 2 }[mName] || 1);   // the 3 job tracks: twice as loud (owner's ask)
   let mTok = 0;
   async function startMusic(name) { name = name || MUSIC; if (!name || !musicOn || !ac() || document.hidden) return; if (mName === name && mSrc) return;
     const tok = ++mTok; load(name); await LOADING[name]; if (tok !== mTok || !BUF[name] || !musicOn || document.hidden) return; stopMusic(); mName = name;
     mSrc = ctx.createBufferSource(); mGain = ctx.createGain(); mSrc.buffer = BUF[name]; mSrc.loop = true;
-    mGain.gain.setValueAtTime(0.0001, now()); mGain.gain.linearRampToValueAtTime(MUSIC_VOL, now() + 1.5); mSrc.connect(mGain).connect(master); mSrc.start(); }
+    mGain.gain.setValueAtTime(0.0001, now()); mGain.gain.linearRampToValueAtTime(MV(), now() + 1.5); mSrc.connect(mGain).connect(master); mSrc.start(); }
   function stopMusic() { if (mSrc) { const s = mSrc, g = mGain; g.gain.linearRampToValueAtTime(0.0001, now() + 0.6); setTimeout(() => { try { s.stop(); } catch (e) {} }, 700); } mSrc = mGain = null; mName = null; }
   S.music = (name) => startMusic(name);                // a page can switch tracks (e.g. a bonus)
-  S.musicDuck = (on) => { if (mGain) mGain.gain.linearRampToValueAtTime(on ? MUSIC_VOL * 0.3 : MUSIC_VOL, now() + 0.3); };
+  S.musicDuck = (on) => { if (mGain) mGain.gain.linearRampToValueAtTime(on ? MV() * 0.3 : MV(), now() + 0.3); };
   S.setMusic = (on) => { musicOn = on; try { localStorage.setItem("gc_music", on ? "1" : "0"); } catch (e) {} if (on) startMusic(); else stopMusic(); };
   Object.defineProperty(S, "musicOn", { get: () => musicOn });
   addEventListener("pointerdown", () => startMusic(), { once: true, capture: true });
