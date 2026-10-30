@@ -3,7 +3,7 @@ const $ = (id) => document.getElementById(id);
 const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e12 ? "₪" + +(n / 1e12).toFixed(2) + "T" : a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };   // ₪1.58M · ₪2.4B · ₪1T
 const PREVIEW = /[?#&]preview/.test(location.href);
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
-const PAY = { driver: [200, 600, 2000], dealer: [150, 500, 1600] };
+const PAY = { driver: [200000, 300000, 400000], dealer: [170000, 250000, 330000] };
 const LVL = ["⭐ קל", "⭐⭐ בינוני", "⭐⭐⭐ קשה"];
 const LVL_TXT = {
   driver: ["2 נוסעים, מפה קטנה", "3 נוסעים, תקציב צפוף יותר", "4 נוסעים, כמעט בלי מרווח"],
