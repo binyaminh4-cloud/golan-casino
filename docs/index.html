@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="styles.css?v=9">
 <link rel="stylesheet" href="gate.css?v=11">
-<link rel="stylesheet" href="lobby.css?v=52">
+<link rel="stylesheet" href="lobby.css?v=53">
 <link rel="icon" href="img/brand/favicon.png?v=2">
 <link rel="apple-touch-icon" href="img/brand/apple-touch-icon.png?v=2">
 <link rel="preload" as="image" href="img/brand/emblem.webp">
@@ -75,7 +75,7 @@
         <h2 class="orn" id="roomsH">חדרי המשחק</h2>
         <button type="button" class="catback" id="catBack" hidden>→ כל הקטגוריות</button>
         <div class="promo gfr" id="promo" aria-label="בקרוב בקזינו"><div class="slides" id="promoSlides"></div><div class="dots" id="promoDots"></div></div>
-        <div class="gtabs" id="gTabs" hidden><button data-c="rl"><img src="img/lobby2/cat_rl.png" alt="">רולטה</button><button data-c="bj"><img src="img/lobby2/cat_bj.png" alt="">בלאק ג׳ק</button><button data-c="sl"><img src="img/lobby2/cat_sl.png" alt="">מכונות מזל</button><button data-c="poker"><img src="img/lobby2/cat_poker.png" alt="">פוקר</button><button data-c="jobs"><img src="img/lobby2/cat_jobs.png" alt="">עבודות</button></div>
+        <div class="gtabs" id="gTabs" hidden><button data-c="rl"><img src="img/lobby2/cat_rl.png" alt="">רולטה</button><button data-c="bj"><img src="img/lobby2/cat_bj.png" alt="">בלאק ג׳ק</button><button data-c="sl"><img src="img/lobby2/cat_sl.png" alt="">מכונות מזל</button><button data-c="wh"><span class="temo">🎡</span>גלגלי מזל</button><button data-c="poker"><img src="img/lobby2/cat_poker.png" alt="">פוקר</button><button data-c="jobs"><img src="img/lobby2/cat_jobs.png" alt="">עבודות</button></div>
         <div class="cats" id="cats">
           <button type="button" class="cat gfr" data-c="bj"><span class="ci"><img src="img/lobby/cat_blackjack.webp" alt=""></span><h3>בלאק ג׳ק</h3><small></small><span class="go" aria-hidden="true">‹</span></button>
           <button type="button" class="cat gfr" data-c="rl"><span class="ci"><img src="img/lobby/cat_roulette.webp" alt=""></span><h3>רולטה</h3><small></small><span class="go" aria-hidden="true">‹</span></button>
@@ -94,7 +94,7 @@
           <a data-poster="chicken" data-cat="sl" class="game" href="chicken.html" style="text-decoration:none"><span class="tag">חדש</span><span class="suits">🐔 עד ×175</span><h3>עידו חוצה את הכביש</h3><p>עידו התרנגולת קופץ בין נתיבים. כל צעד מעלה את הסכום, רכב בנתיב והכול נעלם. מתי לעצור?</p></a>
           <a data-poster="dragons" data-cat="sl" class="game" href="dragons.html" style="text-decoration:none"><span class="tag">חדש</span><span class="suits">🐉 GRAND ×1,000</span><h3>דרקוני הגולן LINK</h3><p>רועי, עידו, בנימין ויואב בארמון הדרקונים. 6 כדורי אש פותחים את החזק וזכה.</p></a>
           <a data-poster="wildwest" data-cat="sl" class="game" href="wildwest.html" style="text-decoration:none"><span class="tag">חדש</span><span class="suits">🤠 ×12,500</span><h3>המערב הפרוע של הגולן</h3><p>עידו ובנימין בדו־קרב. סוס הפרא, ראש בראש והתפרצות הר געש.</p></a>
-          <a data-poster="fishing" data-cat="sl" class="game" href="fishing.html" style="text-decoration:none"><span class="tag">חדש</span><span class="suits">🎣 ×5000</span><h3>מסע הדיג של עידו</h3><p>גלגל חי של 53 דגים. עוצרים על דג צבעוני, ועידו יוצא לדוג אותו מהקרח.</p></a>
+          <a data-poster="fishing" data-cat="wh" class="game" href="fishing.html" style="text-decoration:none"><span class="tag">חדש</span><span class="suits">🎣 ×5000</span><h3>מסע הדיג של עידו</h3><p>גלגל חי של 53 דגים. עוצרים על דג צבעוני, ועידו יוצא לדוג אותו מהקרח.</p></a>
           <a data-poster="roulette_fish" data-cat="rl" class="game" href="roulette.html?mode=xxx&skin=fish" style="text-decoration:none"><span class="tag">חדש</span><span class="suits">🎣 2000x</span><h3>רולטת הדיג של עידו</h3><p>רולטת הברקים על שפת הכנרת: עידו דג את המספרים המזליים.</p></a>
           <a data-poster="roulette" data-cat="rl" class="game" href="roulette.html" style="text-decoration:none"><span class="tag multi">שולחן חי</span><span class="suits">0 · 36</span><h3>רולטה</h3><p>רולטה אירופאית, אפס אחד, גלגל אמיתי מסתובב.</p><span class="pbtns"><button type="button" class="priv live" data-go="roulette.html">🔴 רולטה לייב<small>שולחן משותף עם החברים, סיבוב כל 50 שניות</small></button><button type="button" class="priv" data-go="roulette.html?private=1">🔒 שולחן פרטי<small>לבד, בקצב שלך: סובב מתי שרוצים, בלי שעון ובלי שחקנים אחרים</small></button></span></a>
           <a data-poster="roulette_lightning" data-cat="rl" class="game lit" href="roulette.html?mode=lightning" style="text-decoration:none"><span class="tag multi">שולחן חי ⚡</span><span class="suits">⚡ 500x</span><h3>רולטת הברק המחומש</h3><p>בכל סיבוב 5 מספרים מקבלים ברק של ×50 עד ×500.</p><span class="pbtns"><button type="button" class="priv live" data-go="roulette.html?mode=lightning">🔴 רולטה לייב<small>שולחן משותף עם החברים, סיבוב כל 50 שניות</small></button><button type="button" class="priv" data-go="roulette.html?mode=lightning&private=1">🔒 שולחן פרטי<small>לבד, בקצב שלך: סובב מתי שרוצים, בלי שעון ובלי שחקנים אחרים</small></button></span></a>

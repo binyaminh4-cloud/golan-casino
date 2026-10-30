@@ -447,3 +447,4 @@ body:not(.gpage) #lobbyView .lb li .w{grid-column:4;grid-row:1/3;font:800 16px I
 #lobbyView .promo .slides{isolation:isolate;transform:translateZ(0);z-index:0}
 #lobbyView .promo .sl{will-change:opacity;backface-visibility:hidden}
 #lobbyView .gfr::after{transform:translateZ(0);backface-visibility:hidden}
+#lobbyView .gtabs .temo{font-size:17px;line-height:1}

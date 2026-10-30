@@ -74,3 +74,9 @@ h1{font:700 30px 'Frank Ruhl Libre',serif;color:var(--champ);margin:6px 0 4px;te
 .soonh{font:700 22px "Frank Ruhl Libre",serif;color:#B9AA94;margin:22px 0 10px}.job.off{opacity:.5;filter:grayscale(.6)}.jobcards.soon{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 .pc.img{background:#fff center/cover;border:0;width:56px;height:78px;margin-left:-16px}
 .pc.img{width:52px;height:73px;margin-left:-30px;box-shadow:-2px 2px 4px rgba(0,0,0,.35)}.pc.img:first-child{margin-left:0}.hand .cards{max-width:100%}
+
+.lvlbox{max-width:560px;margin:0 auto 14px;padding:12px 14px;border:1px solid #C5A05A;border-radius:14px;background:rgba(20,14,10,.85);color:#F5ECDD;font:500 14px Heebo}
+.lvlbox .lv{display:flex;justify-content:space-between;align-items:baseline}.lvlbox .lv b{font:800 20px Heebo;color:#F1D69A}.lvlbox .lv span{color:#cdbb98;font-size:13px}
+.lvlbox .bar{height:8px;border-radius:99px;background:#2a2016;margin:6px 0 10px;overflow:hidden}.lvlbox .bar i{display:block;height:100%;background:linear-gradient(90deg,#C5A05A,#F1D69A)}
+.lvlbox .sal{display:grid;grid-template-columns:1fr 1fr;gap:8px}.lvlbox .sal div{background:rgba(255,255,255,.04);border-radius:10px;padding:8px}.lvlbox .sal b{display:block;font:800 18px Inter;color:#ffe27a;direction:ltr;text-align:right}.lvlbox .sal small{color:#9b8a70;font-size:12px}
+.lvlbox .hint{margin:8px 0 0;font-size:12px;color:#9b8a70}

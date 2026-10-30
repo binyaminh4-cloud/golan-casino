@@ -266,10 +266,13 @@ function addBet(target) {
   if (st && st.status !== "done") return;
   if (TABLE && (!T || T.phase !== "betting" || T.my_bet)) return err(T && T.my_bet ? "ההימור שלך כבר על השולחן." : "ההימורים סגורים. הסיבוב הבא יתחיל עוד רגע.");
   if (st?.status === "done") { clearRound(); }
-  const next = bets[target] + chip;
-  if (target === "main" && next > maxBet()) return err(`ההימור הראשי המקסימלי הוא ${fmt(maxBet())}.`);
-  if (target !== "main" && next > bets.main) return err("הימור צדדי לא יכול להיות גבוה מההימור הראשי. שים קודם צ׳יפ על העיגול הגדול.");
-  bets[target] = next; err(""); renderBets(); SFX.chip();
+  const total = Object.values(bets).reduce((a, b) => a + b, 0), left = CH ? Infinity : myBal - total;
+  const room = target === "main" ? maxBet() - bets.main : bets.main - bets[target];
+  if (target !== "main" && room <= 0) return err("הימור צדדי לא יכול להיות גבוה מההימור הראשי. שים קודם צ׳יפ על העיגול הגדול.");
+  if (target === "main" && room <= 0) return err(`הגעת למקסימום ${fmt(maxBet())} ליד.`);
+  if (left <= 0) return err("אין יותר שקלים בארנק להימור.");
+  const a = Math.min(chip, room, left);          // the last chip takes whatever is left (all-in)
+  bets[target] += a; err(a < chip ? (a === left ? `שמתי ${fmt(a)} — כל מה שנשאר בארנק.` : `שמתי ${fmt(a)} — עד המקסימום.`) : ""); renderBets(); SFX.chip();
 }
 // DJ Fisher (multiplier game): his poses come from the private "characters" bucket
 const DJ = {}; let djEl = null, djT = null;
@@ -316,7 +319,11 @@ function renderBets() {
   $("betSum").textContent = Object.values(bets).some(Boolean) ? "סה״כ " + fmt(Object.values(bets).reduce((a, b) => a + b, 0)) : "בחר צ׳יפ ולחץ על העיגול הגדול. העיגולים הקטנים הם הימורים צדדיים: PP זוג מושלם · 21+3 · LL ליידיז מזל · BB באסטר";
 }
 $("clearBtn").onclick = () => { Object.keys(bets).forEach((k) => bets[k] = 0); renderBets(); };
-$("rebetBtn").onclick = () => { if (!lastBets) return; if (st?.status === "done") clearRound(); Object.assign(bets, lastBets); renderBets(); };
+$("rebetBtn").onclick = () => { if (!lastBets) return;
+  const need = Object.values(lastBets).reduce((a, b) => a + b, 0);
+  if (lastBets.main > maxBet()) return err(`אי אפשר: ההימור הקודם (${fmt(lastBets.main)}) מעל המקסימום ${fmt(maxBet())} ליד.`);
+  if (!CH && need > myBal) return err(`אי אפשר: צריך ${fmt(need)} ויש בארנק ${fmt(myBal)}.`);
+  if (st?.status === "done") clearRound(); Object.assign(bets, lastBets); err(""); renderBets(); };
 $("dealBtn").onclick = async () => {
   if ($("feeTag")) $("feeTag").hidden = true;
   engaged = true;

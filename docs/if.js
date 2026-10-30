@@ -152,16 +152,28 @@ $("zones").innerHTML = ZONES.map(([k, n, p]) => `<button class="zone z-${k}" dat
 $("zones").onclick = (e) => { const b = e.target.closest(".zone"); if (b) add([b.dataset.k]); };
 $("allBtn").onclick = () => add(["blue", "orange", "red"]);
 $("clearBtn").onclick = () => { for (const k in myBets) myBets[k] = sent[k] || 0; drawBets(); };
-$("rebetBtn").onclick = () => { if (!lastBets) return; for (const [k, v] of Object.entries(lastBets)) myBets[k] = Math.max(myBets[k] || 0, v); drawBets(); autoSend(); };
+$("rebetBtn").onclick = () => { if (!lastBets) return;
+  if (!S || !S.open) return err("ההימורים לסיבוב הזה נסגרו. עוד רגע סיבוב חדש.");
+  const next = { ...myBets }; for (const [k, v] of Object.entries(lastBets)) next[k] = Math.max(next[k] || 0, v);
+  const need = Object.keys(next).reduce((s, k) => s + (next[k] || 0) - (sent[k] || 0), 0);
+  if (Object.values(next).some((v) => v > maxBet())) return err(`אי אפשר: יש דג מעל המקסימום ${fmt(maxBet())} לדג.`);
+  if (need > balance) return err(`אי אפשר: צריך ${fmt(need)} ויש בארנק ${fmt(balance)}.`);
+  myBets = next; err(""); drawBets(); autoSend(); };
 function add(keys) {
   if (!S || !S.open) return err("ההימורים לסיבוב הזה נסגרו. עוד רגע סיבוב חדש.");
-  const cost = chip * keys.length, unsent = Object.keys(myBets).reduce((s, k) => s + (myBets[k] || 0) - (sent[k] || 0), 0);
-  if (cost + unsent > balance) return err("אין מספיק שקלים להימור הזה.");
-  for (const k of keys) { if ((myBets[k] || 0) + chip > maxBet()) return err(`מקסימום ${fmt(maxBet())} על כל אזור (היתרה שלך ${fmt(balance)}).`); }
-  for (const k of keys) myBets[k] = (myBets[k] || 0) + chip;
-  err(""); try { SFX.chip(); } catch (e) {} drawBets(); autoSend();
+  const unsent = Object.keys(myBets).reduce((s, k) => s + (myBets[k] || 0) - (sent[k] || 0), 0);
+  let left = balance - unsent, put = 0;
+  if (left <= 0) return err("אין יותר שקלים בארנק להימור.");
+  for (const k of keys) {
+    const room = maxBet() - (myBets[k] || 0); const a = Math.min(chip, room, left);
+    if (a <= 0) continue; myBets[k] = (myBets[k] || 0) + a; left -= a; put += a;
+  }
+  if (!put) return err(`הגעת למקסימום ${fmt(maxBet())} לדג.`);
+  err(put < chip * keys.length ? (left <= 0 ? "שמתי את כל מה שנשאר בארנק." : "חלק מהדגים הגיעו למקסימום.") : "");
+  try { SFX.chip(); } catch (e) {} drawBets(); autoSend();
 }
-const maxBet = () => S && S.max_bet ? S.max_bet : stepMax(balance);
+const sentSum = () => Object.values(sent).reduce((a, b) => a + (b || 0), 0);
+const maxBet = () => stepMax(balance + sentSum());   // fixed for the whole round (same rule as the server)
 function drawBets() {
   for (const [k] of ZONES) { const a = document.querySelector(`[data-a="${k}"]`); a.textContent = myBets[k] ? lab(myBets[k]) : ""; a.classList.toggle("pending", (myBets[k] || 0) > (sent[k] || 0)); }
   const tot = Object.values(myBets).reduce((a, b) => a + b, 0);

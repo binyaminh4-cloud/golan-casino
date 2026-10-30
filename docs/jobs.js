@@ -145,12 +145,26 @@ function renderMap() {
 }
 
 // ---------- boot ----------
+// ---------- my level and my next salaries ----------
+function drawLevel(L) {
+  const box = $("lvlBox"); if (!box || !L) return;
+  const days = (d) => { const t = new Date(d + "T00:00:00"), n = Math.round((t - new Date(new Date().toDateString())) / 864e5); return n <= 0 ? "היום" : n === 1 ? "מחר" : `בעוד ${n} ימים`; };
+  const date = (d) => new Date(d + "T00:00:00").toLocaleDateString("he-IL", { weekday: "short", day: "numeric", month: "numeric" });
+  const pct = L.to ? Math.round(100 * (L.xp - L.from) / (L.to - L.from)) : 100;
+  box.innerHTML = `<div class="lv"><b>רמה ${L.level}</b><span>${L.to ? `${L.xp} / ${L.to} נק׳ לרמה ${L.level + 1}` : "רמה מקסימלית 🏆"}</span></div>
+    <div class="bar"><i style="width:${pct}%"></i></div>
+    <div class="sal"><div>משכורת שבועית הבאה <b>${fmt(L.weekly)}</b><small>${date(L.next_weekly)} · ${days(L.next_weekly)}</small></div>
+    <div>משכורת חודשית הבאה <b>${fmt(L.monthly)}</b><small>${date(L.next_monthly)} · ${days(L.next_monthly)}</small></div></div>
+    <p class="hint">נקודות מקבלים על משמרות שהצליחו (קל 5 · בינוני 8 · קשה 12) ועל אתגרים שסיימת (30). כל רמה מעלה את המשכורת.</p>`;
+  box.hidden = false;
+}
 (async function boot() {
   if (PREVIEW) { balance = 10000; showBal(); GC_LOADER.done(); GC_GUIDE.init({ game: "jobs", db: null, mount: document.querySelector(".top"), steps: GC_STEPS.jobs(), auto: !/noguide/.test(location.search) }); return; }
   const { data: { session } } = await db.auth.getSession();
   if (!session) { location.href = "./"; return; }
   const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single();
   if (!w.error) balance = w.data.balance; showBal();
+  drawLevel(await rpc("gc_my_level", {}).then((r) => r.data, () => null));
   GC_LOADER.done();
   GC_GUIDE.init({ game: "jobs", db, mount: document.querySelector(".top"), steps: GC_STEPS.jobs() });
 })();
