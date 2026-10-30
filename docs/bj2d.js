@@ -17,7 +17,7 @@ const RANK = (r) => r === "T" ? "10" : r;
 const sleep = (ms) => new Promise((r) => setTimeout(r, reduced ? 0 : ms));
 
 // ---------- geometry, in photo pixels (1672x941) ----------
-const SHOE = { x: 650, y: 360 };   // cards leave from the dealer's hand
+const SHOE = { x: 650, y: 360 }, HAND = { x: 676, y: 392 };   // cards leave from the dealer's hand
 const TRAY = { x: 846, y: 330 };
 const SPOTS = [ { x: 838, y: 613 }, { x: 1153, y: 580 }, { x: 524, y: 580 }, { x: 1375, y: 497 }, { x: 300, y: 497 } ];
 // small side-bet circles around the player's main circle (photo pixels)
@@ -51,9 +51,20 @@ function fit() {
 addEventListener("resize", fit); fit();
 
 // ---------- dealer poses ----------
-const POSES = ["idle", "deal", "flip", "collect", "pay", "celebrate"];
-POSES.forEach((p) => { const i = new Image(); i.src = `img/dealer/m_${p}.webp?v=2`; });
-function pose(p) { $("dealer").src = `img/dealer/m_${p}.webp?v=2`; }
+const FR = ["i01","i02","i03","d01_reach","d02_pull","d03_lift","d04_slide","d05_release","d06_return","f01_touch","f02_turn","f03_done","p01_pay","p02_back","c01_collect","c02_rest"];
+FR.forEach((f) => { const i = new Image(); i.src = `img/dealer2/${f}.webp`; }); { const i = new Image(); i.src = "img/dealer/m_celebrate.webp?v=2"; }
+let poseTok = 0, curFrame = "i01";
+function frame(f) { curFrame = f; $("dealer").src = f === "celebrate" ? "img/dealer/m_celebrate.webp?v=2" : `img/dealer2/${f}.webp`; }
+async function seq(list) { const tok = ++poseTok; for (const [f, ms] of list) { if (tok !== poseTok) return false; frame(f); await sleep(ms); } return tok === poseTok; }
+function pose(p) {
+  if (p === "pay") return seq([["p01_pay", 900], ["p02_back", 700], ["i01", 0]]);
+  if (p === "collect") return seq([["c01_collect", 900], ["c02_rest", 900], ["i01", 0]]);
+  if (p === "flip") return seq([["f01_touch", 130], ["f02_turn", 0]]);
+  poseTok++; frame(p === "celebrate" ? "celebrate" : p === "deal" ? "d04_slide" : "i01");
+}
+// a little life while waiting: she blinks, and now and then winks
+let lifeN = 0; setInterval(() => { if (curFrame !== "i01" || document.hidden) return; const tok = poseTok; lifeN++;
+  const f = lifeN % 5 === 0 ? ["i03", 900] : ["i02", 150]; frame(f[0]); setTimeout(() => { if (tok === poseTok && curFrame === f[0]) frame("i01"); }, f[1]); }, 3200);
 
 // ---------- drawing helpers ----------
 const layer = $("layer");
@@ -61,15 +72,17 @@ function el(cls, x, y, html = "") { const d = document.createElement("div"); d.c
 function faceUp(d, card) { d.classList.remove("back"); d.style.backgroundImage = `url(cards3/${card}.webp)`; d.dataset.card = card;
   if (LIT && STRIKES[card[0]]) { d.classList.add("struck"); d.dataset.mx = "×" + STRIKES[card[0]]; } }
 async function flyCard(card, to, fromHand = true) {
-  if (fromHand) { pose("deal"); await sleep(220); }
-  const d = el("card back", SHOE.x, SHOE.y); SFX.card();
-  d.style.transform = "perspective(900px) rotateX(46deg) rotate(-35deg) scale(.7)";
+  // the dealer reaches to the shoe, draws the card and slides it out from her hand
+  if (fromHand) await seq([["d01_reach", 130], ["d02_pull", 130], ["d03_lift", 110], ["d04_slide", 0]]);
+  const from = fromHand ? HAND : SHOE, d = el("card back", from.x, from.y);
+  d.style.transform = "perspective(900px) rotateX(46deg) rotate(-24deg) scale(.62)";
   d.getBoundingClientRect();                                   // commit the start position before moving
-  d.style.transition = reduced ? "none" : "left .62s cubic-bezier(.25,.6,.2,1), top .62s cubic-bezier(.25,.6,.2,1), transform .62s ease-out";
-  d.style.left = to.x + "px"; d.style.top = to.y + "px"; d.style.transform = "perspective(900px) rotateX(46deg)";
-  await sleep(640);
+  d.style.transition = reduced ? "none" : "left .56s cubic-bezier(.2,.7,.25,1), top .56s cubic-bezier(.2,.7,.25,1), transform .56s cubic-bezier(.2,.7,.25,1)";
+  d.style.left = to.x + "px"; d.style.top = to.y + "px"; d.style.transform = "perspective(900px) rotateX(46deg) rotate(" + ((Math.random() - .5) * 3).toFixed(1) + "deg)";
+  if (fromHand) setTimeout(() => { if (curFrame === "d04_slide") frame("d05_release"); }, 120);
+  await sleep(520); SFX.card(); await sleep(60);             // the sound when the card touches the felt
   if (card !== "??") { SFX.flip(); d.classList.add("flip"); await sleep(140); faceUp(d, card); await sleep(160); d.classList.remove("flip"); }
-  pose("idle"); await sleep(180);
+  if (fromHand) { await seq([["d06_return", 140], ["i01", 0]]); } else pose("idle");
   return d;
 }
 function chipColor(v) { return v >= 1000 ? "#b07a1f" : v >= 500 ? "#6b2a8a" : v >= 100 ? "#222" : v >= 25 ? "#1f6b3e" : "#1d4f8a"; }
@@ -157,7 +170,7 @@ async function render(next) {
   }
   // dealer reveals the hole card, then draws
   if (dealerEls[1] && !dealerEls[1].dataset.card && next.dealer[1] !== "??") {
-    pose("flip"); await sleep(260); faceUp(dealerEls[1], next.dealer[1]); dLabel(next.dealer.slice(0, 2)); await sleep(420); pose("idle");
+    await pose("flip"); SFX.flip(); faceUp(dealerEls[1], next.dealer[1]); dLabel(next.dealer.slice(0, 2)); await seq([["f03_done", 420], ["i01", 0]]);
   }
   for (let c = dealerEls.length; c < next.dealer.length; c++) { dealerEls.push(await flyCard(next.dealer[c], dealerPos(c))); dLabel(next.dealer.slice(0, c + 1)); await sleep(450); }
   if (dLab) { dLab.remove(); dLab = null; }
