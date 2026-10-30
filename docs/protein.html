@@ -50,7 +50,7 @@ canvas{display:block;border-radius:8px;touch-action:manipulation;max-width:100%;
 'use strict';
 // Golan Casino wiring for the art kit's scene: the server holds every rock's contents (pm_start / pm_collect / pm_next).
 const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
-try { if (localStorage.getItem("gc_dev") !== "1" && localStorage.getItem("gc_open") !== "1") location.href = "./"; } catch (e) {}
+
 const S = ProteinScene, canvas = document.getElementById("game"), ctx = canvas.getContext("2d"), imgs = {}, el = (id) => document.getElementById(id);
 const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
 const FILES = ["backgrounds/field_desktop.jpg","characters/avichai_idle.png","characters/avichai_pull.png","characters/avichai_celebrate.png","characters/avichai_shock.png","rocks/rock_a.png","rocks/rock_b.png","rocks/rock_c.png","prizes/mushroom.png","prizes/chicken.png","prizes/bomb.png","props/tray.png","ui/tag_blank.png","ui/plaque_blank.png","props/winch.png","props/crank.png","props/claw_open.png","props/claw_closed.png","fx/dust.png","fx/bomb_puff.png","characters/yoav_throw_00.png","characters/yoav_throw_01.png","characters/yoav_walk_00.png","characters/yoav_walk_01.png","characters/yoav_walk_02.png","characters/yoav_walk_03.png"];

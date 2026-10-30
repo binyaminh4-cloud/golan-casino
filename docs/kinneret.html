@@ -92,7 +92,7 @@ main{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;padding:4p
 "use strict";
 // Golan Casino wiring: the server picks a pre-played round (kin_spin returns its seed and total); this page replays it with the same engine.
 const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
-try { if (localStorage.getItem("gc_dev") !== "1" && localStorage.getItem("gc_open") !== "1") location.href = "./"; } catch (e) {}
+
 const $ = (id) => document.getElementById(id), K = KinEngine;
 const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
 const NAMES = { fisher: "פישר", avichai: "אביחי", yoav: "יואב", roy: "רועי", binyamin: "בנימין", ido: "עידו", harel: "הראל" };

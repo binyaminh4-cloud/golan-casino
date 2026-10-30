@@ -108,7 +108,7 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(14px) bright
 "use strict";
 // Golan Casino wiring: the server picks a pre-played spin (dg_spin → seed + total); the page replays it with the same engine.
 const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
-try { if (localStorage.getItem("gc_dev") !== "1" && localStorage.getItem("gc_open") !== "1") location.href = "./"; } catch (e) {}
+
 const $ = (id) => document.getElementById(id), E = DGEngine, JP = E.CFG.jackpots;
 const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : a >= 1e4 ? "₪" + +(n / 1e3).toFixed(1) + "K" : "₪" + Math.floor(n).toLocaleString("en-US"); };
 const IMG = { roy: "roy.webp", ido: "ido.webp", binyamin: "binyamin.webp", yoav: "yoav.webp", fortune: "fortune.webp", dragon: "dragon.webp", turtle: "turtle.webp",

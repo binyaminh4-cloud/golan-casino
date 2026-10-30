@@ -83,7 +83,7 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(12px) bright
 "use strict";
 // Golan Casino wiring: every step is drawn on the server (ck_start / ck_step / ck_cash); the page only animates the answer.
 const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
-try { if (localStorage.getItem("gc_dev") !== "1" && localStorage.getItem("gc_open") !== "1") location.href = "./"; } catch (e) {}
+
 const $ = (id) => document.getElementById(id);
 const fmt = (n) => { n = Math.floor(Number(n) + 1e-6); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
 const T = { easy: [1.05, 1.10, 1.15, 1.22, 1.30, 1.40, 1.52, 1.67, 1.85, 2.10], normal: [1.15, 1.30, 1.50, 1.75, 2.05, 2.45, 2.95, 3.60, 4.45, 5.50],

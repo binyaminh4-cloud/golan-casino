@@ -30,7 +30,7 @@
     [...s].forEach((x, j) => x.classList.toggle("on", j === k)); [...dots.children].forEach((x, j) => x.classList.toggle("on", j === k)); };
   const auto = () => { clearInterval(timer); timer = setInterval(() => { if (!document.hidden && !document.body.classList.contains("gpage")) go(k + 1); }, 4500); };
   const build = () => {
-    const soon = [...document.querySelectorAll("#gamesBox .game.soon")];
+    const soon = [...document.querySelectorAll("#gamesBox .game")].filter((g) => g.classList.contains("soon") || /חדש/.test(g.querySelector(".tag")?.textContent || ""));
     const list = soon.length ? soon : [...document.querySelectorAll("#gamesBox .game")].slice(0, 6);
     host.innerHTML = list.map((g, i) => { const cs = getComputedStyle(g), art = cs.getPropertyValue("--poster") || cs.getPropertyValue("--art") || "", locked = g.classList.contains("soon");
       const t = g.querySelector("h3")?.textContent || "", p = g.querySelector("p")?.textContent || "";
