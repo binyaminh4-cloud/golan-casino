@@ -153,7 +153,7 @@ function drawLevel(L) {
   const days = (d) => { const t = new Date(d + "T00:00:00"), n = Math.round((t - new Date(new Date().toDateString())) / 864e5); return n <= 0 ? "היום" : n === 1 ? "מחר" : `בעוד ${n} ימים`; };
   const date = (d) => new Date(d + "T00:00:00").toLocaleDateString("he-IL", { weekday: "short", day: "numeric", month: "numeric" });
   const pct = L.to ? Math.round(100 * (L.xp - L.from) / (L.to - L.from)) : 100;
-  box.innerHTML = `<div class="lv"><b>רמה ${L.level}</b><span>${L.to ? `${L.xp} / ${L.to} נק׳ לרמה ${L.level + 1}` : "רמה מקסימלית 🏆"}</span></div>
+  box.innerHTML = `<div class="lv"><b>רמה ${L.level}<img class="lvi" src="img/lvl/lv${L.level}.webp?v=1" alt="" style="height:1.8em;width:auto;vertical-align:-.5em;margin-inline-start:.22em"></b><span>${L.to ? `${L.xp} / ${L.to} נק׳ לרמה ${L.level + 1}` : "רמה מקסימלית 🏆"}</span></div>
     <div class="bar"><i style="width:${pct}%"></i></div>
     <div class="sal"><div>משכורת שבועית הבאה <b>${fmt(L.weekly)}</b><small>${date(L.next_weekly)} · ${days(L.next_weekly)}</small></div>
     <div>משכורת חודשית הבאה <b>${fmt(L.monthly)}</b><small>${date(L.next_monthly)} · ${days(L.next_monthly)}</small></div></div>
