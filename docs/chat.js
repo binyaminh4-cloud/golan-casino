@@ -70,7 +70,7 @@
       d.innerHTML = (m.kind === "sys" ? esc(m.body) : (m.uid === me ? "" : `<b>${esc(m.name || "")}</b>`) + esc(m.body)) + ts;
       log.appendChild(d);
       if (!open && m.uid !== me && m.id > seen) unread++;
-      if (!open && booted && m.kind !== "sys") bubble(m);
+      if (!open && booted && fresh && m.kind !== "sys" && (!m.at || Date.now() - new Date(m.at) < 90000)) bubble(m);   // only messages that really just arrived
     }
     while (log.children.length > 80) log.firstChild.remove();
     if (open) { log.scrollTop = log.scrollHeight; try { localStorage.setItem(seenKey, last); } catch (e) {} }
