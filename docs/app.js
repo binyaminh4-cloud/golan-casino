@@ -287,3 +287,30 @@ async function liveNow() {
   } catch (e) {}
 }
 liveNow(); setInterval(() => { if (!document.hidden) liveNow(); }, 30000);
+
+// personal area: change my password (passwords are stored encrypted, so nobody — not even the owner — can see the old one)
+document.getElementById("pwBtn")?.addEventListener("click", () => {
+  const o = document.createElement("div"); o.className = "gc-pw";
+  o.innerHTML = `<form class="bx"><h2>🔑 שינוי סיסמה</h2><p>אף אחד לא יכול לראות סיסמה ישנה — היא שמורה מוצפנת. כאן בוחרים סיסמה חדשה.</p>
+    <input type="password" id="pw1" autocomplete="new-password" placeholder="סיסמה חדשה (לפחות 6 תווים)" required minlength="6">
+    <input type="password" id="pw2" autocomplete="new-password" placeholder="שוב את הסיסמה החדשה" required minlength="6">
+    <label class="sh"><input type="checkbox" id="pwShow"> להציג את מה שהקלדתי</label>
+    <div class="m" id="pwMsg"></div><button class="ok" type="submit">שמירה</button><button class="no" type="button">ביטול</button></form>`;
+  if (!document.getElementById("gcPwCss")) { const c = document.createElement("style"); c.id = "gcPwCss";
+    c.textContent = `.gc-pw{position:fixed;inset:0;z-index:9800;display:grid;place-items:center;background:rgba(0,0,0,.8);direction:rtl}
+.gc-pw .bx{width:min(380px,90vw);background:radial-gradient(ellipse at 50% 0%,#3a2a10,#120c08);border:2px solid #F1D69A;border-radius:18px;padding:18px;color:#F5ECDD;font:500 15px/1.5 Heebo,sans-serif;display:grid;gap:10px}
+.gc-pw h2{margin:0;font:800 22px Heebo;color:#F1D69A}.gc-pw p{margin:0;color:#cdbb98;font-size:13px}
+.gc-pw input[type=password],.gc-pw input[type=text]{padding:12px;border-radius:10px;border:1px solid #C5A05A;background:#120c08;color:#F5ECDD;font:600 16px Heebo}
+.gc-pw .sh{font-size:13px;color:#cdbb98}.gc-pw .m{min-height:18px;font-size:13px;color:#ffb3b3}.gc-pw .m.ok{color:#9ff0bf}
+.gc-pw button{padding:12px;border:0;border-radius:12px;font:800 16px Heebo;cursor:pointer}.gc-pw .ok{background:linear-gradient(#F1D69A,#C5A05A);color:#1b0f06}.gc-pw .no{background:transparent;color:#F1D69A;border:1px solid rgba(241,214,154,.4)}`;
+    document.head.appendChild(c); }
+  document.body.appendChild(o);
+  const f = o.querySelector("form"), msg = o.querySelector("#pwMsg");
+  o.querySelector(".no").onclick = () => o.remove();
+  o.querySelector("#pwShow").onchange = (e) => o.querySelectorAll("#pw1,#pw2").forEach((i) => i.type = e.target.checked ? "text" : "password");
+  f.onsubmit = async (e) => { e.preventDefault(); const a = o.querySelector("#pw1").value, b = o.querySelector("#pw2").value;
+    if (a.length < 6) { msg.textContent = "לפחות 6 תווים."; return; } if (a !== b) { msg.textContent = "שתי הסיסמאות לא זהות."; return; }
+    const { error } = await db.auth.updateUser({ password: a });
+    if (error) { msg.className = "m"; msg.textContent = "לא הצלחנו לשמור. נסה שוב."; return; }
+    msg.className = "m ok"; msg.textContent = "✔ הסיסמה נשמרה. מהפעם הבאה נכנסים איתה."; setTimeout(() => o.remove(), 1800); };
+});
