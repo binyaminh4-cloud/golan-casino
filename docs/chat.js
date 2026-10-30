@@ -157,7 +157,7 @@
     try { const { data } = await db.rpc("gc_level_check"); if (!data) return; GC_LV[me] = data.level; lvPaint();
       if (data.up) { const o = document.createElement("div"); o.className = "gc-lvup";
         o.innerHTML = `<div class="bx"><img src="img/lvl/lv${data.level}.webp?v=1" alt=""><h2>עלית לרמה ${data.level}!</h2>
-          <p>מעכשיו המשכורת שלך: <b>${fmtM(data.weekly)}</b> בשבוע ו־<b>${fmtM(data.monthly)}</b> בחודש.</p>${data.to ? `<p>לרמה ${data.level + 1} חסרות לך ${data.to - data.xp} נקודות.</p>` : "<p>הגעת לרמה הגבוהה ביותר 👑</p>"}
+          ${data.bonus > 0 ? `<p>🎁 מענק עלייה ברמה: <b>${fmtM(data.bonus)}</b> נכנס לבנק.</p>` : ""}<p>מעכשיו המשכורת שלך: <b>${fmtM(data.weekly)}</b> בשבוע ו־<b>${fmtM(data.monthly)}</b> בחודש.</p>${data.to ? `<p>לרמה ${data.level + 1} חסרות לך ${data.to - data.xp} נקודות.</p>` : "<p>הגעת לרמה הגבוהה ביותר 👑</p>"}
           <button type="button">יאללה!</button></div>`;
         document.body.appendChild(o); o.querySelector("button").onclick = () => o.remove(); try { SFX.win(true); } catch (e) {} } } catch (e) {}
   }
