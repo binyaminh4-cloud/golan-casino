@@ -364,7 +364,7 @@ body.live #spinBtn{display:none}
 .wticker{position:fixed;left:0;right:0;bottom:0;z-index:40;height:26px;overflow:hidden;background:rgba(8,6,4,.92);border-top:1px solid #C5A05A;direction:ltr;pointer-events:none}
 .wticker .wt-in{display:inline-flex;gap:28px;white-space:nowrap;padding-inline:20px;line-height:26px;animation:wtk 18s linear infinite;font:600 13px Heebo}
 .wticker .up b{color:#3ad16f}.wticker .dn b{color:#E5484D}.wticker span{color:#F5ECDD}
-@keyframes wtk{from{transform:translateX(-25%)}to{transform:translateX(0)}}
+@keyframes wtk{from{transform:translateX(-100%)}to{transform:translateX(100vw)}}
 /* one fixed frame for every character at the table: same box, feet on the same line */
 .sitter img{width:52px!important;height:62px!important;object-fit:contain!important;object-position:50% 100%!important}
 @media (max-height:560px) and (orientation:landscape){.sitter img{width:42px!important;height:50px!important}}

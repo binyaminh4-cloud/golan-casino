@@ -109,9 +109,12 @@ function tnEnd(tn) {
 }
 $("raiseR").oninput = () => { $("raiseV").textContent = fmt(+$("raiseR").value); };
 let skew = 0;
+let polling = false;
 async function poll() {
-  if (busy || document.hidden || PREVIEW) return;
-  const { data, error } = await db.rpc("poker_state", { p_table: T });
+  if (busy || polling || document.hidden || PREVIEW) return;
+  polling = true; let data, error;
+  try { ({ data, error } = await db.rpc("poker_state", { p_table: T })); } catch (e) { error = e; } finally { polling = false; }
+  if (busy) return;
   if (error) { if ((error.message || "").includes("not_signed_in")) location.href = "./"; return; }
   skew = new Date(data.now) - Date.now(); const turnBefore = S && S.to_act === S.me; S = data; draw();
   if (!turnBefore && S.to_act === S.me && S.me != null && ["preflop", "flop", "turn", "river"].includes(S.street)) { try { SFX.chip(); navigator.vibrate && navigator.vibrate(60); } catch (e) {} }

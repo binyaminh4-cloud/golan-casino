@@ -52,8 +52,8 @@ addEventListener("resize", fit); fit();
 
 // ---------- dealer poses ----------
 const POSES = ["idle", "deal", "flip", "collect", "pay", "celebrate"];
-POSES.forEach((p) => { const i = new Image(); i.src = `img/dealer/m_${p}.webp`; });
-function pose(p) { $("dealer").src = `img/dealer/m_${p}.webp`; }
+POSES.forEach((p) => { const i = new Image(); i.src = `img/dealer/m_${p}.webp?v=2`; });
+function pose(p) { $("dealer").src = `img/dealer/m_${p}.webp?v=2`; }
 
 // ---------- drawing helpers ----------
 const layer = $("layer");
@@ -422,10 +422,10 @@ async function resume0() { const { data } = await db.rpc("bj_current"); if (data
   }
   if (!session) { location.href = "./"; return; }
   GC_GUIDE.init({ game: LIT ? "lightning_bj" : "blackjack", db, mount: document.querySelector(".top"), steps: LIT ? GC_STEPS.lightningBJ() : GC_STEPS.blackjack() });
-  const { data: prof } = await db.from("profiles").select("id,nickname").eq("id", session.user.id).single();
-  me = prof || { id: session.user.id, nickname: "אני" };
-  const { data: w } = await db.from("wallets").select("balance").eq("user_id", me.id).single();
-  await loadSeats();
+  me = { id: session.user.id, nickname: "אני" };   // the three first loads run together, not one after another
+  const [{ data: prof }, { data: w }] = await Promise.all([db.from("profiles").select("id,nickname").eq("id", session.user.id).single(),
+    db.from("wallets").select("balance").eq("user_id", session.user.id).single(), loadSeats()]);
+  if (prof) me = prof;
   if (CH_ID) { const { data: ci } = await db.rpc("ch_run_info", { p_run: CH_ID }); if (!ci || ci.status !== "playing") { location.href = "challenges.html"; return; } CH = ci; drawCH(); }
   if (w) setMyBalance(w.balance);
   if (LIT) await loadDJ();
@@ -433,6 +433,7 @@ async function resume0() { const { data } = await db.rpc("bj_current"); if (data
   if (TABLE) tableStart();
   await Promise.all([...document.querySelectorAll("#stage img, #seats img")].map((im) => im.complete ? 0 : new Promise((r) => { im.onload = im.onerror = r; })));
   GC_LOADER.done();
+  setTimeout(() => { for (const r of "A23456789TJQK") for (const u of "SHDC") { const i = new Image(); i.src = `cards3/${r}${u}.webp`; } }, 400);   // cards ready before the first deal
 })();
 
 // ---------- shared table: everyone bets in the same window, plays at the same time, one dealer ----------

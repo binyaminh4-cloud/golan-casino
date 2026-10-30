@@ -359,8 +359,8 @@ function drawTicker() {
   const k = liveSt.round + ":" + ps.length; if (T.dataset.k === k) return; T.dataset.k = k; T.dataset.r = liveSt.round;
   ps.sort((a, b) => b.payout - a.payout);
   const items = ps.map((p) => `<span class="${p.payout > 0 ? "up" : "dn"}">${esc(p.name)} <b class="num">${p.payout > 0 ? "▲ " + fmt(p.payout) : "▼ " + fmt(p.total)}</b></span>`).join("");
-  const inner = T.querySelector(".wt-in"); inner.innerHTML = items + items + items + items;
-  inner.style.animationDuration = Math.max(6, ps.length * 2.2) + "s";   // brisk, and it loops
+  const inner = T.querySelector(".wt-in"); inner.innerHTML = items;                  // each name once; the line crosses the screen and comes round again
+  inner.style.animationDuration = Math.max(8, ps.length * 3) + "s";
   T.hidden = false;
 }
 function onTime(t) {

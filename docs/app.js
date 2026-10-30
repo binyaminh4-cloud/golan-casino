@@ -119,7 +119,9 @@ async function grantNote() {
   if (window.GC_BONUS) GC_BONUS("💸 קיבלת כסף מבעל הבית", sum, "");
   else alert("💸 קיבלת " + fmt(sum) + " מבעל הבית");
 }
-async function refresh() {
+let refreshing = false;
+async function refresh() { if (refreshing) return; refreshing = true; try { await refresh0(); } finally { refreshing = false; } }
+async function refresh0() {
   grantNote().catch(() => {});
   const [w, lb, on] = await Promise.all([
     db.from("wallets").select("balance").eq("user_id", me.id).single(),
