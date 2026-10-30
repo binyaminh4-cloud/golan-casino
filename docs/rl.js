@@ -110,7 +110,8 @@ const CHIP_V = [5, 25, 100, 500, ...[1e3, 1e6, 1e9].flatMap((m) => [1, 5, 25, 10
 const CHIP_C = CHIP_V.map((v, i) => ["c5", "c25", "c100", "c500", "c1k", "c5k"][i % 6]);
 const CHIPS = CHIP_V.map((v, i) => [v, CHIP_C[i]]);
 const stepMax = (b) => { if (b < 500000) return 50000; let v = 500000, k = 0; for (;;) { const m = k % 3 === 1 ? 2.5 : 2; if (v * m > b) break; v *= m; k++; } return v / 5; };   // same steps as the server
-const maxBet = () => stepMax(balance);
+const sentSum = () => [...sent.values()].reduce((s, v) => s + v, 0);
+const maxBet = () => stepMax(balance + sentSum());   // fixed for the whole round: chips already sent still count as yours (same rule as the server)
 let chipKey = "";
 function drawChipRack() {
   const ok = CHIPS.filter(([v], i) => i < 7 || v * 20 <= balance), show = ok.slice(-7), k = show.map(([v]) => v).join(",");
@@ -195,18 +196,20 @@ function place(key, amt) {
   if (!key || busy) return;
   if (ERASE) { if (!bets.has(key) || (sent.get(key) || 0) > 0) return; undoStack.push(new Map(bets)); bets.delete(key); err(""); drawChips(); SFX.chip(); return; }
   const cur = bets.get(key) || 0;
-  if (cur + amt > maxBet()) return err(`מקסימום ${fmt(maxBet())} על הימור אחד.`);
-  const tot = [...bets.values()].reduce((s, v) => s + v, 0) - [...sent.values()].reduce((s, v) => s + v, 0);   // chips already sent are already off the balance
-  if (!PREVIEW && tot + amt > balance) return err("אין מספיק שקלים להימור הזה.");
-  undoStack.push(new Map(bets)); bets.set(key, cur + amt); err(""); drawChips(); SFX.chip();
+  const tot = [...bets.values()].reduce((s, v) => s + v, 0) - sentSum();   // chips already sent are already off the balance
+  const room = maxBet() - cur, left = PREVIEW ? Infinity : balance - tot;
+  if (room <= 0) return err(`הגעת למקסימום ${fmt(maxBet())} על המשבצת הזו.`);
+  if (left <= 0) return err("אין יותר שקלים בארנק להימור.");
+  amt = Math.min(amt, room, left);          // the last chip takes whatever is left (all-in) instead of failing
+  undoStack.push(new Map(bets)); bets.set(key, cur + amt); err(amt < chipVal ? `שמתי ${fmt(amt)} — ${left <= room ? "כל מה שנשאר בארנק" : "עד המקסימום למשבצת"}.` : ""); drawChips(); SFX.chip();
 }
 function placeMany(list) {             // list of [key, amount]; one undo step
   if (busy || !list.length) return;
   const next = new Map(bets);
   for (const [k, a] of list) { if (!LEGAL.has(k)) return; next.set(k, (next.get(k) || 0) + a); }
-  if ([...next.values()].some((v) => v > maxBet())) return err(`מקסימום ${fmt(maxBet())} על הימור אחד.`);
-  const tot = [...next.values()].reduce((s, v) => s + v, 0) - [...sent.values()].reduce((s, v) => s + v, 0);
-  if (!PREVIEW && tot > balance) return err("אין מספיק שקלים להימור הזה.");
+  if ([...next.values()].some((v) => v > maxBet())) return err(`אי אפשר: יש משבצת מעל המקסימום ${fmt(maxBet())} למשבצת.`);
+  const tot = [...next.values()].reduce((s, v) => s + v, 0) - sentSum();
+  if (!PREVIEW && tot > balance) return err(`אי אפשר: צריך ${fmt(tot)} ויש בארנק ${fmt(balance)}.`);
   undoStack.push(new Map(bets)); bets = next; err(""); drawChips(); SFX.chip();
 }
 function err(t) { $("err").textContent = t; }
@@ -252,7 +255,7 @@ $("clearBtn").onclick = () => { undoStack.push(new Map(bets)); bets = new Map(se
 $("dblBtn").onclick = () => { const tot = [...bets.values()].reduce((s, v) => s + v, 0);
   if ([...bets.values()].some((v) => v * 2 > maxBet())) return err("ההכפלה עוברת את מגבלת ההימור.");
   undoStack.push(new Map(bets)); bets = new Map([...bets].map(([k, v]) => [k, v * 2])); drawChips(); };
-$("rebetBtn").onclick = () => { if (lastBets) { undoStack.push(new Map(bets)); bets = new Map(lastBets); drawChips(); } };
+$("rebetBtn").onclick = () => { if (lastBets) placeMany([...lastBets]); };   // same checks as placing chips: explains why if it can't
 $("rulesBtn").onclick = () => $("rules").showModal();
 
 // ---------- history & balance ----------
