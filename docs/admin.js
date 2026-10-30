@@ -30,7 +30,12 @@ async function loadSettings() { const { data, error } = await db.rpc("admin_sett
 async function loadMembers() {
   const { data } = await db.rpc("admin_members");
   $("members").innerHTML = (data || []).map((m) => `<div class="mrow"><div><b>${esc(m.name)}</b>${m.admin ? " 👑" : ""}<small>${m.username ? "@" + esc(m.username) + " · " : ""}הצטרף ${new Date(m.joined).toLocaleDateString("he-IL")}${m.seated ? " · יושב בפוקר: " + esc(m.seated) : ""}</small></div>
-    <span class="num">${fmt(m.balance)}</span><button class="btn ghost sm" data-reset="${esc(m.username || m.name)}">קישור כניסה חדש</button></div>`).join("") || '<p class="msg">עוד אין חברים.</p>';
+    <span class="num">${fmt(m.balance)}</span><button class="btn ghost sm" data-ren="${m.id}" data-nm="${esc(m.name)}">✏️ שם</button><button class="btn ghost sm" data-reset="${esc(m.username || m.name)}">קישור כניסה חדש</button></div>`).join("") || '<p class="msg">עוד אין חברים.</p>';
+  $("members").querySelectorAll("[data-ren]").forEach((b) => b.onclick = async () => {
+    const n = (prompt("שם תצוגה חדש ל־" + b.dataset.nm + " (2–20 תווים):", b.dataset.nm) || "").trim(); if (!n || n === b.dataset.nm) return;
+    const { error } = await db.rpc("admin_rename", { p_user: b.dataset.ren, p_name: n });
+    if (error) { alert(/invalid_name/.test(error.message) ? "השם צריך להיות 2 עד 20 תווים." : "לא הצלחתי לשנות את השם."); return; }
+    loadMembers(); });
   $("members").querySelectorAll("[data-reset]").forEach((b) => b.onclick = () => { $("inviteName").value = b.dataset.reset; $("inviteForm").requestSubmit(); $("inviteName").scrollIntoView({ behavior: "smooth", block: "center" }); });
 }
 // ---------- Admin: access codes (no email) ----------
