@@ -69,13 +69,15 @@ let Z = [];
 function drawZeus() {
   $("zduels").innerHTML = Z.map((d) => {
     const them = esc(d.them); let st = "", act = "";
-    if (d.status === "invited") { if (d.mine) st = `⏳ מחכה ש${them} יקבל`; else { st = `${them} מזמין אותך לדו־קרב!`; act = `<button class="go sm" data-zy="${d.id}">קבל</button><button class="ghost sm" data-zn="${d.id}">לא עכשיו</button>`; } }
+    if (d.status === "invited") { if (d.mine) { st = `⏳ מחכה ש${them} יקבל`; act = `<button class="ghost sm" data-zc="${d.id}">בטל הזמנה</button>`; } else { st = `${them} מזמין אותך לדו־קרב!`; act = `<button class="go sm" data-zy="${d.id}">קבל</button><button class="ghost sm" data-zn="${d.id}">לא עכשיו</button>`; } }
     else if (d.status === "active") { st = `⚡ דו־קרב פעיל מול ${them}`; act = `<a class="go sm" href="roulette.html?mode=lightning&duel=${d.id}">היכנס</a>`; }
     else if (d.status === "done") st = d.winner === d.me ? `✅ ניצחת את ${them}` : d.winner ? `❌ ${them} ניצח` : `🤝 תיקו עם ${them}`;
     else if (d.status === "declined") st = d.mine ? `${them} לא היה זמין` : `דחית את ${them}`;
     else st = `⌛ ההזמנה ל${them} פגה`;
     return `<div class="duel ${d.status === "invited" || d.status === "active" ? "waiting" : ""}"><span>${st}</span><span class="acts">${act}</span></div>`;
   }).join("");
+  $("zduels").querySelectorAll("[data-zc]").forEach((b) => b.onclick = async () => { b.disabled = true;
+    const { error } = await rpc("zeus_cancel", { p_duel: b.dataset.zc }); if (error) { b.disabled = false; return err(errText(error)); } err(""); load(); });
   $("zduels").querySelectorAll("[data-zy],[data-zn]").forEach((b) => b.onclick = async () => {
     const yes = !!b.dataset.zy, { error } = await rpc("zeus_answer", { p_duel: b.dataset.zy || b.dataset.zn, p_accept: yes });
     if (error) return err(errText(error)); if (yes) location.href = `roulette.html?mode=lightning&duel=${b.dataset.zy}`; else load();
