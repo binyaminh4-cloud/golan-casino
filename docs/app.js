@@ -310,7 +310,7 @@ document.getElementById("pwBtn")?.addEventListener("click", () => {
   o.querySelector("#pwShow").onchange = (e) => o.querySelectorAll("#pw1,#pw2").forEach((i) => i.type = e.target.checked ? "text" : "password");
   f.onsubmit = async (e) => { e.preventDefault(); const a = o.querySelector("#pw1").value, b = o.querySelector("#pw2").value;
     if (a.length < 6) { msg.textContent = "לפחות 6 תווים."; return; } if (a !== b) { msg.textContent = "שתי הסיסמאות לא זהות."; return; }
-    const { error } = await db.auth.updateUser({ password: a });
+    const { error } = await db.rpc("gc_set_password", { p_password: a });
     if (error) { msg.className = "m"; msg.textContent = "לא הצלחנו לשמור. נסה שוב."; return; }
     msg.className = "m ok"; msg.textContent = "✔ הסיסמה נשמרה. מהפעם הבאה נכנסים איתה."; setTimeout(() => o.remove(), 1800); };
 });
