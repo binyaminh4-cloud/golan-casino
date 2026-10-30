@@ -49,7 +49,7 @@ addEventListener("contextmenu", (e) => e.preventDefault());
 function tap(x, y) {
   if (!G || G.done || G.pause > 0) return; const c = G.cab, R = Math.max(22, (BOT() - TOP()) / NFIB / 1.6);
   const fi = c.fibers.findIndex((f) => !f.done && Math.hypot(f.tip.x - x, f.tip.y - y) < R + 14);
-  if (fi >= 0) { c.sel = fi; try { SFX.button(); } catch (e) {} return; }
+  if (fi >= 0) { c.sel = fi; try { SFX.fx("fiber_plug", { vol: 0.6 }); } catch (e) {} return; }
   const sk = c.slots.findIndex((s) => !s.done && Math.abs(s.y - y) < (SPLIT ? (BOT() - TOP()) / 24 + 4 : R + 6) && Math.abs(s.x + 14 - x) < 70);
   if (sk < 0 || c.sel == null) return;
   const s = c.slots[sk], f = c.fibers[c.sel];
@@ -57,16 +57,16 @@ function tap(x, y) {
     const real = c.fibers[s.fi]; if (s.fi !== c.sel) { const t = real.tip; real.tip = f.tip; f.tip = t; }   // identical fibers are interchangeable
     s.done = true; c.fibers[s.fi].done = true; c.fibers[s.fi].slotY = s.y; c.fibers[s.fi].slotX = s.x;
     G.fx.push({ img: "spark", x: s.x - 40, y: s.y, t: 0, life: .5, size: 110 }, { img: "glow_ok", x: s.x + 40, y: s.y, t: 0, life: .7, size: 70 });
-    try { SFX.chip(); } catch (e) {}
+    try { SFX.fx("fiber_splice", { vol: 0.75 }); } catch (e) {}
     c.sel = null;
     if (c.slots.every((q) => q.done)) cabinetDone(true);
   } else {
     c.left = Math.max(0, c.left - PENALTY); G.pop.push({ txt: `−${PENALTY} שנ׳`, x: s.x, y: s.y, t: 0 }); c.sel = null;
-    try { SFX.error(); navigator.vibrate && navigator.vibrate(80); } catch (e) {}
+    try { SFX.fx("fiber_wrong", { vol: 0.8 }); navigator.vibrate && navigator.vibrate(80); } catch (e) {}
   }
 }
 function cabinetDone(ok) {
-  G.pause = 2.2; if (ok) { G.ok++; try { SFX.coins(1); } catch (e) {} }
+  G.pause = 2.2; if (ok) { G.ok++; try { SFX.fx("fiber_ok", { vol: 0.8 }); SFX.coins(1); } catch (e) {} }
   G.banner = { ok, t: 0 }; hud();
   G.after = () => { G.banner = null; if (G.n >= CABS) end(); else { G.n++; G.cab = cabinet(); hud(); } };
 }
@@ -75,7 +75,7 @@ function hud() { $("hCab").textContent = `${G.n}/${CABS}`; $("hEarn").textConten
 function step(dt) {
   G.time += dt;
   if (G.pause > 0) { G.pause -= dt; if (G.pause <= 0 && G.after) { const f = G.after; G.after = null; f(); } }
-  else if (!G.done) { G.cab.left -= dt; if (G.cab.left <= 0) { G.cab.left = 0; cabinetDone(false); } $("hTime").textContent = Math.ceil(G.cab.left); }
+  else if (!G.done) { const before = Math.ceil(G.cab.left); G.cab.left -= dt; if (Math.ceil(G.cab.left) < before && before <= 10 && G.cab.left > 0) try { SFX.fx("fiber_tick", { vol: 0.6 }); } catch (e) {} if (G.cab.left <= 0) { G.cab.left = 0; cabinetDone(false); } $("hTime").textContent = Math.ceil(G.cab.left); }
   for (const a of [G.fx, G.pop]) for (let i = a.length - 1; i >= 0; i--) { a[i].t += dt; if (a[i].t > (a[i].life || 1)) a.splice(i, 1); }
 }
 function draw() {

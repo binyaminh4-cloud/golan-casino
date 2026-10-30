@@ -103,7 +103,7 @@ function wheel(tn) {
   document.body.appendChild(o);
   const end = 360 * 6 - idx * 60;
   requestAnimationFrame(() => requestAnimationFrame(() => { $("wd").style.transform = `rotate(${end}deg)`; }));
-  try { SFX.roll(4); } catch (e) {}
+  try { SFX.fx("ch_wheel", { vol: 0.8 }) || SFX.roll(4); } catch (e) {}
   setTimeout(() => { $("wres").innerHTML = `הפרס בטורניר: <b class="num">${fmt(tn.prize)}</b>`; try { SFX.win(tn.mult >= 10); } catch (e) {} }, 4300);
   setTimeout(() => o.remove(), 7000);
 }

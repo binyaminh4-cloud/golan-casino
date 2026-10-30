@@ -656,7 +656,7 @@ function drawDuel() {
     const o = document.createElement("div"); o.id = "duelEnd"; o.className = "duelend";
     const res = !ZS.winner ? "תיקו! זאוס לא מרוצה." : ZS.winner === ZS.me ? "⚡ ניצחת! +30 נקודות לעונה" : `${esc(ZS.them)} ניצח הפעם`;
     o.innerHTML = `<div class="box"><div class="t">הדו־קרב נגמר</div><div class="r">${res}<br><b class="num">${fmt(ZS.my_chips)}</b> מול ${fmt(ZS.their_chips)}</div><a class="btn" href="challenges.html">חזרה לאתגרים</a></div>`;
-    document.body.appendChild(o);
+    document.body.appendChild(o); try { SFX.fx(ZS.winner === ZS.me ? "ch_win" : "ch_lose", { vol: 0.85 }); } catch (e) {}
   }
 }
 const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));

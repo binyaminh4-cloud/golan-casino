@@ -141,7 +141,7 @@ function drawActs() {
   $("acts").querySelectorAll("button").forEach((b) => b.onclick = () => act(b.dataset.a));
 }
 async function act(a) {
-  if (busy) return; busy = true; $("acts").hidden = true;
+  if (busy) return; busy = true; $("acts").hidden = true; try { if (/fold/.test(a)) SFX.fx("dp_fold", { vol: 0.8 }); else if (/check/.test(a)) SFX.fx("dp_check", { vol: 0.9 }); } catch (e) {}
   const { data, error } = await rpc("dp_act", { p_round: S.id, p_action: a });
   busy = false;
   if (error) { err((error.message || "").includes("insufficient") ? "אין מספיק בארנק להעלאה." : "הפעולה לא עברה."); drawActs(); return; }
@@ -157,7 +157,7 @@ let sweptId = null;
 async function sweep() {
   sweptId = S && S.id;
   const cards = [...layer.querySelectorAll(".card")]; if (!cards.length) return;
-  seq([["c01_collect", 700], ["c02_rest", 500], ["i01", 0]]);
+  seq([["c01_collect", 700], ["c02_rest", 500], ["i01", 0]]); try { SFX.fx("dp_sweep", { vol: 0.7 }); } catch (e) {}
   cards.forEach((c, i) => setTimeout(() => { c.style.left = HAND.x + "px"; c.style.top = (HAND.y - 40) + "px"; c.style.opacity = "0"; c.style.transition += ",opacity .5s"; }, i * 50));
   layer.querySelectorAll(".lab").forEach((n) => n.remove()); $("msg").hidden = true;
   await sleep(700 + cards.length * 50); cards.forEach((c) => c.remove()); EL = {};

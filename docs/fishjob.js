@@ -64,7 +64,7 @@ function cast() {
   for (const f of G.fish) { if (Math.abs(f.x - tx) < f.w * .45 && Math.abs(f.y - ty) < f.h * .55 + 12) { if (!best || KINDS[f.kind].val > KINDS[best.kind].val) best = f; } }
   if (best) best.hooked = true;
   G.shot = { t: 0, dur: .14, p, ty: best ? best.y : ty, tx: best ? best.x : tx, best };
-  G.casts++; hud(); try { SFX.button(); } catch (e) {}
+  G.casts++; hud(); try { SFX.fx("fish_cast", { vol: 0.7, dur: 0.5 }); } catch (e) {}
 }
 function land() {
   const s = G.shot; G.shot = null;
@@ -75,8 +75,8 @@ function land() {
     G.flying.push({ img: best.img, x: best.x, y: best.y, w: best.w, h: best.h, t: 0 });
     G.fish[G.fish.indexOf(best)] = refill(G.fish, best.kind);
     const v = VAL[KINDS[best.kind].val]; G.pop.push({ txt: "+" + fmt(v), x: best.x, y: best.y, t: 0, gold: best.kind === "gold" });
-    try { best.kind === "gold" ? SFX.win(true) : SFX.coins(0.6); } catch (e) {}
-  } else { G.pop.push({ txt: "פספוס", x: s.tx, y: s.ty, t: 0, miss: true }); try { SFX.error(); } catch (e) {} }
+    try { SFX.fx("fish_catch", { vol: 0.8 }); if (best.kind === "gold") SFX.fx("fish_gold", { vol: 0.9 }); else SFX.fx("fish_reel", { vol: 0.4, dur: 0.8 }); } catch (e) {}
+  } else { G.pop.push({ txt: "פספוס", x: s.tx, y: s.ty, t: 0, miss: true }); try { SFX.fx("fish_miss", { vol: 0.8 }); } catch (e) {} }
   hud();
   if (G.casts >= CASTS) setTimeout(end, 1100);
 }

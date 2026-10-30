@@ -93,7 +93,7 @@ function step(dt) {
       const who = pickWho(g.stops.indexOf(s)), perfect = Math.abs(off) < ZONE * .14;
       s.state = "board"; s.who = who; g.ok++; if (perfect) g.perfect++;
       coins.push({ x: LANE_X + 90, y: s.at, t: 0 });
-      try { SFX.coins(0.7); } catch (e) {}
+      try { SFX.fx("bus_brake", { vol: 0.6 }); setTimeout(() => { SFX.fx("bus_door", { vol: 0.7 }); setTimeout(() => SFX.fx("bus_fare", { vol: 0.8 }), 650); }, 350); } catch (e) {}
       bubble(who.name, perfect ? `${who.line}<br><i>${PERFECT_LINE}</i>` : who.line, 1900);
       g.pause = 1.5; g.after = () => { s.state = "gone"; hud(); };
       hud(); return;
@@ -115,7 +115,7 @@ function step(dt) {
     const ahead = o.at - g.d, reach = BUS_L / 2 + (o.type === "tractor" ? 140 : 50);
     if (inLane && ahead < reach && ahead > -BUS_L / 2) {
       if (o.type === "puddle") { if (g.v > CRUISE * .55) { g.hits++; flash(); bubble("שלולית", "ספלאש! הנוסעים רטובים. פחות טיפים", 1400); } o.state = "gone"; hud(); continue; }
-      if (g.v > 25) { o.state = "hit"; g.hits++; g.v = 0; flash(); horn(); bubble("אאוץ׳", o.type === "tractor" ? "נכנסת בטרקטור! פחות טיפים" : "בלמת מאוחר! פחות טיפים", 1500); hud(); }
+      if (g.v > 25) { o.state = "hit"; g.hits++; g.v = 0; flash(); try { SFX.fx("bus_bump", { vol: 0.9 }); SFX.fx(o.type === "cow" ? "bus_moo" : o.type === "sheep" ? "bus_baa" : "bus_horn", { vol: 0.8 }); } catch (e) { horn(); } bubble("אאוץ׳", o.type === "tractor" ? "נכנסת בטרקטור! פחות טיפים" : "בלמת מאוחר! פחות טיפים", 1500); hud(); }
       else if (o.type === "tractor") { g.d = Math.min(g.d, o.at - reach); g.v = Math.min(g.v, CRUISE * .35); }
       else g.v = 0;                                // waiting for the animals to cross
     }
@@ -162,13 +162,14 @@ function loop(t) { const dt = Math.min(.05, (t - last) / 1000 || 0); last = t; i
 
 // ---------- server ----------
 async function begin() {
-  $("startBox").hidden = true; try { SFX.button(); } catch (e) {}
+  $("startBox").hidden = true; try { SFX.fx("bus_horn", { vol: 0.7 }); stopEngine(); stopEngine = SFX.fx("bus_engine", { vol: 0.18, loop: true }); } catch (e) {}
   if (PREVIEW) run = { id: "p", seed: 12345, stops: STOPS, rate: [0, 70000, 105000, 140000, 1750000][LEVEL] };
   else { const { data, error } = await db.rpc("bus_start", { p_level: LEVEL }); if (error) { alert("לא הצלחנו לפתוח משמרת. נסה שוב."); location.href = "jobs.html"; return; } run = data; }
   G = { d: 0, v: 0, time: 0, ok: 0, perfect: 0, hits: 0, pause: 0, done: false, ...build(run.seed) };
   hud(); setTimeout(() => { $("hint").style.opacity = "0"; }, 6000);
 }
-async function finish() {
+let stopEngine = () => {};
+async function finish() { try { stopEngine(); } catch (e) {}
   let paid = earnNow(), lvl = null;
   if (!PREVIEW) { const { data, error } = await db.rpc("bus_finish", { p_id: run.id, p_ok: G.ok, p_perfect: G.perfect, p_hits: G.hits });
     if (error) paid = 0; else { paid = data.paid; lvl = data.level; } }

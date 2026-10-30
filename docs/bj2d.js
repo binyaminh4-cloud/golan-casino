@@ -428,7 +428,7 @@ async function chEnd() {
     : c.target != null ? (c.chips > c.target ? `ניצחת! <b class="num">${fmt(c.chips)}</b> מול ${fmt(c.target)}` : c.chips === c.target ? "תיקו!" : `הפסדת: <b class="num">${fmt(c.chips)}</b> מול ${fmt(c.target)}`)
     : `סיימת עם <b class="num">${fmt(c.chips)}</b>. עכשיו תור ${esc(c.opponent || "החבר")}.`;
   o.innerHTML = `<div class="box"><div class="t">${c.kind === "fisher" ? "🎧 הסט נגמר" : "🃏 החפיסה נגמרה"}</div><div class="r">${res}</div><a class="btn" href="challenges.html">חזרה לאתגרים</a></div>`;
-  document.body.appendChild(o);
+  document.body.appendChild(o); try { const w = c.kind === "fisher" ? c.points > 0 : c.target != null ? c.chips > c.target : null; if (w != null) SFX.fx(w ? "ch_win" : "ch_lose", { vol: 0.85 }); } catch (e) {}
 }
 // coming back to the page (other tab, phone unlocked, back button): fetch the hand again so the buttons are always there
 addEventListener("pageshow", (e) => { if (e.persisted) location.reload(); });

@@ -102,6 +102,16 @@
   S.roll = (sec) => play("ball_roll", { vol: 0.7, dur: sec }) || synth.roll(sec);
   S.ballDrop = () => play("ball_drop", { vol: 0.85, offset: 0.45, dur: 2.6 });   // trimmed so the first fret hit is at 0 s
   S.hasSample = (n) => !!BUF[n];
+  // the jobs / bank / challenges pack: S.fx("bus_horn") plays a file from snd/; {loop:true} returns a stop() function
+  const PACK = ["bank_deposit", "bank_vault", "bank_withdraw", "bus_baa", "bus_brake", "bus_bump", "bus_door", "bus_engine", "bus_fare", "bus_horn", "bus_moo",
+    "ch_lose", "ch_wheel", "ch_win", "dp_check", "dp_fold", "dp_sweep", "fiber_ok", "fiber_plug", "fiber_splice", "fiber_tick", "fiber_wrong",
+    "fish_cast", "fish_catch", "fish_gold", "fish_miss", "fish_reel", "levelup"];
+  addEventListener("pointerdown", () => PACK.forEach(load), { once: true, capture: true });
+  S.fx = (name, { vol = 0.8, dur = null, loop = false } = {}) => { load(name);
+    if (!loop) return play(name, { vol, dur });
+    if (!ac() || muted || !BUF[name]) return () => {};
+    const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = BUF[name]; src.loop = true; g.gain.value = vol; src.connect(g).connect(master); src.start();
+    return () => { try { g.gain.setTargetAtTime(0, ctx.currentTime, 0.15); src.stop(ctx.currentTime + 0.6); } catch (e) {} }; };
   S.gong = () => play("no_more_bets", { vol: 0.7, dur: 2.5 }) || synth.drop();
   S.notify = () => play("notify", { vol: 0.6 });
   S.orbLock = () => play("orb_lock", { vol: 0.8, dur: 1.8 }) || synth.zap();
