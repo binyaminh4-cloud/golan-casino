@@ -145,12 +145,23 @@ async function act(a) {
 function err(t) { $("err").textContent = t || ""; }
 function showMsg(t, sub, cls) { const m = $("msg"); m.className = "msg " + (cls || ""); m.innerHTML = `${t}${sub ? `<small>${sub}</small>` : ""}`; m.hidden = false; }
 let shownDone = null;
+// end of hand: the dealer sweeps the cards back to her side
+let sweptId = null;
+async function sweep() {
+  sweptId = S && S.id;
+  const cards = [...layer.querySelectorAll(".card")]; if (!cards.length) return;
+  seq([["c01_collect", 700], ["c02_rest", 500], ["i01", 0]]);
+  cards.forEach((c, i) => setTimeout(() => { c.style.left = HAND.x + "px"; c.style.top = (HAND.y - 40) + "px"; c.style.opacity = "0"; c.style.transition += ",opacity .5s"; }, i * 50));
+  layer.querySelectorAll(".lab").forEach((n) => n.remove()); $("msg").hidden = true;
+  await sleep(700 + cards.length * 50); cards.forEach((c) => c.remove()); EL = {};
+}
 async function apply(st) {
   if (!st) return; const prevId = S && S.id; S = st;
   $("bal").textContent = fmt(st.balance); drawChips();
   if (st.id !== roundId) { roundId = st.id; clearFelt(); $("msg").hidden = true; shownDone = null; }
   const hands = st.hands || [], mine = hands.find((h) => h.me), others = hands.filter((h) => !h.me);
-  // cards
+  // cards (not again once the dealer has swept this finished hand)
+  if (st.id === sweptId) { $("betUI").hidden = !(T === 0 || st.phase === "betting"); betButtons(); return; }
   if (st.dealer && st.dealer.length) st.dealer.forEach((c, i) => cardEl("d" + i, c, dealerPos(i, st.dealer.length)));
   (st.board || []).forEach((c, i) => cardEl("b" + i, c, boardPos(i)));
   if (mine && mine.cards) mine.cards.forEach((c, i) => cardEl("m" + i, c, myPos(i, mine.cards.length)));
@@ -178,7 +189,7 @@ async function apply(st) {
     showMsg(net > 0 ? `+${fmt(net)}` : net < 0 ? fmt(net) : "החזר", why + (extra ? " · " + extra : ""), net > 0 ? "win" : net < 0 ? "lose" : "");
     try { net > 0 ? SFX.win(net >= mine.ante * 5) : null; } catch (e) {}
     if (net > 0) seq([["p01_pay", 900], ["p02_back", 600], ["i01", 0]]); else if (net < 0) seq([["c01_collect", 900], ["c02_rest", 700], ["i01", 0]]);
-    if (T === 0) setTimeout(() => { if (S && S.id === st.id) { $("msg").hidden = true; } }, 3500);
+    setTimeout(() => { if (S && S.id === st.id) sweep(); }, T === 0 ? 3500 : 5500);
   }
   if (st.phase === "betting" && !mine) $("msg").hidden = true;
 }
