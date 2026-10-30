@@ -51,7 +51,7 @@ let EL = {}, roundId = null, dealing = Promise.resolve();
 function cardEl(key, card, pos, small) {
   let o = EL[key];
   if (!o) {
-    const d = document.createElement("div"); d.className = "card back" + (small ? " small" : ""); d.style.left = HAND.x + "px"; d.style.top = HAND.y + "px"; layer.appendChild(d);
+    const d = document.createElement("div"); d.className = "card back" + (small ? " small" : ""); d.style.left = HAND.x + "px"; d.style.top = HAND.y + "px"; d.dataset.k = key; layer.appendChild(d);
     o = EL[key] = { el: d, card: "??", pos: null, fresh: true };
   }
   o.want = { card, pos }; return o;
@@ -67,7 +67,14 @@ async function animate() {
   await sleep(news.length ? 520 : 0);
   const flips = list.filter((o) => o.want.card !== "??" && o.card !== o.want.card);
   if (flips.length && flips.some((o) => o.want.pos.y < 320)) seq([["f01_touch", 120], ["f02_turn", 200], ["f03_done", 300], ["i01", 0]]);
-  for (const o of flips) { o.el.classList.add("flip"); try { SFX.cardFlip(); } catch (e) {} await sleep(145); faceUp(o, o.want.card); o.el.classList.remove("flip"); await sleep(95); }
+  // the player's own cards flip quickly; the dealer's are revealed one by one, slowly, to keep the tension
+  const dl = flips.filter((o) => o.el.dataset.k && o.el.dataset.k[0] === "d"), rest = flips.filter((o) => !dl.includes(o));
+  for (const o of rest) { o.el.classList.add("flip"); try { SFX.cardFlip(); } catch (e) {} await sleep(145); faceUp(o, o.want.card); o.el.classList.remove("flip"); await sleep(95); }
+  if (dl.length) await sleep(600);
+  for (const o of dl) { o.el.style.top = o.want.pos.y - 14 + "px"; await sleep(450);
+    o.el.classList.add("flip"); try { SFX.cardFlip(); } catch (e) {} await sleep(220); faceUp(o, o.want.card); o.el.classList.remove("flip");
+    await sleep(150); o.el.style.top = o.want.pos.y + "px"; await sleep(650); }
+  if (dl.length) await sleep(400);
 }
 function clearFelt() { layer.innerHTML = ""; EL = {}; }
 function label(txt, x, y, cls = "") { const d = document.createElement("div"); d.className = "lab " + cls; d.textContent = txt; d.style.left = x + "px"; d.style.top = y + "px"; layer.appendChild(d); return d; }
