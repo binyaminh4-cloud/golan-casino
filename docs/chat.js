@@ -67,7 +67,7 @@
       d.className = "m" + (m.kind === "sys" ? " sys" : m.uid === me ? " mine" : "") + (QUICK.includes(m.body) ? " qk" : "");
       const at = m.at ? new Date(m.at) : null, today = at && at.toDateString() === new Date().toDateString();
       const ts = at ? `<time>${today ? "" : at.toLocaleDateString("he-IL", { day: "numeric", month: "numeric" }) + " "}${at.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}</time>` : "";
-      d.innerHTML = (m.kind === "sys" ? esc(m.body) : (m.uid === me ? "" : `<b>${esc(m.name || "")}</b>`) + esc(m.body)) + ts;
+      d.innerHTML = (m.kind === "sys" ? esc(m.body).replace(/(עלה לרמה )(\d+)/, (x, a, n) => `${a}${n} <img class="lvi" src="img/lvl/lv${n}.webp?v=1" alt="">`) : (m.uid === me ? "" : `<b>${esc(m.name || "")}<i class="lvu" data-u="${m.uid}"></i></b>`) + esc(m.body)) + ts;
       log.appendChild(d);
       if (!open && m.uid !== me && m.id > seen) unread++;
       if (!open && booted && fresh && m.kind !== "sys" && (!m.at || Date.now() - new Date(m.at) < 90000)) bubble(m);   // only messages that really just arrived
@@ -82,7 +82,7 @@
     const who = document.querySelector(`[data-u="${m.uid}"]`);
     const r = (who && who.getClientRects().length ? who : btn).getBoundingClientRect();
     const b = document.createElement("div"); b.className = "gc-bubble";
-    b.innerHTML = `<b>${esc(m.name || "")}</b>${esc(m.body)}`;
+    b.innerHTML = `<b>${esc(m.name || "")}<i class="lvu" data-u="${m.uid}"></i></b>${esc(m.body)}`;
     document.body.appendChild(b);
     const w = b.offsetWidth, h = b.offsetHeight;
     let x = r.left + r.width / 2 - w / 2, y = r.top - h - 10, below = false;
@@ -138,9 +138,35 @@
   box.querySelector("form").onsubmit = (e) => { e.preventDefault(); send(input.value); };
   box.querySelector(".quick").onclick = (e) => { const b = e.target.closest("button"); if (b) send(b.textContent); };
 
+  // ---------- level badges next to every name + level-up popup ----------
+  window.GC_LV = window.GC_LV || {};
+  const lvCss = document.createElement("style");
+  lvCss.textContent = `.lvi{height:1.05em;width:auto;vertical-align:-.18em;margin-inline-start:.22em;display:inline-block}.lvu{font-style:normal;display:inline}
+.gc-lvup{position:fixed;inset:0;z-index:9700;display:grid;place-items:center;background:rgba(0,0,0,.78);direction:rtl;animation:gclvf .25s}
+.gc-lvup .bx{width:min(380px,88vw);background:radial-gradient(ellipse at 50% 0%,#3a2a10,#120c08);border:2px solid #F1D69A;border-radius:18px;padding:18px;text-align:center;color:#F5ECDD;font:500 15px/1.5 Heebo,sans-serif;box-shadow:0 0 50px rgba(255,214,110,.45);animation:gclvp .45s cubic-bezier(.2,1.6,.4,1)}
+.gc-lvup img{width:120px;height:120px;filter:drop-shadow(0 0 18px rgba(255,214,110,.8))}.gc-lvup h2{margin:6px 0;font:800 26px Heebo;color:#F1D69A}
+.gc-lvup b{color:#ffe27a}.gc-lvup button{margin-top:12px;width:100%;padding:12px;border:0;border-radius:12px;font:800 17px Heebo;background:linear-gradient(#F1D69A,#C5A05A);color:#1b0f06}
+@keyframes gclvf{from{opacity:0}}@keyframes gclvp{from{transform:scale(.5)}}`;
+  document.head.appendChild(lvCss);
+  const lvPaint = () => document.querySelectorAll(".lvu").forEach((e) => { const n = GC_LV[e.dataset.u]; const want = n ? String(n) : "";
+    if (e.dataset.n !== want) { e.dataset.n = want; e.innerHTML = n ? `<img class="lvi" src="img/lvl/lv${n}.webp?v=1" alt="רמה ${n}" title="רמה ${n}">` : ""; } });
+  let lvT = null; new MutationObserver(() => { clearTimeout(lvT); lvT = setTimeout(lvPaint, 60); }).observe(document.documentElement, { childList: true, subtree: true });
+  const fmtM = (n) => n >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + Number(n).toLocaleString("en-US");
+  async function lvLoad() { try { const { data } = await db.rpc("gc_levels"); if (data) { window.GC_LV = data; lvPaint(); } } catch (e) {} }
+  async function lvCheck() {
+    try { const { data } = await db.rpc("gc_level_check"); if (!data) return; GC_LV[me] = data.level; lvPaint();
+      if (data.up) { const o = document.createElement("div"); o.className = "gc-lvup";
+        o.innerHTML = `<div class="bx"><img src="img/lvl/lv${data.level}.webp?v=1" alt=""><h2>עלית לרמה ${data.level}!</h2>
+          <p>מעכשיו המשכורת שלך: <b>${fmtM(data.weekly)}</b> בשבוע ו־<b>${fmtM(data.monthly)}</b> בחודש.</p>${data.to ? `<p>לרמה ${data.level + 1} חסרות לך ${data.to - data.xp} נקודות.</p>` : "<p>הגעת לרמה הגבוהה ביותר 👑</p>"}
+          <button type="button">יאללה!</button></div>`;
+        document.body.appendChild(o); o.querySelector("button").onclick = () => o.remove(); try { SFX.win(true); } catch (e) {} } } catch (e) {}
+  }
+  window.GC_LEVELCHECK = lvCheck;
+
   (async function boot() {
     const { data: { session } } = await db.auth.getSession(); if (!session) return;
     me = session.user.id;
+    lvLoad().then(lvCheck); setInterval(lvCheck, 60000);
     document.body.append(btn, box);
     await poll(); booted = true; schedule();
   })();

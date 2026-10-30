@@ -56,7 +56,7 @@ function draw() {
     h += `<div class="seat ${seat === ME ? "me" : ""} ${p.folded ? "folded" : ""} ${turn ? "turn" : ""} ${won ? "won" : ""}" style="left:${pos.x}px;top:${pos.y}px">
       <div class="cards">${hole}</div>
       <div class="av">${AV[p.user] ? `<img src="${AV[p.user]}" alt="">` : `<span>${esc((p.name || "?")[0])}</span>`}${turn ? `<svg class="ring" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18"/></svg>` : ""}</div>
-      <div class="tag"><b>${esc(p.name)}</b><span class="num">${p.allin ? "אול־אין" : fmt(p.stack)}</span></div>
+      <div class="tag"><b>${esc(p.name)}<i class="lvu" data-u="${p.user}"></i></b><span class="num">${p.allin ? "אול־אין" : fmt(p.stack)}</span></div>
       ${hand ? `<div class="hand">${esc(hand)}</div>` : ""}${won ? `<div class="wonamt num">+${fmt(won)}</div>` : ""}</div>`;
     if (p.bet > 0) { const b = BETAT(pos); h += `<div class="bet" style="left:${b.x}px;top:${b.y}px"><img src="img/poker/chip_stack.webp" alt=""><b class="num">${chipLabel(p.bet)}</b></div>`; }
   }

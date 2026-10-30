@@ -122,7 +122,7 @@ function drawSeats() {
     const s = SEATS[i], src = urls[m.character_key];
     const img = src ? `<img src="${esc(src)}" alt="">` : `<img src="img/dealer/idle.webp" alt="" style="visibility:hidden">`;
     return `<div data-u="${m.id}" class="char ${i === 0 ? "me" : ""} ${src ? "" : "ghost"}" id="seat${i}" style="left:${s.x}px;top:${s.top}px;width:${s.w}px">${img}
-      <div class="tag"><div class="name">${esc(m.nickname)}${i === 0 ? "" : ""}</div><div class="b" data-bal="${i}">${fmt(m.wealth)}</div></div></div>`;
+      <div class="tag"><div class="name">${esc(m.nickname)}<i class="lvu" data-u="${m.id}"></i>${i === 0 ? "" : ""}</div><div class="b" data-bal="${i}">${fmt(m.wealth)}</div></div></div>`;
   }).join("");
 }
 function setMyBalance(v) { if (!CH) { myBal = +v || 0; drawRack(); GC_LIMIT(Object.values(bets).reduce((a, b) => a + b, 0), maxBet(), myBal, fmt, "ליד"); } if (CH) v = CH.chips; $("bal").textContent = fmt(v); const b = document.querySelector('[data-bal="0"]'); if (b) b.textContent = fmt(v); }

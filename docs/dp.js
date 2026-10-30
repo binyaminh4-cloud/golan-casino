@@ -171,7 +171,7 @@ async function apply(st) {
   layer.querySelectorAll(".seat,.lab").forEach((n) => n.remove());
   others.forEach((h, k) => { const s = SEATS[k % SEATS.length], d = document.createElement("div"); d.className = "seat"; d.style.left = s.x + "px"; d.style.top = s.y + "px";
     const st2 = h.status === "fold" ? "ויתר" : h.status === "wait" ? "העלה ✔" : h.result ? (h.result.net > 0 ? "+" + fmt(h.result.net) : h.result.net < 0 ? fmt(h.result.net) : "תיקו") : "חושב…";
-    d.innerHTML = `${urls[h.char] ? `<img src="${urls[h.char]}" alt="">` : ""}<div class="nm">${h.name}</div><div class="bt">${fmt(h.ante)}</div><div class="st">${st2}</div>`; layer.appendChild(d); });
+    d.innerHTML = `${urls[h.char] ? `<img src="${urls[h.char]}" alt="">` : ""}<div class="nm">${h.name}<i class="lvu" data-u="${h.id}"></i></div><div class="bt">${fmt(h.ante)}</div><div class="st">${st2}</div>`; layer.appendChild(d); });
   // my bet spots
   if (mine) { bets = { ante: mine.ante, side: mine.side }; drawSpots(true); if (mine.play) playChip(mine.play); }
   else if (st.phase === "betting" || st.phase === "idle" || st.phase === "done") drawSpots(false);

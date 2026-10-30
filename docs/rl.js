@@ -556,14 +556,14 @@ function drawPlayers() {
   const el = $("players"); if (!el || !liveSt) return;
   const ps = liveSt.players || [];
   ps.forEach((p) => { if (!(p.id in PAV) && db) { PAV[p.id] = null; GC_CHAR(db, p.id).then((c) => { PAV[p.id] = c.url || ""; drawPlayers(); }); } });
-  el.innerHTML = ps.length ? ps.map((p) => `<div class="pl${p.id === MY_ID ? " me" : ""}">${PAV[p.id] ? `<img src="${PAV[p.id]}" alt="">` : `<i>${esc(String(p.name)[0] || "?")}</i>`}<span>${esc(p.name)}</span><b class="num">${fmt(p.total)}</b></div>`).join("")
+  el.innerHTML = ps.length ? ps.map((p) => `<div class="pl${p.id === MY_ID ? " me" : ""}">${PAV[p.id] ? `<img src="${PAV[p.id]}" alt="">` : `<i>${esc(String(p.name)[0] || "?")}</i>`}<span>${esc(p.name)}<i class="lvu" data-u="${p.id}"></i></span><b class="num">${fmt(p.total)}</b></div>`).join("")
     : '<div class="pl empty">עוד אין הימורים בסיבוב</div>';
   // everyone sitting at the table, side by side at the far edge
   const row = $("seatRow"), pres = liveSt.present || [];
   if (row) { row.hidden = !pres.length; const bet = {}; ps.forEach((p) => bet[p.id] = p.total);
     pres.forEach((p) => { if (!(p.id in PAV) && db) { PAV[p.id] = null; GC_CHAR(db, p.id).then((c) => { PAV[p.id] = c.url || ""; drawPlayers(); }); } });
     row.innerHTML = pres.map((p) => `<div data-u="${p.id}" class="sitter${p.id === MY_ID ? " mine" : ""}${bet[p.id] ? " bet" : ""}">${PAV[p.id] ? `<img src="${PAV[p.id]}" alt="">` : `<i>${esc(String(p.name)[0] || "?")}</i>`}
-      <span>${esc(p.name)}</span>${p.bal != null ? `<em class="num">${fmt(p.bal)}</em>` : ""}${bet[p.id] ? `<b class="num">${fmt(bet[p.id])}</b>` : ""}</div>`).join(""); }
+      <span>${esc(p.name)}<i class="lvu" data-u="${p.id}"></i></span>${p.bal != null ? `<em class="num">${fmt(p.bal)}</em>` : ""}${bet[p.id] ? `<b class="num">${fmt(bet[p.id])}</b>` : ""}</div>`).join(""); }
   drawTicker();
   // other players' bets as faint markers on the layout
   const layer = $("chipLayer"); if (!layer || VIEW !== "table") return;
