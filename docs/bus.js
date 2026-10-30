@@ -21,7 +21,7 @@ const LINES = [
   ["אריאל", "נהג! תעצור בקו, זו פקודה"],
   ["בנימין", "מי נתן לך את המפתחות של המיניבוס שלי?!"],
 ];
-const MISS_LINE = "היי! עברת אותי! אני כותב לך ביקורת בגוגל", PERFECT_LINE = "וואו, כמו נהג של אגד, רק מנומס";
+const MISS_LINE = "היי! עברת אותי! אני כותב לך ביקורת בגוגל", PERFECT_LINES = ["עצרת כל כך מדויק, שהתחנה התנצלה שהיא לא באמצע", "מדויק ברמה שה־GPS ביקש ממך שיעורים", "אפילו המכונית האוטונומית של טסלה מקנאה עכשיו", "סרגל? לא צריך. יש לנו אותך"];
 
 // ---------- canvas ----------
 const cv = $("cv"), cx = cv.getContext("2d");
@@ -62,10 +62,11 @@ addEventListener("touchstart", (e) => { if (!e.target.closest("a,button,.card"))
 addEventListener("contextmenu", (e) => e.preventDefault());
 
 // ---------- bubbles / effects ----------
-function bubble(name, text, ms = 1800) {
+function bubble(name, text, ms = 1800, left = false) {
   const b = document.createElement("div"); b.className = "bub"; b.innerHTML = `<small>${name}</small>${text}`;
   document.body.appendChild(b); const r = cv.getBoundingClientRect();
-  b.style.left = Math.max(8, (W * .62) * scale - b.offsetWidth / 2) + "px"; b.style.top = Math.max(60, (busY() - 250) * scale) + "px";
+  b.style.left = Math.max(8, (W * (left ? .2 : .62)) * scale - b.offsetWidth / 2) + "px"; b.style.top = Math.max(60, (busY() - (left ? 120 : 250)) * scale) + "px";
+  if (left) { b.style.background = "#ffe27a"; b.style.maxWidth = "44vw"; }
   setTimeout(() => b.remove(), ms);
 }
 function flash() { const f = document.createElement("div"); f.className = "flash"; document.body.appendChild(f); setTimeout(() => f.remove(), 600); try { navigator.vibrate && navigator.vibrate(120); } catch (e) {} }
@@ -94,7 +95,8 @@ function step(dt) {
       s.state = "board"; s.who = who; g.ok++; if (perfect) g.perfect++;
       coins.push({ x: LANE_X + 90, y: s.at, t: 0 });
       try { SFX.fx("bus_brake", { vol: 0.6 }); setTimeout(() => { SFX.fx("bus_door", { vol: 0.7 }); setTimeout(() => SFX.fx("bus_fare", { vol: 0.8 }), 650); }, 350); } catch (e) {}
-      bubble(who.name, perfect ? `${who.line}<br><i>${PERFECT_LINE}</i>` : who.line, 1900);
+      bubble(who.name, who.line, 1900);
+      if (perfect) setTimeout(() => bubble("⭐ חניה מדויקת!", PERFECT_LINES[Math.floor(Math.random() * PERFECT_LINES.length)], 2300, true), 250);
       g.pause = 1.5; g.after = () => { s.state = "gone"; hud(); };
       hud(); return;
     }
