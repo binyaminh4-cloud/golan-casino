@@ -60,15 +60,16 @@ function draw() {
       ${hand ? `<div class="hand">${esc(hand)}</div>` : ""}${won ? `<div class="wonamt num">+${fmt(won)}</div>` : ""}</div>`;
     if (p.bet > 0) { const b = BETAT(pos); h += `<div class="bet" style="left:${b.x}px;top:${b.y}px"><img src="img/poker/chip_stack.webp" alt=""><b class="num">${chipLabel(p.bet)}</b></div>`; }
   }
-  $("seats").innerHTML = h;
+  // only touch the DOM when something changed (redrawing 4×/s made avatars and badges flicker)
+  if (h === draw.lastSeats) { /* unchanged */ } else { draw.lastSeats = h; $("seats").innerHTML = h; }
   $("seats").querySelectorAll(".sit").forEach((b) => b.onclick = () => buyIn(+b.dataset.seat));
   // timer ring on the player to act
   const ring = document.querySelector(".ring circle");
   if (ring && s.deadline) { const left = Math.max(0, new Date(s.deadline) - (Date.now() + skew)); ring.style.strokeDashoffset = 113 * (1 - left / 25000); }
   // dealer button, board, pot
   if (s.dealer != null && s.street !== "idle") { const p = SPOT[rel(s.dealer)], d = $("dbtn"); d.hidden = false; d.style.left = p.x + (p.x < 960 ? 120 : -120) + "px"; d.style.top = p.y - 70 + "px"; } else $("dbtn").hidden = true;
-  $("board").innerHTML = (s.board || []).map((c) => card(c, "brd")).join("");
-  $("pot").innerHTML = s.pot ? `קופה <b class="num">${fmt(s.pot)}</b>` : "";
+  const bh = (s.board || []).map((c) => card(c, "brd")).join(""); if (bh !== draw.lastBoard) { draw.lastBoard = bh; $("board").innerHTML = bh; }
+  const ph = s.pot ? `קופה <b class="num">${fmt(s.pot)}</b>` : ""; if (ph !== draw.lastPot) { draw.lastPot = ph; $("pot").innerHTML = ph; }
   $("msg").textContent = s.street === "idle" ? (Object.keys(s.seats).length < 2 ? "מחכים לשחקן נוסף…" : "יד חדשה מתחילה…") : "";
   // my actions
   const mine = ME != null && s.to_act === ME && ["preflop", "flop", "turn", "river"].includes(s.street);
@@ -89,8 +90,9 @@ function draw() {
 let wheelShown = false;
 function wheel(tn) {
   if (tn.status !== "running" || (S && S.hand_no > 2)) return;
-  const SEG = [["×1.5", 15000], ["×2", 20000], ["×5", 50000], ["×10", 100000], ["×25", 250000], ["×50", 500000]];
-  const idx = Math.max(0, SEG.findIndex(([, v]) => v === tn.prize));
+  const SEG = [1.5, 2, 5, 10, 25, 50].map((m) => ["×" + m, m]);
+  const idx = Math.max(0, SEG.findIndex(([, m]) => Math.abs(m * 1000000 - tn.prize) < 1 || +tn.mult === m));
+  SEG.forEach((x) => { x[1] = x[1] * 1000000; });
   const o = document.createElement("div"); o.className = "wheel";
   const segs = SEG.map(([m, v], i) => `<div class="seg" style="transform:rotate(${i * 60}deg)"><span>${m}<br><small>${fmt(v)}</small></span></div>`).join("");
   o.innerHTML = `<div class="wt">🎡 גלגל הפרס</div><div class="wwrap"><div class="wd" id="wd">${segs}</div><div class="wptr">▼</div></div><div class="wres" id="wres"></div>`;
