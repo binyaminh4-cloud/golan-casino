@@ -110,13 +110,13 @@ async function lbAvatars(list) {
 }
 // money from the house (admin grant): a popup the first time the member sees it
 async function grantNote() {
-  const { data } = await db.from("wallet_transactions").select("id,amount").eq("game", "admin").eq("kind", "grant").order("id", { ascending: false }).limit(5);
+  const { data } = await db.from("bank_tx").select("id,amount").eq("kind", "gift").order("id", { ascending: false }).limit(5);
   if (!data || !data.length) return;
-  let seen = 0; try { seen = +(localStorage.getItem("gc_grant_seen") || 0); } catch (e) {}
-  const fresh = data.filter((t) => t.id > seen); try { localStorage.setItem("gc_grant_seen", data[0].id); } catch (e) {}
+  let seen = 0; try { seen = +(localStorage.getItem("gc_bank_gift_seen") || 0); } catch (e) {}
+  const fresh = data.filter((t) => t.id > seen); try { localStorage.setItem("gc_bank_gift_seen", data[0].id); } catch (e) {}
   if (!seen || !fresh.length) return;   // first visit on this device: just remember where we are
   const sum = fresh.reduce((a, t) => a + Number(t.amount), 0);
-  if (window.GC_BONUS) GC_BONUS("💸 קיבלת כסף מבעל הבית", sum, "");
+  if (window.GC_BONUS) GC_BONUS("💸 קיבלת כסף מבעל הבית", sum, "נכנס לבנק");
   else alert("💸 קיבלת " + fmt(sum) + " מבעל הבית");
 }
 let refreshing = false;
@@ -189,7 +189,7 @@ document.addEventListener("click", (e) => { const b = e.target.closest(".priv");
 // salary landed: a short gold toast
 function salaryToast(s) {
   const parts = []; if (s.monthly) parts.push(`משכורת חודשית ${fmt(s.monthly)}`); if (s.weekly) parts.push(`משכורת שבועית ${fmt(s.weekly)}`);
-  const t = document.createElement("div"); t.className = "sal-toast"; t.innerHTML = `💰 נכנסה ${parts.join(" + ")}`;
+  const t = document.createElement("div"); t.className = "sal-toast"; t.innerHTML = `🏦 נכנסה לבנק ${parts.join(" + ")}`;
   document.body.appendChild(t); requestAnimationFrame(() => t.classList.add("on")); try { SFX && SFX.win && SFX.win(false); } catch (e) {}
   setTimeout(() => { t.classList.remove("on"); setTimeout(() => t.remove(), 500); }, 5000);
 }
