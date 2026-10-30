@@ -3,13 +3,14 @@
 const $ = (id) => document.getElementById(id);
 const fmt = (n) => { n = Math.round(Number(n) || 0); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : a >= 1e3 ? "₪" + +(n / 1e3).toFixed(1) + "K" : "₪" + n; };
 const PREVIEW = /[?#&]preview/.test(location.href);
-const LEVEL = Math.min(3, Math.max(1, +(new URLSearchParams(location.search).get("l")) || 1));
+const LEVEL = Math.min(4, Math.max(1, +(new URLSearchParams(location.search).get("l")) || 1));
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 
 // ---------- tuning ----------
-const CRUISE = [0, 430, 540, 650][LEVEL];          // world px per second
-const ZONE = [0, 170, 135, 105][LEVEL];            // length of the yellow box
-const OBST = [0, 0.55, 0.75, 0.95][LEVEL];         // chance of an obstacle between two stops
+const CRUISE = [0, 430, 540, 650, 780][LEVEL];          // world px per second
+const ZONE = [0, 170, 135, 105, 82][LEVEL];            // length of the yellow box
+const OBST = [0, 0.55, 0.75, 0.95, 1][LEVEL];
+const EXTREME = LEVEL === 4;                       // extreme: a missed stop ends the shift with nothing         // chance of an obstacle between two stops
 const ACC = 320, BRAKE = 950, STOPS = 8;
 const LINES = [
   ["עידו", "תעצור ליד הכספומט, יש לי הרגשה שהיום זה היום"],
@@ -97,7 +98,8 @@ function step(dt) {
       g.pause = 1.5; g.after = () => { s.state = "gone"; hud(); };
       hud(); return;
     }
-    if (off > ZONE / 2 + 30) { s.state = "missed"; const who = pickWho(g.stops.indexOf(s)); bubble(who.name, MISS_LINE, 1700); try { SFX.error(); } catch (e) {} }
+    if (off > ZONE / 2 + 30) { s.state = "missed"; const who = pickWho(g.stops.indexOf(s)); bubble(who.name, MISS_LINE, 1700); try { SFX.error(); } catch (e) {}
+      if (EXTREME) { g.done = true; g.out = true; g.ok = 0; g.perfect = 0; flash(); setTimeout(finish, 1400); return; } }
   }
   // obstacles
   for (const o of g.obs) {
@@ -161,7 +163,7 @@ function loop(t) { const dt = Math.min(.05, (t - last) / 1000 || 0); last = t; i
 // ---------- server ----------
 async function begin() {
   $("startBox").hidden = true; try { SFX.button(); } catch (e) {}
-  if (PREVIEW) run = { id: "p", seed: 12345, stops: STOPS, rate: [0, 70000, 105000, 140000][LEVEL] };
+  if (PREVIEW) run = { id: "p", seed: 12345, stops: STOPS, rate: [0, 70000, 105000, 140000, 1750000][LEVEL] };
   else { const { data, error } = await db.rpc("bus_start", { p_level: LEVEL }); if (error) { alert("לא הצלחנו לפתוח משמרת. נסה שוב."); location.href = "jobs.html"; return; } run = data; }
   G = { d: 0, v: 0, time: 0, ok: 0, perfect: 0, hits: 0, pause: 0, done: false, ...build(run.seed) };
   hud(); setTimeout(() => { $("hint").style.opacity = "0"; }, 6000);
@@ -172,7 +174,7 @@ async function finish() {
     if (error) paid = 0; else { paid = data.paid; lvl = data.level; } }
   try { if (paid > 0) SFX.win(paid > run.rate * 8); } catch (e) {}
   const rows = [["נוסעים שעלו", `${G.ok}/${STOPS}`, fmt(G.ok * run.rate)], ["עצירות מושלמות", G.perfect, "+" + fmt(Math.floor(G.perfect * run.rate * .3))], ["פגיעות בדרך", G.hits, "−" + fmt(Math.floor(G.hits * run.rate * .25))]];
-  $("sumBox").innerHTML = `<div class="card"><h2>🏁 סוף המשמרת</h2>${rows.map(([a, b, c]) => `<div class="row"><span>${a} · ${b}</span><b>${c}</b></div>`).join("")}
+  $("sumBox").innerHTML = `<div class="card"><h2>${G.out ? "❌ נפסלת! פספסת תחנה באקסטרים" : "🏁 סוף המשמרת"}</h2>${rows.map(([a, b, c]) => `<div class="row"><span>${a} · ${b}</span><b>${c}</b></div>`).join("")}
     <div class="tot">${fmt(paid)}</div>${lvl ? `<p>רמה ${lvl}</p>` : ""}
     <button class="go" id="againBtn">משמרת נוספת</button><a class="btn ghost" href="jobs.html">חזרה לעבודות</a></div>`;
   $("sumBox").hidden = false; $("againBtn").onclick = () => location.reload();

@@ -85,3 +85,10 @@ h1{font:700 30px 'Frank Ruhl Libre',serif;color:var(--champ);margin:6px 0 4px;te
 .job .art::after{content:"";position:absolute;inset:0;background:linear-gradient(to left,rgba(11,9,8,.85),rgba(11,9,8,.25) 50%,rgba(11,9,8,0) 62%),linear-gradient(transparent 70%,rgba(11,9,8,.6))}
 .job .art h2{position:absolute;z-index:1;right:14px;top:50%;transform:translateY(-50%);max-width:46%;margin:0;font-size:24px;line-height:1.15;text-shadow:0 2px 8px #000}
 .jobcards.soon .job .art{margin:-16px -16px 8px}.jobcards.soon .job .art h2{font-size:17px}
+
+/* compact level row: small buttons side by side (3 or 4 levels) */
+.job .levels{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px}
+.job .lvl{grid-template-columns:1fr;justify-items:center;gap:2px;padding:8px 4px;text-align:center;min-width:0}
+.job .lvl .st{font-size:12px}.job .lvl b{font-size:14px}.job .lvl .ds{display:none}
+.job .lvl.l4 .ds{display:block;font-size:10px;color:#ffb3b3;line-height:1.2}
+.job .lvl.l4{border-color:#E5484D;background:linear-gradient(180deg,rgba(120,20,20,.55),rgba(30,8,8,.9))}
