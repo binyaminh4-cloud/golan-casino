@@ -182,7 +182,7 @@ function drawChips(win) {
     return `<div class="chip ${chipClass(v)}${st} gcchip${g.exact ? "" : " txt"}" style="left:${p.x}px;top:${p.y}px;background-image:url(${g.url})"><b>${chipLabel(v)}</b></div>`;
   }).join("");
   const tot = [...bets.values()].reduce((s, v) => s + v, 0);
-  $("total").textContent = fmt(tot); GC_LIMIT(tot, maxBet(), balance, fmt);
+  $("total").textContent = fmt(tot); GC_LIMIT(tot, maxBet(), balance, fmt, "לכל משבצת");
   $("spinBtn").disabled = busy || tot === 0; $("undoBtn").disabled = busy || !undoStack.length;
   $("clearBtn").disabled = busy || !bets.size; $("dblBtn").disabled = busy || !bets.size;
   $("rebetBtn").disabled = busy || !lastBets || bets.size > 0;
@@ -261,7 +261,7 @@ function drawHist() {
   const h = history, c = (f) => h.length ? Math.round(100 * h.filter(f).length / h.length) : 0;
   $("pct").innerHTML = h.length ? `<span class="p red">${c((n) => R.color(n) === "red")}%</span><span class="p green">${c((n) => n === 0)}%</span><span class="p black">${c((n) => R.color(n) === "black")}%</span>` : "";
 }
-function showBal(v) { $("bal").textContent = fmt(v); drawChipRack(); GC_LIMIT([...bets.values()].reduce((a, b) => a + b, 0), maxBet(), balance, fmt); }
+function showBal(v) { $("bal").textContent = fmt(v); drawChipRack(); GC_LIMIT([...bets.values()].reduce((a, b) => a + b, 0), maxBet(), balance, fmt, "לכל משבצת"); }
 
 // ---------- wheel + camera ----------
 let W, plan = null, t0 = 0, last = performance.now(), cine = false, dropPlayed = false;

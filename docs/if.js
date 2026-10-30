@@ -165,7 +165,7 @@ const maxBet = () => S && S.max_bet ? S.max_bet : stepMax(balance);
 function drawBets() {
   for (const [k] of ZONES) { const a = document.querySelector(`[data-a="${k}"]`); a.textContent = myBets[k] ? lab(myBets[k]) : ""; a.classList.toggle("pending", (myBets[k] || 0) > (sent[k] || 0)); }
   const tot = Object.values(myBets).reduce((a, b) => a + b, 0);
-  if (window.GC_LIMIT) GC_LIMIT(tot, maxBet(), balance, fmt);
+  if (window.GC_LIMIT) GC_LIMIT(tot, maxBet(), balance, fmt, "לכל דג");
 }
 let sendT = null;
 function autoSend() { clearTimeout(sendT); sendT = setTimeout(sendNow, 450); }

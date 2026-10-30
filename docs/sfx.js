@@ -170,7 +170,7 @@ window.GC_BONUS = function (title, amount, sub) {
   setTimeout(() => d.classList.add("out"), 3600); setTimeout(() => d.remove(), 4200);
 };
 // Total bet + bet limit, right next to the wallet. Tap it for the one-line why.
-window.GC_LIMIT = function (total, max, bal, fmt) {
+window.GC_LIMIT = function (total, max, bal, fmt, per) {   // per: what the limit applies to, e.g. "לכל משבצת"
   const b = document.getElementById("bal"); if (!b) return;
   let t = document.getElementById("gcLimit");
   if (!t) {
@@ -184,8 +184,8 @@ window.GC_LIMIT = function (total, max, bal, fmt) {
     t.onclick = () => { document.querySelectorAll(".gc-limit-tip").forEach((n) => n.remove()); const d = document.createElement("div"); d.className = "gc-limit-tip";
       d.textContent = t.dataset.why; document.body.appendChild(d); setTimeout(() => d.remove(), 4000); };
   }
-  t.innerHTML = `סה״כ הימור <b>${fmt(total)}</b><i>·</i>מקס׳ להימור <b>${fmt(max)}</b>`;
-  t.dataset.why = `היתרה שלך ${fmt(bal)}, ולכן ההימור המקסימלי כרגע הוא ${fmt(max)}. כשהיתרה עולה, המקסימום עולה במדרגות.`;
+  t.innerHTML = `סה״כ הימור <b>${fmt(total)}</b><i>·</i>מקס׳ ${per || "להימור"} <b>${fmt(max)}</b>`;
+  t.dataset.why = `היתרה שלך ${fmt(bal)}, ולכן ההימור המקסימלי ${per || ""} כרגע הוא ${fmt(max)}. כשהיתרה עולה, המקסימום עולה במדרגות.`;
 };
 // Entering a bonus: a screen that explains it, and the bonus starts only after the player taps "יאללה".
 window.GC_BI_CSS = function () {

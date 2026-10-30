@@ -125,7 +125,7 @@ function drawSeats() {
       <div class="tag"><div class="name">${esc(m.nickname)}${i === 0 ? "" : ""}</div><div class="b" data-bal="${i}">${fmt(m.wealth)}</div></div></div>`;
   }).join("");
 }
-function setMyBalance(v) { if (!CH) { myBal = +v || 0; drawRack(); GC_LIMIT(Object.values(bets).reduce((a, b) => a + b, 0), maxBet(), myBal, fmt); } if (CH) v = CH.chips; $("bal").textContent = fmt(v); const b = document.querySelector('[data-bal="0"]'); if (b) b.textContent = fmt(v); }
+function setMyBalance(v) { if (!CH) { myBal = +v || 0; drawRack(); GC_LIMIT(Object.values(bets).reduce((a, b) => a + b, 0), maxBet(), myBal, fmt, "ליד"); } if (CH) v = CH.chips; $("bal").textContent = fmt(v); const b = document.querySelector('[data-bal="0"]'); if (b) b.textContent = fmt(v); }
 
 // ---------- round rendering ----------
 let st = null, busy = false, dealerEls = [], handEls = [], totals = [], ring = null;
@@ -305,7 +305,7 @@ async function fisherDrop(strikes) {      // DJ Fisher builds up... drops lightn
   await sleep(1300);
 }
 function renderBets() {
-  GC_LIMIT(Object.values(bets).reduce((a, b) => a + b, 0), maxBet(), myBal, fmt);
+  GC_LIMIT(Object.values(bets).reduce((a, b) => a + b, 0), maxBet(), myBal, fmt, "ליד");
   chipStack(SPOTS[0].x, SPOTS[0].y, bets.main, "hand0");
   for (const [k, p] of Object.entries(SIDE_SPOTS)) chipStack(p.x, p.y, bets[k], "side_" + k, true);
   $("dealBtn").disabled = !bets.main; $("rebetBtn").disabled = !lastBets;
