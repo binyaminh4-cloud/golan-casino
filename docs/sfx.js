@@ -70,7 +70,7 @@
   };
   // ---- recorded sounds (ElevenLabs pack in snd/): play the file when it's loaded, otherwise the synth above ----
   const BUF = {}, LOADING = {};
-  function load(name) { if (BUF[name] || LOADING[name] || !ac()) return; LOADING[name] = fetch("snd/" + name + ".mp3").then((r) => r.ok ? r.arrayBuffer() : Promise.reject())
+  function load(name) { if (BUF[name] || LOADING[name] || !ac()) return; LOADING[name] = fetch("snd/" + name + ".mp3?v=2").then((r) => r.ok ? r.arrayBuffer() : Promise.reject())
     .then((a) => new Promise((ok, no) => ctx.decodeAudioData(a, ok, no))).then((b) => { BUF[name] = b; }).catch(() => {}); }
   function play(name, { vol = 0.9, dur = null, rate = 1, offset = 0 } = {}) { if (!ac() || muted || !BUF[name]) return false;
     const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = BUF[name]; src.playbackRate.value = rate; g.gain.value = vol;
@@ -82,8 +82,8 @@
   const synth = { ...S };
   S.chip = () => play("chip", { vol: 0.8 }) || synth.chip();
   S.tick = (u) => play("tick", { vol: u ? 1 : 0.6, rate: u ? 1.15 : 1 }) || synth.tick(u);
-  S.card = () => play("card_deal", { vol: 0.35 }) || synth.card();
-  S.cardFlip = () => play("card_flip", { vol: 0.4 }) || synth.flip();
+  S.card = () => play("card_deal", { vol: 0.5 }) || synth.card();
+  S.cardFlip = () => play("card_flip", { vol: 0.45 }) || synth.flip();
   S.flip = () => play("reel_stop", { vol: 0.55, dur: 0.6 }) || synth.flip();
   S.bonus = () => play("bonus_trigger", { vol: 0.8 }) || synth.riser(1.2);
   S.riser = (sec) => play("reel_tension", { vol: 0.6, dur: sec || 2.5 }) || synth.riser(sec);
