@@ -17,7 +17,7 @@ const RANK = (r) => r === "T" ? "10" : r;
 const sleep = (ms) => new Promise((r) => setTimeout(r, reduced ? 0 : ms));
 
 // ---------- geometry, in photo pixels (1672x941) ----------
-const SHOE = { x: 650, y: 360 }, HAND = { x: 676, y: 392 };   // cards leave from the dealer's hand
+const SHOE = { x: 650, y: 360 }, HAND = { x: 704, y: 333 };   // cards leave from the dealer's hand
 const TRAY = { x: 846, y: 330 };
 const SPOTS = [ { x: 838, y: 613 }, { x: 1153, y: 580 }, { x: 524, y: 580 }, { x: 1375, y: 497 }, { x: 300, y: 497 } ];
 // small side-bet circles around the player's main circle (photo pixels)
@@ -73,16 +73,16 @@ function faceUp(d, card) { d.classList.remove("back"); d.style.backgroundImage =
   if (LIT && STRIKES[card[0]]) { d.classList.add("struck"); d.dataset.mx = "×" + STRIKES[card[0]]; } }
 async function flyCard(card, to, fromHand = true) {
   // the dealer reaches to the shoe, draws the card and slides it out from her hand
-  if (fromHand) await seq([["d01_reach", 130], ["d02_pull", 130], ["d03_lift", 110], ["d04_slide", 0]]);
+  if (fromHand) await seq([["d01_reach", 100], ["d02_pull", 100], ["d03_lift", 80], ["d04_slide", 0]]);
   const from = fromHand ? HAND : SHOE, d = el("card back", from.x, from.y);
   d.style.transform = "perspective(900px) rotateX(46deg) rotate(-24deg) scale(.62)";
   d.getBoundingClientRect();                                   // commit the start position before moving
-  d.style.transition = reduced ? "none" : "left .56s cubic-bezier(.2,.7,.25,1), top .56s cubic-bezier(.2,.7,.25,1), transform .56s cubic-bezier(.2,.7,.25,1)";
+  d.style.transition = reduced ? "none" : "left .42s cubic-bezier(.2,.7,.25,1), top .42s cubic-bezier(.2,.7,.25,1), transform .42s cubic-bezier(.2,.7,.25,1)";
   d.style.left = to.x + "px"; d.style.top = to.y + "px"; d.style.transform = "perspective(900px) rotateX(46deg) rotate(" + ((Math.random() - .5) * 3).toFixed(1) + "deg)";
-  if (fromHand) setTimeout(() => { if (curFrame === "d04_slide") frame("d05_release"); }, 120);
-  await sleep(520); SFX.card(); await sleep(60);             // the sound when the card touches the felt
-  if (card !== "??") { SFX.flip(); d.classList.add("flip"); await sleep(140); faceUp(d, card); await sleep(160); d.classList.remove("flip"); }
-  if (fromHand) { await seq([["d06_return", 140], ["i01", 0]]); } else pose("idle");
+  if (fromHand) setTimeout(() => { if (curFrame === "d04_slide") frame("d05_release"); }, 90);
+  await sleep(390); SFX.card(); await sleep(45);             // the sound when the card touches the felt
+  if (card !== "??") { SFX.flip(); d.classList.add("flip"); await sleep(105); faceUp(d, card); await sleep(120); d.classList.remove("flip"); }
+  if (fromHand) { await seq([["d06_return", 105], ["i01", 0]]); } else pose("idle");
   return d;
 }
 function chipColor(v) { return v >= 1000 ? "#b07a1f" : v >= 500 ? "#6b2a8a" : v >= 100 ? "#222" : v >= 25 ? "#1f6b3e" : "#1d4f8a"; }
@@ -157,7 +157,7 @@ async function render(next) {
     for (const [who, i] of [["p", 0], ["d", 0], ["p", 1], ["d", 1]]) {
       if (who === "p") handEls[0].push(await flyCard(next.hands[0].cards[i], cardPos(0, i)));
       else dealerEls.push(await flyCard(next.dealer[i], dealerPos(i)));
-      await sleep(80);
+      await sleep(60);
     }
   }
   // bets on each hand
@@ -166,13 +166,13 @@ async function render(next) {
   // new player cards
   for (let h = 0; h < n; h++) {
     handEls[h] ||= [];
-    for (let c = handEls[h].length; c < next.hands[h].cards.length; c++) { handEls[h].push(await flyCard(next.hands[h].cards[c], cardPos(h, c))); await sleep(250); }
+    for (let c = handEls[h].length; c < next.hands[h].cards.length; c++) { handEls[h].push(await flyCard(next.hands[h].cards[c], cardPos(h, c))); await sleep(190); }
   }
   // dealer reveals the hole card, then draws
   if (dealerEls[1] && !dealerEls[1].dataset.card && next.dealer[1] !== "??") {
     await pose("flip"); SFX.flip(); faceUp(dealerEls[1], next.dealer[1]); dLabel(next.dealer.slice(0, 2)); await seq([["f03_done", 420], ["i01", 0]]);
   }
-  for (let c = dealerEls.length; c < next.dealer.length; c++) { dealerEls.push(await flyCard(next.dealer[c], dealerPos(c))); dLabel(next.dealer.slice(0, c + 1)); await sleep(450); }
+  for (let c = dealerEls.length; c < next.dealer.length; c++) { dealerEls.push(await flyCard(next.dealer[c], dealerPos(c))); dLabel(next.dealer.slice(0, c + 1)); await sleep(340); }
   if (dLab) { dLab.remove(); dLab = null; }
   // totals
   totals.forEach((t) => t.remove()); totals = [];

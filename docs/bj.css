@@ -11,7 +11,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 #stage{position:absolute;left:0;top:0;width:1672px;height:941px;transform-origin:0 0}
 .bg{position:absolute;inset:0;background:url(img/table_bj.jpg) center/cover}
 .dealerclip{position:absolute;left:0;right:0;top:0;height:560px;overflow:hidden;pointer-events:none}
-.dealer{position:absolute;left:836px;bottom:38px;width:520px;transform:translateX(-50%);filter:drop-shadow(0 10px 20px rgba(0,0,0,.55));transition:transform .18s}
+.dealer{position:absolute;left:836px;bottom:114px;width:430px;transform:translateX(-50%);filter:drop-shadow(0 10px 20px rgba(0,0,0,.55));transition:transform .18s}
 .dealer.bob{transform:translateX(-50%) translateY(4px)}
 #layer{position:absolute;inset:0;pointer-events:none}
 
