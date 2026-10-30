@@ -30,8 +30,9 @@
     [...s].forEach((x, j) => x.classList.toggle("on", j === k)); [...dots.children].forEach((x, j) => x.classList.toggle("on", j === k)); };
   const auto = () => { clearInterval(timer); timer = setInterval(() => { if (!document.hidden && !document.body.classList.contains("gpage")) go(k + 1); }, 4500); };
   const build = () => {
-    const soon = [...document.querySelectorAll("#gamesBox .game")].filter((g) => g.classList.contains("soon") || /חדש/.test(g.querySelector(".tag")?.textContent || ""));
-    const list = soon.length ? soon : [...document.querySelectorAll("#gamesBox .game")].slice(0, 6);
+    // the 6 newest games, newest first (owner's order of launch)
+    const NEWEST = ["dp.html?g=uth&t=1", "dp.html?g=tcp&t=1", "dp.html?g=csp&t=1", "chicken.html", "dragons.html", "fishing.html"];
+    const list = NEWEST.map((h) => document.querySelector(`#gamesBox .game[href="${h}"]`)).filter(Boolean).slice(0, 6);
     host.innerHTML = list.map((g, i) => { const cs = getComputedStyle(g), art = cs.getPropertyValue("--poster") || cs.getPropertyValue("--art") || "", locked = g.classList.contains("soon");
       const t = g.querySelector("h3")?.textContent || "", p = g.querySelector("p")?.textContent || "";
       return `<${locked ? "div" : "a"} class="sl${i ? "" : " on"}" ${locked ? "" : `href="${g.getAttribute("href")}"`} style="background-image:linear-gradient(to left,rgba(10,7,5,.92),rgba(10,7,5,.55) 45%,rgba(10,7,5,0) 70%),${art}"><span><em>${locked ? "בקרוב 🔒" : "חדש"}</em><b>${t}</b><small>${p}</small></span></${locked ? "div" : "a"}>`; }).join("");

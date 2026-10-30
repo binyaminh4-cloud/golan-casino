@@ -451,3 +451,4 @@ body:not(.gpage) #lobbyView .lb li .w{grid-column:4;grid-row:1/3;font:800 16px I
 #lobbyView .promo .sl{background-position:center 8%!important}
 #lobbyView .gtabs .temo{font-size:17px;line-height:1}
 #lobbyView .lx-nav [data-nav=bank] i{background-image:url(img/lobby2/ic_coins.png)}
+#lobbyView .game[data-poster="uth"]{--poster:url(img/lobby2/poster_uth.webp)}#lobbyView .game[data-poster="tcp"]{--poster:url(img/lobby2/poster_tcp.webp)}#lobbyView .game[data-poster="csp"]{--poster:url(img/lobby2/poster_csp.webp)}

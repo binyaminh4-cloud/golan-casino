@@ -26,15 +26,18 @@ const SW = 1672, SH = 941;
 function fit() { const st = $("stage"), w = innerWidth, h = innerHeight; const s = Math.min(w / SW, (h - 10) / (SH - 60));
   st.style.transform = `scale(${s})`; st.style.left = (w - SW * s) / 2 + "px"; st.style.top = Math.min(0, h - SH * s) + 30 * s + "px"; }
 addEventListener("resize", fit); fit();
-$("feltName").innerHTML = `${INFO.en}<small>${INFO.name}</small>`; $("title").textContent = INFO.name; document.title = INFO.name + " · גולן קזינו";
+$("feltName").hidden = true; document.querySelector(".bg").style.backgroundImage = `url(img/dp/table_${GAME}.webp?v=1)`; $("title").textContent = INFO.name; document.title = INFO.name + " · גולן קזינו";
 const layer = $("layer");
 const HAND = { x: 712, y: 340 };
-const dealerPos = (i, n) => ({ x: 836 + (i - (n - 1) / 2) * 92, y: 290 });
-const boardPos = (i) => ({ x: 836 + (i - 2) * 96, y: 430 });
-const myPos = (i, n) => ({ x: 836 + (i - (n - 1) / 2) * 92, y: GAME === "uth" ? 590 : 585 });
+const dealerPos = (i, n) => ({ x: 836 + (i - (n - 1) / 2) * 92, y: GAME === "uth" ? 230 : 250 });
+const boardPos = (i) => ({ x: 836 + (i - 2) * 96, y: 352 });
+const MY_Y = GAME === "uth" ? 462 : 440;
+const myPos = (i, n) => ({ x: 836 + (i - (n - 1) / 2) * 92, y: MY_Y });
 const SEATS = [{ x: 230, y: 470 }, { x: 1440, y: 470 }, { x: 430, y: 560 }, { x: 1240, y: 560 }, { x: 140, y: 650 }];
-const SPOTS = GAME === "uth" ? [["ante", "אנטה", 730, 735], ["blind", "בליינד", 836, 750], ["side", "טריפס", 942, 735]]
-  : GAME === "tcp" ? [["ante", "אנטה", 780, 740], ["side", "פייר פלוס", 892, 740]] : [["ante", "אנטה", 836, 745]];
+// betting spots sit on the circles printed on each table picture
+const SPOTS = GAME === "uth" ? [["ante", "אנטה", 641, 610], ["blind", "בליינד", 836, 617], ["side", "טריפס", 1035, 610]]
+  : GAME === "tcp" ? [["ante", "אנטה", 739, 617], ["side", "פייר פלוס", 840, 547]] : [["ante", "אנטה", 836, 575]];
+const PLAY_SPOT = GAME === "uth" ? { x: 840, y: 537 } : GAME === "tcp" ? { x: 941, y: 617 } : { x: 836, y: 648 };
 
 // ---------- dealer frames ----------
 const FR = ["i01", "i02", "d01_reach", "d02_pull", "d03_lift", "d04_slide", "d05_release", "d06_return", "f01_touch", "f02_turn", "f03_done", "p01_pay", "p02_back", "c01_collect", "c02_rest"];
@@ -56,15 +59,15 @@ function cardEl(key, card, pos, small) {
 function faceUp(o, card) { o.el.classList.remove("back"); o.el.style.backgroundImage = `url(cards3/${card}.webp)`; o.card = card; }
 async function animate() {
   const list = Object.values(EL), news = list.filter((o) => o.fresh);
-  if (news.length) seq([["d01_reach", 90], ["d02_pull", 90], ["d03_lift", 70], ["d04_slide", 260 + news.length * 120], ["d05_release", 120], ["d06_return", 110], ["i01", 0]]);
+  if (news.length) seq([["d01_reach", 120], ["d02_pull", 120], ["d03_lift", 90], ["d04_slide", 340 + news.length * 160], ["d05_release", 160], ["d06_return", 140], ["i01", 0]]);
   for (const o of list) {
-    if (o.fresh) { o.fresh = false; await sleep(120); }
+    if (o.fresh) { o.fresh = false; await sleep(160); }
     if (!o.pos || o.pos.x !== o.want.pos.x || o.pos.y !== o.want.pos.y) { o.el.style.left = o.want.pos.x + "px"; o.el.style.top = o.want.pos.y + "px"; o.pos = o.want.pos; if (o.card === "??") try { SFX.card(); } catch (e) {} }
   }
-  await sleep(news.length ? 380 : 0);
+  await sleep(news.length ? 520 : 0);
   const flips = list.filter((o) => o.want.card !== "??" && o.card !== o.want.card);
   if (flips.length && flips.some((o) => o.want.pos.y < 320)) seq([["f01_touch", 120], ["f02_turn", 200], ["f03_done", 300], ["i01", 0]]);
-  for (const o of flips) { o.el.classList.add("flip"); try { SFX.cardFlip(); } catch (e) {} await sleep(110); faceUp(o, o.want.card); o.el.classList.remove("flip"); await sleep(70); }
+  for (const o of flips) { o.el.classList.add("flip"); try { SFX.cardFlip(); } catch (e) {} await sleep(145); faceUp(o, o.want.card); o.el.classList.remove("flip"); await sleep(95); }
 }
 function clearFelt() { layer.innerHTML = ""; EL = {}; }
 function label(txt, x, y, cls = "") { const d = document.createElement("div"); d.className = "lab " + cls; d.textContent = txt; d.style.left = x + "px"; d.style.top = y + "px"; layer.appendChild(d); return d; }
@@ -87,12 +90,13 @@ function drawSpots(locked) {
     const v = k === "blind" ? bets.ante : bets[k];
     const d = document.createElement("div"); d.className = "spot" + (target === k && !locked ? " sel" : "") + (k === "blind" || locked ? " dim" : ""); d.dataset.k = k;
     d.style.left = x + "px"; d.style.top = y + "px";
-    d.innerHTML = v ? `<i class="chip"></i><small>${fmt(v)}</small>` : name;
+    d.innerHTML = v ? `<i class="chip"></i><small>${fmt(v)}</small>` : "";
     if (v) GC_CHIPIFY(d.querySelector(".chip"), v);
     if (!locked && k !== "blind") d.onclick = () => { target = k; addChip(); };
     layer.appendChild(d);
   }
 }
+function playChip(v) { const d = document.createElement("div"); d.className = "spot dim"; d.style.left = PLAY_SPOT.x + "px"; d.style.top = PLAY_SPOT.y + "px"; d.innerHTML = `<i class="chip"></i><small>${fmt(v)}</small>`; GC_CHIPIFY(d.querySelector(".chip"), v); layer.appendChild(d); }
 function need() { return bets.ante * (INFO.blind ? 2 : 1) + bets.side + bets.ante * INFO.raise; }
 function addChip() {
   err(""); const bal = (S && S.balance) || 0;
@@ -158,13 +162,13 @@ async function apply(st) {
     const st2 = h.status === "fold" ? "ויתר" : h.status === "wait" ? "העלה ✔" : h.result ? (h.result.net > 0 ? "+" + fmt(h.result.net) : h.result.net < 0 ? fmt(h.result.net) : "תיקו") : "חושב…";
     d.innerHTML = `${urls[h.char] ? `<img src="${urls[h.char]}" alt="">` : ""}<div class="nm">${h.name}</div><div class="bt">${fmt(h.ante)}</div><div class="st">${st2}</div>`; layer.appendChild(d); });
   // my bet spots
-  if (mine) { bets = { ante: mine.ante, side: mine.side }; drawSpots(true); if (mine.play) label(`העלאה ${fmt(mine.play)}`, 836, 860); }
+  if (mine) { bets = { ante: mine.ante, side: mine.side }; drawSpots(true); if (mine.play) playChip(mine.play); }
   else if (st.phase === "betting" || st.phase === "idle" || st.phase === "done") drawSpots(false);
   // hand names
-  if (mine && mine.best != null) label(catName(mine.best), 836, (GAME === "uth" ? 590 : 585) + 82, "");
-  if (st.phase === "done" && st.dcat != null) label("דילרית: " + catName(st.dcat), 836, 200, "");
+  if (mine && mine.best != null) label(catName(mine.best), 836 + (mine.cards.length * 46) + 90, MY_Y, "");
+  if (st.phase === "done" && st.dcat != null) label("דילרית: " + catName(st.dcat), 836 + st.dealer.length * 46 + 130, dealerPos(0, 1).y, "");
   // bet bar / decisions / result
-  const canBet = !mine && (T === 0 ? st.phase !== "d1" && st.phase !== "d2" && st.phase !== "d3" : st.phase === "betting");
+  const canBet = T === 0 ? !["d1", "d2", "d3"].includes(st.phase) : st.phase === "betting" && !mine;
   $("betUI").hidden = !canBet; betButtons();
   drawActs();
   if (st.phase === "done" && mine && mine.result && shownDone !== st.id) {
