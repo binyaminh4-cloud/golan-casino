@@ -112,10 +112,11 @@
   const PAGE = (location.pathname.split("/").pop() || "index.html") + location.search;
   const MUSIC = /dragons/.test(PAGE) ? "music_dragons" : /wildwest/.test(PAGE) ? "music_wildwest" : /fisher90/.test(PAGE) ? "music_fisher90" : /kinneret/.test(PAGE) ? "music_kinneret" : /pachinko/.test(PAGE) ? "music_pachinko" : /fishing|skin=fish/.test(PAGE) ? "music_fishing" : /protein/.test(PAGE) ? "music_protein" : /slots/.test(PAGE) ? "music_slots"
     : /(roulette|blackjack|poker)/.test(PAGE) ? "music_tables" : /^(index\.html|)$/.test(PAGE.split("?")[0]) ? "music_lobby" : null;
-  const MUSIC_VOL = 0.067;   // background music ≈ 20%, game sounds ≈ 80% (all music files are loudness-matched)
+  const MUSIC_VOL = 0.027;   // background music ≈ 20%, game sounds ≈ 80% (all music files are loudness-matched)
   let musicOn = true, mSrc = null, mGain = null, mName = null; try { musicOn = localStorage.getItem("gc_music") !== "0"; } catch (e) {}
-  async function startMusic(name) { name = name || MUSIC; if (!name || !musicOn || !ac()) return; if (mName === name && mSrc) return;
-    load(name); await LOADING[name]; if (!BUF[name] || !musicOn) return; stopMusic(); mName = name;
+  let mTok = 0;
+  async function startMusic(name) { name = name || MUSIC; if (!name || !musicOn || !ac() || document.hidden) return; if (mName === name && mSrc) return;
+    const tok = ++mTok; load(name); await LOADING[name]; if (tok !== mTok || !BUF[name] || !musicOn || document.hidden) return; stopMusic(); mName = name;
     mSrc = ctx.createBufferSource(); mGain = ctx.createGain(); mSrc.buffer = BUF[name]; mSrc.loop = true;
     mGain.gain.setValueAtTime(0.0001, now()); mGain.gain.linearRampToValueAtTime(MUSIC_VOL, now() + 1.5); mSrc.connect(mGain).connect(master); mSrc.start(); }
   function stopMusic() { if (mSrc) { const s = mSrc, g = mGain; g.gain.linearRampToValueAtTime(0.0001, now() + 0.6); setTimeout(() => { try { s.stop(); } catch (e) {} }, 700); } mSrc = mGain = null; mName = null; }
@@ -124,6 +125,9 @@
   S.setMusic = (on) => { musicOn = on; try { localStorage.setItem("gc_music", on ? "1" : "0"); } catch (e) {} if (on) startMusic(); else stopMusic(); };
   Object.defineProperty(S, "musicOn", { get: () => musicOn });
   addEventListener("pointerdown", () => startMusic(), { once: true, capture: true });
+  // a page in the background (or kept in the back-forward cache) never keeps playing over the next page
+  addEventListener("pagehide", () => { mTok++; stopMusic(); });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) { mTok++; stopMusic(); } else if (musicOn && MUSIC) startMusic(); });
   
   window.SFX = S;
   // mute button in the top bar
