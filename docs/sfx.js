@@ -120,7 +120,7 @@
   S.reelSpin = (sec) => play("reel_spin", { vol: 0.45, dur: sec || 1.5 });
   // ---- background music per page (its own on/off, remembered; quieter than the effects) ----
   const PAGE = (location.pathname.split("/").pop() || "index.html") + location.search;
-  const MUSIC = /dragons/.test(PAGE) ? "music_dragons" : /wildwest/.test(PAGE) ? "music_wildwest" : /fisher90/.test(PAGE) ? "music_fisher90" : /kinneret/.test(PAGE) ? "music_kinneret" : /pachinko/.test(PAGE) ? "music_pachinko" : /fishing|skin=fish/.test(PAGE) ? "music_fishing" : /protein/.test(PAGE) ? "music_protein" : /slots/.test(PAGE) ? "music_slots"
+  const MUSIC = /^bus\.html/.test(PAGE) ? "music_bus" : /^fishjob\.html/.test(PAGE) ? "music_fishjob" : /^fiber\.html/.test(PAGE) ? "music_fiber" : /dragons/.test(PAGE) ? "music_dragons" : /wildwest/.test(PAGE) ? "music_wildwest" : /fisher90/.test(PAGE) ? "music_fisher90" : /kinneret/.test(PAGE) ? "music_kinneret" : /pachinko/.test(PAGE) ? "music_pachinko" : /fishing|skin=fish/.test(PAGE) ? "music_fishing" : /protein/.test(PAGE) ? "music_protein" : /slots/.test(PAGE) ? "music_slots"
     : /(roulette|blackjack|poker)/.test(PAGE) ? "music_tables" : /^(index\.html|)$/.test(PAGE.split("?")[0]) ? "music_lobby" : null;
   const MUSIC_VOL = 0.027;   // background music ≈ 20%, game sounds ≈ 80% (all music files are loudness-matched)
   let musicOn = true, mSrc = null, mGain = null, mName = null; try { musicOn = localStorage.getItem("gc_music") !== "0"; } catch (e) {}

@@ -64,7 +64,7 @@
   <div class="msg" id="msg"></div>
   <details><summary>תנועות אחרונות</summary><div class="tx" id="tx"></div></details>
 </section>
-<script src="sfx.js?v=28"></script>
+<script src="sfx.js?v=29"></script>
 <script>
 const $ = (id) => document.getElementById(id);
 const fmt = (n) => { n = Number(n) || 0; const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
