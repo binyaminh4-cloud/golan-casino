@@ -444,7 +444,10 @@ body:not(.gpage) #lobbyView .lb li .w{grid-column:4;grid-row:1/3;font:800 16px I
 /* animal avatars (simple round icons) are shown whole, not zoomed like the character faces */
 #lobbyView .lb li .av img[src*="animals/"],#lobbyView .lx-me .avatar img[src*="animals/"],#frSheet li .av img[src*="animals/"]{transform:none!important;object-fit:cover!important;object-position:50% 50%!important;border-radius:50%!important}
 /* the slideshow fades on its own layer, so the gold frames around it and the leaderboard never flicker */
-#lobbyView .promo .slides{isolation:isolate}
+/* every slide keeps its own layer for good (no layers made/destroyed at each change = frames don't repaint), and nothing is scaled so the pictures stay sharp */
+#lobbyView .promo .slides{isolation:isolate;contain:paint}
+#lobbyView .promo .sl{will-change:opacity}
+#lobbyView .lb.gfr,#lobbyView .promo.gfr{contain:layout paint}
 #lobbyView .promo .sl{background-position:center 8%!important}
 #lobbyView .gtabs .temo{font-size:17px;line-height:1}
 #lobbyView .lx-nav [data-nav=bank] i{background-image:url(img/lobby2/ic_coins.png)}
