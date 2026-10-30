@@ -110,6 +110,6 @@ $("idoBtn").onclick = async () => {
     const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
     const { data: w } = await db.from("wallets").select("balance").eq("user_id", session.user.id).single(); if (w) $("bal").textContent = fmt(w.balance);
   } else $("bal").textContent = fmt(10000);
-  await load(); GC_LOADER.done();
+  await load(); GC_LOADER.done(); try { GC_GUIDE.init({ game: "challenges", db, mount: document.querySelector(".top"), steps: GC_STEPS.challenges() }); } catch (e) {}
   setInterval(() => { if (!document.hidden) load(); }, 8000);
 })();

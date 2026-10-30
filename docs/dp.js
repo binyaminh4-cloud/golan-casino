@@ -247,6 +247,7 @@ async function start(t) {
   try { history.replaceState(null, "", `dp.html?g=${GAME}&t=${T}`); } catch (e) {}
   const { data } = await rpc("dp_state", { p_game: GAME, p_t: T }); if (data) { skew = (data.now || Date.now()) - Date.now(); await apply(data); }
   if (T === 1) setInterval(poll, 1500);
+  try { GC_GUIDE.init({ game: "dp_" + GAME, db, mount: document.querySelector(".top"), steps: GC_STEPS.dp(GAME) }); } catch (e) {}
 }
 (async () => {
   if (!PREVIEW) { const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; } me = session.user.id; loadMembers().catch(() => {}); }

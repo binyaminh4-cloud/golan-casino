@@ -20,7 +20,7 @@ addEventListener("resize", fit);
 
 // ---------- picker ----------
 async function pick() {
-  $("pick").hidden = false; GC_LOADER.done();
+  $("pick").hidden = false; GC_LOADER.done(); try { GC_GUIDE.init({ game: "poker", db, mount: document.querySelector(".top"), steps: GC_STEPS.poker() }); } catch (e) {}
   const { data } = PREVIEW ? { data: [{ id: "x", name: "מתחילים", sb: 10, bb: 20, min: 1000, max: 4000, players: ["דני"] }] } : await db.rpc("poker_tables_list");
   const ICON = ["🟢", "🔵", "🔴", "⚫", "👑"];
   $("tables").innerHTML = (data || []).map((t, i) => `<a class="tbl" href="poker.html?t=${t.id}"><span class="ic">${ICON[i] || "♠️"}</span>
@@ -160,6 +160,6 @@ $("leaveBtn").onclick = async () => { busy = true; await db.rpc("poker_leave", {
       seats: { 0: { name: "בנימין", stack: 9600, bet: 0, in_hand: true, hole: ["AS", "KD"] }, 2: { name: "דני", stack: 12000, bet: 400, in_hand: true }, 4: { name: "פישר", stack: 0, bet: 0, in_hand: true, folded: true }, 5: { name: "עידו", stack: 7300, bet: 400, in_hand: true } } };
     draw(); GC_LOADER.done(); return;
   }
-  await poll(); GC_LOADER.done();
+  await poll(); GC_LOADER.done(); try { GC_GUIDE.init({ game: "poker", db, mount: document.querySelector(".top"), steps: GC_STEPS.poker() }); } catch (e) {}
   setInterval(poll, 1000); setInterval(() => S && draw(), 250);
 })();

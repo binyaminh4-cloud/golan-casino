@@ -65,6 +65,7 @@
   <details><summary>תנועות אחרונות</summary><div class="tx" id="tx"></div></details>
 </section>
 <script src="sfx.js?v=30"></script>
+<script src="guide.js?v=42"></script>
 <script>
 const $ = (id) => document.getElementById(id);
 const fmt = (n) => { n = Number(n) || 0; const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
@@ -100,7 +101,7 @@ $("depBtn").onclick = () => move("deposit"); $("wdBtn").onclick = () => move("wi
   if (PREVIEW) { S = { bank: 120000000, wallet: 5400000, tx: [{ kind: "salary_weekly", amount: 10000000, at: new Date() }] }; draw(); GC_LOADER.done(); return; }
   const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
   try { await db.rpc("salary_claim"); } catch (e) {}
-  const { data } = await db.rpc("bank_state"); if (data) S = data; draw(); GC_LOADER.done();
+  const { data } = await db.rpc("bank_state"); if (data) S = data; draw(); GC_LOADER.done(); try { GC_GUIDE.init({ game: "bank", db, mount: document.querySelector(".top"), steps: GC_STEPS.bank() }); } catch (e) {}
 })();
 </script>
 <script src="chat.js?v=19"></script>
