@@ -452,3 +452,21 @@ body:not(.gpage) #lobbyView .lb li .w{grid-column:4;grid-row:1/3;font:800 16px I
 #lobbyView .gtabs .temo{font-size:17px;line-height:1}
 #lobbyView .lx-nav [data-nav=bank] i{background-image:url(img/lobby2/ic_coins.png)}
 #lobbyView .game[data-poster="uth"]{--poster:url(img/lobby2/poster_uth.webp)}#lobbyView .game[data-poster="tcp"]{--poster:url(img/lobby2/poster_tcp.webp)}#lobbyView .game[data-poster="csp"]{--poster:url(img/lobby2/poster_csp.webp)}
+
+/* friends sheet · rich list (owner's mockup): medal, face, name + level badge + online dot, last seen, wealth; favourite game underneath */
+#lobbyView .lb .wc,#frSheet .wc{display:none}
+#frSheet .fr-list ol{list-style:none;margin:0;padding:0}
+#frSheet .fr-list li{display:grid!important;grid-template-columns:auto auto 1fr auto;grid-template-areas:"rk av nm w" "fav fav fav fav";align-items:center;gap:8px 8px;
+  padding:12px 10px 8px;margin:0 0 12px;border:1px solid rgba(197,160,90,.5);border-radius:18px;background:linear-gradient(180deg,rgba(44,31,18,.92),rgba(24,16,10,.96));height:auto!important}
+#frSheet .fr-list li .rk{grid-area:rk;width:38px;height:38px;display:grid;place-items:center;font:800 20px Inter;color:#F1D69A}
+#frSheet .fr-list li .rk img{width:38px;height:38px;object-fit:contain}
+#frSheet .fr-list li .avatar{grid-area:av;width:64px!important;height:64px!important;border-radius:50%;border:3px solid #C5A05A;overflow:hidden;display:grid;place-items:center;font:800 28px Heebo;background:#1a120b}
+#frSheet .fr-list li .avatar img{width:100%;height:100%;object-fit:cover}
+#frSheet .fr-list li .nm{grid-area:nm;display:grid;justify-items:center;gap:2px;text-align:center;min-width:0}
+#frSheet .fr-list li .nmt{font:800 19px Heebo;color:#F5ECDD;white-space:normal;overflow-wrap:anywhere}
+#frSheet .fr-list li .nmt .ondot{display:inline-block;margin-inline-start:6px;vertical-align:middle}
+#frSheet .fr-list li .you-t,#frSheet .fr-list li .seen{display:block;font:600 14px Heebo;color:#cdbb98}
+#frSheet .fr-list li .w{grid-area:w;display:flex;align-items:center;gap:6px;padding-inline-start:8px;border-inline-start:1px solid rgba(197,160,90,.35);font:800 18px Inter;color:#F1D69A;white-space:nowrap}
+#frSheet .fr-list li .w .wc{display:inline-block;width:20px;height:20px}
+#frSheet .fr-list li .fav{grid-area:fav;display:block;text-align:center;padding-top:8px;border-top:1px solid rgba(197,160,90,.3);font:700 16px Heebo;color:#e9dcc2}
+#frSheet .fr-list li .fav:empty{display:none}
