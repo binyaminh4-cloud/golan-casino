@@ -141,7 +141,7 @@
   // ---------- level badges next to every name + level-up popup ----------
   window.GC_LV = window.GC_LV || {};
   const lvCss = document.createElement("style");
-  lvCss.textContent = `.lvi{height:1.05em;width:auto;vertical-align:-.18em;margin-inline-start:.22em;display:inline-block}.lvu{font-style:normal;display:inline}
+  lvCss.textContent = `.lvi{height:1.8em;width:auto;vertical-align:-.5em;margin-inline-start:.22em;display:inline-block}.lvu{font-style:normal;display:inline}
 .gc-lvup{position:fixed;inset:0;z-index:9700;display:grid;place-items:center;background:rgba(0,0,0,.78);direction:rtl;animation:gclvf .25s}
 .gc-lvup .bx{width:min(380px,88vw);background:radial-gradient(ellipse at 50% 0%,#3a2a10,#120c08);border:2px solid #F1D69A;border-radius:18px;padding:18px;text-align:center;color:#F5ECDD;font:500 15px/1.5 Heebo,sans-serif;box-shadow:0 0 50px rgba(255,214,110,.45);animation:gclvp .45s cubic-bezier(.2,1.6,.4,1)}
 .gc-lvup img{width:120px;height:120px;filter:drop-shadow(0 0 18px rgba(255,214,110,.8))}.gc-lvup h2{margin:6px 0;font:800 26px Heebo;color:#F1D69A}
