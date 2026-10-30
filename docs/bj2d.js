@@ -81,7 +81,7 @@ async function flyCard(card, to, fromHand = true) {
   d.style.left = to.x + "px"; d.style.top = to.y + "px"; d.style.transform = "perspective(900px) rotateX(46deg) rotate(" + ((Math.random() - .5) * 3).toFixed(1) + "deg)";
   if (fromHand) setTimeout(() => { if (curFrame === "d04_slide") frame("d05_release"); }, 90);
   await sleep(390); SFX.card(); await sleep(45);             // the sound when the card touches the felt
-  if (card !== "??") { SFX.flip(); d.classList.add("flip"); await sleep(105); faceUp(d, card); await sleep(120); d.classList.remove("flip"); }
+  if (card !== "??") { SFX.cardFlip(); d.classList.add("flip"); await sleep(105); faceUp(d, card); await sleep(120); d.classList.remove("flip"); }
   if (fromHand) { await seq([["d06_return", 105], ["i01", 0]]); } else pose("idle");
   return d;
 }
@@ -170,7 +170,7 @@ async function render(next) {
   }
   // dealer reveals the hole card, then draws
   if (dealerEls[1] && !dealerEls[1].dataset.card && next.dealer[1] !== "??") {
-    await pose("flip"); SFX.flip(); faceUp(dealerEls[1], next.dealer[1]); dLabel(next.dealer.slice(0, 2)); await seq([["f03_done", 420], ["i01", 0]]);
+    await pose("flip"); SFX.cardFlip(); faceUp(dealerEls[1], next.dealer[1]); dLabel(next.dealer.slice(0, 2)); await seq([["f03_done", 420], ["i01", 0]]);
   }
   for (let c = dealerEls.length; c < next.dealer.length; c++) { dealerEls.push(await flyCard(next.dealer[c], dealerPos(c))); dLabel(next.dealer.slice(0, c + 1)); await sleep(340); }
   if (dLab) { dLab.remove(); dLab = null; }
