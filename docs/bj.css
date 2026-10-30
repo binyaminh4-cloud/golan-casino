@@ -185,3 +185,8 @@ body.land .tbar{top:4px;font-size:12px;padding:3px 12px}
 
 .bjshoe{position:absolute;left:470px;top:378px;width:190px;filter:drop-shadow(0 8px 10px rgba(0,0,0,.55));pointer-events:none}
 .bjdiscard{position:absolute;left:1080px;top:392px;width:120px;opacity:.95;filter:drop-shadow(0 8px 10px rgba(0,0,0,.5));pointer-events:none}
+/* action buttons on phones: two groups beside the player's character, never on top of it */
+body #acts.phone:not([hidden]),body #acts.zoombar:not([hidden]){left:0!important;right:0!important;width:auto!important;max-width:none!important;transform:none!important;display:flex;flex-wrap:nowrap;justify-content:space-between;align-items:flex-end;padding-inline:max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-left));gap:8px;background:none;box-shadow:none;border:0}
+body #acts.phone::before,body #acts.zoombar::before{content:"";order:3;flex:1 1 auto;min-width:min(30vw,240px)}
+#acts .a[data-a=hit]{order:1}#acts .a[data-a=stand]{order:2}#acts .a[data-a=insurance]{order:1}#acts .a[data-a=no_insurance]{order:2}
+#acts .a[data-a=double]{order:4}#acts .a[data-a=split]{order:5}#acts .a[data-a=surrender]{order:6}

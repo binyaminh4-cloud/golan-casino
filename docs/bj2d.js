@@ -422,6 +422,10 @@ async function chEnd() {
   o.innerHTML = `<div class="box"><div class="t">${c.kind === "fisher" ? "🎧 הסט נגמר" : "🃏 החפיסה נגמרה"}</div><div class="r">${res}</div><a class="btn" href="challenges.html">חזרה לאתגרים</a></div>`;
   document.body.appendChild(o);
 }
+// coming back to the page (other tab, phone unlocked, back button): fetch the hand again so the buttons are always there
+addEventListener("pageshow", (e) => { if (e.persisted) location.reload(); });
+document.addEventListener("visibilitychange", () => { if (document.hidden || busy || !$("acts").hidden) return;
+  if (TABLE) { if (typeof tPoll === "function") tPoll(); } else resume0().then(showControls).catch(() => {}); });
 async function resume() { if (TABLE) return; return resume0(); }
 async function resume0() { const { data } = await db.rpc("bj_current"); if (data) { clearRound(); $("betUI").hidden = true; await render(data); } }
 (async () => {
