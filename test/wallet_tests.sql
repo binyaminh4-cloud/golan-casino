@@ -13,7 +13,10 @@ select t_assert(t_raises($$insert into auth.users(email) values ('stranger@x.com
 -- 2. Invited signup gets profile + 10,000
 insert into invitations(email) values ('a@x.com'),('b@x.com');
 insert into auth.users(id,email) values ('00000000-0000-0000-0000-00000000000a','a@x.com'),('00000000-0000-0000-0000-00000000000b','b@x.com');
-select t_assert((select balance from wallets where user_id='00000000-0000-0000-0000-00000000000a')=10000, 'starting balance 10000');
+select t_assert((select balance from wallets where user_id='00000000-0000-0000-0000-00000000000a')=(select starting_balance from app_settings where id=1), 'starting balance from settings');
+-- the rest of this file works in small numbers: bring both players to 10,000 through the ledger
+insert into wallet_transactions(user_id,game,kind,amount,balance_after,settlement_ref) select user_id,'admin','grant',10000-balance,10000,'norm-'||user_id from wallets;
+update wallets set balance = 10000;
 
 -- 3. Bet above balance rejected, balance unchanged
 select t_assert(t_raises($$select open_round('00000000-0000-0000-0000-00000000000a','roulette',20000,'r-big')$$,'insufficient_funds'), 'overspend rejected');

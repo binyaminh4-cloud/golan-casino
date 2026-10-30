@@ -96,8 +96,8 @@ reset role;
 -- 13. 3,000 random rounds with random legal actions: money is conserved
 delete from bj_shoes where user_id = '00000000-0000-0000-0000-00000000000b';
 select t_as('00000000-0000-0000-0000-00000000000b');
+insert into wallet_transactions(user_id,game,kind,amount,balance_after,settlement_ref) select user_id,'admin','grant',10000000-balance,10000000,'big-b' from wallets where user_id='00000000-0000-0000-0000-00000000000b';
 update wallets set balance = 10000000 where user_id='00000000-0000-0000-0000-00000000000b';
-insert into wallet_transactions(user_id,game,kind,amount,balance_after,settlement_ref) values ('00000000-0000-0000-0000-00000000000b','admin','grant',9990000,10000000,'big-b');
 do $$
 declare v jsonb; n int; a text;
 begin
