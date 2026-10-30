@@ -470,3 +470,12 @@ body:not(.gpage) #lobbyView .lb li .w{grid-column:4;grid-row:1/3;font:800 16px I
 #frSheet .fr-list li .w .wc{display:inline-block;width:20px;height:20px}
 #frSheet .fr-list li .fav{grid-area:fav;display:block;text-align:center;padding-top:8px;border-top:1px solid rgba(197,160,90,.3);font:700 16px Heebo;color:#e9dcc2}
 #frSheet .fr-list li .fav:empty{display:none}
+
+/* rich list: no 1st/2nd/3rd chips; name + level badge pinned to the right edge, the online dot stays where it was */
+#lobbyView .lb li .rk,#frSheet .fr-list li .rk{display:none!important}
+#frSheet .fr-list li{grid-template-columns:auto 1fr auto!important;grid-template-areas:"av nm w" "fav fav fav"!important}
+#frSheet .fr-list li .nm{justify-items:stretch!important;text-align:right!important}
+#frSheet .fr-list li .nmt{justify-self:start;text-align:right}
+#frSheet .fr-list li .odot{justify-self:center;line-height:1}
+#frSheet .fr-list li .you-t,#frSheet .fr-list li .seen{justify-self:center}
+#lobbyView .lb li .odot{display:inline-block;margin-inline-start:6px}
