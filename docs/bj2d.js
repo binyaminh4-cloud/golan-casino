@@ -45,7 +45,7 @@ function fit() {
   st.style.transform = `scale(${s})`; st.style.left = left + "px"; st.style.top = top + "px";
   const out = PHONE || LAND;
   if (acts.classList.contains("zoombar")) return;
-  if (out && acts.parentElement !== document.body) { document.body.appendChild(acts); acts.classList.add("phone"); }
+  if (out) { if (acts.parentElement !== document.body) document.body.appendChild(acts); acts.classList.add("phone"); }   // also after leaving the zoom bar
   if (!out && acts.parentElement === document.body) { st.appendChild(acts); acts.classList.remove("phone"); }
 }
 addEventListener("resize", fit); fit();
@@ -139,7 +139,8 @@ function placeActs(h) { if (PHONE || $("acts").classList.contains("zoombar")) re
 let dLab = null;
 function dTot(cards) { let t = 0, a = 0; for (const c of cards) { if (!c || c === "??") continue; const r = c.slice(0, -1); if (r === "A") { t += 11; a++; } else t += /[JQKT]|10/.test(r) ? 10 : +r; } while (t > 21 && a) { t -= 10; a--; } return t; }
 function dLabel(cards) { if (!dLab && totals.length) totals.pop().remove(); if (dLab) dLab.remove(); dLab = label(dTot(cards), 905 + Math.max(0, cards.length - 2) * 60, 384); }
-async function render(next) {
+async function render(next) { try { return await render1(next); } finally { if (busy) { busy = false; showControls(); } } }
+async function render1(next) {
   busy = true; lockActs();
   if (LIT && next.strikes && JSON.stringify(next.strikes) !== JSON.stringify(STRIKES)) { STRIKES = next.strikes; drawBoost(); }
   const n = next.hands.length;
@@ -426,6 +427,8 @@ async function chEnd() {
 addEventListener("pageshow", (e) => { if (e.persisted) location.reload(); });
 document.addEventListener("visibilitychange", () => { if (document.hidden || busy || !$("acts").hidden) return;
   if (TABLE) { if (typeof tPoll === "function") tPoll(); } else resume0().then(showControls).catch(() => {}); });
+// safety net: a hand is waiting for me but no buttons are showing → show them
+setInterval(() => { if (TABLE || busy || !st || st.status === "done" || !st.actions || !st.actions.length) return; const a = $("acts"); if (a.hidden || !a.offsetParent && getComputedStyle(a).position !== "fixed") showControls(); }, 1500);
 async function resume() { if (TABLE) return; return resume0(); }
 async function resume0() { const { data } = await db.rpc("bj_current"); if (data) { clearRound(); $("betUI").hidden = true; await render(data); } }
 (async () => {
