@@ -51,16 +51,40 @@
   .desk button:focus-visible,.amt input:focus-visible{outline:2px solid #ffe27a;outline-offset:2px}
   .desk button:active:not(:disabled){transform:scale(.97)}
   summary{background:url(img/bank/ui/ornament_divider.svg) center/100% 100% no-repeat;padding:6px 0;border-radius:6px}
+
+  .house{background:rgba(11,9,8,.7);border:1px solid #C5A05A;border-radius:99px;color:#F1D69A;font:700 13px Heebo;padding:5px 10px;cursor:pointer}
+  .house b{font:800 14px Inter;direction:ltr;unicode-bidi:isolate}
+  .debtbar{position:relative;z-index:2;margin:0 12px;background:rgba(120,20,28,.9);border:1px solid #ffb3b3;border-radius:12px;padding:8px 12px;font:700 14px Heebo;text-align:center}
+  .loanbtn{display:block;width:100%;margin-top:8px;padding:11px;border-radius:12px;border:1px solid #C5A05A;background:rgba(11,9,8,.6);color:#F1D69A;font:800 16px Heebo;cursor:pointer}
+  .sheet{position:fixed;inset:0;z-index:50;background:rgba(5,4,3,.82);display:grid;place-items:end center}
+  .sheet .bx{box-sizing:border-box;width:min(520px,100vw);max-height:92dvh;overflow:auto;background:linear-gradient(180deg,#2a1c0e,#120c08);border:2px solid #C5A05A;border-bottom:0;border-radius:18px 18px 0 0;padding:14px 14px max(16px,env(safe-area-inset-bottom))}
+  .sheet h2{margin:0 0 8px;font:700 22px 'Frank Ruhl Libre',serif;color:#F1D69A;display:flex;justify-content:space-between;align-items:center}
+  .sheet h2 button{background:none;border:0;color:#F1D69A;font-size:22px;cursor:pointer}
+  .tabs{display:flex;gap:6px;margin-bottom:10px}.tabs button{flex:1;padding:8px 4px;border-radius:10px;border:1px solid rgba(241,214,154,.4);background:transparent;color:#F1D69A;font:700 13px Heebo;cursor:pointer}
+  .tabs button.on{background:linear-gradient(#F1D69A,#C5A05A);color:#1b0f06}
+  .card2{background:rgba(255,255,255,.05);border:1px solid rgba(241,214,154,.25);border-radius:12px;padding:10px;margin-bottom:8px}
+  .card2 .row{display:flex;justify-content:space-between;gap:8px;align-items:center}.card2 small{color:#cdbb98}
+  .card2 b.n{font:800 16px Inter;direction:ltr;unicode-bidi:isolate;color:#ffe27a}
+  .trk{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}.trk button{padding:8px 4px;border-radius:10px;border:1px solid rgba(241,214,154,.4);background:transparent;color:#F5ECDD;font:700 13px Heebo;cursor:pointer;line-height:1.3}
+  .trk button.on{border-color:#ffe27a;background:rgba(255,226,122,.15)}
+  .sheet input,.sheet select{width:100%;box-sizing:border-box;padding:10px;border-radius:10px;border:1px solid #C5A05A;background:#120c08;color:#F5ECDD;font:700 16px Heebo;margin:4px 0}
+  .sheet input[type=range]{padding:0;border:0;background:none}
+  .gobtn{width:100%;padding:12px;border:0;border-radius:12px;background:linear-gradient(#F1D69A,#C5A05A);color:#1b0f06;font:800 16px Heebo;cursor:pointer;margin-top:6px}
+  .sm{padding:7px 12px;border-radius:10px;border:1px solid #C5A05A;background:transparent;color:#F1D69A;font:700 13px Heebo;cursor:pointer}
+  .late{color:#ffb3b3}.paid{color:#9ff0bf}.lerr{min-height:18px;color:#ffb3b3;font-size:13px;text-align:center}
+  .hg div{display:flex;justify-content:space-between;padding:5px 2px;border-bottom:1px solid rgba(255,255,255,.06);font-size:14px}.hg b{font:700 14px Inter;direction:ltr}.hg .p{color:#9ff0bf}.hg .m{color:#ffb3b3}
 </style>
 </head>
 <body>
 <div class="hall" id="hall"></div>
-<header class="top"><a href="./">→ ללובי</a><h1>🏦 הבנק</h1><span style="width:70px"></span></header>
+<header class="top"><a href="./">→ ללובי</a><h1>🏦 הבנק</h1><button type="button" class="house" id="houseBtn" aria-label="קופת הקזינו">🎰 <b id="houseV">…</b></button></header>
+<div class="debtbar" id="debtBar" hidden></div>
 <section class="desk">
   <div class="bals"><div class="bank"><small>בבנק</small><b id="bBank">…</b></div><div><small>בארנק (למשחקים)</small><b id="bWallet">…</b></div></div>
   <div class="amt"><input id="amt" inputmode="numeric" placeholder="סכום" autocomplete="off" aria-label="סכום להפקדה או משיכה"></div>
   <div class="q"><button data-q="1000000">1M</button><button data-q="10000000">10M</button><button data-q="half">חצי</button><button data-q="all">הכול</button></div>
   <div class="act"><button class="dep" id="depBtn">⬇ הפקדה לבנק</button><button class="wd" id="wdBtn">⬆ משיכה לארנק</button></div>
+  <button type="button" class="loanbtn" id="loanBtn">💳 הלוואות</button>
   <div class="msg" id="msg"></div>
   <details><summary>תנועות אחרונות</summary><div class="tx" id="tx"></div></details>
 </section>
@@ -92,7 +116,7 @@ async function move(dir) {
   $("depBtn").disabled = $("wdBtn").disabled = true;
   if (PREVIEW) { if (dir === "deposit") { S.wallet -= v; S.bank += v; } else { S.bank -= v; S.wallet += v; } }
   else { const { data, error } = await db.rpc("bank_move", { p_amount: v, p_dir: dir, p_ref: crypto.randomUUID ? crypto.randomUUID() : Date.now() + "" + Math.random() });
-    if (error) { $("depBtn").disabled = $("wdBtn").disabled = false; return m.textContent = "הפעולה לא עברה. נסה שוב."; } S = data; }
+    if (error) { $("depBtn").disabled = $("wdBtn").disabled = false; return m.textContent = /loan_late/.test(error.message || "") ? "יש לך הלוואה בפיגור. אי אפשר למשוך עד שתחזיר." : "הפעולה לא עברה. נסה שוב."; } S = data; }
   $("depBtn").disabled = $("wdBtn").disabled = false; $("amt").value = ""; $("amt").placeholder = "סכום"; lastQ = null;
   m.className = "msg ok"; m.textContent = dir === "deposit" ? `הופקדו ${fmt(v)} לבנק ✔` : `נמשכו ${fmt(v)} לארנק ✔`; try { SFX.fx(dir === "deposit" ? "bank_deposit" : "bank_withdraw", { vol: 0.85 }); } catch (e) {} draw();
 }
@@ -103,6 +127,74 @@ $("depBtn").onclick = () => move("deposit"); $("wdBtn").onclick = () => move("wi
   try { await db.rpc("salary_claim"); } catch (e) {}
   const { data } = await db.rpc("bank_state"); if (data) S = data; draw(); GC_LOADER.done(); try { GC_GUIDE.init({ game: "bank", db, mount: document.querySelector(".top"), steps: GC_STEPS.bank() }); } catch (e) {}
 })();
+</script>
+
+<script>
+// ---------- house bank + loans ----------
+const KIND2 = { loan_in: "הלוואה שקיבלת", loan_repay: "החזר הלוואה", loan_out: "הלוואה שהצעת", loan_back: "החזר מחבר", loan_cancel: "הצעה שבוטלה" };
+Object.assign(KIND, KIND2);
+const GN = { roulette: "רולטה", lightning_roulette: "רולטת הברק", xxx_roulette: "רולטת XXX", blackjack: "בלאק ג׳ק", lightning_blackjack: "בלאק ג׳ק הכפולות", slots: "מכונות מזל",
+  fortune_slots: "מכונת האטרף", dragons: "דרקוני הגולן", wild_west: "המערב הפרוע", kinneret: "על האש בכינרת", pachinko: "מכונת השירותים", protein_miner: "שולה החלבון",
+  ido_fishing: "גלגל הדגים", ido_chicken: "עידו חוצה את הכביש", fisher90: "פישר בדקה ה־90", uth_poker: "אולטימייט הולדם", three_card_poker: "פוקר 3 קלפים",
+  caribbean_stud: "קריביאן סטאד", tourney: "טורניר ג׳קפוט", poker_bots: "פוקר מול הבוטים", bank_loans: "ריבית הלוואות" };
+let HS = null, L = null, tab = "bank", track = "normal";
+const rpc2 = (n, a) => db.rpc(n, a || {});
+async function house() { if (PREVIEW) { HS = { total: 2.4e9, games: { xxx_roulette: 3.8e9, roulette: -9.8e8, dragons: 1.4e7 } }; }
+  else { const { data } = await rpc2("house_stats"); if (data) HS = data; }
+  if (HS) { $("houseV").textContent = fmt(HS.total); $("houseV").style.color = HS.total < 0 ? "#ffb3b3" : ""; } }
+$("houseBtn").onclick = () => { if (!HS) return; const g = Object.entries(HS.games || {}).filter(([, v]) => +v).sort((a, b) => b[1] - a[1]);
+  sheet(`<h2>🎰 קופת הקזינו <button data-x>✕</button></h2><p style="margin:0 0 8px;color:#cdbb98;font-size:13px">כל מה ששחקנים הימרו והפסידו, פחות כל הזכיות שחולקו. מתעדכן כל 5 דקות.</p>
+    <div class="card2 row" style="display:flex;justify-content:space-between"><span>סה״כ הקזינו הרוויח</span><b class="n" style="color:${HS.total < 0 ? "#ffb3b3" : "#9ff0bf"}">${fmt(HS.total)}</b></div>
+    <details><summary style="cursor:pointer;color:#F1D69A;padding:6px 0">📊 פירוט לפי משחק</summary><div class="hg">${g.map(([k, v]) => `<div><span>${GN[k] || k}</span><b class="${v >= 0 ? "p" : "m"}">${v >= 0 ? "+" : ""}${fmt(v)}</b></div>`).join("")}</div></details>`); };
+function sheet(html) { let o = document.getElementById("sheet"); if (!o) { o = document.createElement("div"); o.id = "sheet"; o.className = "sheet"; document.body.appendChild(o);
+    o.addEventListener("click", (e) => { if (e.target === o || e.target.closest("[data-x]")) o.remove(); }); }
+  o.innerHTML = `<div class="bx">${html}</div>`; return o; }
+const dd = (d) => d ? new Date(d).toLocaleDateString("he-IL", { day: "numeric", month: "numeric" }) : "";
+async function loadLoans() { if (PREVIEW) { L = { bank: S.bank, level: 1, max: 1e8, tracks: [{ id: "fast", name: "מהיר", days: 7, rate: 8 }, { id: "normal", name: "רגיל", days: 30, rate: 15 }, { id: "long", name: "ארוך", days: 90, rate: 25 }], bank_loans: 1, late: false, debt: 1.15e8, mine: [{ id: "1", kind: "bank", from: "הבנק", principal: 1e8, rate: 15, owed: 1.15e8, total: 1.15e8, due: new Date(Date.now() + 20 * 864e5), status: "active" }], given: [], offers: [{ id: "o", from: "פישר", principal: 5e7, rate: 12, days: 14, total: 5.6e7 }], members: [{ id: "m", name: "עידו" }] }; return; }
+  const { data } = await rpc2("loans_state"); if (data) L = data; }
+function debtBar() { const b = $("debtBar"); if (!L || !L.debt) { b.hidden = true; return; } b.hidden = false;
+  b.innerHTML = L.late ? `🔴 יש לך הלוואה בפיגור! חוב: ${fmt(L.debt)} · אי אפשר למשוך מהבנק עד שתחזיר.` : `💳 חוב פתוח: ${fmt(L.debt)} · חצי מכל משכורת הולך להחזר.`;
+  b.style.background = L.late ? "" : "rgba(40,30,10,.9)"; b.style.borderColor = L.late ? "" : "#C5A05A"; }
+function drawLoans() {
+  if (!L) return; const tracks = L.tracks || [];
+  const tabsH = `<div class="tabs">${[["bank", "מהבנק"], ["friends", "מחברים"], ["mine", "החובות שלי"], ["given", "הלוויתי"]].map(([k, t]) => `<button data-t="${k}" class="${tab === k ? "on" : ""}">${t}</button>`).join("")}</div>`;
+  let body = "";
+  if (tab === "bank") { const tr = tracks.find((t) => t.id === track) || tracks[0];
+    body = `<p style="margin:0 0 8px;color:#cdbb98;font-size:13px">רמה ${L.level}: עד <b>${fmt(L.max)}</b> להלוואה, ועד 3 הלוואות מהבנק ביחד (יש לך ${L.bank_loans}). ריבית חד־פעמית.</p>
+      <div class="trk">${tracks.map((t) => `<button data-tr="${t.id}" class="${t.id === track ? "on" : ""}">${t.name}<br><small>${t.days} ימים · ${t.rate}%</small></button>`).join("")}</div>
+      <input id="lAmt" inputmode="numeric" placeholder="סכום (עד ${fmt(L.max)})"><div class="card2"><div class="row"><small>תחזיר עד ${dd(Date.now() + tr.days * 864e5)}</small><b class="n" id="lTot">—</b></div></div>
+      <button class="gobtn" id="lTake">קח הלוואה</button>`; }
+  if (tab === "friends") {
+    body = `<b style="color:#F1D69A">הצעות פתוחות</b>${(L.offers || []).map((o) => `<div class="card2"><div class="row"><span>${o.from}${o.personal ? " · אליך" : ""}</span><b class="n">${fmt(o.principal)}</b></div>
+        <div class="row"><small>${o.rate}% · ${o.days} ימים · תחזיר ${fmt(o.total)}</small><button class="sm" data-acc="${o.id}">קבל</button></div></div>`).join("") || '<p style="color:#cdbb98;font-size:13px">אין כרגע הצעות.</p>'}
+      <b style="color:#F1D69A">להציע הלוואה לחבר</b><div class="card2"><input id="oAmt" inputmode="numeric" placeholder="סכום (יורד מהבנק שלך עד שיחזירו)">
+      <div class="row"><small>ריבית</small><b class="n" id="oRateV">10%</b></div><input type="range" id="oRate" min="5" max="25" value="10">
+      <select id="oDays"><option value="7">7 ימים</option><option value="14" selected>14 ימים</option><option value="30">30 ימים</option></select>
+      <select id="oTo"><option value="">לכל החבר׳ה</option>${(L.members || []).map((m) => `<option value="${m.id}">${m.name}</option>`).join("")}</select>
+      <small>⚠️ אתה לוקח סיכון: אם החבר לא יחזיר, אף אחד לא מכסה.</small><button class="gobtn" id="oGo">פרסם הצעה</button></div>`; }
+  if (tab === "mine") body = (L.mine || []).map((m) => `<div class="card2"><div class="row"><span>${m.from} · ${m.rate}%</span><b class="n ${m.status === "late" ? "late" : m.status === "paid" ? "paid" : ""}">${m.status === "paid" ? "שולם ✓" : fmt(m.owed)}</b></div>
+      <div class="row"><small>${m.status === "late" ? "🔴 בפיגור (+10% קנס)" : m.status === "paid" ? "נסגר" : "עד " + dd(m.due)} · מתוך ${fmt(m.total)}</small>${m.status !== "paid" ? `<button class="sm" data-rep="${m.id}" data-o="${m.owed}">החזר</button>` : ""}</div></div>`).join("") || '<p style="color:#cdbb98">אין לך חובות 👌</p>';
+  if (tab === "given") body = (L.given || []).map((g) => `<div class="card2"><div class="row"><span>${g.open ? "הצעה פתוחה" : "ל" + (g.to || "?")} · ${g.rate}%</span><b class="n">${fmt(g.open ? g.principal : g.owed)}</b></div>
+      <div class="row"><small>${g.open ? (g.to ? "רק ל" + g.to : "לכולם") + " · " + g.days + " ימים" : g.status === "paid" ? "הוחזר במלואו ✓" : g.status === "late" ? "🔴 בפיגור" : "עד " + dd(g.due)}</small>${g.open ? `<button class="sm" data-can="${g.id}">בטל</button>` : ""}</div></div>`).join("") || '<p style="color:#cdbb98">עוד לא הלווית לאף אחד.</p>';
+  const o = sheet(`<h2>💳 הלוואות <button data-x>✕</button></h2>${tabsH}${body}<div class="lerr" id="lErr"></div>`);
+  const num = (id) => Math.floor(Number(String(($(id) || {}).value || "").replace(/[^\d]/g, "")) || 0);
+  o.querySelectorAll("input[inputmode=numeric]").forEach((i) => i.oninput = () => { const v = num(i.id); i.value = v ? v.toLocaleString("en-US") : "";
+    if (i.id === "lAmt") { const tr = tracks.find((t) => t.id === track); $("lTot").textContent = v ? "תחזיר " + fmt(v + Math.floor(v * tr.rate / 100)) : "—"; } });
+  if ($("oRate")) $("oRate").oninput = () => $("oRateV").textContent = $("oRate").value + "%";
+  const run = async (n, a) => { $("lErr").textContent = ""; if (PREVIEW) return; const { data, error } = await rpc2(n, a);
+    if (error) { const m = error.message || ""; $("lErr").textContent = /loan_late/.test(m) ? "יש לך הלוואה בפיגור. קודם תחזיר." : /too_many/.test(m) ? "כבר יש לך 3 הלוואות מהבנק." : /invalid_amount/.test(m) ? "סכום לא תקין (מינימום ₪1M, ועד התקרה שלך)." : /insufficient/.test(m) ? "אין מספיק כסף בבנק." : /closed/.test(m) ? "ההצעה כבר לא פתוחה." : "הפעולה לא עברה."; return; }
+    L = data; try { SFX.coins(0.8); } catch (e) {} const st = await rpc2("bank_state"); if (st.data) { S = st.data; draw(); } debtBar(); drawLoans(); };
+  o.onclick = (e) => { const t = e.target.closest("[data-t]"), tr = e.target.closest("[data-tr]"), acc = e.target.closest("[data-acc]"), rep = e.target.closest("[data-rep]"), can = e.target.closest("[data-can]");
+    if (e.target === o || e.target.closest("[data-x]")) return o.remove();
+    if (t) { tab = t.dataset.t; drawLoans(); } else if (tr) { track = tr.dataset.tr; drawLoans(); }
+    else if (e.target.id === "lTake") { const v = num("lAmt"); if (v) run("loan_bank_take", { p_track: track, p_amount: v }); }
+    else if (e.target.id === "oGo") { const v = num("oAmt"); if (v) run("loan_offer", { p_amount: v, p_rate: +$("oRate").value, p_days: +$("oDays").value, p_to: $("oTo").value || null }); }
+    else if (acc) run("loan_accept", { p_loan: acc.dataset.acc });
+    else if (can) run("loan_cancel", { p_loan: can.dataset.can });
+    else if (rep) { const v = Math.floor(Number(String(prompt("כמה להחזיר? (מהבנק)", (+rep.dataset.o).toLocaleString("en-US")) || "").replace(/[^\d]/g, "")) || 0); if (v) run("loan_repay", { p_loan: rep.dataset.rep, p_amount: v }); } };
+}
+$("loanBtn").onclick = async () => { await loadLoans(); drawLoans(); };
+(async () => { await new Promise((r) => setTimeout(r, 600)); try { await house(); await loadLoans(); debtBar(); } catch (e) {} })();
 </script>
 <script src="chat.js?v=20"></script>
 </body>

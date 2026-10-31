@@ -125,7 +125,7 @@ async function refresh0() {
   grantNote().catch(() => {});
   const [w, lb, on] = await Promise.all([
     db.from("wallets").select("balance").eq("user_id", me.id).single(),
-    db.from("leaderboard").select("id,nickname,wealth").order("wealth", { ascending: false }),
+    db.from("leaderboard").select("id,nickname,wealth,late").order("wealth", { ascending: false }),
     db.rpc("gc_online").then((r) => r, () => ({})),
   ]);
   const ON = (on && on.data) || {};
@@ -143,7 +143,7 @@ async function refresh0() {
   if (lb.error) { box.innerHTML = '<p class="msg err">לא הצלחנו לטעון את הטבלה. בדוק חיבור ונסה שוב.</p>'; return; }
   if (!lb.data.length) { box.innerHTML = '<p class="msg">עוד אין חברים במועדון.</p>'; return; }
   box.innerHTML = "<ol>" + lb.data.map((m, i) =>
-    `<li class="${m.id === me.id ? "you" : ""}"><span class="rk num">${i < 3 ? `<img src="img/lobby/medal_${i + 1}.webp" alt="${i + 1}">` : i + 1}</span><span class="avatar av" data-u="${m.id}">${LBAV[m.id] ? `<img src="${esc(LBAV[m.id])}" alt="">` : esc((m.nickname || "?")[0].toUpperCase())}</span><span class="nm"><span class="nmt">${esc(m.nickname)}<i class="lvu" data-u="${m.id}"></i></span><span class="odot">${dot(m.id)}</span>${m.id === me.id ? '<small class="you-t">(אתה)</small>' : ""}${seenTxt(m.id)}</span><span class="w num"><img class="wc" src="img/lobby2/ic_coins.png" alt="">${fmt(m.wealth)}</span><span class="fav" data-u="${m.id}">${FAV[m.id] ? "🎮 " + favName(FAV[m.id]) : ""}</span></li>`
+    `<li class="${m.id === me.id ? "you" : ""}"><span class="rk num">${i < 3 ? `<img src="img/lobby/medal_${i + 1}.webp" alt="${i + 1}">` : i + 1}</span><span class="avatar av" data-u="${m.id}">${LBAV[m.id] ? `<img src="${esc(LBAV[m.id])}" alt="">` : esc((m.nickname || "?")[0].toUpperCase())}</span><span class="nm"><span class="nmt">${esc(m.nickname)}<i class="lvu" data-u="${m.id}"></i></span><span class="odot">${dot(m.id)}</span>${m.id === me.id ? '<small class="you-t">(אתה)</small>' : ""}${seenTxt(m.id)}</span><span class="w num${m.wealth < 0 ? " neg" : ""}"><img class="wc" src="img/lobby2/ic_coins.png" alt="">${fmt(m.wealth)}${m.late ? ' <em class="latebadge">🔴 חייב</em>' : ""}</span><span class="fav" data-u="${m.id}">${FAV[m.id] ? "🎮 " + favName(FAV[m.id]) : ""}</span></li>`
   ).join("") + "</ol>";
   lbAvatars(lb.data);
   if (!FAV._t) { FAV._t = 1; db.rpc("gc_fav_games").then(({ data }) => { if (!data) return; Object.assign(FAV, data);

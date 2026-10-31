@@ -491,3 +491,4 @@ body:not(.gpage) #lobbyView .lb li .w{grid-column:4;grid-row:1/3;font:800 16px I
 #lobbyView .game .blsel .mode{flex:0 0 100%;display:flex;border:1px solid #C5A05A;border-radius:99px;overflow:hidden;background:rgba(8,6,4,.8)}
 #lobbyView .game .blsel .mode button{flex:1;padding:7px 4px;border:0;background:transparent;color:#e8dcc4;font:700 13px Heebo;cursor:pointer}
 #lobbyView .game .blsel .mode button.on{background:linear-gradient(#F1D69A,#C5A05A);color:#1b0f06}
+.w.neg,#frSheet .w.neg{color:#ff8a8a!important}.latebadge{font:700 11px Heebo;font-style:normal;color:#ffb3b3;background:rgba(120,20,28,.7);border-radius:99px;padding:1px 6px;margin-inline-start:4px;white-space:nowrap}
