@@ -9,7 +9,7 @@ const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONF
 
 // ---------- tuning (values must match fish_vals() on the server) ----------
 const VAL = [null, [30000, 120000, 600000], [45000, 180000, 900000], [60000, 240000, 1200000], [0, 0, 2500000]][LEVEL];
-const SPEED = [0, 1, 1.2, 1.4, 1.5][LEVEL] * (EXTREME ? 1.25 : 1);
+const SPEED = [0, 1, 1.2, 1.4, 1.5][LEVEL] * (EXTREME ? 1.25 * 2.5 : 1);
 const GAP = [0, 1.25, 1.15, 1.05, 1.0][LEVEL];                      // seconds between falling items
 const BOMB = [0, 0.22, 0.28, 0.34, 0.36][LEVEL], SPIKY = [0, 0.04, 0.05, 0.06, 0.07][LEVEL];
 const DROPS = EXTREME ? 10 : 20, NEED_RARE = 5, LIVES = 3;
