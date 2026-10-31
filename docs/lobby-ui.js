@@ -77,8 +77,8 @@ function blindPicker(card, KEY, withMode, url) {
   box.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); const a = e.target.closest(".ar"); const m = e.target.closest("[data-m]"); if (m) { mode = m.dataset.m; drawMode(); try { localStorage.setItem("gc_botmode", mode); } catch (er) {} }
     else if (a) set(i + +a.dataset.d, true); else if (e.target.closest(".go")) go(); });
   const drawMode = () => box.querySelectorAll("[data-m]").forEach((b) => b.classList.toggle("on", b.dataset.m === mode)); drawMode();
-  const go = () => { location.href = url(mode, BB[i]); };
-  card.addEventListener("click", (e) => e.preventDefault());   // only the "sit" button enters; a stray touch on the card does nothing
+  const go = () => { try { GC_LOADER.show(); } catch (e) {} location.href = url(mode, BB[i]); };
+  card.dataset.nonav = "1"; card.addEventListener("click", (e) => e.preventDefault());   // only the "sit" button enters; a stray touch on the card does nothing
   let t = null; rail.addEventListener("scroll", () => { clearTimeout(t); t = setTimeout(() => { const w = rail.clientWidth || 1; const k = Math.round(rail.scrollLeft / w); if (k !== i && k < BB.length) { i = k; try { localStorage.setItem(KEY, BB[i]); } catch (e) {} } }, 120); });
   ["pointerdown", "touchstart"].forEach((ev) => rail.addEventListener(ev, (e) => e.stopPropagation(), { passive: true }));
   requestAnimationFrame(() => set(i, false));

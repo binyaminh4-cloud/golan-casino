@@ -94,7 +94,7 @@
   addEventListener("click", (e) => {
     const b = e.target.closest("button, a"); lastBtn = b; lastAt = performance.now();
     const a = e.target.closest("a[href]");
-    if (e.target.closest(".rstrip")) return;
+    if (e.target.closest(".rstrip, .blsel, [data-nonav]")) return;   // picker cards navigate themselves (only from their "sit" button)
     if (a && !a.target && !e.defaultPrevented && a.origin === location.origin && !a.getAttribute("href").startsWith("#")) show();   // moving to another page
   }, true);
   const f0 = window.fetch;
