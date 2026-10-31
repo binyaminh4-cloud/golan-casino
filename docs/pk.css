@@ -69,3 +69,6 @@ body.at-table .top{position:fixed;top:0;left:0;right:0}
 .seat .lact{margin-top:6px;white-space:nowrap;font:800 26px Heebo;padding:4px 16px;border-radius:99px;background:rgba(8,6,4,.88);border:2px solid #C5A05A;color:#F1D69A;animation:lactIn .25s ease-out}
 .seat .lact.fold{color:#c9b9a0;border-color:#6b5a44}.seat .lact.raise,.seat .lact.bet{color:#ffe27a;border-color:#ffe27a}.seat .lact.allin{color:#fff;background:#8b1d26;border-color:#ffb3b3}
 @keyframes lactIn{from{transform:scale(.6);opacity:0}}
+/* the seat at the top: name and stack beside the avatar (on its right), so they don't cover the board */
+.seat.up .tag{position:absolute;left:calc(50% + 82px);top:calc(50% + 16px);transform:translateY(-50%);margin:0;white-space:nowrap}
+.seat.up .lact{position:absolute;left:calc(50% + 82px);top:calc(50% + 78px);margin:0}

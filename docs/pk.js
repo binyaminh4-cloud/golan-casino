@@ -54,12 +54,12 @@ function draw() {
     const won = s.result && s.result.won && s.result.won[seat];
     const hole = p.hole ? p.hole.map((c) => card(c, seat === ME ? "big" : "")).join("") : p.in_hand && !p.folded ? card(null) + card(null) : "";
     const hand = s.result && s.result.hands && s.result.hands[seat];
-    h += `<div class="seat ${seat === ME ? "me" : ""} ${p.folded ? "folded" : ""} ${turn ? "turn" : ""} ${won ? "won" : ""}" style="left:${pos.x}px;top:${pos.y}px">
+    h += `<div class="seat ${rel(seat) === 3 ? "up" : ""} ${seat === ME ? "me" : ""} ${p.folded ? "folded" : ""} ${turn ? "turn" : ""} ${won ? "won" : ""}" style="left:${pos.x}px;top:${pos.y}px">
       <div class="cards">${hole}</div>
       <div class="av">${AV[p.user] ? `<img src="${AV[p.user]}" alt="">` : `<span>${esc((p.name || "?")[0])}</span>`}${turn ? `<svg class="ring" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18"/></svg>` : ""}</div>
       <div class="tag"><b>${esc(p.name)}<i class="lvu" data-u="${p.user}"></i></b><span class="num">${p.leaving && TN ? "הודח" : p.away && TN && s.hand_no ? "מנותק ⏳" : p.allin ? "אול־אין" : fmt(p.stack)}</span></div>
       ${p.last && !hand && s.street !== "done" ? `<div class="lact ${p.last}">${{ fold: "ויתר", check: "צ׳ק", call: "קול", raise: "העלאה", bet: "הימור", allin: "אול־אין" }[p.last] || ""}</div>` : ""}      ${hand ? `<div class="hand">${esc(hand)}</div>` : ""}${won ? `<div class="wonamt num">+${fmt(won)}</div>` : ""}</div>`;
-    if (p.bet > 0) { const b = BETAT(pos); h += `<div class="bet" style="left:${b.x}px;top:${b.y}px"><img src="img/poker/chip_stack.webp" alt=""><b class="num">${chipLabel(p.bet)}</b></div>`; }
+    if (p.bet > 0) { const b = rel(seat) === 3 ? { x: pos.x - 190, y: pos.y + 10 } : BETAT(pos); /* the top seat's chips go beside it, off the pot */ h += `<div class="bet" style="left:${b.x}px;top:${b.y}px"><img src="img/poker/chip_stack.webp" alt=""><b class="num">${chipLabel(p.bet)}</b></div>`; }
   }
   // only touch the DOM when something changed (redrawing 4×/s made avatars and badges flicker)
   if (h === draw.lastSeats) { /* unchanged */ } else { draw.lastSeats = h; $("seats").innerHTML = h; }
