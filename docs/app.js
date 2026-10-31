@@ -160,7 +160,7 @@ boot();
 // lobby art: every game box gets its poster; the text sits on the calm right side (the art leaves it free)
 const TILE = { "blackjack.html": "blackjack", "blackjack.html?table=1": "bj_together", "blackjack.html?mode=lightning": "bj_fisher", "roulette.html": "roulette",
   "roulette.html?mode=lightning": "roulette_lightning", "roulette.html?mode=xxx": "roulette_xxx", "roulette.html?mode=xxx&skin=fish": "roulette_fish", "slots.html": "slots",
-  "slots.html?m=fortune": "fortune", "poker.html": "poker", "jobs.html": "jobs", "fishing.html": "fishing", "fisher90.html": "fisher90", "protein.html": "protein",
+  "slots.html?m=fortune": "fortune", "poker.html": "poker", "poker.html?bots=1": "poker", "jobs.html": "jobs", "fishing.html": "fishing", "fisher90.html": "fisher90", "protein.html": "protein",
   "pachinko.html": "pachinko", "kinneret.html": "kinneret", "wildwest.html": "wildwest", "dragons.html": "dragons", "chicken.html": "chicken" };
 document.querySelectorAll(".games .game[href]").forEach((g) => { const t = TILE[g.getAttribute("href")]; if (t) { g.classList.add("art"); g.style.setProperty("--art", `url(img/tiles/tile_${t}.webp)`); } });
 // what's new: once per release, after the sound question and the guide are out of the way
@@ -230,7 +230,7 @@ async function applyPublic() {
     if (data.soon_open) document.querySelectorAll(".game[data-soon]").forEach((g) => { g.removeAttribute("data-soon"); g.classList.remove("soon"); const t = g.querySelector(".tag"); if (t && /בקרוב/.test(t.textContent)) t.textContent = "חדש ✨"; });
     document.querySelectorAll(".cat.soon").forEach((c) => { if (document.querySelector(`.games .game[data-cat="${c.dataset.c}"]:not(.soon)`)) c.classList.remove("soon"); });
     const map = { "blackjack.html": "blackjack", "blackjack.html?table=1": "blackjack", "blackjack.html?mode=lightning": "lightning_bj", "roulette.html": "roulette", "roulette.html?mode=lightning": "lightning",
-      "roulette.html?mode=xxx": "xxx", "slots.html": "slots", "slots.html?m=fortune": "fortune", "poker.html": "poker", "jobs.html": "jobs" };
+      "roulette.html?mode=xxx": "xxx", "slots.html": "slots", "slots.html?m=fortune": "fortune", "poker.html": "poker", "poker.html?bots=1": "poker", "jobs.html": "jobs" };
     document.querySelectorAll(".games .game[href]").forEach((g) => { const k = map[g.getAttribute("href")]; if (k && data.games && data.games[k] === false) g.remove(); });
     document.querySelectorAll(".cat").forEach((c) => { const n = document.querySelectorAll(`.games .game[data-cat="${c.dataset.c}"]`).length; if (!n) c.hidden = true;
       else if (c.dataset.c !== "jobs") c.querySelector("small").textContent = n === 1 ? "משחק אחד" : `${n} משחקים`; });

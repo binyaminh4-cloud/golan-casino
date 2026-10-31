@@ -4,7 +4,8 @@ const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e12 ? "�
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const PREVIEW = /[?#&]preview/.test(location.href);
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
-const T = new URLSearchParams(location.search).get("t");
+let T = new URLSearchParams(location.search).get("t");
+const BOTS = new URLSearchParams(location.search).has("bots");   // poker against the bots: my own private table
 // seat spots on the 1920x1080 table photo, position 0 = bottom centre (always me when seated)
 const SPOT = [{ x: 1040, y: 905 }, { x: 330, y: 880 }, { x: 330, y: 530 }, { x: 960, y: 395 }, { x: 1590, y: 530 }, { x: 1590, y: 880 }];
 const BETAT = (p) => ({ x: p.x + (960 - p.x) * 0.42, y: p.y + (640 - p.y) * 0.42 });
@@ -49,7 +50,7 @@ function draw() {
   for (let seat = 0; seat < 6; seat++) {
     const p = s.seats[seat], pos = SPOT[rel(seat)], turn = s.to_act === seat && s.street !== "done" && s.street !== "idle";
     if (!p) { h += ME == null && !s.tourney ? `<button class="sit" style="left:${pos.x}px;top:${pos.y}px" data-seat="${seat}">שב כאן</button>` : ""; continue; }
-    if (p.user && AV[p.user] === undefined) avatar(p.user);
+    if (p.bot) AV[p.user] = `img/ch/bot_${p.bot}.webp?v=1`; else if (p.user && AV[p.user] === undefined) avatar(p.user);
     const won = s.result && s.result.won && s.result.won[seat];
     const hole = p.hole ? p.hole.map((c) => card(c, seat === ME ? "big" : "")).join("") : p.in_hand && !p.folded ? card(null) + card(null) : "";
     const hand = s.result && s.result.hands && s.result.hands[seat];
@@ -151,6 +152,7 @@ $("leaveBtn").onclick = async () => { busy = true; await db.rpc("poker_leave", {
 // ---------- boot ----------
 (async function boot() {
   if (!PREVIEW) { const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; } }
+  if (BOTS && !PREVIEW) { const { data, error } = await db.rpc("poker_bot_table"); if (error || !data) { location.href = "./"; return; } T = data.table; }
   if (!T) return pick();
   const ls = document.createElement("script"); ls.src = "landscape.js?v=1"; document.head.appendChild(ls);
   document.body.classList.add("at-table"); $("fit").hidden = false; fit();
