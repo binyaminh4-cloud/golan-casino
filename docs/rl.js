@@ -588,6 +588,7 @@ let nmbRound = -1;
 function noMoreBets() {
   const b = document.createElement("div"); b.className = "nmb"; b.innerHTML = "NO MORE BETS<small>אין עוד הימורים</small>"; document.body.appendChild(b);
   setTimeout(() => b.remove(), 2900);
+  try { if (SFX.fx("dealer_nmb", { vol: 1 })) return; } catch (e) {}   // the dealer's recorded voice; the phone's speech only as a fallback
   try { if (localStorage.getItem("gc_mute") !== "1" && window.speechSynthesis) { const u = new SpeechSynthesisUtterance("No more bets"); u.lang = "en-US"; u.rate = 0.95; speechSynthesis.speak(u); } } catch (e) {}
 }
 function drawClock() {

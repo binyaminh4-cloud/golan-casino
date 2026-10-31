@@ -105,7 +105,7 @@
   // the jobs / bank / challenges pack: S.fx("bus_horn") plays a file from snd/; {loop:true} returns a stop() function
   const PACK = ["bank_deposit", "bank_vault", "bank_withdraw", "bus_baa", "bus_brake", "bus_bump", "bus_door", "bus_engine", "bus_fare", "bus_horn", "bus_moo",
     "ch_lose", "ch_wheel", "ch_win", "dp_check", "dp_fold", "dp_sweep", "fiber_ok", "fiber_plug", "fiber_splice", "fiber_tick", "fiber_wrong",
-    "fish_cast", "fish_catch", "fish_gold", "fish_miss", "fish_reel", "levelup"];
+    "fish_cast", "fish_catch", "fish_gold", "fish_miss", "fish_reel", "levelup", "dealer_nmb"];
   addEventListener("pointerdown", () => PACK.forEach(load), { once: true, capture: true });
   S.fx = (name, { vol = 0.8, dur = null, loop = false } = {}) => { load(name);
     if (!loop) return play(name, { vol, dur });
