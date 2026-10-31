@@ -34,3 +34,20 @@ SQL tests in `test/*.sql` (run against a local Postgres with `test/supabase_stub
 - Lobby: `docs/index.html`, `app.js`, `lobby-ui.js`, `lobby.css` · Games: `roulette.html`/`rl.js`, `blackjack.html`/`bj2d.js`, `poker.html`/`pk.js`,
   `dp.html`/`dp.js` (poker vs dealer), slots (`slots.html`, `dragons`, `wildwest`, `kinneret`, `pachinko`), `chicken`, `fishing`, `protein`, `fisher90`
 - Jobs: `jobs.html`/`jobs.js`, `bus`, `fishjob`, `fiber` · Bank & loans: `bank.html` · Challenges: `challenges.html`/`ch.js` · Admin: `admin.html`
+
+## Full workflow for an agent that also controls the owner's computer
+1. `git pull` on `main`. Read this file. Make the change; keep the style of the surrounding code.
+2. Run the relevant tests in `test/` if a local Postgres is available; otherwise re-read your SQL carefully.
+3. Bump `?v=` for every changed JS/CSS file in every page that loads it, and update `docs/version.json`.
+4. Commit with a clear message and push to `main` (or open a PR and merge it, if the owner asked for PRs).
+5. **If you added a migration:** open the Supabase dashboard in the owner's browser (he is already signed in) →
+   project `golan-casino` (ref `mmoutbadlczgatdgcpvp`) → **SQL Editor** → new query → paste the **whole** new migration file → **Run**.
+   If the editor asks to confirm a destructive query, confirm only if the migration is yours and you understand why.
+   Then verify with a small query, e.g. `select pg_get_functiondef('function_name'::regproc);` or a `select` on the new table.
+   Migrations run in number order; run every new one you created, oldest first. Never edit or re-run an old migration.
+6. Wait for the GitHub Pages deploy: `gh run list -L 1` until the run for your commit is `completed` / `success`
+   (re-run with `gh run rerun <id>` if it failed for a network reason).
+7. Open https://binyaminh4-cloud.github.io/golan-casino/ (or the changed page) and check the change looks right.
+8. Tell the owner, in Hebrew, in a few lines: what changed, where to see it, and anything you could not check.
+
+Never type passwords, never change Supabase auth/security settings, never delete data or tables unless the owner asked for exactly that.
