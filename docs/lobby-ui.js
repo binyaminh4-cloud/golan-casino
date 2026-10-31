@@ -75,7 +75,7 @@ function openFriends() {
     rail.scrollTo({ left: i * rail.clientWidth, behavior: smooth ? "smooth" : "auto" }); };
   box.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); const a = e.target.closest(".ar"); if (a) set(i + +a.dataset.d, true); else if (e.target.closest(".go")) go(); });
   const go = () => { location.href = `poker.html?bots=1&bb=${BB[i]}`; };
-  card.addEventListener("click", (e) => { if (e.defaultPrevented) return; e.preventDefault(); go(); });   // the card itself also enters with the chosen blinds
+  card.addEventListener("click", (e) => e.preventDefault());   // only the "sit" button enters; a stray touch on the card does nothing
   let t = null; rail.addEventListener("scroll", () => { clearTimeout(t); t = setTimeout(() => { const w = rail.clientWidth || 1; const k = Math.round(rail.scrollLeft / w); if (k !== i && k < BB.length) { i = k; try { localStorage.setItem("gc_botbb", BB[i]); } catch (e) {} } }, 120); });
   ["pointerdown", "touchstart"].forEach((ev) => rail.addEventListener(ev, (e) => e.stopPropagation(), { passive: true }));
   requestAnimationFrame(() => set(i, false));
