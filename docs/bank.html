@@ -104,6 +104,6 @@ $("depBtn").onclick = () => move("deposit"); $("wdBtn").onclick = () => move("wi
   const { data } = await db.rpc("bank_state"); if (data) S = data; draw(); GC_LOADER.done(); try { GC_GUIDE.init({ game: "bank", db, mount: document.querySelector(".top"), steps: GC_STEPS.bank() }); } catch (e) {}
 })();
 </script>
-<script src="chat.js?v=19"></script>
+<script src="chat.js?v=20"></script>
 </body>
 </html>
