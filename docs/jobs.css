@@ -92,3 +92,5 @@ h1{font:700 30px 'Frank Ruhl Libre',serif;color:var(--champ);margin:6px 0 4px;te
 .job .lvl .st{font-size:12px}.job .lvl b{font-size:14px}.job .lvl .ds{display:none}
 .job .lvl.l4 .ds{display:block;font-size:10px;color:#ffb3b3;line-height:1.2}
 .job .lvl.l4{border-color:#E5484D;background:linear-gradient(180deg,rgba(120,20,20,.55),rgba(30,8,8,.9))}
+.satnote{display:block;margin:2px 0 6px;font:600 12px Heebo;color:#e8c47a}.satnote b{color:#ffe27a}
+.satbar{margin:6px auto 10px;max-width:640px;text-align:center;background:linear-gradient(90deg,#3a2508,#5a3a0c,#3a2508);border:1px solid #F1D69A;border-radius:12px;padding:8px 12px;font:600 14px Heebo;color:#F5ECDD}.satbar b{color:#ffe27a}

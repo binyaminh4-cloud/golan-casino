@@ -16,12 +16,24 @@ let balance = 0, earned = 0, job = null, tick = null, sending = false;
 function showBal() { $("bal").textContent = fmt(balance); $("earned").textContent = earned ? `הרווחת היום ${fmt(earned)}` : ""; }
 
 // ---------- pick screen ----------
-document.querySelectorAll(".job[data-game]").forEach((card) => {
-  const g = card.dataset.game;
+// Shabbat: every job pays +500% (×6) until motzaei Shabbat, Jerusalem time (the server decides; this only shows it)
+let SAT = null, satT = null;
+function drawJobs() { document.querySelectorAll(".job[data-game]").forEach((card) => {
+  const g = card.dataset.game, M = SAT ? 6 : 1;
+  if (!card.querySelector(".satnote")) card.querySelector("p").insertAdjacentHTML("afterend", '<small class="satnote">🕯️ תוספת שבת: <b>+500%</b> על כל התשלומים</small>');
   card.querySelector(".levels").innerHTML = PAY[g].map((_, i) => i).map((i) =>
-    `<button class="lvl l${i + 1}" data-l="${i + 1}"><span class="st">${LVL[i]}</span>${g !== "dealer" ? (LVL_TXT[g][i] ? `<span class="ds">${LVL_TXT[g][i]}</span>` : "") : `<span class="ds">${LVL_TXT[g][i]}</span>`}<b class="num">${fmt(PAY[g][i])}</b></button>`).join("");
+    `<button class="lvl l${i + 1}" data-l="${i + 1}"><span class="st">${LVL[i]}</span>${g !== "dealer" ? (LVL_TXT[g][i] ? `<span class="ds">${LVL_TXT[g][i]}</span>` : "") : `<span class="ds">${LVL_TXT[g][i]}</span>`}<b class="num">${fmt(PAY[g][i] * M)}</b></button>`).join("");
   card.querySelectorAll(".lvl").forEach((b) => b.onclick = () => g === "driver" ? (location.href = `bus.html?l=${b.dataset.l}`) : g === "fisher" ? (location.href = `fishjob.html?l=${b.dataset.l}`) : g === "fiber" ? (location.href = `fiber.html?l=${b.dataset.l}`) : start(g, +b.dataset.l));
-});
+}); }
+function satBar() { let el = document.getElementById("satBar"); if (!SAT) { if (el) el.remove(); return; }
+  if (!el) { el = document.createElement("div"); el.id = "satBar"; el.className = "satbar"; document.querySelector(".sub").after(el); }
+  const left = Math.max(0, new Date(SAT) - Date.now()), h = Math.floor(left / 36e5), m = Math.floor(left / 6e4) % 60, sec = Math.floor(left / 1e3) % 60;
+  el.innerHTML = `🕯️ <b>שבת שלום!</b> כל העבודות משלמות <b>+500%</b> · עד מוצאי שבת: <b class="num">${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}</b>`;
+  if (left <= 0) { SAT = null; drawJobs(); satBar(); } }
+drawJobs();
+async function loadSat() { if (PREVIEW) { SAT = /sat/.test(location.search) ? new Date(Date.now() + 3 * 36e5).toISOString() : null; } else { try { const { data } = await db.rpc("gc_shabbat_until"); SAT = data || null; } catch (e) {} }
+  drawJobs(); satBar(); clearInterval(satT); if (SAT) satT = setInterval(satBar, 1000); }
+loadSat();
 
 // ---------- server ----------
 async function rpc(name, args) {
