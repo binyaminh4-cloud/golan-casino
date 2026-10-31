@@ -33,3 +33,11 @@ do $$ declare tb uuid; begin
   perform t_assert((select min(stack) from poker_seats where table_id = tb) = 200000000000000, 'bots sit with 100 big blinds');
 end $$;
 \echo BLINDS TESTS DONE
+do $$ declare tb uuid; t1 uuid := (select id from poker_tables where level = 1); begin
+  perform set_config('request.jwt.sub', '00000000-0000-0000-0000-00000000000a', false);
+  perform poker_sit(t1, 0, 1000);
+  tb := (poker_bot_table(20000)->>'table')::uuid;
+  perform poker_sit(tb, 0, 400000);
+  perform t_assert(not exists (select 1 from poker_seats where table_id = t1 and user_id = '00000000-0000-0000-0000-00000000000a'), 'stood up from the forgotten table');
+end $$;
+\echo STANDUP TESTS DONE
