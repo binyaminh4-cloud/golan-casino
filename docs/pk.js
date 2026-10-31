@@ -157,7 +157,7 @@ $("leaveBtn").onclick = async () => { busy = true; await db.rpc("poker_leave", {
     const { data, error } = shared ? await db.rpc("poker_bot_shared", { p_bb: +Q.get("bb") || 20000 }) : await db.rpc("poker_bot_table", { p_bb: +Q.get("bb") || null }); if (error || !data) { location.href = "./"; return; } T = data.table; }
   if (!T) return pick();
   const ls = document.createElement("script"); ls.src = "landscape.js?v=1"; document.head.appendChild(ls);
-  document.body.classList.add("at-table"); $("fit").hidden = false; fit();
+  document.body.classList.add("at-table"); $("fit").hidden = false; fit(); scrollTo(0, 0); setTimeout(() => { scrollTo(0, 0); fit(); }, 400);
   if (PREVIEW) {
     S = { table: { name: "חבר׳ה", sb: 50, bb: 100, min: 5000, max: 20000 }, hand_no: 3, street: "flop", board: ["AH", "7D", "KS"], dealer: 2, to_act: 0, me: 0, current_bet: 400, min_raise: 300, pot: 1750,
       deadline: new Date(Date.now() + 14000).toISOString(), now: new Date().toISOString(), balance: 84000,

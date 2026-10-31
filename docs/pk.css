@@ -65,3 +65,4 @@ dialog h2{font:700 22px 'Frank Ruhl Libre',serif;color:var(--champ);margin:0 0 6
 .tnend{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:rgba(0,0,0,.7)}
 .tnend .box{width:min(360px,90vw);background:#17120F;border:1px solid #C5A05A;border-radius:14px;padding:22px;text-align:center;display:grid;gap:12px}
 .tnend .t{font:700 24px 'Frank Ruhl Libre',serif;color:#F1D69A}.tnend .btn{text-decoration:none;display:block;padding:12px}
+body.at-table .top{position:fixed;top:0;left:0;right:0}
