@@ -479,3 +479,11 @@ body:not(.gpage) #lobbyView .lb li .w{grid-column:4;grid-row:1/3;font:800 16px I
 #frSheet .fr-list li .odot{justify-self:center;line-height:1}
 #frSheet .fr-list li .you-t,#frSheet .fr-list li .seen{justify-self:center}
 #lobbyView .lb li .odot{display:inline-block;margin-inline-start:6px}
+/* poker against the bots: blinds picker on the card */
+#lobbyView .game .blsel{position:relative;z-index:2;display:flex;align-items:center;gap:6px;margin-top:8px;direction:ltr}
+#lobbyView .game .blsel .rail{flex:1;min-width:0;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border:1px solid #C5A05A;border-radius:12px;background:rgba(8,6,4,.78)}
+#lobbyView .game .blsel .rail::-webkit-scrollbar{display:none}
+#lobbyView .game .blsel .it{direction:rtl;flex:0 0 100%;scroll-snap-align:center;display:grid;justify-items:center;padding:6px 4px;text-align:center}
+#lobbyView .game .blsel .it b{font:800 17px Inter,Heebo;color:#ffe27a;direction:ltr}
+#lobbyView .game .blsel .it small{font:600 11px Heebo;color:#e8dcc4}
+#lobbyView .game .blsel .ar{flex:none;width:34px;height:34px;border-radius:50%;border:1px solid #C5A05A;background:rgba(8,6,4,.8);color:#F1D69A;font:800 22px/1 Heebo;cursor:pointer;padding:0}

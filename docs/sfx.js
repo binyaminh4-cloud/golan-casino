@@ -91,6 +91,8 @@
   S.whoosh = () => play("whoosh", { vol: 0.5 });
   S.button = () => play("button", { vol: 0.5 });
   S.win = (big) => play(big ? "win_medium" : "win_small", { vol: big ? 0.8 : 0.7 }) || synth.win(big);
+  // slot machines: every win gets a short clink of coins; only big wins get the fanfare
+  S.slotWin = (big) => big ? S.win(true) : (play("coins_count", { vol: 0.5, dur: 0.7 }) || synth.win(false));
   S.bigWin = () => { S.musicDuck(true); setTimeout(() => S.musicDuck(false), 5200); return play("win_big", { vol: 0.85 }) || synth.win(true); };
   S.ckSquawk = () => play("ck_squawk", { vol: 0.85, dur: 1.3 });
   S.ckImpact = () => play("ck_impact", { vol: 1, dur: 1.6 }) || synth.drop();

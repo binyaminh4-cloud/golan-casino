@@ -76,7 +76,7 @@ main{height:100dvh;padding-top:4px!important}
   </div>
   <img class="hero" id="bin" src="img/ww/binyamin_idle.webp" alt="בנימין">
 </main>
-<script src="sfx.js?v=31"></script>
+<script src="sfx.js?v=32"></script>
 <script src="guide.js?v=43"></script>
 <script src="vendor/ww_engine.js?v=1"></script>
 <script>
@@ -104,7 +104,7 @@ async function duel(d) { const o = document.createElement("div"); o.className = 
   for (let r = 0; r < 5; r++) { C(d.col, r).firstChild.src = "img/ww/horse_wild_active.webp"; C(d.col, r).classList.add("wild"); }
   const m = document.createElement("span"); m.className = "cm"; m.textContent = "×" + d.m; C(d.col, 0).appendChild(m); }
 async function showWins(st, stake, acc) { for (const w of st.wins) { const L = E.LINES[w.line]; for (let c = 0; c < w.n; c++) C(c, L[c]).classList.add("win"); }
-  if (st.win > 0) { acc.v += st.win; $("win").textContent = fmt(Math.floor(stake * acc.v)); try { SFX.win(st.win > 5); } catch (e) {}
+  if (st.win > 0) { acc.v += st.win; $("win").textContent = fmt(Math.floor(stake * acc.v)); try { SFX.slotWin(st.win > 5); } catch (e) {}
     const w = Math.floor(stake * st.win); toast(`+${fmt(w)}<small>${st.wins.length > 1 ? st.wins.length + " קווים" : "קו זוכה"}${inBonus ? " · סה״כ בבונוס " + fmt(Math.floor(stake * acc.v)) : ""}</small>`, FAST ? 800 : 1500, st.win >= 5);
     await wait(inBonus ? 1700 : 1500); cells.forEach((d) => d.classList.remove("win")); } }
 function banner(kind, txt) { const b = document.createElement("div"); b.className = "ban"; b.innerHTML = `<img src="img/ww/ui_bonus_${kind}.webp" alt=""><p>${txt}</p>`; document.body.appendChild(b); setTimeout(() => b.remove(), FAST ? 1200 : 2400); }

@@ -153,7 +153,7 @@ $("spinBtn").onclick = async () => {
   if (res.payout > 0) {
     const big = res.mult >= 50;
     $("winbar").innerHTML = (big ? "💰 זכייה גדולה! " : "זכית ") + `<b class="num">${fmt(res.payout)}</b>` + (net < 0 ? ` <small>(על הימור של ${fmt(res.total)})</small>` : "");
-    $("winbar").className = "winbar win" + (big ? " big" : ""); SFX.win(big);
+    $("winbar").className = "winbar win" + (big ? " big" : ""); SFX.slotWin(big);
   } else { $("winbar").textContent = FREE_LEFT > 0 ? "" : "לא הפעם"; if (!res.free_spin) SFX.lose(); }
   busy = false; $("spinBtn").disabled = false;
   if (FO && FREE_LEFT > 0 && !res.free) setTimeout(() => $("spinBtn").click(), 1200);   // free spins play themselves

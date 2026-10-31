@@ -101,7 +101,7 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(14px) bright
   <p>כדור יכול להיות סכום או ג׳קפוט: MINI, MINOR, MAJOR. ממלאים את כל 15 המשבצות? <b>GRAND</b> פי 1,000.</p>
   <button id="go">כניסה לארמון 🐉</button><button class="back" onclick="location.href='./'">חזרה ללובי</button>
 </div></div></div>
-<script src="sfx.js?v=31"></script>
+<script src="sfx.js?v=32"></script>
 <script src="guide.js?v=43"></script>
 <script src="vendor/dg_engine.js?v=1"></script>
 <script>
@@ -156,7 +156,7 @@ async function replay(seed, buy) {
     if (st.t === "spin") {
       await spinTo(st.g, st.o);
       if (st.win > 0) { for (const w of st.wins) { const L = E.LINES[w.line]; for (let c = 0; c < w.n; c++) cells[c][L[c]].classList.add("win"); }
-        won += st.win; S("win", st.win >= 5); toast(`+${fmt(st.win * bet)}<small>${st.wins.length > 1 ? st.wins.length + " קווים" : "קו זוכה"}</small>`, auto ? 900 : 1400, st.win >= 10);
+        won += st.win; S("slotWin", st.win >= 5); toast(`+${fmt(st.win * bet)}<small>${st.wins.length > 1 ? st.wins.length + " קווים" : "קו זוכה"}</small>`, auto ? 900 : 1400, st.win >= 10);
         await countWin(won * bet); await sleep(auto ? 700 : 1200); cells.flat().forEach((d) => d.classList.remove("win")); }
     } else if (st.t === "hw_start") {
       // slow-motion entry: the orbs that triggered it glow, then the Hold & Win explanation

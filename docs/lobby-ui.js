@@ -58,3 +58,23 @@ function openFriends() {
   o.querySelector(".fr-list").innerHTML = src ? src.outerHTML : '<p class="fr-empty">טוען…</p>';
   o.classList.add("on");
 }
+
+// poker against the bots: pick the blinds right on the game card (swipe or ◀ ▶, one level at a time), then tap to sit down
+(function botBlinds() {
+  const card = document.querySelector('#gamesBox .game[href^="poker.html?bots"]'); if (!card) return;
+  const BB = [2e4, 5e4, 1e5, 2.5e5, 5e5, 1e6, 2.5e6, 5e6, 1e7, 2.5e7, 5e7, 1e8, 2.5e8, 5e8, 1e9, 2.5e9, 5e9, 1e10, 2.5e10, 5e10, 1e11, 2.5e11, 5e11, 1e12, 2e12];
+  const f = (n) => "₪" + (n >= 1e12 ? +(n / 1e12).toFixed(2) + "T" : n >= 1e9 ? +(n / 1e9).toFixed(2) + "B" : n >= 1e6 ? +(n / 1e6).toFixed(2) + "M" : +(n / 1e3).toFixed(1) + "K");
+  let i = 0; try { i = Math.max(0, BB.indexOf(+localStorage.getItem("gc_botbb"))); } catch (e) {}
+  const box = document.createElement("div"); box.className = "blsel";
+  box.innerHTML = `<button type="button" class="ar" data-d="-1" aria-label="בליינד קטן יותר">‹</button><div class="rail">${BB.map((b) =>
+    `<div class="it"><small>בליינדים</small><b>${f(b / 2)} / ${f(b)}</b><small>כניסה ${f(b * 20)}–${f(b * 100)}</small></div>`).join("")}</div><button type="button" class="ar" data-d="1" aria-label="בליינד גדול יותר">›</button>`;
+  card.appendChild(box);
+  const rail = box.querySelector(".rail");
+  const set = (k, smooth) => { i = Math.max(0, Math.min(BB.length - 1, k)); card.setAttribute("href", `poker.html?bots=1&bb=${BB[i]}`);
+    try { localStorage.setItem("gc_botbb", BB[i]); } catch (e) {}
+    rail.scrollTo({ left: i * rail.clientWidth, behavior: smooth ? "smooth" : "auto" }); };
+  box.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); const a = e.target.closest(".ar"); if (a) set(i + +a.dataset.d, true); else location.href = card.getAttribute("href"); });
+  let t = null; rail.addEventListener("scroll", () => { clearTimeout(t); t = setTimeout(() => { const w = rail.clientWidth || 1; const k = Math.round(rail.scrollLeft / w); if (k !== i && k < BB.length) { i = k; card.setAttribute("href", `poker.html?bots=1&bb=${BB[i]}`); try { localStorage.setItem("gc_botbb", BB[i]); } catch (e) {} } }, 120); });
+  ["pointerdown", "touchstart"].forEach((ev) => rail.addEventListener(ev, (e) => e.stopPropagation(), { passive: true }));
+  requestAnimationFrame(() => set(i, false));
+})();

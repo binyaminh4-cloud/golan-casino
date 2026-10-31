@@ -85,7 +85,7 @@ main{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;padding:4p
     <div id="err"></div>
   </div></div>
 </main>
-<script src="sfx.js?v=31"></script>
+<script src="sfx.js?v=32"></script>
 <script src="guide.js?v=43"></script>
 <script src="vendor/kin_engine.js?v=1"></script>
 <script>
@@ -121,7 +121,7 @@ async function replay(seed, stake, buy) {
   for (const s of r.steps) {
     if (s.t === "board") { paint(s.b, s.m, true); meter = s.meter; next = s.next; friends(meter, next); await wait(500); }
     else if (s.t === "win") { for (const p of s.parts) for (const i of p.cells) cells[i].classList.add("win");
-      roundWin += s.pay; $("win").textContent = fmt(Math.floor(stake * roundWin)); try { SFX.win(false); } catch (e) {}
+      roundWin += s.pay; $("win").textContent = fmt(Math.floor(stake * roundWin)); try { SFX.slotWin(false); } catch (e) {}
       if (inFs || s.pay >= 2) toast(`+${fmt(Math.floor(stake * s.pay))}${inFs ? " · סה״כ " + fmt(Math.floor(stake * roundWin)) : ""}`, 1300);
       await wait(650); for (const p of s.parts) for (const i of p.cells) cells[i].classList.add("gone"); paintM(s.m); meter = s.meter % 3; friends(Math.min(3, s.meter), next); await wait(280); }
     else if (s.t === "drop") { paint(s.b, null, true); await wait(380); }
