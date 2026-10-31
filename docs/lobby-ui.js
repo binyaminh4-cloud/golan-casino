@@ -60,26 +60,28 @@ function openFriends() {
 }
 
 // poker against the bots: pick the blinds right on the game card (swipe or ◀ ▶, one level at a time), then tap to sit down
-(function botBlinds() {
-  const card = document.querySelector('#gamesBox .game[href^="poker.html?bots"]'); if (!card) return;
+function blindPicker(card, KEY, withMode, url) {
+  if (!card) return;
   const BB = [2e4, 5e4, 1e5, 2.5e5, 5e5, 1e6, 2.5e6, 5e6, 1e7, 2.5e7, 5e7, 1e8, 2.5e8, 5e8, 1e9, 2.5e9, 5e9, 1e10, 2.5e10, 5e10, 1e11, 2.5e11, 5e11, 1e12, 2e12];
   const f = (n) => "₪" + (n >= 1e12 ? +(n / 1e12).toFixed(2) + "T" : n >= 1e9 ? +(n / 1e9).toFixed(2) + "B" : n >= 1e6 ? +(n / 1e6).toFixed(2) + "M" : +(n / 1e3).toFixed(1) + "K");
-  let i = 0; try { i = Math.max(0, BB.indexOf(+localStorage.getItem("gc_botbb"))); } catch (e) {}
+  let i = 0; try { i = Math.max(0, BB.indexOf(+localStorage.getItem(KEY))); } catch (e) {}
   const box = document.createElement("div"); box.className = "blsel";
   let mode = "2"; try { mode = localStorage.getItem("gc_botmode") || "2"; } catch (e) {}
-  box.innerHTML = `<div class="mode" dir="rtl"><button type="button" data-m="2">👥 החבר׳ה נגד הבוטים</button><button type="button" data-m="1">🙋 לבד נגד הבוטים</button></div><button type="button" class="ar" data-d="-1" aria-label="בליינד קטן יותר">‹</button><div class="rail">${BB.map((b) =>
+  box.innerHTML = `${withMode ? '<div class="mode" dir="rtl"><button type="button" data-m="2">👥 החבר׳ה נגד הבוטים</button><button type="button" data-m="1">🙋 לבד נגד הבוטים</button></div>' : ""}<button type="button" class="ar" data-d="-1" aria-label="בליינד קטן יותר">‹</button><div class="rail">${BB.map((b) =>
     `<div class="it"><small>בליינדים</small><b>${f(b / 2)} / ${f(b)}</b><small>כניסה ${f(b * 20)}–${f(b * 100)}</small></div>`).join("")}</div><button type="button" class="ar" data-d="1" aria-label="בליינד גדול יותר">›</button><button type="button" class="go">שב לשולחן ♠</button>`;
   card.appendChild(box);
   const rail = box.querySelector(".rail");
   const set = (k, smooth) => { i = Math.max(0, Math.min(BB.length - 1, k)); 
-    try { localStorage.setItem("gc_botbb", BB[i]); } catch (e) {}
+    try { localStorage.setItem(KEY, BB[i]); } catch (e) {}
     rail.scrollTo({ left: i * rail.clientWidth, behavior: smooth ? "smooth" : "auto" }); };
   box.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); const a = e.target.closest(".ar"); const m = e.target.closest("[data-m]"); if (m) { mode = m.dataset.m; drawMode(); try { localStorage.setItem("gc_botmode", mode); } catch (er) {} }
     else if (a) set(i + +a.dataset.d, true); else if (e.target.closest(".go")) go(); });
   const drawMode = () => box.querySelectorAll("[data-m]").forEach((b) => b.classList.toggle("on", b.dataset.m === mode)); drawMode();
-  const go = () => { location.href = `poker.html?bots=${mode}&bb=${BB[i]}`; };
+  const go = () => { location.href = url(mode, BB[i]); };
   card.addEventListener("click", (e) => e.preventDefault());   // only the "sit" button enters; a stray touch on the card does nothing
-  let t = null; rail.addEventListener("scroll", () => { clearTimeout(t); t = setTimeout(() => { const w = rail.clientWidth || 1; const k = Math.round(rail.scrollLeft / w); if (k !== i && k < BB.length) { i = k; try { localStorage.setItem("gc_botbb", BB[i]); } catch (e) {} } }, 120); });
+  let t = null; rail.addEventListener("scroll", () => { clearTimeout(t); t = setTimeout(() => { const w = rail.clientWidth || 1; const k = Math.round(rail.scrollLeft / w); if (k !== i && k < BB.length) { i = k; try { localStorage.setItem(KEY, BB[i]); } catch (e) {} } }, 120); });
   ["pointerdown", "touchstart"].forEach((ev) => rail.addEventListener(ev, (e) => e.stopPropagation(), { passive: true }));
   requestAnimationFrame(() => set(i, false));
-})();
+}
+blindPicker(document.querySelector('#gamesBox .game[href^="poker.html?bots"]'), "gc_botbb", true, (m, bb) => `poker.html?bots=${m}&bb=${bb}`);
+blindPicker(document.querySelector('#gamesBox .game[href="poker.html"]'), "gc_frbb", false, (m, bb) => `poker.html?fr=1&bb=${bb}`);   // the friends' table, same blinds

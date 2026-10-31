@@ -2,7 +2,7 @@
 -- poker against the bots
 do $$ declare tb uuid; i int; st jsonb; begin
   perform set_config('request.jwt.sub', '00000000-0000-0000-0000-00000000000a', false);
-  update wallets set balance = 10000000 where user_id = '00000000-0000-0000-0000-00000000000a';
+  update wallets set balance = 100000000 where user_id = '00000000-0000-0000-0000-00000000000a';
   tb := (poker_bot_table(20000)->>'table')::uuid;
   perform t_assert((poker_bot_table(20000)->>'table')::uuid = tb, 'same table on the second call');
   perform t_assert((select count(*) from poker_seats where table_id = tb) = 3, '3 bots seated');
@@ -53,3 +53,14 @@ do $$ declare t1 uuid; t2 uuid; begin
   perform t_assert((select count(*) from poker_seats where table_id = t1) = 5, '3 bots + 2 players');
 end $$;
 \echo SHARED TESTS DONE
+delete from poker_seats where user_id in ('00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-00000000000b');
+do $$ declare t1 uuid; t2 uuid; begin
+  perform set_config('request.jwt.sub', '00000000-0000-0000-0000-00000000000a', false);
+  update wallets set balance = 100000000 where user_id = '00000000-0000-0000-0000-00000000000a';
+  t1 := (poker_friends_table(1000000)->>'table')::uuid; perform poker_sit(t1, 0, 20000000);
+  perform set_config('request.jwt.sub', '00000000-0000-0000-0000-00000000000b', false);
+  update wallets set balance = 100000000 where user_id = '00000000-0000-0000-0000-00000000000b';
+  t2 := (poker_friends_table(1000000)->>'table')::uuid; perform poker_sit(t2, 3, 20000000);
+  perform t_assert(t1 = t2 and (select big_blind from poker_tables where id = t1) = 1000000, 'friends meet at the 1M table');
+end $$;
+\echo FRIENDS TESTS DONE
