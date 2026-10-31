@@ -488,3 +488,6 @@ body:not(.gpage) #lobbyView .lb li .w{grid-column:4;grid-row:1/3;font:800 16px I
 #lobbyView .game .blsel .it b{font:800 17px Inter,Heebo;color:#ffe27a;direction:ltr}
 #lobbyView .game .blsel .it small{font:600 11px Heebo;color:#e8dcc4}
 #lobbyView .game .blsel .ar{flex:none;width:34px;height:34px;border-radius:50%;border:1px solid #C5A05A;background:rgba(8,6,4,.8);color:#F1D69A;font:800 22px/1 Heebo;cursor:pointer;padding:0}
+#lobbyView .game .blsel .mode{flex:0 0 100%;display:flex;border:1px solid #C5A05A;border-radius:99px;overflow:hidden;background:rgba(8,6,4,.8)}
+#lobbyView .game .blsel .mode button{flex:1;padding:7px 4px;border:0;background:transparent;color:#e8dcc4;font:700 13px Heebo;cursor:pointer}
+#lobbyView .game .blsel .mode button.on{background:linear-gradient(#F1D69A,#C5A05A);color:#1b0f06}

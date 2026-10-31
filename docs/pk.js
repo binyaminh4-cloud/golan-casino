@@ -152,7 +152,8 @@ $("leaveBtn").onclick = async () => { busy = true; await db.rpc("poker_leave", {
 // ---------- boot ----------
 (async function boot() {
   if (!PREVIEW) { const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; } }
-  if (BOTS && !PREVIEW) { const { data, error } = await db.rpc("poker_bot_table", { p_bb: +new URLSearchParams(location.search).get("bb") || null }); if (error || !data) { location.href = "./"; return; } T = data.table; }
+  if (BOTS && !PREVIEW) { const Q = new URLSearchParams(location.search), shared = Q.get("bots") === "2";
+    const { data, error } = shared ? await db.rpc("poker_bot_shared", { p_bb: +Q.get("bb") || 20000 }) : await db.rpc("poker_bot_table", { p_bb: +Q.get("bb") || null }); if (error || !data) { location.href = "./"; return; } T = data.table; }
   if (!T) return pick();
   const ls = document.createElement("script"); ls.src = "landscape.js?v=1"; document.head.appendChild(ls);
   document.body.classList.add("at-table"); $("fit").hidden = false; fit();

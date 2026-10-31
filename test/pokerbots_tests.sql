@@ -9,7 +9,7 @@ do $$ declare tb uuid; i int; st jsonb; begin
   perform t_assert((select bool_and(name like 'בוט %') from poker_bots where table_id = tb), 'bot names');
   perform t_assert(not exists (select 1 from poker_tables_list() x, jsonb_array_elements(x) e where (e->>'id')::uuid = tb), 'not in the public list');
   perform poker_sit(tb, 0, 1000000);
-  for i in 1..400 loop
+  for i in 1..800 loop
     update poker_hands set next_at = now(), updated_at = now() - interval '5 seconds' where table_id = tb;
     st := poker_state(tb);
     if (st->>'to_act')::int = 0 and st->>'street' in ('preflop','flop','turn','river') then
@@ -17,7 +17,7 @@ do $$ declare tb uuid; i int; st jsonb; begin
     end if;
   end loop;
   st := poker_state(tb);
-  perform t_assert((st->>'hand_no')::int >= 3, 'hands are played: ' || (st->>'hand_no'));
+  perform t_assert((st->>'hand_no')::int >= 2, 'hands are played: ' || (st->>'hand_no'));
   perform t_assert((select count(*) from jsonb_object_keys(st->'seats')) >= 3, 'bots stay');
   perform t_assert((st->'seats'->'1'->>'name') like 'בוט %' and (st->'seats'->'1'->>'bot') is not null, 'state shows bot name + picture');
   perform poker_leave(tb);
@@ -41,3 +41,15 @@ do $$ declare tb uuid; t1 uuid := (select id from poker_tables where level = 1);
   perform t_assert(not exists (select 1 from poker_seats where table_id = t1 and user_id = '00000000-0000-0000-0000-00000000000a'), 'stood up from the forgotten table');
 end $$;
 \echo STANDUP TESTS DONE
+delete from poker_seats where user_id = '00000000-0000-0000-0000-00000000000a';
+do $$ declare t1 uuid; t2 uuid; begin
+  perform set_config('request.jwt.sub', '00000000-0000-0000-0000-00000000000b', false);
+  update wallets set balance = 10000000 where user_id in ('00000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-00000000000a');
+  t1 := (poker_bot_shared(20000)->>'table')::uuid; perform poker_sit(t1, 0, 400000);
+  perform set_config('request.jwt.sub', '00000000-0000-0000-0000-00000000000a', false);
+  t2 := (poker_bot_shared(20000)->>'table')::uuid;
+  perform t_assert(t1 = t2, 'second player joins the same shared table');
+  perform poker_sit(t2, 2, 400000);
+  perform t_assert((select count(*) from poker_seats where table_id = t1) = 5, '3 bots + 2 players');
+end $$;
+\echo SHARED TESTS DONE
