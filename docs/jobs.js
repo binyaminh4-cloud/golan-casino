@@ -3,11 +3,12 @@ const $ = (id) => document.getElementById(id);
 const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e12 ? "₪" + +(n / 1e12).toFixed(2) + "T" : a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };   // ₪1.58M · ₪2.4B · ₪1T
 const PREVIEW = /[?#&]preview/.test(location.href);
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
-const PAY = { fiber: [750000, 1200000, 1650000, 18000000], fisher: [1000000, 1500000, 2000000, 12500000], driver: [560000, 840000, 1120000, 14000000], dealer: [170000, 250000, 330000] };
+const PAY = { fiber: [750000, 1200000, 1650000, 18000000], fisher: [1000000, 1500000, 2000000, 12500000], tamer: [1000000, 1500000, 2000000, 12500000], driver: [560000, 840000, 1120000, 14000000], dealer: [170000, 250000, 330000] };
 const LVL = ["⭐ קל", "⭐⭐ בינוני", "⭐⭐⭐ קשה", "🔥 אקסטרים"];
 const LVL_TXT = {
   driver: ["", "", "", "פספוס תחנה = פסילה"],
   fisher: ["", "", "", "5 דגי זהב מתוך 10"],
+  tamer: ["", "", "", "5 כדורים נדירים מתוך 10"],
   fiber: ["", "", "", "24 סיבים עם פסים"],
   dealer: ["4 ידיים של 2 קלפים, 15 שניות", "5 ידיים של 3–4 קלפים, 30 שניות", "6 ידיים ארוכות, הרבה אסים, 35 שניות"],
 };
@@ -23,7 +24,7 @@ function drawJobs() { document.querySelectorAll(".job[data-game]").forEach((card
   if (!card.querySelector(".satnote")) card.querySelector("p").insertAdjacentHTML("afterend", '<small class="satnote">🕯️ תוספת שבת: <b>+500%</b> על כל התשלומים</small>');
   card.querySelector(".levels").innerHTML = PAY[g].map((_, i) => i).map((i) =>
     `<button class="lvl l${i + 1}" data-l="${i + 1}"><span class="st">${LVL[i]}</span>${g !== "dealer" ? (LVL_TXT[g][i] ? `<span class="ds">${LVL_TXT[g][i]}</span>` : "") : `<span class="ds">${LVL_TXT[g][i]}</span>`}<b class="num">${fmt(PAY[g][i] * M)}</b></button>`).join("");
-  card.querySelectorAll(".lvl").forEach((b) => b.onclick = () => g === "driver" ? (location.href = `bus.html?l=${b.dataset.l}`) : g === "fisher" ? (location.href = `fishjob.html?l=${b.dataset.l}`) : g === "fiber" ? (location.href = `fiber.html?l=${b.dataset.l}`) : start(g, +b.dataset.l));
+  card.querySelectorAll(".lvl").forEach((b) => b.onclick = () => g === "driver" ? (location.href = `bus.html?l=${b.dataset.l}`) : g === "fisher" ? (location.href = `fishjob.html?l=${b.dataset.l}`) : g === "fiber" ? (location.href = `fiber.html?l=${b.dataset.l}`) : g === "tamer" ? (location.href = `tamer.html?l=${b.dataset.l}`) : start(g, +b.dataset.l));
 }); }
 function satBar() { let el = document.getElementById("satBar"); if (!SAT) { if (el) el.remove(); return; }
   if (!el) { el = document.createElement("div"); el.id = "satBar"; el.className = "satbar"; document.querySelector(".sub").after(el); }
