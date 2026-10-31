@@ -243,8 +243,8 @@ body.lbfull #lobbyView .lb li .av{width:40px;height:40px}
 #lobbyView .notice{overflow:hidden}
 @media (max-height:700px){#lobbyView .notice{font-size:12px;line-height:1.4;padding-top:10px;padding-bottom:10px}#lobbyView .notice b{font-size:20px;margin-bottom:2px}#lobbyView .notice b::after{margin-top:4px}}
 /* ===== lobby pack (approved art) ===== */
-body:has(#lobbyView:not([hidden])){background-image:url(img/lobby2/bg_hall_mobile.webp)!important}
-@media (min-width:800px){body:has(#lobbyView:not([hidden])){background-image:url(img/lobby2/bg_hall_desktop.webp)!important}}
+body:has(#lobbyView:not([hidden])){background-image:url(img/lobby2/bg_hall_mobile.webp?v=2)!important}
+@media (min-width:800px){body:has(#lobbyView:not([hidden])){background-image:url(img/lobby2/bg_hall_desktop.webp?v=2)!important}}
 body:has(#lobbyView:not([hidden]))::before{background:linear-gradient(180deg,rgba(11,8,6,.25),rgba(11,8,6,.45) 45%,rgba(11,8,6,.7))!important}
 #lobbyView .gfr::after{inset:-2px;border:22px solid transparent;border-image:url(img/lobby2/frame_gold.png) 62 / 22px stretch}
 #lobbyView .notice.gfr::after,#lobbyView .lb.gfr::after,#lobbyView .lx-jobs.gfr::after{border-image:url(img/lobby2/frame_gold_wide.png) 70 120 / 22px 30px stretch}
