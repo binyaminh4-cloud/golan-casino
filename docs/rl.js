@@ -556,14 +556,14 @@ function drawPlayers() {
   const el = $("players"); if (!el || !liveSt) return;
   const ps = liveSt.players || [];
   ps.forEach((p) => { if (!(p.id in PAV) && db) { PAV[p.id] = null; GC_CHAR(db, p.id).then((c) => { PAV[p.id] = c.url || ""; drawPlayers(); }); } });
-  el.innerHTML = ps.length ? ps.map((p) => `<div class="pl${p.id === MY_ID ? " me" : ""}">${PAV[p.id] ? `<img src="${PAV[p.id]}" alt="">` : `<i>${esc(String(p.name)[0] || "?")}</i>`}<span>${esc(p.name)}<i class="lvu" data-u="${p.id}"></i></span><b class="num">${fmt(p.total)}</b></div>`).join("")
-    : '<div class="pl empty">עוד אין הימורים בסיבוב</div>';
+  const plH = ps.length ? ps.map((p) => `<div class="pl${p.id === MY_ID ? " me" : ""}">${PAV[p.id] ? `<img src="${PAV[p.id]}" alt="">` : `<i>${esc(String(p.name)[0] || "?")}</i>`}<span>${esc(p.name)}<i class="lvu" data-u="${p.id}"></i></span><b class="num">${fmt(p.total)}</b></div>`).join("")
+    : '<div class="pl empty">עוד אין הימורים בסיבוב</div>'; if (plH !== el._h) { el._h = plH; el.innerHTML = plH; }
   // everyone sitting at the table, side by side at the far edge
   const row = $("seatRow"), pres = liveSt.present || [];
   if (row) { row.hidden = !pres.length; const bet = {}; ps.forEach((p) => bet[p.id] = p.total);
     pres.forEach((p) => { if (!(p.id in PAV) && db) { PAV[p.id] = null; GC_CHAR(db, p.id).then((c) => { PAV[p.id] = c.url || ""; drawPlayers(); }); } });
-    row.innerHTML = pres.map((p) => `<div data-u="${p.id}" class="sitter${p.id === MY_ID ? " mine" : ""}${bet[p.id] ? " bet" : ""}">${PAV[p.id] ? `<img src="${PAV[p.id]}" alt="">` : `<i>${esc(String(p.name)[0] || "?")}</i>`}
-      <span>${esc(p.name)}<i class="lvu" data-u="${p.id}"></i></span>${p.bal != null ? `<em class="num">${fmt(p.bal)}</em>` : ""}${bet[p.id] ? `<b class="num">${fmt(bet[p.id])}</b>` : ""}</div>`).join(""); }
+    const rowH = pres.map((p) => `<div data-u="${p.id}" class="sitter${p.id === MY_ID ? " mine" : ""}${bet[p.id] ? " bet" : ""}">${PAV[p.id] ? `<img src="${PAV[p.id]}" alt="">` : `<i>${esc(String(p.name)[0] || "?")}</i>`}
+      <span>${esc(p.name)}<i class="lvu" data-u="${p.id}"></i></span>${p.bal != null ? `<em class="num">${fmt(p.bal)}</em>` : ""}${bet[p.id] ? `<b class="num">${fmt(bet[p.id])}</b>` : ""}</div>`).join(""); if (rowH !== row._h) { row._h = rowH; row.innerHTML = rowH; } }
   drawTicker();
   // other players' bets as faint markers on the layout
   const layer = $("chipLayer"); if (!layer || VIEW !== "table") return;
@@ -649,9 +649,9 @@ function drawDuel() {
   if (!ZS) return; let h = $("duelHud");
   if (!h) { h = document.createElement("div"); h.id = "duelHud"; h.className = "duelhud"; document.body.appendChild(h); document.querySelector(".bal").firstChild.textContent = "צ׳יפים של דו־קרב "; }
   const r = ZS.round, last = r === ZS.rounds;
-  h.className = "duelhud" + (last ? " last" : "");
-  h.innerHTML = `<b>⚡ הדו־קרב של זאוס</b><span>${r < 1 ? "מתחיל בסיבוב הבא" : r > ZS.rounds || ZS.status === "done" ? "נגמר" : `סיבוב <b class="num">${r}/${ZS.rounds}</b>`}</span>` +
-    `<span>אתה <b class="num">${fmt(ZS.my_chips)}</b></span><span>${esc(ZS.them)} <b class="num">${fmt(ZS.their_chips)}</b></span>` + (last ? `<span class="x2">זאוס מכפיל הכול ×2</span>` : "");
+  const cls = "duelhud" + (last ? " last" : ""); if (h.className !== cls) h.className = cls;
+  const dh = `<b>⚡ הדו־קרב של זאוס</b><span>${r < 1 ? "מתחיל בסיבוב הבא" : r > ZS.rounds || ZS.status === "done" ? "נגמר" : `סיבוב <b class="num">${r}/${ZS.rounds}</b>`}</span>` +
+    `<span>אתה <b class="num">${fmt(ZS.my_chips)}</b></span><span>${esc(ZS.them)} <b class="num">${fmt(ZS.their_chips)}</b></span>` + (last ? `<span class="x2">זאוס מכפיל הכול ×2</span>` : ""); if (dh !== h._h) { h._h = dh; h.innerHTML = dh; }
   if (ZS.status === "done" && !$("duelEnd") && !plan && !cine) {
     const o = document.createElement("div"); o.id = "duelEnd"; o.className = "duelend";
     const res = !ZS.winner ? "תיקו! זאוס לא מרוצה." : ZS.winner === ZS.me ? "⚡ ניצחת! +30 נקודות לעונה" : `${esc(ZS.them)} ניצח הפעם`;
