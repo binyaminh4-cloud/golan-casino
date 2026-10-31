@@ -67,6 +67,9 @@ main{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;padding:4p
 .top .gd-btn{position:absolute;right:max(84px,calc(78px + env(safe-area-inset-right)));top:3px;padding:2px 9px 2px 3px;font-size:11px;gap:4px}
 .top .gd-btn img,.top .gd-btn .q{width:20px;height:20px}
 .top .sfx-btn{position:absolute;left:max(56px,calc(52px + env(safe-area-inset-left)));top:3px;width:32px;height:32px;font-size:15px}
+/* Safari sized the board from its width and pushed the controls off the screen: the board gets an explicit height that leaves room for the controls row */
+.board{flex:none!important;height:calc(100dvh - 60px)!important;max-height:calc(100dvh - 60px);width:auto!important}
+.side{flex:none!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
