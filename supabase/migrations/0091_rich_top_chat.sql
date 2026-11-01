@@ -18,7 +18,7 @@ begin
   insert into gc_settings (key, value) values ('rich_top', jsonb_build_object('id', top.id))
     on conflict (key) do update set value = excluded.value;
   if old is not null then
-    perform chat_sys('lobby', '👑🏆 ' || top.nickname || ' עקף את ' || coalesce((select nickname from profiles where id = old), 'המלך הקודם')
+    perform chat_sys('lobby', '👑🏆 ' || top.nickname || ' עקף את ' || coalesce((select nickname from profiles where id = old), 'המוביל הקודם')
       || ' בטבלת העשירים ועלה למקום הראשון! 🎉💰🥇');
   end if;
 end $$;
