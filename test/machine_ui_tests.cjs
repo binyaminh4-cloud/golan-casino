@@ -14,6 +14,9 @@ vm.runInContext('busy=false;FREE_LEFT=10;drawRack(0);',ctx);assert.equal(vm.runI
 vm.runInContext('FREE_LEFT=0;drawRack(0);',ctx);assert.equal(vm.runInContext('lineBet',ctx),1);
 assert(ladder(10, 50000000).includes(50000000));
 assert(ladder(10, 100000000).includes(100000000));
+assert(ladder(10, 500000000).includes(250000000));
+assert(ladder(10, 500000000).includes(500000000));
+assert(ladder(10, 4000000000000).includes(4000000000000));
 assert.equal(ladder(10, 99000000).filter(v => v < 100000000 && v !== 99000000).pop(), 50000000);
 for (const bal of [0, 5, 9, 10, 50, 499999, 500000, 50000000, 99000000, 100000000]) {
   const a = ladder(10, bal); assert(a.every((v, i) => Number.isInteger(v) && v >= 10 && (!i || v > a[i-1])));

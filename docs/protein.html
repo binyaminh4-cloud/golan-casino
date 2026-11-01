@@ -47,6 +47,7 @@ canvas{display:block;border-radius:8px;touch-action:manipulation;max-width:100%;
 <script src="guide.js?v=45"></script>
 <script src="vendor/pm_scene.js?v=4"></script>
 <script src="pm-geometry.js?v=1"></script>
+<script src="slot-bets.js?v=1"></script>
 <script>
 'use strict';
 // Golan Casino wiring for the art kit's scene: the server holds every rock's contents (pm_start / pm_collect / pm_next).
@@ -56,10 +57,10 @@ const S = ProteinScene, canvas = document.getElementById("game"), ctx = canvas.g
 const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
 const FILES = ["backgrounds/field_desktop.jpg","characters/avichai_idle.png","characters/avichai_pull.png","characters/avichai_celebrate.png","characters/avichai_shock.png","rocks/rock_a.png","rocks/rock_b.png","rocks/rock_c.png","prizes/mushroom.png","prizes/chicken.png","prizes/bomb.png","props/tray.png","ui/tag_blank.png","ui/plaque_blank.png","props/winch.png","props/crank.png","props/claw_open.png","props/claw_closed.png","fx/dust.png","fx/bomb_puff.png","characters/yoav_throw_00.png","characters/yoav_throw_01.png","characters/yoav_walk_00.png","characters/yoav_walk_01.png","characters/yoav_walk_02.png","characters/yoav_walk_03.png"];
 let r = { mode: "normal", rocks: [], layer: 0, successes: 0, bankUnits: 0, phase: "ready", history: [] }, runId = null, stake = 100;
-let introAt = 0, shot = null, reveal = null, angle = 0, busy = false;
+let introAt = 0, shot = null, reveal = null, angle = 0, busy = false, walletBalance = 0;
 const active = () => ["intro", "playing", "checkpoint"].includes(r.phase);
 function fromServer(v) { runId = v.id; stake = +v.stake; r.mode = v.mode; r.layer = v.layer; r.successes = v.successes; r.bankUnits = +v.bank_units;
-  r.rocks = v.rocks.map((x, i) => ({ ...x, ...PM_GEOMETRY.position(i % 12), w: 70 + x.w * .6, rewardUnits: x.units })); if (r.phase !== "intro") r.phase = v.phase; if (v.balance != null) el("bal").textContent = fmt(v.balance); }
+  r.rocks = v.rocks.map((x, i) => ({ ...x, ...PM_GEOMETRY.position(i % 12), w: 70 + x.w * .6, rewardUnits: x.units })); if (r.phase !== "intro") r.phase = v.phase; if (v.balance != null) { walletBalance = Number(v.balance); el("bal").textContent = fmt(v.balance); } }
 // choosing the bet happens in the middle of the screen; afterwards only a small label stays on top
 function betPop(title) {
   GC_BI_CSS(); document.querySelectorAll(".gc-bi.bet").forEach((n) => n.remove());
@@ -68,7 +69,15 @@ function betPop(title) {
     <li style="display:flex;gap:6px;justify-content:center">${[["easy", "קל"], ["normal", "רגיל"], ["extreme", "אקסטרים"]].map(([k, t]) => `<button type="button" class="md" data-m="${k}" style="flex:1;height:38px;font-size:15px;${k === el("mode").value ? "" : "background:#2a1c10;color:#F1D69A;border:1px solid #C5A05A"}">${t}</button>`).join("")}</li>
     <li style="font-size:12px;color:#B9AA94">אותם סלעים ופצצות בכל הרמות · הקרס מהיר יותר ברמות הגבוהות.</li><li style="font-size:12px;color:#B9AA94">בהשלמת כל 12 השליפות: החזר כולל מינימלי פי 2 בקל, פי 5 ברגיל ופי 10 באקסטרים. יציאה מוקדמת משלמת את הקופה שנאספה.</li></ul><button type="button" class="go">⛏️ התחל</button></div>`;
   document.body.appendChild(o);
-  GC_STEPPER(o.querySelector(".st"), el("stake"), { start: +el("stake").value || 100 });
+  const steps = GC_SLOT_LADDER(10, walletBalance), host = o.querySelector(".st");
+  let amount = GC_SLOT_SELECT(steps, +el("stake").value || 100), index = steps.indexOf(amount);
+  host.style.cssText = "display:inline-flex;align-items:center;gap:12px;direction:ltr";
+  host.innerHTML = '<button type="button" aria-label="פחות">▼</button><b></b><button type="button" aria-label="יותר">▲</button>';
+  const [down, label, up] = host.children;
+  const drawStake = () => { amount = steps[index]; el("stake").value = amount; label.textContent = fmt(amount); down.disabled = index === 0; up.disabled = index === steps.length - 1; o.querySelector(".go").disabled = amount > walletBalance; };
+  down.onclick = () => { if (index > 0) { index--; drawStake(); } };
+  up.onclick = () => { if (index < steps.length - 1) { index++; drawStake(); } };
+  drawStake();
   o.querySelectorAll(".md").forEach((b) => b.onclick = () => { el("mode").value = b.dataset.m; o.querySelectorAll(".md").forEach((x) => x.style.cssText = x === b ? "flex:1;height:38px;font-size:15px" : "flex:1;height:38px;font-size:15px;background:#2a1c10;color:#F1D69A;border:1px solid #C5A05A"); });
   o.querySelector(".go").onclick = () => { o.remove(); el("start").click(); };
 }
@@ -103,6 +112,7 @@ const errMsg = (e) => { const m = (e && e.message) || ""; return m.includes("ins
 const ref = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now() + "" + Math.random());
 el("start").onclick = async () => {
   if (active() || busy) return; const bet = Math.floor(Number(el("stake").value)); if (!(bet >= 1)) return (el("err").textContent = "בחר הימור");
+  if (bet > walletBalance) return (el("err").textContent = "אין מספיק שקלים.");
   busy = true; const { data, error } = await db.rpc("pm_start", { p_stake: bet, p_mode: el("mode").value, p_ref: ref() }); busy = false;
   if (error) return (el("err").textContent = errMsg(error)); el("err").textContent = "";
   r.history = []; r.phase = "intro"; fromServer(data); introAt = performance.now() / 1000; shot = null; reveal = null; controls();
@@ -142,7 +152,7 @@ function fit() { const w = el("game").parentElement, s = Math.min(w.clientWidth 
 addEventListener("resize", fit);
 Promise.all(FILES.map((f) => new Promise((ok) => { const im = new Image(); im.onload = () => { imgs[f] = im; ok(); }; im.onerror = ok; im.src = "img/pm/" + f.replace(/\.(png|jpg)$/, ".webp"); }))).then(async () => {
   fit(); const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
-  const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single(); if (w.data) el("bal").textContent = fmt(w.data.balance);
+  const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single(); if (w.data) { walletBalance = Number(w.data.balance); el("bal").textContent = fmt(w.data.balance); }
   const c = await db.rpc("pm_current"); if (c.data) { r.phase = c.data.phase; fromServer(c.data); }
   controls(); requestAnimationFrame(frame); if (window.GC_LOADER) GC_LOADER.done();
   await GC_GUIDE.init({ game: "protein", db, mount: document.querySelector(".top"), steps: GC_STEPS.protein().map((step) => ({ ...step, t: step.t.replace("הכול זז כל הזמן, אז צריך לתזמן. קרס שחוזר ריק נחשב שליפה.", "רמת הקושי משנה רק את מהירות הקרס. שליחה ריקה אינה נחשבת שליפה.") })) });
