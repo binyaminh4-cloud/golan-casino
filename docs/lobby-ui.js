@@ -57,6 +57,7 @@ function openFriends() {
   const src = document.querySelector("#lbBox ol");
   o.querySelector(".fr-list").innerHTML = src ? src.outerHTML : '<p class="fr-empty">טוען…</p>';
   o.classList.add("on");
+  window.GC_REFRESH_FRIEND_LOCATIONS?.();
 }
 
 // poker against the bots: pick the blinds right on the game card (swipe or ◀ ▶, one level at a time), then tap to sit down

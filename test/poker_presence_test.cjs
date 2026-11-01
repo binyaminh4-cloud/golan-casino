@@ -93,6 +93,30 @@ async function main(){
  assert.equal((await q('select sum(balance)::bigint n from wallets'))[0].n,300000);
  assert.equal((await q("select has_function_privilege('anon','poker_presence_sweep()','execute') as allowed"))[0].allowed,false);
  assert.equal((await q("select has_function_privilege('authenticated','poker_expire_table(uuid)','execute') as allowed"))[0].allowed,false);
+ // Friend locations reuse presence and resolve the visible table without exposing private ids.
+ await db.exec(`alter table profiles add last_seen timestamptz,add where_now text;
+ create table chat_messages(id bigint,room text,user_id uuid,kind text,body text,created_at timestamptz);`);
+ await db.exec(fs.readFileSync('supabase/migrations/0096_friend_game_locations.sql','utf8'));
+ await uid(u);await rpc('poker_state',[a]);
+ let locations=await rpc('gc_friend_locations',[]);
+ assert.equal(locations.find(x=>x.id===u).where,'poker.html?t='+a);
+ await rpc('chat_since',['lobby',0,'poker.html?fr=1&bb=20000']);
+ assert.equal((await q('select where_now from profiles where id=$1',[u]))[0].where_now,'poker.html?t='+a);
+ await rpc('poker_state',[b]);
+ assert.equal((await rpc('gc_friend_locations',[])).find(x=>x.id===u).where,'poker.html?t='+b);
+ await rpc('chat_since',['lobby',0,'index.html']);
+ assert.equal((await rpc('gc_friend_locations',[])).find(x=>x.id===u).where,'index.html');
+ await db.query('update poker_tables set bots_owner=$1 where id=$2',[u,a]);
+ await db.query("update profiles set where_now=$1,last_seen=now() where id=$2",['poker.html?t='+a,u]);
+ await uid(v);const hidden=(await rpc('gc_friend_locations',[])).find(x=>x.id===u);
+ assert.equal(hidden.where,'poker_private');assert.equal(hidden.table_name,null);assert(!JSON.stringify(hidden).includes(a));
+ await db.query("update profiles set where_now='poker.html?t=------------------------------------',last_seen=now() where id=$1",[u]);
+ assert.equal((await rpc('gc_friend_locations',[])).find(x=>x.id===u).where,'poker.html');
+ await db.query("update profiles set last_seen=now()-interval '46 seconds' where id=$1",[u]);
+ assert(!(await rpc('gc_friend_locations',[])).some(x=>x.id===u));
+ assert.equal((await q("select has_function_privilege('anon','gc_friend_locations()','execute') as allowed"))[0].allowed,false);
+ await uid('');await assert.rejects(()=>rpc('gc_friend_locations',[]),/not_signed_in/);
+ console.log('PASS: last viewed poker table, chat preservation, lobby exit, private table redaction, malformed ids, stale presence and signed-in access.');
  console.log('PASS: multi-table, same-seat re-entry, ownership, 119/121s reconnect/expiry, empty-table cleanup, all-in preservation, total chips and idempotent cash-out.');
  await db.close();
 }
