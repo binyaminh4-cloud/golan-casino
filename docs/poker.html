@@ -7,7 +7,7 @@
 <title>פוקר · גולן קזינו</title>
 <link rel="icon" href="img/brand/favicon.png?v=2">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@500;700;800&display=swap">
-<link rel="stylesheet" href="pk.css?v=6">
+<link rel="stylesheet" href="pk.css?v=7">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
 <script src="landscape.js?v=1"></script>
@@ -15,9 +15,11 @@
 <body>
 <header class="top">
   <a href="./" class="back">→ ללובי</a>
+  <button id="myTablesBtn" class="leave">השולחנות שלי</button>
   <div class="bal">הארנק שלי <b id="bal" class="num">…</b></div>
   <button id="leaveBtn" class="leave" hidden>קום מהשולחן</button>
 </header>
+<dialog id="myTables"><h2>השולחנות שלי</h2><p>אפשר לשחק בכמה שולחנות. שולחן שנותק למשך שתי דקות יפנה את הכיסא לאחר סיום היד.</p><div id="myTablesList"></div><p id="myTablesErr" role="status"></p><button id="myTablesClose" class="leave">סגור</button></dialog>
 
 <!-- table picker -->
 <main id="pick" class="pick" hidden>
@@ -56,7 +58,7 @@
 <script src="sfx.js?v=32"></script>
 <script src="guide.js?v=45"></script>
 <script src="char.js?v=3"></script>
-<script src="pk.js?v=18"></script>
+<script src="pk.js?v=19"></script>
 <script src="chat.js?v=20"></script>
 </body>
 </html>

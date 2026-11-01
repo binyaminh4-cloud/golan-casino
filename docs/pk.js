@@ -10,6 +10,34 @@ const BOTS = new URLSearchParams(location.search).has("bots");   // poker agains
 const SPOT = [{ x: 1040, y: 905 }, { x: 330, y: 880 }, { x: 330, y: 530 }, { x: 960, y: 395 }, { x: 1590, y: 530 }, { x: 1590, y: 880 }];
 const BETAT = (p) => ({ x: p.x + (960 - p.x) * 0.42, y: p.y + (640 - p.y) * 0.42 });
 let S = null, ME = null, busy = false, lastHand = -1, AV = {};
+let heartbeatTimer = null, heartbeatBusy = false;
+async function heartbeat() {
+  if (!T || PREVIEW || heartbeatBusy) return;
+  heartbeatBusy = true;
+  try { await db.rpc("poker_touch", { p_table: T }); } catch (e) { /* retry on the next heartbeat */ } finally { heartbeatBusy = false; }
+}
+function startHeartbeat() { clearInterval(heartbeatTimer); heartbeat(); heartbeatTimer = setInterval(heartbeat, 15000); }
+addEventListener("pagehide", () => { clearInterval(heartbeatTimer); heartbeatTimer = null; });
+addEventListener("pageshow", () => { if (T && !PREVIEW) startHeartbeat(); });
+addEventListener("visibilitychange", () => { if (!document.hidden && T && !PREVIEW) { heartbeat(); poll(); } });
+
+async function myTables() {
+  if (PREVIEW) { $("myTablesList").textContent = "תצוגה מקדימה"; return; }
+  const { data, error } = await db.rpc("poker_my_tables");
+  if (error) { $("myTablesErr").textContent = "לא הצלחנו לטעון את השולחנות. נסה שוב."; return; }
+  $("myTablesList").innerHTML = data.length ? data.map(t => `<div class="my-table"><a href="poker.html?t=${encodeURIComponent(t.id)}">${esc(t.name)}<small>בליינד ${fmt(t.bb)} · צ׳יפים ${fmt(t.stack)}${t.leaving ? " · קימה בסיום היד" : ""}</small></a><button class="leave" data-table="${esc(t.id)}" ${t.leaving ? "disabled" : ""}>קום</button></div>`).join("") : "אין לך כרגע כיסאות בשולחנות פוקר.";
+  $("myTablesList").querySelectorAll("button[data-table]").forEach(b => { b.onclick = async () => {
+    b.disabled = true; $("myTablesErr").textContent = "";
+    try { const { data, error } = await db.rpc("poker_cash_leave", { p_table: b.dataset.table });
+      if (error) throw error; $("myTablesErr").textContent = data && data.pending ? "הקימה תושלם בסיום היד. הצ׳יפים יוחזרו לארנק לאחר החלוקה." : "קמת מהשולחן.";
+    } catch (e) { $("myTablesErr").textContent = "הקימה נכשלה. נסה שוב."; }
+    await myTables(); if (T) poll();
+  }; });
+}
+$("myTablesBtn").onclick = () => { $("myTablesErr").textContent = ""; $("myTables").showModal(); myTables(); };
+$("myTablesClose").onclick = () => $("myTables").close();
+setInterval(() => { if ($("myTables").open) myTables(); }, 5000);
+function pokerSteps() { return [...GC_STEPS.poker(), { t: "אפשר לשבת בכמה שולחנות. בכפתור השולחנות שלי אפשר לחזור לכיסא או לקום. אחרי שתי דקות ניתוק הכיסא יפונה לאחר סיום היד, והצ׳יפים יוחזרו לארנק." }]; }
 
 // ---------- fit ----------
 function fit() {
@@ -21,7 +49,7 @@ addEventListener("resize", fit);
 
 // ---------- picker ----------
 async function pick() {
-  $("pick").hidden = false; GC_LOADER.done(); try { GC_GUIDE.init({ game: "poker", db, mount: document.querySelector(".top"), steps: GC_STEPS.poker() }); } catch (e) {}
+  $("pick").hidden = false; GC_LOADER.done(); try { GC_GUIDE.init({ game: "poker", db, mount: document.querySelector(".top"), steps: pokerSteps() }); } catch (e) {}
   const { data } = PREVIEW ? { data: [{ id: "x", name: "מתחילים", sb: 10, bb: 20, min: 1000, max: 4000, players: ["דני"] }] } : await db.rpc("poker_tables_list");
   const ICON = ["🟢", "🔵", "🔴", "⚫", "👑"];
   $("tables").innerHTML = (data || []).map((t, i) => `<a class="tbl" href="poker.html?t=${t.id}"><span class="ic">${ICON[i] || "♠️"}</span>
@@ -45,6 +73,9 @@ function draw() {
   if (TN && !wheelShown) { wheelShown = true; wheel(TN); }
   if (TN && TN.status === "done" && !$("tnEnd")) tnEnd(TN);
   $("bal").textContent = fmt(s.balance); $("leaveBtn").hidden = ME == null; $("leaveBtn").textContent = s.tourney ? "פרוש מהטורניר" : "קום מהשולחן";
+  const pendingLeave = ME != null && s.seats[ME] && s.seats[ME].leaving;
+  $("leaveBtn").disabled = busy || pendingLeave;
+  if (pendingLeave) $("leaveBtn").textContent = "קימה בסיום היד";
   // seats
   let h = "";
   for (let seat = 0; seat < 6; seat++) {
@@ -144,10 +175,17 @@ $("buyR").oninput = () => { $("buyV").textContent = fmt(+$("buyR").value); };
 $("buyNo").onclick = () => $("buy").close();
 $("buyYes").onclick = async () => {
   const { data, error } = await db.rpc("poker_sit", { p_table: T, p_seat: buySeat, p_amount: +$("buyR").value });
-  if (error) { const m = error.message || ""; $("buyErr").textContent = m.includes("insufficient") ? "אין מספיק בארנק." : m.includes("seat_taken") ? "הכיסא נתפס." : m.includes("already_seated") ? "אתה כבר יושב בשולחן אחר. קום ממנו קודם." : "לא הצלחנו להושיב אותך."; return; }
+  if (error) { const m = error.message || ""; $("buyErr").textContent = m.includes("insufficient") ? "אין מספיק בארנק." : m.includes("seat_taken") ? "הכיסא נתפס." : m.includes("already_seated") ? "לא ניתן לשבת כרגע. בדוק את השולחנות שלך." : "לא הצלחנו להושיב אותך."; return; }
   $("buy").close(); S = data; draw();
 };
-$("leaveBtn").onclick = async () => { busy = true; await db.rpc("poker_leave", { p_table: T }); busy = false; poll(); };
+$("leaveBtn").onclick = async () => {
+  if (busy) return; busy = true; $("leaveBtn").disabled = true; $("err").textContent = "";
+  try { const { data, error } = await db.rpc(S && S.tourney ? "poker_leave" : "poker_cash_leave", { p_table: T });
+    if (error) throw error;
+    if (data && data.pending) $("err").textContent = "הקימה תושלם בסיום היד והצ׳יפים יוחזרו לאחר החלוקה.";
+  } catch (e) { $("err").textContent = "הקימה נכשלה. נסה שוב."; }
+  finally { busy = false; $("leaveBtn").disabled = false; await poll(); }
+};
 
 // ---------- boot ----------
 (async function boot() {
@@ -164,6 +202,6 @@ $("leaveBtn").onclick = async () => { busy = true; await db.rpc("poker_leave", {
       seats: { 0: { name: "בנימין", stack: 9600, bet: 0, in_hand: true, hole: ["AS", "KD"] }, 2: { name: "דני", stack: 12000, bet: 400, in_hand: true }, 4: { name: "פישר", stack: 0, bet: 0, in_hand: true, folded: true }, 5: { name: "עידו", stack: 7300, bet: 400, in_hand: true } } };
     draw(); GC_LOADER.done(); return;
   }
-  await poll(); GC_LOADER.done(); try { GC_GUIDE.init({ game: "poker", db, mount: document.querySelector(".top"), steps: GC_STEPS.poker() }); } catch (e) {}
+  await poll(); startHeartbeat(); GC_LOADER.done(); try { GC_GUIDE.init({ game: "poker", db, mount: document.querySelector(".top"), steps: pokerSteps() }); } catch (e) {}
   setInterval(poll, 1000); setInterval(() => S && draw(), 250);
 })();

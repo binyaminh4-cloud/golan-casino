@@ -10,6 +10,8 @@ button{font:inherit;cursor:pointer}
 .back{color:var(--champ);text-decoration:none;font-weight:700;border:1px solid var(--line);border-radius:99px;padding:5px 12px;white-space:nowrap}
 .bal{flex:1;text-align:center;color:var(--muted)}.bal b{color:var(--champ);font:700 17px Inter}
 .leave{background:none;border:1px solid var(--line);color:var(--muted);border-radius:99px;padding:5px 12px}
+#myTables{width:min(600px,94vw);max-height:85dvh;overflow:auto;border:1px solid var(--line);border-radius:14px;background:var(--walnut);color:var(--ink);padding:20px}#myTables::backdrop{background:#000b}#myTables h2{margin-top:0}#myTables p{color:var(--muted)}.my-table{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.my-table a{flex:1;color:var(--champ);text-decoration:none}.my-table small{display:block;color:var(--muted)}#myTablesErr{color:#ffabab!important}.leave:disabled{opacity:.6;cursor:default}
+@media(max-width:560px){.top{gap:6px;padding-inline:8px}.top .back,.top .leave{padding:4px 7px;font-size:12px}.bal{font-size:11px}.bal b{font-size:13px}}
 .pick{position:relative;width:min(760px,100%);margin:0 auto;padding:16px}
 .pick h1{font:700 30px 'Frank Ruhl Libre',serif;color:var(--champ);text-align:center;margin:8px 0}.sub{text-align:center;color:var(--muted)}
 .tables{display:grid;gap:10px;margin-top:14px}
