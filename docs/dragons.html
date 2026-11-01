@@ -102,6 +102,7 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(14px) bright
   <button id="go">כניסה לארמון 🐉</button><button class="back" onclick="location.href='./'">חזרה ללובי</button>
 </div></div></div>
 <script src="sfx.js?v=32"></script>
+<script src="slot-bets.js?v=1"></script>
 <script src="guide.js?v=45"></script>
 <script src="vendor/dg_engine.js?v=1"></script>
 <script>
@@ -194,13 +195,13 @@ async function replay(seed, buy) {
 let held = null;
 const countHeld = () => held.flat().filter((v) => v !== null).length;
 function hwTitle(left, n) { $("title").innerHTML = `<h1>סיבובים: ${left}</h1><b>${n}/15 🔥</b>`; }
-function drawBet() { const ok = GC_LADDER(25, balance); if (!ok.includes(bet)) bet = ok.filter((v) => v <= bet).pop() || ok[0];
+function drawBet() { const ok = GC_SLOT_LADDER(25, balance); bet = GC_SLOT_SELECT(ok, bet);
   $("betV").textContent = fmt(bet); $("bMinus").disabled = busy || ok.indexOf(bet) <= 0; $("bPlus").disabled = busy || ok.indexOf(bet) >= ok.length - 1; $("bMax").disabled = busy; jackpots(); }
 function showBal(v) { balance = +v; $("balV").textContent = fmt(v); drawBet(); }
 function lock(v) { busy = v; $("bSpin").disabled = v && !auto; drawBet(); $("bInfo").disabled = v; }
-$("bMinus").onclick = () => { const ok = GC_LADDER(25, balance), i = ok.indexOf(bet); if (!busy && i > 0) { bet = ok[i - 1]; drawBet(); S("chip"); } };
-$("bPlus").onclick = () => { const ok = GC_LADDER(25, balance), i = ok.indexOf(bet); if (!busy && i < ok.length - 1) { bet = ok[i + 1]; drawBet(); S("chip"); } };
-$("bMax").onclick = () => { if (busy) return; const ok = GC_LADDER(25, balance); bet = ok[ok.length - 1]; drawBet(); S("chip"); };
+$("bMinus").onclick = () => { const ok = GC_SLOT_LADDER(25, balance), i = ok.indexOf(bet); if (!busy && i > 0) { bet = ok[i - 1]; drawBet(); S("chip"); } };
+$("bPlus").onclick = () => { const ok = GC_SLOT_LADDER(25, balance), i = ok.indexOf(bet); if (!busy && i < ok.length - 1) { bet = ok[i + 1]; drawBet(); S("chip"); } };
+$("bMax").onclick = () => { if (busy) return; const ok = GC_SLOT_LADDER(25, balance); bet = ok[ok.length - 1]; drawBet(); S("chip"); };
 // sound button opens the casino's sound menu (effects / background music)
 addEventListener("DOMContentLoaded", () => { if (window.GC_SOUND_MENU) GC_SOUND_MENU($("bSound")); });
 setInterval(() => { try { sound = !SFX.muted; } catch (e) {} }, 1000);

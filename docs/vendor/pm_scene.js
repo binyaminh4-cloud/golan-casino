@@ -9,7 +9,7 @@
   const panel=(str,x,y,w,h,size=28)=>{image('ui/plaque_blank.png',x,y,w,h);ctx.save();ctx.font=`600 ${size}px Arial`;const actual=ctx.measureText(str).width;ctx.restore();text(str,x,y,Math.min(size,size*(w-32)/Math.max(actual,1)));};
   // A closed layer is only dimmed; size, shell and skin never reveal contents.
   for(const rock of r.rocks){
-   if(rock.taken||state.hiddenRock===rock.id)continue;
+   if(rock.taken||rock.layer!==r.layer||state.hiddenRock===rock.id)continue;
    const a=rock.layer===r.layer?1:.52;
    if(rock.bomb!==undefined)image('prizes/'+(rock.bomb?'bomb':rock.food)+'.png',rock.x,rock.y,rock.w*1.25,rock.w*1.25,a);else image(`rocks/rock_${'abc'[rock.skin]}.png`,rock.x,rock.y,rock.w,rock.w,a);
    const tagIndex=r.rocks.filter(x=>x.tagged).findIndex(x=>x.id===rock.id);

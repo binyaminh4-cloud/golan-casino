@@ -16,7 +16,7 @@ let ART = false;
 const sym = (k) => k === "FREE" ? `<span class="freesym">FREE<br>SPINS</span>` : FO ? `<img src="img/slots/fortune/${k}.webp" alt="${NAME[k]}">` : ART ? `<img src="img/slots/${k}.webp" alt="${NAME[k]}">` : GLYPH[k];
 const LINES = [[1, 1, 1], [0, 0, 0], [2, 2, 2], [0, 1, 2], [2, 1, 0]];
 const CHIPS = [1, 5, 10, 25, 100, 500, 1000, 5000, 20000, 100000, 500000, 2000000, 10000000];   // per line; a spin is 5 lines
-let lineBet = 10, balance = 0, busy = false;
+let lineBet = 10, balance = 0, busy = false, FREE_LEFT = 0;
 const reels = [...document.querySelectorAll(".reel")];
 const pos = [0, 0, 0];       // current top index of each reel
 
@@ -97,12 +97,17 @@ function drawLines(wins) {
 function clearHits() { document.querySelectorAll(".sym.hit").forEach((t) => t.classList.remove("hit")); drawLines([]); }
 
 // ---------- betting ----------
-// bet per spin (5 lines). Bigger bets show once the wallet holds 20× the spin; the max spin follows the wallet like every game
+// Preserve the nearest affordable spin when the wallet falls below a step.
 let rackKey = "";
 function drawRack(bal) {
-  const max = ((b) => { if (b < 500000) return 50000; let v = 500000, k = 0; for (;;) { const m = k % 3 === 1 ? 2.5 : 2; if (v * m > b) break; v *= m; k++; } return v / 5; })(bal);
-  const ok = CHIPS.filter((v, i) => i < 7 || (v * 5 * 20 <= bal && v * 5 <= max)), show = ok.slice(-7), k = show.join(",");
-  if (k === rackKey) return; rackKey = k; if (!show.includes(lineBet) && FREE_LEFT === 0) { lineBet = show[0]; $("total").textContent = fmt(lineBet * 5); }
+  const maxLine = Math.max(1, Math.floor(bal / 5));
+  const totals = GC_SLOT_LADDER(5, maxLine * 5).filter(v => v % 5 === 0);
+  const ok = totals.map(v => v / 5), free = FREE_LEFT > 0;
+  if (!busy && !free && lineBet > maxLine) lineBet = GC_SLOT_SELECT(totals, lineBet * 5) / 5;
+  const chosen = ok.indexOf(lineBet), start = Math.max(0, Math.min(chosen - 3, ok.length - 7));
+  const show = ok.slice(start, start + 7), k = show.join(",") + ":" + lineBet;
+  $("total").textContent = fmt(lineBet * 5);
+  if (k === rackKey) return; rackKey = k;
   const lab = (t) => String(fmt(t)).slice(1).replace(/,000$/, "K");
   $("chips").innerHTML = show.map((v) => `<button class="chip" data-v="${v}" aria-pressed="${v === lineBet}">${lab(v * 5)}</button>`).join("");
   $("chips").querySelectorAll(".chip").forEach((b) => GC_CHIPIFY(b, +b.dataset.v * 5));
@@ -155,7 +160,7 @@ $("spinBtn").onclick = async () => {
     $("winbar").innerHTML = (big ? "💰 זכייה גדולה! " : "זכית ") + `<b class="num">${fmt(res.payout)}</b>` + (net < 0 ? ` <small>(על הימור של ${fmt(res.total)})</small>` : "");
     $("winbar").className = "winbar win" + (big ? " big" : ""); SFX.slotWin(big);
   } else { $("winbar").textContent = FREE_LEFT > 0 ? "" : "לא הפעם"; if (!res.free_spin) SFX.lose(); }
-  busy = false; $("spinBtn").disabled = false;
+  busy = false; drawRack(balance); if (FO && JPS) jpState(JPS); $("spinBtn").disabled = false;
   if (FO && FREE_LEFT > 0 && !res.free) setTimeout(() => $("spinBtn").click(), 1200);   // free spins play themselves
 };
 function winToast(amount, big) {
@@ -163,7 +168,6 @@ function winToast(amount, big) {
   document.querySelector(".window").appendChild(t); setTimeout(() => t.remove(), 2400);
 }
 // free spins: 3 FREE (one on each reel) = 10 spins at the same bet, nothing charged
-let FREE_LEFT = 0;
 function freeState(res) {
   if (res.free) GC_BONUS_INTRO("🎁 10 סיבובים חינם!", ["הסיבובים משחקים לבד, באותו הימור, בלי לחייב את הארנק.", "כל זכייה בסיבוב חינם נכנסת לארנק.", "גם הג׳קפוטים פתוחים בסיבובים החינם."], "img/slots/fortune/BIN.webp").then(() => { if (FREE_LEFT > 0 && !busy) $("spinBtn").click(); });
   setFree(res.free_left || 0);
@@ -175,7 +179,7 @@ if (FO) { const bb = document.createElement("button"); bb.type = "button"; bb.cl
     const k = await GC_BUYMENU([{ kind: "free", label: "10 סיבובים חינם", price: P["fortune:free"] || 10, desc: "10 סיבובים באותו הימור, כולל סיכוי לג׳קפוטים" }], lineBet * 5, fmt);
     if (!k) return; const { data, error } = await db.rpc("fo_buy", { p_line_bet: lineBet, p_ref: newRef() });
     if (error) return err((error.message || "").includes("insufficient") ? "אין מספיק שקלים." : "הקנייה נכשלה.");
-    showBal(data.balance); freeState({ free: true, free_left: data.free_left });
+    balance = data.balance; freeState({ free: true, free_left: data.free_left }); showBal(data.balance);
   }; }
 function setFree(n) {
   FREE_LEFT = n; $("spinBtn").textContent = n > 0 ? `חינם · ${n}` : "סובב"; $("spinBtn").classList.toggle("free", n > 0);
