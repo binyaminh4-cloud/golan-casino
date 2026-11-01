@@ -1,5 +1,6 @@
 /* Golan Casino · the phone's "storeroom": pictures, sounds and code are kept on the device after the first visit.
-   - files with ?v= in the address never change → served from the device straight away
+   - same-origin JS/CSS always revalidate with the server; cached code is only an offline fallback
+   - versioned pictures/sounds are served from the device straight away
    - other pictures/sounds → served from the device, refreshed quietly in the background
    - pages, version.json and the server (Supabase) always go to the network */
 const CACHE = "gc-v1";
@@ -15,6 +16,14 @@ self.addEventListener("fetch", (e) => {
   if (!asset) return;
   e.respondWith(caches.open(CACHE).then(async (c) => {
     const hit = await c.match(req);
+    if (same && /\.(js|css)$/.test(url.pathname)) {
+      let fresh;
+      try { fresh = await fetch(req, { cache: "no-cache" }); }
+      catch (error) { if (hit) return hit; throw error; }
+      // A quota/cache-write failure must never replace a successful response with stale code.
+      if (fresh.ok) { try { await c.put(req, fresh.clone()); } catch (error) {} }
+      return fresh;
+    }
     const net = fetch(req).then((r) => { if (r.ok || r.type === "opaque") c.put(req, r.clone()); return r; }).catch(() => hit);
     if (hit && (url.search.includes("v=") || !same || cdn)) return hit;   // versioned / CDN: never changes
     if (hit) { e.waitUntil(net); return hit; }                           // unversioned: show now, refresh in the background

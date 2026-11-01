@@ -15,6 +15,8 @@ A private, satirical casino for a group of friends. **Play money only.** UI lang
 ## Rules that matter
 - **Cache busting:** every changed JS/CSS file is loaded as `file.js?v=N` in the HTML pages. When you change a file, bump its `?v=` in
   **every** page that loads it, and write a new timestamp to `docs/version.json` (`{"v": <unix time>}`) — open apps reload themselves when it changes.
+  Use a fresh Unix timestamp or content hash for new asset versions; never reuse a previously published version URL for different bytes.
+  Same-origin JS/CSS in `sw.js` must revalidate online and use cached code only on network failure. Run `node test/cache_policy_test.cjs` when changing this policy.
 - **Money** only moves through `apply_tx(user, game, kind, amount, ref)` (wallet) and `bank_add(user, kind, amount, ref)` (bank).
   Every movement has a unique `ref` (idempotent). Never update balances directly.
 - **Orientation:** games are landscape-only (`landscape.js`); lobby, jobs, bank and challenges are portrait-only on phones (`portrait.js`).
