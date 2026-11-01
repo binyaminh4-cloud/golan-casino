@@ -122,7 +122,7 @@ async function grantNote() {
 let refreshing = false;
 async function refresh() { if (refreshing) return; refreshing = true; try { await refresh0(); } finally { refreshing = false; } }
 async function refresh0() {
-  grantNote().catch(() => {});
+  grantNote().catch(() => {}); db.rpc("gc_top_check").then(() => {}, () => {});
   const [w, lb, on] = await Promise.all([
     db.from("wallets").select("balance").eq("user_id", me.id).single(),
     db.from("leaderboard").select("id,nickname,wealth,late").order("wealth", { ascending: false }),
