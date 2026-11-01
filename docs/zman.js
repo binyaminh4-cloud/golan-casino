@@ -15,7 +15,7 @@
  let state=null, offset=0, timer=null, fetching=false, acting=false, user=null, pending=null, bonusKey='', lastBallKey='', stopped=false, epoch=0, spinId='', spinAnimations=[];
  function now(){return Date.now()+offset;}
  function seconds(){return state?Math.max(0,(Date.parse(state.deadline)-now())/1000):0;}
- function amount(){const v=$('amount').value.replace(/[,\s₪]/g,'');if(!/^\d+$/.test(v)||BigInt(v)<1n)throw Error('בחרו סכום חיובי של שקלים שלמים');return BigInt(v).toString();}
+ function amount(){const v=$('amount').value.replace(/[,\s₪]/g,'');if(!/^\d+$/.test(v)||BigInt(v)<1n)throw Error('בחרו סכום חיובי של שקלים שלמים');if(state&&BigInt(v)>BigInt(state.balance))throw Error('הסכום גבוה מהיתרה הזמינה');return BigInt(v).toString();}
  const errors={betting_closed:'ההימורים לסיבוב הזה ננעלו.',choice_closed:'זמן הבחירה הסתיים. השרת משלים בחירה חסרה.',invalid_bet:'ההימור אינו תקין.',invalid_amount:'הסכום גבוה מהיתרה הזמינה או מטווח הארנק.',insufficient_funds:'אין יתרה מספיקה.',not_participant:'לא הימרתם על הבונוס הזה.',invalid_pick:'הבחירה אינה זמינה.',not_signed_in:'יש להתחבר מחדש מהלובי.'};
  function errorText(e){const raw=e?.message||String(e);for(const k of Object.keys(errors))if(raw.includes(k))return errors[k];if(/zlm_|schema cache|PGRST202/.test(raw))return 'המשחק עדיין לא הופעל בשרת. יש להשלים את התקנת המשחק.';if(raw==='Failed to fetch')return 'החיבור נותק. מנסים להתחבר מחדש.';return /[\u0590-\u05ff]/.test(raw)?raw:'לא התקבל אישור לפעולה. אפשר לנסות שוב; פעולה שכבר אושרה לא תחויב פעמיים.';}
  function savePending(){try{const key='zlm_pending_'+user;if(pending)localStorage.setItem(key,JSON.stringify(pending));else localStorage.removeItem(key);}catch{}}
@@ -36,9 +36,9 @@
  async function retry(){
   if(!pending||acting)return;acting=true;epoch++;renderControls();
   try{
-   if(preview){const bets={...state.bets};if(pending.p_spot==='all')for(const k of Object.keys(bets))delete bets[k];else if(pending.p_amount==='0')delete bets[pending.p_spot];else bets[pending.p_spot]=String(BigInt(bets[pending.p_spot]||0)+BigInt(pending.p_amount));state.bets=bets;pending=null;render();return;}
+   if(preview){const bets={...state.bets};if(pending.p_spot==='all')for(const k of Object.keys(bets))delete bets[k];else if(pending.p_amount==='0')delete bets[pending.p_spot];else bets[pending.p_spot]=String(BigInt(bets[pending.p_spot]||0)+BigInt(pending.p_amount));state.bets=bets;pending=null;$('error').textContent='';render();return;}
    const {data,error}=await db.rpc('zlm_bet',pending);
-   if(error){if(Object.keys(errors).some(k=>(error.message||'').includes(k))||['22P02','PGRST202'].includes(error.code)){pending=null;savePending();}throw error;}
+   if(error){if(Object.keys(errors).some(k=>(error.message||'').includes(k))||String(error.code||'').startsWith('22')||error.code==='PGRST202'){pending=null;savePending();}throw error;}
    pending=null;savePending();$('error').textContent='';accept(data);
   }catch(e){$('error').textContent=errorText(e);}
   finally{acting=false;renderControls();}
@@ -151,7 +151,8 @@
  addEventListener('pagehide',()=>{stopped=true;clearTimeout(timer);});addEventListener('pageshow',()=>{stopped=false;poll();});
  addEventListener('online',()=>poll());
  function orientationBlocked(){return matchMedia('(pointer:coarse) and (orientation:landscape)').matches;}
- addEventListener('resize',()=>{if(orientationBlocked()){clearTimeout(timer);$('rules').close();}else poll();});
+ let orientationWasBlocked=orientationBlocked();
+ addEventListener('resize',()=>{const blocked=orientationBlocked();if(blocked===orientationWasBlocked)return;orientationWasBlocked=blocked;if(blocked){clearTimeout(timer);$('rules').close();}else poll();});
  addEventListener('pointerdown',()=>{if(matchMedia('(pointer:coarse)').matches&&matchMedia('(display-mode:standalone)').matches)try{screen.orientation?.lock?.('portrait').catch(()=>{});}catch{}},{once:true});
  makeBoard();setInterval(updateClock,100);
  (async()=>{

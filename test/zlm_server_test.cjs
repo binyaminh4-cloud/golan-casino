@@ -89,9 +89,10 @@ async function main(){
  if(process.env.GC_PLAYWRIGHT){
   // Drive the real page against this real PostgreSQL engine; no production account or wallet is used.
   const {chromium}=require(process.env.GC_PLAYWRIGHT),browser=await chromium.launch({channel:'msedge',headless:true});
-  const page=await browser.newPage({viewport:{width:390,height:844},hasTouch:true});let loseResponse=true;
+  const page=await browser.newPage({viewport:{width:390,height:844},hasTouch:true});let loseResponse=true,stateCalls=0;
   await uid(users[0]);s=await newRound();const before=BigInt(s.balance);let betsBefore=(await q("select count(*)::int n from wallet_transactions where user_id=$1 and kind='stake'",[users[0]]))[0].n;
   await page.exposeFunction('__zlmRpc',async(name,args)=>{
+   if(name==='zlm_state')stateCalls++;
    const keys={zlm_state:[],zlm_bet:['p_round','p_spot','p_amount','p_request'],zlm_choose:['p_round','p_pick']}[name];
    if(!keys)return {error:{message:'unexpected_rpc'}};
    try{const data=await rpc(name,keys.map(k=>args[k]));if(name==='zlm_bet'&&loseResponse){loseResponse=false;return {error:{message:'Failed to fetch'}};}return {data,error:null};}
@@ -102,6 +103,7 @@ async function main(){
   await page.route('**/sfx.js?*',r=>r.fulfill({contentType:'application/javascript',body:''}));
   const failures=[];page.on('pageerror',e=>failures.push(e.message));
   await page.goto((process.env.GC_TEST_ORIGIN||'http://127.0.0.1:8766')+'/zman.html');await page.locator('#gcLoad').waitFor({state:'detached'});
+  const callsBeforeResize=stateCalls;await page.evaluate(async()=>{for(let i=0;i<20;i++)dispatchEvent(new Event('resize'));await new Promise(requestAnimationFrame);});assert(stateCalls<=callsBeforeResize+1,'portrait resize events must not create extra polling');
   await page.locator('#guideMount button').click();await page.locator('.gd').waitFor();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);await page.locator('.gd-skip').click();
   await page.locator('[data-spot=one]:enabled').waitFor();await page.locator('[data-spot=one]').click();
   await page.locator('#retry:visible').waitFor();assert.equal((await q('select balance::text b from wallets where user_id=$1',[users[0]]))[0].b,String(before-100n));

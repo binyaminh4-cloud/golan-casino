@@ -14,10 +14,14 @@ async function main(){
    await page.locator('#gcLoad').waitFor({state:'detached',timeout:10000});
    await page.locator('#wallet').filter({hasText:'3,500,000,000,000'}).waitFor({state:'attached'});
    if(name.includes('landscape')){assert(await page.locator('.rotate-gate').isVisible());assert.equal(await page.locator('main').evaluate(el=>getComputedStyle(el).visibility),'hidden');if(out)await page.screenshot({path:path.join(out,name+'-gate.png')});break;}
+   assert.equal(await page.locator('.zlm-bar').evaluate(el=>getComputedStyle(el).display),'grid');
+   assert(await page.locator('.zlm-bar').evaluate(el=>el.getBoundingClientRect().width<=540));
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,name+' '+scene+' overflows');
    for(const im of await page.locator('img:visible').all())assert(await im.evaluate(el=>el.complete&&el.naturalWidth>0),'missing image '+await im.getAttribute('src'));
    if(scene==='main'){
+    const centered=await page.evaluate(()=>{const w=document.querySelector('.wheel-wrap').getBoundingClientRect(),p=document.querySelector('.pointer').getBoundingClientRect();return Math.abs((p.x+p.width/2)-(w.x+w.width/2))<2;});assert(centered,'pointer must stay at 12 oclock in RTL');
     assert.equal(await page.locator('.bet-spot').count(),17);
+    await page.locator('#amount').fill('999999999999999999999999');await page.locator('[data-spot=one]').click();assert.equal(await page.locator('#retry:visible').count(),0);assert.equal(await page.locator('[data-spot=one] .chip').count(),0);
     await page.locator('#all').click();assert.equal(await page.locator('#amount').inputValue(),'3500000000000');
     await page.locator('#amount').fill('100');await page.locator('[data-spot=f1]').click();
     assert.equal(await page.locator('[data-spot=f1] .chip').innerText(),'100');assert.equal(await page.locator('[data-spot=i1] .chip').count(),0);
