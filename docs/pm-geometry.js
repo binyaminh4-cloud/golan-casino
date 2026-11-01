@@ -1,5 +1,5 @@
 (function (root) {
-  const speed = { easy: 1.2, normal: 1.8, extreme: 3.8 };
+  const speed = { easy: 1.2, normal: 1.8, extreme: 5.7 };
   function limit(angle, margin = 40) {
     const dx = Math.sin(angle), dy = Math.cos(angle);
     return Math.min(dx > 0 ? (1920 - margin - 1000) / dx : dx < 0 ? (margin - 1000) / dx : Infinity,
