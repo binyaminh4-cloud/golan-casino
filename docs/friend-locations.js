@@ -14,6 +14,7 @@
       return { label: mode === 'classic' ? 'רולטה' : mode === 'lightning' ? 'רולטת הברק המחומש' : 'רולטת XXX',
         href: q.has('private') || q.has('duel') ? null : 'roulette.html' + (mode === 'classic' ? '' : '?mode=' + mode + (q.get('skin') === 'fish' ? '&skin=fish' : '')) };
     }
+    if (page === 'zman.html') return { label: 'זמן למטווח', href: 'zman.html' };
     if (page === 'blackjack.html') return { label: 'בלאק ג׳ק', href: q.get('table') === '1' && !q.has('ch') ? 'blackjack.html?table=1' : null };
     const dealer = { tcp: 'פוקר שלושה קלפים', uth: 'הולדם מול הדילר', csp: 'פוקר קריבי' };
     if (page === 'dp.html' || /^(tcp|uth|csp)_live$/.test(page)) {

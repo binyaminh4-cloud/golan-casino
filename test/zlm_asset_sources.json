@@ -1,0 +1,137 @@
+[
+  {
+    "source": "part1\\Zman_Part_1\\01_Main_Game__contents\\Zman_Main_Pack\\assets\\studio_background.png",
+    "sha256": "0a0c01031ce7c8aec2e48053d52a16d6f1dcd8865cb4c7e3b566cad5e297ab57",
+    "asset": "studio.webp"
+  },
+  {
+    "source": "part1\\Zman_Part_1\\01_Main_Game__contents\\Zman_Main_Pack\\assets\\game_mockup.png",
+    "sha256": "1ddd62d5ec59451a0104d80f3022405b285274c8aef0cc86744254d06b098b3e",
+    "asset": "poster.webp"
+  },
+  {
+    "source": "part1\\Zman_Part_1\\01_Main_Game__contents\\Zman_Main_Pack\\assets\\betting_board.png",
+    "sha256": "f7ce2024e1f54519a9f6d2ae5f7782f8974ced6d81fde27bbfb64955586348cd",
+    "asset": "board.webp"
+  },
+  {
+    "source": "part1\\Zman_Part_1\\01_Main_Game__contents\\Zman_Main_Pack\\assets\\pointer.png",
+    "sha256": "654b84a38feeb6192f810a0344895cba7b2c1201e1a787c8e40dbd3624b60d43",
+    "asset": "pointer.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\02_Yoav_Bonus__contents\\bar_background.png",
+    "sha256": "f03a3df3148ede40a3141f28c88eb11329a8cd967bab924f757d4b85c2cb39b9",
+    "asset": "bar.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\02_Yoav_Bonus__contents\\yoav.png",
+    "sha256": "13fef0a5dd4eccac048b40613f8445e96819121eaa496fd0800d4bb470309d42",
+    "asset": "yoav.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\03_Matvach_and_VIP__contents\\Matvach_Bonus_Final\\assets\\background.png",
+    "sha256": "58ff8ece982f6fbee495512e89eed9637e0d83299d57e8205b9e09c81c4469f0",
+    "asset": "range-background.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\03_Matvach_and_VIP__contents\\Matvach_Bonus_Final\\assets\\cover.png",
+    "sha256": "9646b937c888e2186240fca255f456562a7e6b6a6e297e2762cd6858ffd493de",
+    "asset": "range-cover.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\03_Matvach_and_VIP__contents\\Matvach_Bonus_Final\\assets\\extra_shot.png",
+    "sha256": "47c8398b2ed1d4f28166d12e605c83c5ba7a35c0d983dbda787ec0041b9c213b",
+    "asset": "range-extra_shot.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\03_Matvach_and_VIP__contents\\Matvach_Bonus_Final\\assets\\friend_01.png",
+    "sha256": "c6a0a7a14ecaa6d6651c26f8b70a032147871a4296b482b88fb86440380d580f",
+    "asset": "range-friend_01.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\03_Matvach_and_VIP__contents\\Matvach_Bonus_Final\\assets\\friend_02.png",
+    "sha256": "eb503de80c130bc80b5738bdbdca68ccbf116364c93cb200dabef4a1481180ea",
+    "asset": "range-friend_02.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\03_Matvach_and_VIP__contents\\Matvach_Bonus_Final\\assets\\friend_03.png",
+    "sha256": "e8379911b095e450493c568a34c682cdccf02ea159374189f89ccd38a118ad7e",
+    "asset": "range-friend_03.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\03_Matvach_and_VIP__contents\\Matvach_Bonus_Final\\assets\\friend_04.png",
+    "sha256": "13f682d3541261384e849e8cc8829e931047334d9c4814faf07b372bb6cc79f6",
+    "asset": "range-friend_04.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\03_Matvach_and_VIP__contents\\Matvach_Bonus_Final\\assets\\friend_05_yoav.png",
+    "sha256": "21ca5de6645085589402a3556bd05ff8c0821996373daf13739dcfe4027a4b94",
+    "asset": "range-friend_05_yoav.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\03_Matvach_and_VIP__contents\\Matvach_Bonus_Final\\assets\\hit_marker.png",
+    "sha256": "543d20333181fefb671f2440ce5b79337866b109dc0391e452374222c3da0a4b",
+    "asset": "range-hit_marker.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\03_Matvach_and_VIP__contents\\Matvach_Bonus_Final\\assets\\wood_sign_blank.png",
+    "sha256": "bdbe2510cae4817923540c69c0ab760ad652ae7345098bfea81f9ac72e3489a0",
+    "asset": "range-wood_sign_blank.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\04_Balls_Bonus\\assets\\ball_black.png",
+    "sha256": "74686890d1c0135a3a82100035e8fdcc0df559cc1037e62a913312f27876e1e2",
+    "asset": "balls-ball_black.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\04_Balls_Bonus\\assets\\ball_green.png",
+    "sha256": "ff024673496252f6a9510ff848c77c67f0b1101ad6a5a746398296a55fd9ec53",
+    "asset": "balls-ball_green.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\04_Balls_Bonus\\assets\\ball_orange.png",
+    "sha256": "90c0d9afbaf78482c676a5bdd4afaf34ba91f95123eefdb209e91e1d351c23bd",
+    "asset": "balls-ball_orange.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\04_Balls_Bonus\\assets\\ball_purple.png",
+    "sha256": "64557e8d88617be3b6af9a779098a53ed218f03f0eadb64a369111b765dbad4d",
+    "asset": "balls-ball_purple.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\04_Balls_Bonus\\assets\\drum.png",
+    "sha256": "3a7ec0699d9fc3d53309534e44afcf76e3d4221f6be1232eada80d07a8a3ac6e",
+    "asset": "balls-drum.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\04_Balls_Bonus\\assets\\host.png",
+    "sha256": "c7035c425154c28e6a4b8df15a760bc84d7718872eb031cf21e2aa766ead18d2",
+    "asset": "balls-host.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\04_Balls_Bonus\\assets\\outlet_tray.png",
+    "sha256": "2dfa9ffc9f0f28945f4392fe750797e33cd1be3d8789f8c76c9cf53dd22872b0",
+    "asset": "balls-outlet_tray.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\04_Balls_Bonus\\assets\\podium.png",
+    "sha256": "fd27b753a96816afe73e73946bfc960a9acf7f0623c465f1e9999286183db8ff",
+    "asset": "balls-podium.webp"
+  },
+  {
+    "source": "part2\\Zman_Part_2\\04_Balls_Bonus\\assets\\stage_background.png",
+    "sha256": "56c9c05fc8bd348a53b44f6b9e4b2cf5ab482556f08a4010f628f2f0c48d2e65",
+    "asset": "balls-stage_background.webp"
+  },
+  {
+    "source": "part1\\Zman_Part_1\\01_Main_Game__contents\\Zman_Main_Pack\\assets\\wheel_editable.svg",
+    "sha256": "e647d84f5fddcced267da6b252793bb43da95d018ccbb5912693cb4f7857ca73",
+    "asset": "wheel-turn.webp"
+  },
+  {
+    "source": "part1\\Zman_Part_1\\01_Main_Game__contents\\Zman_Main_Pack\\assets\\wheel_editable.svg",
+    "sha256": "e647d84f5fddcced267da6b252793bb43da95d018ccbb5912693cb4f7857ca73",
+    "asset": "wheel-fixed.webp"
+  }
+]

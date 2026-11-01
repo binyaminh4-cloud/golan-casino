@@ -196,7 +196,7 @@ function salaryToast(s) {
 
 // ---------- lobby categories: tap a category, then pick a game inside it ----------
 (function cats() {
-  const NAME = { bj: "בלאק ג׳ק", rl: "רולטה", sl: "מכונות מזל", poker: "פוקר", jobs: "עבודות" };
+  const NAME = { bj: "בלאק ג׳ק", rl: "רולטה", sl: "מכונות מזל", wh: "גלגלי מזל", poker: "פוקר", jobs: "עבודות" };
   const box = $("gamesBox"), cs = $("cats"); if (!box || !cs) return;
   cs.querySelectorAll(".cat").forEach((b) => {
     const n = box.querySelectorAll(`.game[data-cat="${b.dataset.c}"]`).length, open = box.querySelectorAll(`.game[data-cat="${b.dataset.c}"]:not(.soon)`).length;

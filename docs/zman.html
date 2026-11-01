@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>זמן למטווח · גולן קזינו</title>
+<link rel="icon" href="img/brand/favicon.png?v=2">
+<link rel="stylesheet" href="zman.css?v=1793571098">
+<script src="loader.js?v=14"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=8"></script>
+</head>
+<body>
+<div class="rotate-gate" role="status">סובבו את המכשיר לאורך<small>זמן למטווח משוחק לאורך גם בטלפון וגם באייפד.</small></div>
+<header class="zlm-bar"><a href="./">→ ללובי</a><h1>זמן למטווח</h1><span>הארנק שלי <b id="wallet">…</b></span><div id="guideMount"></div></header>
+<main>
+ <section class="status" aria-live="polite"><strong id="phase">מתחברים לשולחן…</strong><span id="clock"></span><span id="wheelMult"></span></section>
+ <section id="mainGame" class="main-game">
+  <div class="wheel-scene"><div class="wheel-wrap"><img id="wheelTurn" src="img/zlm/wheel-turn.webp" alt="גלגל בן 54 תאים"><img class="wheel-fixed" src="img/zlm/wheel-fixed.webp" alt=""><div id="wheelBoosts"></div><img class="pointer" src="img/zlm/pointer.webp" alt=""></div><strong id="wheelResult"></strong></div>
+  <div class="bet-panel"><div id="board" class="board"><img src="img/zlm/board.webp" alt="לוח הימורים: 1, אותיות בצבעים שונים וארבעה בונוסים"><div id="betSpots"></div></div><p class="hint">בחרו סכום ולחצו על משבצת. צבע הרקע מבדיל בין אותיות זהות.</p><div id="myBets"></div></div>
+ </section>
+ <section id="bonus" class="bonus" hidden aria-label="הבונוס המשותף"></section>
+ <section class="controls" aria-label="סכום הימור"><label>סכום למשבצת <input id="amount" type="text" inputmode="numeric" value="100" autocomplete="off"></label><button id="half">חצי</button><button id="all">הכול</button><button id="cancel">בטל הימורים</button><button id="retry" hidden>נסה שוב את הפעולה</button><button id="rulesBtn">כללי המשחק</button></section>
+ <p id="error" class="error" role="alert"></p><p id="receipt" class="receipt"></p>
+</main>
+<dialog id="rules"><button id="closeRules" aria-label="סגור">✕</button><h2>כללי המשחק</h2>
+<p>כל השחקנים משחקים על אותו גלגל. 20 שניות להימור ולביטול לפני הנעילה. ההימור יורד מהארנק מיד. כל אחד מ־54 התאים שווה הסתברות.</p>
+<p>1 משלם רווח <bdi dir="ltr">1:1</bdi>. אותיות פישר ועידו משלמות רווח <bdi dir="ltr">25:1</bdi>, ואותיות בניו רווח <bdi dir="ltr">42:1</bdi>. מהמרים על אות וצבע מסוימים. הקרן חוזרת בנוסף לרווח בזכייה. הימורים על משבצות אחרות אינם מוחזרים.</p>
+<p>בכל סיבוב 3–10 תאים מקבלים מכפיל 2/3/5/10/20/50 במשקלים 35/25/18/12/7/3. המכפיל חל על הרווח בלבד; הקרן אינה מוכפלת.</p>
+<p>יואב: בחרו אחת משלוש כוסות בתוך 15 שניות. לכוסות תוצאות שונות, עד פי 50 רווח לפני מכפיל הגלגל.</p>
+<p>מטווח: בחרו מטרה בתוך 10 שניות. הפרסים 10,25,30,50,100; פי 30 מעניק גם ירייה נוספת בתוך 5 שניות. VIP: בחרו שלוש מטרות שונות בתוך 15 שניות, מתוך 10,20,25,50,100. סכום הפרסים מוכפל במכפיל הגלגל. בנימין תמיד פי 100; מיקומי הדמויות מעורבבים.</p>
+<p>כדורים: בחרו צבע בתוך 10 שניות. לכל צבע 27 כדורים רגילים ושלושה כדורי פי 2, ועוד 20 שחורים — 110 בסך הכול, ללא החזרה. כדור רגיל מקדם שלב ומיוחד שניים. הסולם מתחיל בפי 5 ומסתיים בפי 1000, לפני מכפיל הגלגל. כדור יוצא כל 3 שניות; הבונוס מסתיים בשחור הרביעי.</p>
+<p>בחירה שלא הושלמה בזמן מושלמת באקראי בשרת. יציאה מהדף אינה מבטלת הימור נעול. הבונוס ממשיך גם בניתוק, ותוצאתכם והזיכוי נשמרים. סיבוב חדש ממתין לסיום הבונוס המשותף ולסיכום.</p>
+</dialog>
+<script src="sfx.js?v=32"></script><script src="guide.js?v=45"></script><script src="zman.js?v=1793571098"></script><script src="chat.js?v=20"></script>
+</body></html>
