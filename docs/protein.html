@@ -66,7 +66,7 @@ function betPop(title) {
   const o = document.createElement("div"); o.className = "gc-bi bet";
   o.innerHTML = `<div class="box"><h2>${title || "💪 כמה מהמרים?"}</h2><ul><li style="text-align:center"><span class="st"></span></li>
     <li style="display:flex;gap:6px;justify-content:center">${[["easy", "קל"], ["normal", "רגיל"], ["extreme", "אקסטרים"]].map(([k, t]) => `<button type="button" class="md" data-m="${k}" style="flex:1;height:38px;font-size:15px;${k === el("mode").value ? "" : "background:#2a1c10;color:#F1D69A;border:1px solid #C5A05A"}">${t}</button>`).join("")}</li>
-    <li style="font-size:12px;color:#B9AA94">אותם פרסים ופצצות בכל הרמות · רמת הקושי משנה רק את מהירות הקרס</li></ul><button type="button" class="go">⛏️ התחל</button></div>`;
+    <li style="font-size:12px;color:#B9AA94">אותם סלעים ופצצות בכל הרמות · הקרס מהיר יותר ברמות הגבוהות.</li><li style="font-size:12px;color:#B9AA94">בהשלמת כל 12 השליפות: החזר כולל מינימלי פי 2 בקל, פי 5 ברגיל ופי 10 באקסטרים. יציאה מוקדמת משלמת את הקופה שנאספה.</li></ul><button type="button" class="go">⛏️ התחל</button></div>`;
   document.body.appendChild(o);
   GC_STEPPER(o.querySelector(".st"), el("stake"), { start: +el("stake").value || 100 });
   o.querySelectorAll(".md").forEach((b) => b.onclick = () => { el("mode").value = b.dataset.m; o.querySelectorAll(".md").forEach((x) => x.style.cssText = x === b ? "flex:1;height:38px;font-size:15px" : "flex:1;height:38px;font-size:15px;background:#2a1c10;color:#F1D69A;border:1px solid #C5A05A"); });
