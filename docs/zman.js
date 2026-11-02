@@ -170,6 +170,7 @@
  }
  function updateClock(){
   const remaining=Math.ceil(seconds());$('clock').textContent=state&&!preview?remaining+'″':'';if(state&&!preview)window.ZLM_AUDIO?.countdown(remaining);
+  $('mainGame').classList.toggle('spin-view',!!state&&(state.phase==='spin'||state.phase==='summary'||state.phase==='betting'&&!preview&&remaining<=0));
   if(state?.spot==='yoav'&&state.bonus.cups){const elapsed=Math.max(0,(now()-Date.parse(state.phase_at))/1000),done=state.phase==='summary';state.bonus.cups.forEach((v,i)=>{const n=done?v:Math.min(v,Math.floor(elapsed*5)),rect=document.querySelector(`[data-liquid="${i}"]`),num=document.querySelector(`[data-cup-number="${i}"]`);if(num)num.textContent='×'+n;if(rect){const h=60*Math.min(1,n/v);rect.setAttribute('y',70-h);rect.setAttribute('height',h);}});}
   if(state&&seconds()<=0)renderControls();
  }
