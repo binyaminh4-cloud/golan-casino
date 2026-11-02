@@ -44,9 +44,9 @@ canvas{display:block;border-radius:8px;touch-action:manipulation;max-width:100%;
   <button id="start" hidden>התחל</button><span id="betInfo" class="bal"></span><button id="newBet" hidden>הימור חדש</button><button id="cash" hidden style="display:none">קח וצא</button><button id="more" hidden style="display:none">עוד שלושה</button><span id="err"></span></div></header>
 <div class="wrap"><canvas id="game" width="1920" height="1080" aria-label="שדה החפירה. לחץ כדי לשלוח את הקרס"></canvas><small id="info">טוען…</small></div>
 <script src="sfx.js?v=32"></script>
-<script src="guide.js?v=1793645078"></script>
+<script src="guide.js?v=1793655212"></script>
 <script src="vendor/pm_scene.js?v=4"></script>
-<script src="pm-geometry.js?v=2"></script>
+<script src="pm-geometry.js?v=1793655212"></script>
 <script src="slot-bets.js?v=1"></script>
 <script>
 'use strict';
@@ -57,17 +57,17 @@ const S = ProteinScene, canvas = document.getElementById("game"), ctx = canvas.g
 const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
 const FILES = ["backgrounds/field_desktop.jpg","characters/avichai_idle.png","characters/avichai_pull.png","characters/avichai_celebrate.png","characters/avichai_shock.png","rocks/rock_a.png","rocks/rock_b.png","rocks/rock_c.png","prizes/mushroom.png","prizes/chicken.png","prizes/bomb.png","props/tray.png","ui/tag_blank.png","ui/plaque_blank.png","props/winch.png","props/crank.png","props/claw_open.png","props/claw_closed.png","fx/dust.png","fx/bomb_puff.png","characters/yoav_throw_00.png","characters/yoav_throw_01.png","characters/yoav_walk_00.png","characters/yoav_walk_01.png","characters/yoav_walk_02.png","characters/yoav_walk_03.png"];
 let r = { mode: "normal", rocks: [], layer: 0, successes: 0, bankUnits: 0, phase: "ready", history: [] }, runId = null, stake = 100;
-let introAt = 0, shot = null, reveal = null, angle = 0, busy = false, walletBalance = 0;
+let introAt = 0, shot = null, reveal = null, angle = 0, busy = false, walletBalance = 0, motionTime = 0, lastFrameAt = null;
 const active = () => ["intro", "playing", "checkpoint"].includes(r.phase);
 function fromServer(v) { runId = v.id; stake = +v.stake; r.mode = v.mode; r.layer = v.layer; r.successes = v.successes; r.bankUnits = +v.bank_units;
-  r.rocks = v.rocks.map((x, i) => ({ ...x, ...PM_GEOMETRY.position(i % 12), w: 70 + x.w * .6, rewardUnits: x.units })); if (r.phase !== "intro") r.phase = v.phase; if (v.balance != null) { walletBalance = Number(v.balance); el("bal").textContent = fmt(v.balance); } }
+  r.rocks = v.rocks.map((x, i) => ({ ...x, ...PM_GEOMETRY.position(x.id % 12, motionTime, !x.bomb), w: 70 + x.w * .6, rewardUnits: x.units })); if (r.phase !== "intro") r.phase = v.phase; if (v.balance != null) { walletBalance = Number(v.balance); el("bal").textContent = fmt(v.balance); } }
 // choosing the bet happens in the middle of the screen; afterwards only a small label stays on top
 function betPop(title) {
   GC_BI_CSS(); document.querySelectorAll(".gc-bi.bet").forEach((n) => n.remove());
   const o = document.createElement("div"); o.className = "gc-bi bet";
   o.innerHTML = `<div class="box"><h2>${title || "💪 כמה מהמרים?"}</h2><ul><li style="text-align:center"><span class="st"></span></li>
     <li style="display:flex;gap:6px;justify-content:center">${[["easy", "קל"], ["normal", "רגיל"], ["extreme", "אקסטרים"]].map(([k, t]) => `<button type="button" class="md" data-m="${k}" style="flex:1;height:38px;font-size:15px;${k === el("mode").value ? "" : "background:#2a1c10;color:#F1D69A;border:1px solid #C5A05A"}">${t}</button>`).join("")}</li>
-    <li style="font-size:12px;color:#B9AA94">אותם סלעים ופצצות בכל הרמות · הקרס מהיר יותר ברמות הגבוהות.</li><li style="font-size:12px;color:#B9AA94">בהשלמת כל 12 השליפות: החזר כולל מינימלי פי 2 בקל, פי 5 ברגיל ופי 10 באקסטרים. יציאה מוקדמת משלמת את הקופה שנאספה.</li></ul><button type="button" class="go">⛏️ התחל</button></div>`;
+    <li style="font-size:12px;color:#B9AA94">המזון נע ימינה ושמאלה. ברמות הגבוהות ובשכבות העמוקות יש יותר פצצות; בכל שכבה לפחות 4 מטרות מזון. הכיוון והמיקום ננעלים בזמן שליחת הקרס.</li><li style="font-size:12px;color:#B9AA94">בהשלמת כל 12 השליפות: החזר כולל מינימלי פי 2 בקל, פי 5 ברגיל ופי 10 באקסטרים. יציאה מוקדמת משלמת את הקופה שנאספה.</li></ul><button type="button" class="go">⛏️ התחל</button></div>`;
   document.body.appendChild(o);
   const steps = GC_SLOT_LADDER(10, walletBalance), host = o.querySelector(".st");
   let amount = GC_SLOT_SELECT(steps, +el("stake").value || 100), index = steps.indexOf(amount);
@@ -89,16 +89,16 @@ function endPop() {
   setTimeout(() => betPop(r.phase === "busted" ? "💥 תפסת פחמימה במקום חלבון, התפוצצת!" : `💪 אספת חלבון: ${fmt(r.phase === "busted" ? 0 : pot)}!`), r.phase === "busted" ? 1400 : 600);
 }
 // checkpoint: a clear choice in the middle of the screen
-const MODE_BOMB = { easy: [15, 25, 38, 50], normal: [15, 25, 38, 50], extreme: [15, 25, 38, 50] }, DEPTH = [1, 1.3, 1.7, 2.3];
+const DEPTH = [1, 1.3, 1.7, 2.3];
 let cpShown = -1;
 function checkpointPop() {
   if (r.phase !== "checkpoint" || cpShown === runId + ":" + r.successes || document.querySelector(".gc-bi")) return; cpShown = runId + ":" + r.successes;   // per run: a new run must show its own checkpoints
-  const pot = Math.floor(stake * r.bankUnits / 100), nl = r.layer + 1, last = r.layer >= 3, b = MODE_BOMB[r.mode] || MODE_BOMB.normal;
+  const pot = Math.floor(stake * r.bankUnits / 100), nl = r.layer + 1, last = r.layer >= 3, nextRocks = r.rocks.filter(k => k.layer === nl && !k.taken), bombs = nextRocks.filter(k => k.bomb).length, safe = nextRocks.length - bombs;
   const o = document.createElement("div"); o.className = "gc-bi"; GC_BI_CSS();
   o.innerHTML = `<div class="box"><h2>💪 קופה: ${fmt(pot)}</h2><ul>
     <li>אספת ${r.successes} שליפות. אפשר לקחת עכשיו את <b>${fmt(pot)}</b> ולסיים.</li>
     ${last ? "<li>זו הייתה השכבה האחרונה.</li>" : `<li>⛏️ <b>שכבה ${nl + 1} מתוך 4</b>: הפרסים שווים פי ${DEPTH[nl]} מהשכבה הראשונה, הסלעים גדולים יותר. אפשר לקחת עוד 3 שליפות.</li>
-    <li>⚠️ הסיכון: סיכוי לפצצה ${b[0]}% בסלע קטן ועד ${b[3]}% בענק. סלע עם תג של יואב בטוח מפצצות. בכל שכבה יש לפחות 3 מטרות בטוחות. פצצה מאפסת את כל הקופה.</li>`}
+    <li>⚠️ הסיכון: בשכבה הבאה ${bombs} פצצות ו־${safe} מטרות מזון. המזון זז בזמן הכוונה. פריט עם תג של יואב בטוח מפצצות. פצצה מאפסת את כל הקופה.</li>`}
     </ul><button type="button" class="take">💰 קח ${fmt(pot)}</button>${last ? "" : `<button type="button" class="go" style="margin-top:8px;background:#2a1c10;color:#F1D69A;border:1px solid #C5A05A">⛏️ עוד שלושה</button>`}</div>`;
   document.body.appendChild(o);
   o.querySelector(".take").onclick = () => { o.remove(); next(true); };
@@ -115,16 +115,14 @@ el("start").onclick = async () => {
   if (bet > walletBalance) return (el("err").textContent = "אין מספיק שקלים.");
   busy = true; const { data, error } = await db.rpc("pm_start", { p_stake: bet, p_mode: el("mode").value, p_ref: ref() }); busy = false;
   if (error) return (el("err").textContent = errMsg(error)); el("err").textContent = "";
-  r.history = []; r.phase = "intro"; fromServer(data); introAt = performance.now() / 1000; shot = null; reveal = null; controls();
+  r.history = []; motionTime = 0; r.phase = "intro"; fromServer(data); introAt = performance.now() / 1000; shot = null; reveal = null; controls();
 };
 async function next(cash) { if (busy) return; busy = true; const { data, error } = await db.rpc("pm_next", { p_run: runId, p_cash: cash }); busy = false;
   if (error) return (el("err").textContent = errMsg(error)); fromServer(data); reveal = null; controls();
   if (cash && window.GC_BONUS && data.paid >= stake * 5) GC_BONUS("💪 שלל של חלבון", data.paid, ""); }
 el("cash").onclick = () => next(true); el("more").onclick = () => next(false);
 // same aim geometry as the kit: the first open rock on the claw's line
-function hitTest(a) { const ox = 1000, oy = 280, dx = Math.sin(a), dy = Math.cos(a); let best = null; if (dy <= 0) return null;
-  for (const k of r.rocks) { if (k.taken || k.layer !== r.layer) continue; const vx = k.x - ox, vy = k.y - oy, t = vx * dx + vy * dy, d2 = vx * vx + vy * vy - t * t;
-    if (t > 0 && d2 <= (k.w * .52 + 7) ** 2 && (!best || t < best.distance)) best = { rock: k, distance: t }; } return best; }
+function hitTest(a) { return PM_GEOMETRY.hit(r.rocks, r.layer, a); }
 canvas.addEventListener("pointerdown", () => { if (r.phase !== "playing" || shot || busy) return; const hit = hitTest(angle), max = PM_GEOMETRY.limit(angle);
   shot = { start: performance.now() / 1000, angle, distance: hit ? Math.min(hit.distance, max) : max, rock: hit && hit.distance <= max ? hit.rock : null, done: false, res: null };
   { const s = shot; busy = true; db.rpc("pm_collect", { p_run: runId, p_rock: s.rock ? s.rock.id : -1 }).then(({ data, error }) => { busy = false; s.res = error ? { error } : data; }); }
@@ -132,12 +130,16 @@ canvas.addEventListener("pointerdown", () => { if (r.phase !== "playing" || shot
 function frame(now) {
   const t = now / 1000; let state = { round: r, time: r.phase === "intro" ? t - introAt : t, stake, angle, length: 45 };
   if (r.phase === "intro" && t - introAt >= 7) { r.phase = "playing"; controls(); }
-  // Each active target has its own aim direction; only swing speed differs by mode.
+  // Advance a local play clock only while aiming. The same target coordinates
+  // are used for drawing and hit testing, and stay locked throughout a shot.
+  if (lastFrameAt !== null && r.phase === "playing" && !shot && !busy) motionTime += Math.min(.05, Math.max(0, t - lastFrameAt));
+  lastFrameAt = t;
+  for (const k of r.rocks) Object.assign(k, PM_GEOMETRY.position(k.id % 12, motionTime, !k.bomb));
   if (!shot) { angle = Math.sin(t * (PM_GEOMETRY.speed[r.mode] || 1.8)) * 1.46; state.angle = r.phase === "playing" ? angle : 0; }
   if (shot) { const sh = shot, e = t - sh.start, out = sh.distance / 1500, back = sh.distance / (sh.rock ? 820 : 1250), total = out + .18 + back;
     state.angle = sh.angle; state.closed = e >= out; state.pose = e >= out ? "pull" : "idle"; state.bodyTilt = Math.sin(t * 15) * .006; state.crankAngle = t * 10;
     if (e < out) state.length = 45 + (sh.distance - 45) * S.ease(e / out); else if (e < out + .18) state.length = sh.distance; else state.length = sh.distance - (sh.distance - 45) * S.ease((e - out - .18) / back);
-    if (sh.rock && e >= out && e < total) { state.carried = sh.rock; state.hiddenRock = sh.rock.id; }
+    if (sh.rock && e >= out) { state.hiddenRock = sh.rock.id; if (e < total) state.carried = sh.rock; }
     if (e >= total && !sh.done && sh.res) { sh.done = true; shot = null;
       if (sh.res && !sh.res.error) { const g = sh.res.got; fromServer(sh.res); if (g.miss) { reveal = null; controls(); } else { if (!g.bomb) r.history.push({ ...g, rewardUnits: g.units }); reveal = { ...g, at: t }; controls();
         try { g.bomb ? SFX.lose() : SFX.win(false); } catch (er) {} }
@@ -155,7 +157,7 @@ Promise.all(FILES.map((f) => new Promise((ok) => { const im = new Image(); im.on
   const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single(); if (w.data) { walletBalance = Number(w.data.balance); el("bal").textContent = fmt(w.data.balance); }
   const c = await db.rpc("pm_current"); if (c.data) { r.phase = c.data.phase; fromServer(c.data); }
   controls(); requestAnimationFrame(frame); if (window.GC_LOADER) GC_LOADER.done();
-  await GC_GUIDE.init({ game: "protein", db, mount: document.querySelector(".top"), steps: GC_STEPS.protein().map((step) => ({ ...step, t: step.t.replace("הכול זז כל הזמן, אז צריך לתזמן. קרס שחוזר ריק נחשב שליפה.", "רמת הקושי משנה רק את מהירות הקרס. שליחה ריקה אינה נחשבת שליפה.") })) });
+  await GC_GUIDE.init({ game: "protein", db, mount: document.querySelector(".top"), steps: GC_STEPS.protein() });
   if (!active()) betPop();
 });
 </script>
