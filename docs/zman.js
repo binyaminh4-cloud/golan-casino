@@ -12,20 +12,42 @@
  const asMoney=n=>BigInt(n||0).toLocaleString('en-US'), money=n=>'₪'+asMoney(n);
  const short=n=>{n=BigInt(n||0);for(const [d,s] of [[1000000000000n,'T'],[1000000000n,'B'],[1000000n,'M'],[1000n,'K']])if(n>=d)return String(n/d)+s;return String(n);};
  const image=(name,cls='')=>{const im=document.createElement('img');im.src='img/zlm/'+name+'.webp';im.alt='';im.className=cls;im.draggable=false;return im;};
+ const betting=ZLM_BETS, autoPlan=new betting.AutoPlan();
+ let selectedChip='100',lastLayout={},candidate=null,rackKey='',pendingAuto=false,batchReady=preview;
  let state=null, offset=0, timer=null, fetching=false, acting=false, user=null, pending=null, bonusKey='', lastBallKey='', stopped=false, epoch=0, spinId='', spinAnimations=[];
  function now(){return Date.now()+offset;}
- function seconds(){return state?Math.max(0,(Date.parse(state.deadline)-now())/1000):0;}
- function amount(){const v=$('amount').value.replace(/[,\s₪]/g,'');if(!/^\d+$/.test(v)||BigInt(v)<1n)throw Error('בחרו סכום חיובי של שקלים שלמים');if(state&&BigInt(v)>BigInt(state.balance))throw Error('הסכום גבוה מהיתרה הזמינה');return BigInt(v).toString();}
+ function seconds(){return preview?20:state?Math.max(0,(Date.parse(state.deadline)-now())/1000):0;}
+ function amount(){const available=BigInt(state?.balance||0),chip=BigInt(selectedChip);if(available<=0n)throw Error('אין יתרה מספיקה');return (chip<available?chip:available).toString();}
  const errors={betting_closed:'ההימורים לסיבוב הזה ננעלו.',choice_closed:'זמן הבחירה הסתיים. השרת משלים בחירה חסרה.',invalid_bet:'ההימור אינו תקין.',invalid_amount:'הסכום גבוה מהיתרה הזמינה או מטווח הארנק.',insufficient_funds:'אין יתרה מספיקה.',not_participant:'לא הימרתם על הבונוס הזה.',invalid_pick:'הבחירה אינה זמינה.',not_signed_in:'יש להתחבר מחדש מהלובי.'};
  function errorText(e){const raw=e?.message||String(e);for(const k of Object.keys(errors))if(raw.includes(k))return errors[k];if(/zlm_|schema cache|PGRST202/.test(raw))return 'המשחק עדיין לא הופעל בשרת. יש להשלים את התקנת המשחק.';if(raw==='Failed to fetch')return 'החיבור נותק. מנסים להתחבר מחדש.';return /[\u0590-\u05ff]/.test(raw)?raw:'לא התקבל אישור לפעולה. אפשר לנסות שוב; פעולה שכבר אושרה לא תחויב פעמיים.';}
  function savePending(){try{const key='zlm_pending_'+user;if(pending)localStorage.setItem(key,JSON.stringify(pending));else localStorage.removeItem(key);}catch{}}
- function accept(s){if(!s?.id)return;state=s;offset=Date.parse(s.server_time)-Date.now();render();}
+ function accept(s){if(!s?.id)return;
+  if(candidate&&candidate.id!==s.id&&betting.sum(candidate.bets)>0n)lastLayout=betting.layout(candidate.bets);
+  candidate={id:s.id,bets:betting.layout(s.bets)};
+  if(s.phase!=='betting'&&betting.sum(s.bets)>0n)lastLayout=betting.layout(s.bets);
+  if(user)try{localStorage.setItem('zlm_layout_'+user,JSON.stringify({lastLayout,candidate}));}catch{}
+  state=s;offset=Date.parse(s.server_time)-Date.now();window.ZLM_AUDIO?.update(s);render();maybeAuto();
+ }
+ function stopAuto(){autoPlan.stop();$('autoMenu').hidden=true;$('auto').setAttribute('aria-expanded','false');drawAuto();}
+ function drawAuto(){const b=$('auto');b.classList.toggle('on',autoPlan.running);b.textContent=autoPlan.running?'⏹ '+(autoPlan.remaining===Infinity?'∞':autoPlan.remaining):'אוטומטי';b.setAttribute('aria-label',autoPlan.running?'עצור הימור אוטומטי':'הימור אוטומטי');}
+ async function repeatLayout(layout,automatic=false){
+  if(!batchReady||acting||pending||!state||state.phase!=='betting'||seconds()<=0)return;
+  const clean=betting.layout(layout),total=betting.sum(clean);
+  if(total<=0n){$('error').textContent='קודם הניחו הימור אחד.';stopAuto();return;}
+  if(total>BigInt(state.balance)){$('error').textContent='אין מספיק יתרה כדי לחזור על כל ההימור.';stopAuto();return;}
+  pendingAuto=automatic;pending={rpc:'zlm_bet_batch',p_round:state.id,p_layout:clean,p_request:crypto.randomUUID()};savePending();await retry();
+ }
+ function maybeAuto(){if(!autoPlan.running||!state||state.phase!=='betting'||seconds()<3||acting||pending||stopped||document.hidden||orientationBlocked()||document.querySelector('.gd,.sfx-menu:not([hidden]),dialog[open]')||betting.sum(state.bets)>0n)return;if(autoPlan.claim(state.id))repeatLayout(autoPlan.template,true);}
+ function drawRack(){const rack=betting.rack(state?.balance||0),key=rack.join(',');if(!rack.includes(selectedChip))selectedChip=rack[Math.min(2,rack.length-1)];
+  if(rackKey!==key){rackKey=key;$('chips').replaceChildren();for(const value of rack){const b=document.createElement('button');b.className='chip-choice';b.dataset.value=value;b.title=money(value);b.setAttribute('aria-label','ז׳יטון '+money(value));b.textContent=short(value);GC_CHIPIFY(b,Number(value));b.onclick=()=>{selectedChip=value;drawRack();window.ZLM_AUDIO?.effect('tick');};$('chips').append(b);}}
+  $('chips').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.value===selectedChip)));
+ }
  async function poll(){
   clearTimeout(timer);if(stopped||document.hidden||fetching||orientationBlocked())return;
   if(preview)return;
   fetching=true;const version=epoch;
   try{const {data,error}=await db.rpc('zlm_state');if(error)throw error;if(version===epoch){accept(data);if(!pending)$('error').textContent='';}}
-  catch(e){$('error').textContent=errorText(e);}
+  catch(e){stopAuto();$('error').textContent=errorText(e);}
   finally{fetching=false;if(!stopped&&!document.hidden)timer=setTimeout(poll,2000);}
  }
  async function sendBet(spot,cancel=false){
@@ -36,12 +58,18 @@
  async function retry(){
   if(!pending||acting)return;acting=true;epoch++;renderControls();
   try{
-   if(preview){const bets={...state.bets};if(pending.p_spot==='all')for(const k of Object.keys(bets))delete bets[k];else if(pending.p_amount==='0')delete bets[pending.p_spot];else bets[pending.p_spot]=String(BigInt(bets[pending.p_spot]||0)+BigInt(pending.p_amount));state.bets=bets;pending=null;$('error').textContent='';render();return;}
-   const {data,error}=await db.rpc('zlm_bet',pending);
+   const {rpc='zlm_bet',...args}=pending;
+   if(preview){const bets={...state.bets};let balance=BigInt(state.balance);
+    if(args.p_layout){for(const [key,value]of Object.entries(args.p_layout))bets[key]=String(BigInt(bets[key]||0)+BigInt(value));balance-=betting.sum(args.p_layout);}
+    else if(args.p_amount==='0'){for(const key of Object.keys(bets))if(args.p_spot==='all'||args.p_spot===key){balance+=BigInt(bets[key]);delete bets[key];}}
+    else {bets[args.p_spot]=String(BigInt(bets[args.p_spot]||0)+BigInt(args.p_amount));balance-=BigInt(args.p_amount);}
+    pending=null;if(pendingAuto){autoPlan.confirmed();pendingAuto=false;}state.bets=bets;state.balance=String(balance);$('error').textContent='';render();return;
+   }
+   const {data,error}=await db.rpc(rpc,args);
    if(error){if(Object.keys(errors).some(k=>(error.message||'').includes(k))||String(error.code||'').startsWith('22')||error.code==='PGRST202'){pending=null;savePending();}throw error;}
-   pending=null;savePending();$('error').textContent='';accept(data);
-  }catch(e){$('error').textContent=errorText(e);}
-  finally{acting=false;renderControls();}
+   pending=null;savePending();if(pendingAuto){autoPlan.confirmed();pendingAuto=false;}$('error').textContent='';window.ZLM_AUDIO?.effect('tick');accept(data);
+  }catch(e){pendingAuto=false;stopAuto();$('error').textContent=errorText(e);}
+  finally{acting=false;renderControls();drawAuto();}
  }
  async function choose(pick){
   if(acting||!state||seconds()<=0)return;acting=true;epoch++;
@@ -55,14 +83,20 @@
   rows.forEach(([prefix],r)=>[68.1,56,44.2,32.1].forEach((x,i)=>specs.push([prefix+i,x,[29.1,51,72.8][r],10.8,20])));
   for(const [key,x,y,w,h] of specs){const b=document.createElement('button');b.type='button';b.className='bet-spot';b.dataset.spot=key;b.style.cssText=`left:${x-w/2}%;top:${y-h/2}%;width:${w}%;height:${h}%`;
    const ratio=key==='one'?'1:1':key[0]==='b'&&key!=='balls'?'42:1':/^[fi]/.test(key)?'25:1':'בונוס';
-   b.title=labels[key]+' · '+ratio;b.setAttribute('aria-label','הימור על '+b.title);b.onclick=()=>sendBet(key);$('betSpots').append(b);}
+   b.title=labels[key]+' · '+ratio;b.setAttribute('aria-label','הימור על '+b.title);
+   const glyph={one:'one',yoav:'wine',range:'blue_target',balls:'three_balls',vip:'red_target'},letters={פ:'pe',י:'yod',ש:'shin_DRAFT_background',ר:'resh',ע:'ayin',ד:'dalet',ו:'vav',ב:'bet',נ:'nun'};
+   const art=glyph[key]||letters[[...rows.find(([p])=>p===key[0])[1]][Number(key[1])]];b.append(image('bet-'+art,'spot-art'));
+   if(ratio!=='בונוס'){const odds=document.createElement('span');odds.className='odds';odds.dir='ltr';odds.textContent=ratio;b.append(odds);}
+   b.onclick=()=>sendBet(key);$('betSpots').append(b);}
  }
  function renderControls(){
   const active=!!state&&state.phase==='betting'&&seconds()>0&&!acting&&!pending;
   document.querySelectorAll('.bet-spot').forEach(b=>b.disabled=!active);
-  ['amount','half','all','cancel'].forEach(id=>$(id).disabled=!active);
+  $('chips').querySelectorAll('button').forEach(b=>b.disabled=!active||BigInt(state?.balance||0)<=0n);
+  $('cancel').disabled=!active||betting.sum(state?.bets)<=0n;
+  $('repeat').disabled=!batchReady||!active||betting.sum(lastLayout)<=0n;$('auto').disabled=!batchReady&&!autoPlan.running;
   $('retry').hidden=!pending;$('retry').disabled=acting;
-  document.querySelectorAll('#myBets button').forEach(b=>b.disabled=!active);
+  document.querySelectorAll('#myBets button').forEach(b=>b.disabled=!active);drawAuto();
  }
  function render(){
   const s=state,b=s.bonus||{};const bonus=['yoav','range','vip','balls'].includes(s.spot)&&!['betting','spin'].includes(s.phase);
@@ -86,11 +120,11 @@
   if($('wheelBoosts').dataset.key!==boostKey){$('wheelBoosts').replaceChildren();$('wheelBoosts').dataset.key=boostKey;
    for(const [cell,mult] of Object.entries(s.boosts)){const a=-(Number(cell)-1)*2*Math.PI/54,el=document.createElement('span');el.className='boost';el.textContent='×'+mult;el.style.left=50-Math.sin(a)*29+'%';el.style.top=50-Math.cos(a)*29+'%';$('wheelBoosts').append(el);}
   }
-  document.querySelectorAll('.bet-spot').forEach(el=>{const key=el.dataset.spot,amt=s.bets[key];el.classList.toggle('marked',!!amt);el.classList.toggle('winner',s.phase==='summary'&&s.spot===key);el.querySelector('.chip')?.remove();if(amt){const chip=document.createElement('span');chip.className='chip';chip.textContent=short(amt);el.append(chip);}});
+  document.querySelectorAll('.bet-spot').forEach(el=>{const key=el.dataset.spot,amt=s.bets[key];el.classList.toggle('marked',!!amt);el.classList.toggle('winner',s.phase==='summary'&&s.spot===key);el.querySelector('.chip')?.remove();if(amt){const chip=document.createElement('span');chip.className='chip';chip.textContent=short(amt);chip.setAttribute('aria-label',money(amt));GC_CHIPIFY(chip,Number(amt));el.append(chip);}});
   $('myBets').replaceChildren();for(const [key,n] of Object.entries(s.bets)){const bt=document.createElement('button');bt.textContent=labels[key]+' '+money(n)+' ✕';bt.onclick=()=>sendBet(key,true);$('myBets').append(bt);}
-  const last=s.last_result;$('receipt').textContent=last?'סיבוב אחרון: הימור '+money(last.stake)+' · חזר לארנק '+money(last.payout)+' · שינוי '+money(BigInt(last.payout)-BigInt(last.stake)):'';
+  const last=s.last_result;$('receipt').textContent=last?'סיבוב אחרון · זכייה '+money(last.payout):'';
   if(bonus){const key=[s.id,s.spot,s.phase,JSON.stringify(b.picks),b.extra,s.draws,JSON.stringify(b.targets)].join('|');if(key!==bonusKey){bonusKey=key;renderBonus();}}
-  renderControls();updateClock();
+  drawRack();renderControls();updateClock();
  }
  function heading(text){const h=document.createElement('h2');h.textContent=text;$('bonus').append(h);}
  function note(text){const p=document.createElement('div');p.className='bonus-info';p.textContent=text;$('bonus').append(p);}
@@ -117,7 +151,7 @@
     bt.innerHTML=`<b data-cup-number="${i}">?</b><svg viewBox="0 0 100 150" aria-hidden="true"><defs><clipPath id="cup-mask-${i}"><path d="M5 10H95L54 66Q50 70 46 66Z"/></clipPath><linearGradient id="wine-${i}" x2="0" y2="1"><stop stop-color="#ff5e68"/><stop offset="1" stop-color="#940a21"/></linearGradient></defs><g clip-path="url(#cup-mask-${i})"><rect data-liquid="${i}" x="0" y="70" width="100" height="0" fill="url(#wine-${i})"/></g><path d="M5 10H95L54 66Q50 70 46 66ZM50 68V132M30 136Q50 129 70 136Q50 142 30 136" fill="none" stroke="#fff2d9" stroke-width="2"/><ellipse cx="50" cy="10" rx="45" ry="5" fill="none" stroke="#fff2d9" stroke-width="2"/></svg>`;cups.append(bt);
    }box.append(cups);
   }else renderBalls(can);
-  if(s.phase==='summary'&&b.eligible){const p=document.createElement('div');p.className='bonus-total';const wm=s.boosts[s.cell]||1;p.textContent='רווח: ×'+b.profit+' × '+wm+' = ×'+b.profit*wm+' · הקרן חוזרת בנוסף';box.append(p);}
+  if(s.phase==='summary'&&b.eligible){const p=document.createElement('div');p.className='bonus-total';p.textContent='סכום הזכייה '+money(s.last_result?.round===s.id?s.last_result.payout:'0');box.append(p);}
  }
  function renderBalls(can){
   const s=state,b=s.bonus,box=$('bonus');box.classList.add('balls-scene');const layout=document.createElement('div');layout.className='balls-layout';
@@ -136,35 +170,41 @@
   const caption=document.createElement('div');caption.className='balls-caption';caption.textContent='נותרו '+(110-events.length)+' כדורים · '+(b.black||0)+' שחורים מתוך 4'+(chosen!==undefined?' · הצבע שלך ×'+values[chosen]:'');layout.append(caption);box.append(layout);
  }
  function updateClock(){
-  $('clock').textContent=state?Math.ceil(seconds())+'″':'';
+  $('clock').textContent=state&&!preview?Math.ceil(seconds())+'″':'';
   if(state?.spot==='yoav'&&state.bonus.cups){const elapsed=Math.max(0,(now()-Date.parse(state.phase_at))/1000),done=state.phase==='summary';state.bonus.cups.forEach((v,i)=>{const n=done?v:Math.min(v,Math.floor(elapsed*5)),rect=document.querySelector(`[data-liquid="${i}"]`),num=document.querySelector(`[data-cup-number="${i}"]`);if(num)num.textContent='×'+n;if(rect){const h=60*Math.min(1,n/v);rect.setAttribute('y',70-h);rect.setAttribute('height',h);}});}
   if(state&&seconds()<=0)renderControls();
  }
  function fixture(){
   const spot=params.get('bonus'),s={id:'preview',phase:spot?'choice':'betting',phase_at:new Date().toISOString(),deadline:new Date(Date.now()+20000).toISOString(),server_time:new Date().toISOString(),bets:{},balance:'3500000000000',boosts:{1:3,12:2,23:5},cell:spot?({range:1,vip:12,yoav:6,balls:23}[spot]||23):null,spot:spot||null,bonus:{picks:[],extra:null,eligible:true,profit:0,targets:Array.from({length:5},(_,index)=>({index,open:false}))},draws:0,last_result:null};
   if(params.has('summary')){s.phase='summary';s.bonus.profit=spot==='balls'?30:spot==='yoav'?4:130;s.bonus.picks=spot==='range'?[3]:[0];s.bonus.extra=spot==='range'?1:null;s.bonus.cups=[4,8,20];s.bonus.targets=s.bonus.targets.map((t,i)=>({...t,open:true,person:i,value:[10,100,25,30,50][i]}));s.bonus.events=[1,4,0,2,3,0,6,2,0,1,3,0];s.bonus.levels=[4,2,4];s.bonus.values=[30,15,30];s.bonus.black=4;s.draws=12;}
+  if(s.phase==='summary')s.last_result={round:s.id,stake:'100',payout:String(100*(1+s.bonus.profit*(s.boosts[s.cell]||1)))};
   accept(s);
  }
- $('half').onclick=()=>{$('amount').value=String(BigInt(state.balance)/2n);};$('all').onclick=()=>{$('amount').value=state.balance;};$('cancel').onclick=()=>sendBet('all',true);$('retry').onclick=retry;
+ $('repeat').onclick=()=>repeatLayout(lastLayout);$('cancel').onclick=()=>{stopAuto();sendBet('all',true);};$('retry').onclick=retry;
+ $('auto').onclick=()=>{if(autoPlan.running){stopAuto();return;}$('autoMenu').hidden=!$('autoMenu').hidden;$('auto').setAttribute('aria-expanded',String(!$('autoMenu').hidden));};
+ $('autoMenu').onclick=e=>{const b=e.target.closest('[data-count]');if(!b)return;const template=betting.sum(state?.bets)>0n?state.bets:lastLayout;if(betting.sum(template)<=0n){$('error').textContent='קודם הניחו הימור אחד.';return;}autoPlan.arm(Number(b.dataset.count),template);$('autoMenu').hidden=true;$('auto').setAttribute('aria-expanded','false');drawAuto();maybeAuto();};
  $('rulesBtn').onclick=()=>$('rules').showModal();$('closeRules').onclick=()=>$('rules').close();
- document.addEventListener('visibilitychange',()=>{clearTimeout(timer);if(!document.hidden){bonusKey='';poll();} });
- addEventListener('pagehide',()=>{stopped=true;clearTimeout(timer);});addEventListener('pageshow',()=>{stopped=false;poll();});
+ document.addEventListener('visibilitychange',()=>{clearTimeout(timer);if(document.hidden)stopAuto();else{bonusKey='';poll();} });
+ addEventListener('pagehide',()=>{stopAuto();stopped=true;clearTimeout(timer);});addEventListener('pageshow',()=>{stopped=false;poll();});
  addEventListener('online',()=>poll());
  function orientationBlocked(){return matchMedia('(pointer:coarse) and (orientation:landscape)').matches;}
  let orientationWasBlocked=orientationBlocked();
- addEventListener('resize',()=>{const blocked=orientationBlocked();if(blocked===orientationWasBlocked)return;orientationWasBlocked=blocked;if(blocked){clearTimeout(timer);$('rules').close();}else poll();});
+ addEventListener('resize',()=>{const blocked=orientationBlocked();if(blocked===orientationWasBlocked)return;orientationWasBlocked=blocked;if(blocked){stopAuto();clearTimeout(timer);$('rules').close();}else poll();});
  addEventListener('pointerdown',()=>{if(matchMedia('(pointer:coarse)').matches&&matchMedia('(display-mode:standalone)').matches)try{screen.orientation?.lock?.('portrait').catch(()=>{});}catch{}},{once:true});
  makeBoard();setInterval(updateClock,100);
  (async()=>{
   try{
    if(preview){fixture();return;}
    const {data:{session}}=await db.auth.getSession();if(!session){location.href='./';return;}user=session.user.id;
+   try{const saved=JSON.parse(localStorage.getItem('zlm_layout_'+user)||'{}');lastLayout=betting.layout(saved.lastLayout);candidate=saved.candidate;}catch{}
    try{pending=JSON.parse(localStorage.getItem('zlm_pending_'+user)||'null');}catch{}
    await poll();
+   const capability=await db.rpc('zlm_repeat_ready');batchReady=!capability.error&&capability.data===1;renderControls();
    window.GC_LOADER?.done();
    if(pending)$('error').textContent='פעולה קודמת ממתינה לאימות. לחצו „נסה שוב את הפעולה”; חיוב מאושר לא יתבצע פעמיים.';
    await GC_GUIDE.init({game:'zman',db,mount:$('guideMount'),auto:false,steps:[
-    {el:'#board',t:'בוחרים סכום ולוחצים על משבצת. אותיות זהות בצבעים שונים הן הימורים נפרדים. יש 20 שניות להמר ולבטל לפני הנעילה.'},
+    {el:'#chips',t:'בוחרים ז׳יטון ומניחים אותו בלחיצה על משבצת. הז׳יטונים גדלים עם הארנק לפי הכלל של הרולטה. יש 20 שניות להמר ולנקות לפני הנעילה.'},
+    {el:'#repeat',t:'ריפיט חוזר על כל הפריסה האחרונה. אוטומטי חוזר עליה למספר הסיבובים שבחרתם, ונעצר ביציאה מהדף, בתקלה או בחוסר יתרה.'},
     {t:'מכפיל הגלגל מכפיל את הרווח בלבד. הקרן חוזרת בנוסף בזכייה. פירוט התשלומים נמצא בכללי המשחק.'},
     {t:'בבונוס בוחרים כוס, מטרות או צבע. בחירה שלא הושלמה בזמן תושלם בשרת. הגלגל ממתין לסיום הבונוס המשותף, והתוצאה נשמרת גם בניתוק.'}
    ]});

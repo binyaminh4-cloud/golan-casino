@@ -2,7 +2,7 @@
 const {chromium}=require(process.env.GC_PLAYWRIGHT||'playwright');
 const assert=require('node:assert/strict'),fs=require('fs'),path=require('path');
 async function main(){
- const browser=await chromium.launch({channel:'msedge',headless:true});
+ const browser=await chromium.launch({channel:'msedge',headless:true,args:['--mute-audio']});
  const origin=process.env.GC_TEST_ORIGIN||'http://127.0.0.1:8766',out=process.env.GC_SCREENSHOTS;
  if(out)fs.mkdirSync(out,{recursive:true});
  const failures=[];
@@ -21,13 +21,16 @@ async function main(){
    if(scene==='main'){
     const centered=await page.evaluate(()=>{const w=document.querySelector('.wheel-wrap').getBoundingClientRect(),p=document.querySelector('.pointer').getBoundingClientRect();return Math.abs((p.x+p.width/2)-(w.x+w.width/2))<2;});assert(centered,'pointer must stay at 12 oclock in RTL');
     assert.equal(await page.locator('.bet-spot').count(),17);
-    await page.locator('#amount').fill('999999999999999999999999');await page.locator('[data-spot=one]').click();assert.equal(await page.locator('#retry:visible').count(),0);assert.equal(await page.locator('[data-spot=one] .chip').count(),0);
-    await page.locator('#all').click();assert.equal(await page.locator('#amount').inputValue(),'3500000000000');
-    await page.locator('#amount').fill('100');await page.locator('[data-spot=f1]').click();
-    assert.equal(await page.locator('[data-spot=f1] .chip').innerText(),'100');assert.equal(await page.locator('[data-spot=i1] .chip').count(),0);
-    await page.locator('#cancel').click();assert.equal(await page.locator('.chip').count(),0);
+    assert.equal(await page.locator('#amount,#half,#all').count(),0);assert.equal(await page.locator('#chips button').count(),7);
+    assert.equal(await page.locator('.odds').count(),13);assert.equal(await page.locator('[data-spot=one] .odds').innerText(),'1:1');assert.equal(await page.locator('[data-spot=f1] .odds').innerText(),'25:1');assert.equal(await page.locator('[data-spot=b1] .odds').innerText(),'42:1');
+    assert(await page.locator('#board').evaluate(el=>el.getBoundingClientRect().height>210));
+    const chip=page.locator('#chips button').first(),value=await chip.getAttribute('data-value');await chip.click();await page.locator('[data-spot=f1]').click();
+    assert.equal(await page.locator('[data-spot=f1] .chip').getAttribute('aria-label'),'₪'+BigInt(value).toLocaleString('en-US'));assert.equal(await page.locator('[data-spot=i1] .chip').count(),0);
+    assert((await page.locator('[data-spot=f1] .chip').getAttribute('style')).includes('img/chips/chip_'));
+    await page.locator('#cancel').click();assert.equal(await page.locator('.bet-spot .chip').count(),0);
     await page.locator('#rulesBtn').click();assert(await page.locator('#rules').isVisible());await page.locator('#closeRules').click();
    }
+   if(query.includes('summary')){assert.equal(await page.locator('.bonus-total').count(),1);assert((await page.locator('.bonus-total').innerText()).includes('₪'));assert(!(await page.locator('.bonus-total').innerText()).includes('='));}
    if(scene==='vip'){
     for(let i=0;i<3;i++)await page.locator('.target').nth(i).click();
     assert.equal(await page.locator('.target.selected').count(),3);assert.equal(await page.locator('.target:enabled').count(),0);
@@ -41,6 +44,6 @@ async function main(){
   await page.close();
  }
  assert.deepEqual(failures,[]);await browser.close();
- console.log('PASS: 15 portrait scenes on phone, desktop and iPad; landscape gates on phone AND iPad; no page errors or missing assets; colored bets; full-wallet input; cancel; rules; VIP picks; ladders and black counters.');
+ console.log('PASS: 15 portrait scenes; phone/iPad landscape gates; larger board; 13 odds labels; seven real chip graphics; colored bets; clear; currency-only wins; VIP picks and ball counters.');
 }
 main().catch(e=>{console.error(e.message);process.exit(1)});

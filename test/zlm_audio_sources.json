@@ -1,0 +1,151 @@
+{
+  "provider": "ElevenLabs",
+  "flow_url": "https://elevenlabs.io/app/flows/E0WxsppRqfCLf3xptzXH",
+  "variations_per_role": 1,
+  "assets": [
+    {
+      "role": "music",
+      "generation_id": "C7mZ44qLvdGsXTDYeilu",
+      "node_id": "5PCCY0PMrxamqmz2ojDl",
+      "duration": 45,
+      "model": "eleven_music_v2",
+      "sha256": "1f8ea5d23a22841d2d034ae088b192636dfec7611c1934a489391d23d5144770",
+      "bytes": 1098322,
+      "decoded": {
+        "duration": 45,
+        "channels": 2,
+        "sample_rate": 48000,
+        "peak": 0.8857973217964172,
+        "rms": 0.1476689359343357,
+        "nonFinite": 0,
+        "peak_attenuation_required": true
+      }
+    },
+    {
+      "role": "tick",
+      "generation_id": "XJFt55f7UW9XpTc9OlU8",
+      "node_id": "x3uwpPsI1NVEWAqZeOTo",
+      "duration": 0.48,
+      "model": "eleven_text_to_sound_v2",
+      "sha256": "9b1368528b00c010654869401eb2411e34e6a33b71a2e65b5de123e30e3c5a18",
+      "bytes": 25946,
+      "decoded": {
+        "duration": 0.48,
+        "channels": 2,
+        "sample_rate": 48000,
+        "peak": 0.6054779291152954,
+        "rms": 0.03618181086519123,
+        "nonFinite": 0,
+        "peak_attenuation_required": false
+      }
+    },
+    {
+      "role": "shot",
+      "generation_id": "wchBQc7e7S36YMYmD0MT",
+      "node_id": "vQM8GGmMtYsyZU62WTum",
+      "duration": 0.8,
+      "model": "eleven_text_to_sound_v2",
+      "sha256": "ee64c5b31687e0e6f9a520d531350f716aee2c482b97b0b41f5bd059d6980e12",
+      "bytes": 30961,
+      "decoded": {
+        "duration": 0.8,
+        "channels": 2,
+        "sample_rate": 48000,
+        "peak": 0.661837637424469,
+        "rms": 0.032767793000223616,
+        "nonFinite": 0,
+        "peak_attenuation_required": false
+      }
+    },
+    {
+      "role": "win",
+      "generation_id": "oLsvsVKoYheAhPJv3Zl5",
+      "node_id": "w3mCAjjHQI7TnTirN0iy",
+      "duration": 2.76,
+      "model": "eleven_text_to_sound_v2",
+      "sha256": "1a0b023952c8e05dcdd790b052981353e1118690459c93ecdfc83f4d945f8a97",
+      "bytes": 62308,
+      "decoded": {
+        "duration": 2.76,
+        "channels": 2,
+        "sample_rate": 48000,
+        "peak": 0.916367769241333,
+        "rms": 0.14057632938397147,
+        "nonFinite": 0,
+        "peak_attenuation_required": true
+      }
+    },
+    {
+      "role": "ball",
+      "generation_id": "yKbDJBE4n2rRekwAGvoN",
+      "node_id": "CvWrdkBBtihUAkQb4D7I",
+      "duration": 0.6802494331065759,
+      "model": "eleven_text_to_sound_v2",
+      "sha256": "47b1be3a1f7dabb51da79876efa268ea907ceb210a1e09f7882becf4979f768d",
+      "bytes": 29289,
+      "decoded": {
+        "duration": 0.6802291666666667,
+        "channels": 2,
+        "sample_rate": 48000,
+        "peak": 0.7226908802986145,
+        "rms": 0.057256928373803494,
+        "nonFinite": 0,
+        "peak_attenuation_required": false
+      }
+    },
+    {
+      "role": "pour",
+      "generation_id": "TUh2FAgoF9Zl4PIYaiRO",
+      "node_id": "Y9rg7neQeOQCwzh1tVrB",
+      "duration": 2.48,
+      "model": "eleven_text_to_sound_v2",
+      "sha256": "710445ba5e1b8dbbb9b205d8d757ec48ed67460d0bedbb6b65951addabc2484c",
+      "bytes": 57711,
+      "decoded": {
+        "duration": 2.48,
+        "channels": 2,
+        "sample_rate": 48000,
+        "peak": 0.17050091922283173,
+        "rms": 0.011291779967841106,
+        "nonFinite": 0,
+        "peak_attenuation_required": false
+      }
+    },
+    {
+      "role": "bonus",
+      "generation_id": "J6Lp1cEZjI6u9hapnuSG",
+      "node_id": "YtXJzbnoTVLuEWKnOXiO",
+      "duration": 1.48,
+      "model": "eleven_text_to_sound_v2",
+      "sha256": "b090582ebeb5584f89dfe9663c600808f16465849e2499c04bfd5ae33f1fb488",
+      "bytes": 41828,
+      "decoded": {
+        "duration": 1.48,
+        "channels": 2,
+        "sample_rate": 48000,
+        "peak": 1.0693343877792358,
+        "rms": 0.16631705853547898,
+        "nonFinite": 0,
+        "peak_attenuation_required": true
+      }
+    },
+    {
+      "role": "target",
+      "generation_id": "dxQiWrSmvLKGYCOuxBcR",
+      "node_id": "XHhARsH41NrhfPxWdBLi",
+      "duration": 0.6802494331065759,
+      "model": "eleven_text_to_sound_v2",
+      "sha256": "e91e53269ddd75a9f59245d0ce175161d8b93db2a25277a048d914ac0e1e141b",
+      "bytes": 29289,
+      "decoded": {
+        "duration": 0.6802291666666667,
+        "channels": 2,
+        "sample_rate": 48000,
+        "peak": 0.8513708114624023,
+        "rms": 0.06430407453488897,
+        "nonFinite": 0,
+        "peak_attenuation_required": true
+      }
+    }
+  ]
+}
