@@ -156,17 +156,24 @@
   const s=state,b=s.bonus,box=$('bonus');box.classList.add('balls-scene');const layout=document.createElement('div');layout.className='balls-layout';
   const levels=b.levels||[0,0,0],values=b.values||[5,5,5],events=b.events||[],chosen=b.picks?.[0];
   const ladders=document.createElement('div');ladders.className='ladders';
-  for(let c=0;c<3;c++){const l=document.createElement('div');l.className='ladder'+(chosen===c?' selected':'');const bt=document.createElement('button');bt.className=['g','p','o'][c];bt.textContent=['ירוק','סגול','כתום'][c];bt.disabled=!can||chosen!==undefined;bt.onclick=()=>choose(c);l.append(bt);
+  for(let c=0;c<3;c++){const l=document.createElement('div');l.className='ladder'+(chosen===c?' selected':'');const bt=document.createElement('div');bt.className='ladder-label '+['g','p','o'][c];bt.textContent=['ירוק','סגול','כתום'][c];l.append(bt);
    for(let i=11;i>=0;i--){const step=document.createElement('div');step.className='step '+['g','p','o'][c]+(levels[c]===i?' active':'');step.textContent='×'+ladder[i];l.append(step);}ladders.append(l);
   }layout.append(ladders,image('balls-host','ball-host'));
   const drum=document.createElement('div');drum.className='drum';drum.append(image('balls-drum'));const deco=document.createElement('div');deco.className='drum-balls';
   // Decoration only. The visible sequence and remaining counts always use server events.
-  for(let i=0;i<Math.min(24,110-events.length);i++){const im=image('balls-ball_'+(i%6===0?'black':colors[i%3]));im.style.cssText=`left:${(i*31)%78}%;top:${(i*23)%72}%;animation-delay:-${i*.17}s`;deco.append(im);}
+  for(let i=0;i<Math.min(24,110-events.length);i++){const im=image('balls-ball_'+(i%6===0?'black':colors[(i-1)%3]));const row=Math.floor(i/5);im.style.cssText=`left:${(i%5)*18+(row%2?6:0)}%;bottom:${2+row*16}%;animation-delay:-${i*.17}s`;deco.append(im);}
+  if(s.phase==='balls')deco.classList.add('mixing');
   const glass=document.createElement('div');glass.className='glass-front';drum.append(deco,glass);layout.append(drum,image('balls-podium','podium'),image('balls-outlet_tray','outlet'));
   const counter=document.createElement('div');counter.className='black-count';counter.setAttribute('aria-label',(b.black||0)+' שחורים מתוך 4');for(let i=0;i<4;i++){const el=document.createElement('i');if(i<(b.black||0))el.className='lit';counter.append(el);}layout.append(counter);
   const collected=document.createElement('div');collected.className='collected';events.forEach((v,i)=>{const im=image('balls-ball_'+(v===0?'black':colors[(v-1)%3]));im.title='שליפה '+(i+1)+(v>3?' · פי 2':'');collected.append(im);});layout.append(collected);
   if(events.length){const key=s.id+':'+events.length;if(lastBallKey!==key){lastBallKey=key;const v=events.at(-1),el=document.createElement('div');el.className='draw-ball';el.append(image('balls-ball_'+(v===0?'black':colors[(v-1)%3])));if(v>3){const txt=document.createElement('b');txt.textContent='×2';el.append(txt);}const elapsed=Math.max(0,(now()-Date.parse(s.phase_at))/1000-events.length*3);if(s.phase==='balls'&&elapsed<1.8){el.style.animationDelay=-elapsed+'s';layout.append(el);}}}
-  const caption=document.createElement('div');caption.className='balls-caption';caption.textContent='נותרו '+(110-events.length)+' כדורים · '+(b.black||0)+' שחורים מתוך 4'+(chosen!==undefined?' · הצבע שלך ×'+values[chosen]:'');layout.append(caption);box.append(layout);
+  const caption=document.createElement('div');caption.className='balls-caption';caption.textContent='נותרו '+(110-events.length)+' כדורים · '+(b.black||0)+' שחורים מתוך 4'+(chosen!==undefined?' · הצבע שלך: '+['ירוק','סגול','כתום'][chosen]+' ×'+values[chosen]:'');layout.append(caption);box.append(layout);
+  if(can&&chosen===undefined){const overlay=document.createElement('div');overlay.className='ball-picker';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-labelledby','ballPickerTitle');
+   const panel=document.createElement('div');panel.className='ball-picker-panel';const title=document.createElement('h3');title.id='ballPickerTitle';title.textContent='בחרו את צבע הכדור שלכם';panel.append(title);
+   const choices=document.createElement('div');choices.className='ball-choices';const message=document.createElement('p');message.className='ball-picker-error';message.setAttribute('role','status');
+   colors.forEach((color,c)=>{const bt=document.createElement('button');bt.type='button';bt.className='ball-choice';bt.setAttribute('aria-label','בחירת כדור '+['ירוק','סגול','כתום'][c]);bt.append(image('balls-ball_'+color));const label=document.createElement('span');label.textContent=['ירוק','סגול','כתום'][c];bt.append(label);bt.onclick=async()=>{message.textContent='';choices.querySelectorAll('button').forEach(x=>x.disabled=true);await choose(c);if(overlay.isConnected&&state?.phase==='choice'&&!state.bonus.picks?.length){message.textContent='הבחירה לא נשמרה. אפשר לנסות שוב.';choices.querySelectorAll('button').forEach(x=>x.disabled=false);}};choices.append(bt);});
+   panel.append(choices,message);overlay.append(panel);box.append(overlay);
+  }
  }
  function updateClock(){
   const remaining=Math.ceil(seconds());$('clock').textContent=state&&!preview?remaining+'″':'';if(state&&!preview)window.ZLM_AUDIO?.countdown(remaining);
