@@ -14,11 +14,12 @@ await rpc("apply_tx($1,'season','grant',1000000000,'season:1:champion')",[u]);
 for(const [i,id]of users.entries())for(const kind of ['fisher','ido','zeus','tourney'])await q('insert into ch_points(season,user_id,kind,points)values(2,$1,$2,$3)',[id,kind,i===3?9999:100-i*20]);
 const balances=await q('select user_id,balance from wallets order by user_id');
 const sql=fs.readFileSync('supabase/migrations/0104_season_prize_shabbat_200.sql','utf8');await d.exec(sql);await d.exec(sql);
+const podium=fs.readFileSync('supabase/migrations/0105_challenge_podium_prizes.sql','utf8');await d.exec(podium);await d.exec(podium);
 assert.deepEqual(await q('select user_id,balance from wallets order by user_id'),balances,'install does not pay or reset balances');
 await rpc('ch_settle()');
 assert.equal((await q("select amount::text n from wallet_transactions where settlement_ref='season:2:champion'"))[0].n,'15000000000');
 assert.equal((await q("select amount::text n from wallet_transactions where settlement_ref='season:1:champion'"))[0].n,'1000000000','no retroactive top-up');
-for(const [place,amount]of [[1,100000000],[2,50000000],[3,25000000]])assert.equal((await q("select count(*)::int n from wallet_transactions where settlement_ref like 'season:2:%:'||$1 and amount=$2",[String(place),amount]))[0].n,4);
+for(const [place,amount]of [[1,1000000000],[2,500000000],[3,250000000]])assert.equal((await q("select count(*)::int n from wallet_transactions where settlement_ref like 'season:2:%:'||$1 and amount=$2",[String(place),amount]))[0].n,4);
 assert.equal((await q("select count(*)::int n from wallet_transactions where user_id=$1 and game='season'",[users[3]]))[0].n,0,'test account with most points is excluded');
 const ledger=await q('select count(*)::int n from wallet_transactions');await rpc('ch_settle()');assert.deepEqual(await q('select count(*)::int n from wallet_transactions'),ledger,'prizes paid once');
 // Force only the calendar boundary in the isolated database; all five real
@@ -41,8 +42,9 @@ for(const [game,level,pay,secret,call,extra,expected]of [
 await d.exec("create or replace function gc_shabbat_until()returns timestamptz language sql stable as $$select null::timestamptz$$");assert.equal(await rpc('gc_job_mult()'),1);
 const normal=(await q("insert into job_runs(user_id,game,level,puzzle,secret,pay,started_at,deadline)values($1,'fiber',1,'{}','{}',250000,now()-interval '1 minute',now()+interval '1 hour')returning id",[u]))[0].id;
 assert.equal((await rpc('fiber_finish($1,3)',[normal])).paid,750000,'normal-day rate unchanged');
-assert.match((await q(fs.readFileSync('test/season_shabbat_live_check.sql','utf8')))[0].validation,/^PASS:/);
+assert.match((await q(fs.readFileSync('test/challenge_podium_live_check.sql','utf8')))[0].validation,/^PASS:/);
 for(const f of ['docs/challenges.html','docs/index.html','docs/guide.js']){const text=fs.readFileSync(f,'utf8');assert(text.includes('₪15,000,000,000'));assert(!text.includes('₪1,000,000,000'));}
+assert(fs.readFileSync('docs/challenges.html','utf8').includes('₪1B</b>'));assert(fs.readFileSync('docs/guide.js','utf8').includes('מקום ראשון ₪1B, שני ₪500M ושלישי ₪250M.'));
 const jobs=fs.readFileSync('docs/jobs.js','utf8');assert(jobs.includes('M = SAT ? 3 : 1'));assert(jobs.includes('+200%'));assert(!jobs.includes('+500%'));
-console.log('PASS: full migration chain; 15B champion; unchanged podiums; no retroactive or double prizes; test exclusions; x3 Shabbat for all five jobs; x1 weekdays; UI labels');await d.close();
+console.log('PASS: full migration chain; 15B champion; 1B/500M/250M per challenge; no retroactive or double prizes; test exclusions; x3 Shabbat for all five jobs; x1 weekdays; UI labels');await d.close();
 })().catch(e=>{console.error(e.stack);process.exit(1)});
