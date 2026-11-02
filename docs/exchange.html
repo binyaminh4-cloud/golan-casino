@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>בורסת גולן · גולן קזינו</title>
+<link rel="icon" href="img/brand/favicon.png?v=2">
+<link rel="stylesheet" href="exchange.css?v=1793623668">
+<script src="loader.js?v=14"></script><script src="portrait.js?v=2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script><script src="config.js?v=8"></script>
+</head>
+<body>
+<header class="top"><a href="bank.html" aria-label="חזרה לבנק">→ לבנק</a><h1><img src="img/exchange/icon_house.webp" alt="">בורסת גולן<small>GOLAN CASINO</small></h1><button id="infoBtn" aria-label="מידע וכללי השקעה">ⓘ</button></header>
+<main>
+ <p id="previewNotice" class="notice" hidden>תצוגת עיצוב בלבד. מחירים וגרפים אינם מוצגים ללא נתוני שרת, ואין מסחר בתצוגה זו.</p>
+ <div id="message" class="message" role="status">טוענים את הבורסה…</div><button id="retry" hidden>נסה שוב</button>
+ <section class="balances" aria-label="סיכום חשבון"><div class="frame"><small>יתרת בנק זמינה</small><b id="bank">—</b><a href="bank.html">הפקדה בבנק</a></div><div class="frame"><small>שווי תיק פתוח</small><b id="portfolioValue">—</b><small>קרן נעולה: <span id="locked">—</span></small></div></section>
+ <div class="profits"><span>רווח/הפסד ממומש <b id="realized">—</b></span><span>רווח/הפסד פתוח <b id="unrealized">—</b></span></div>
+ <section id="marketView" class="view">
+  <div class="market-tabs" role="group" aria-label="סוג השקעה"><button data-kind="long" aria-pressed="true">השקעות ארוכות</button><button data-kind="daily" aria-pressed="false">מסחר יומי</button></div>
+  <p id="marketNote" class="muted">המחירים מתעדכנים ב־00:05 לפי שעון ישראל.</p>
+  <div class="list-head"><span>מדד וסיכון</span><span>שער ושינוי</span><span>היסטוריה</span></div>
+  <div id="markets" aria-label="המדדים"></div>
+ </section>
+ <section id="detailView" class="view" hidden>
+  <button id="marketBack">→ לכל המדדים</button><div id="detailTitle" class="detail-title"></div>
+  <div class="periods" role="group" aria-label="טווח הגרף"><button data-hours="1">שעה</button><button data-hours="24" aria-pressed="true">יום</button><button data-hours="168">שבוע</button><button data-hours="336">14 יום</button></div>
+  <div id="chart" class="chart frame" role="img" aria-label="גרף מחירי המדד"></div>
+  <p id="updated" class="muted"></p><p class="muted">הקו מציג מחירי סגירה של דגימות. סגירת עסקה בהפסד מלא נבדקת גם בתנודות שבתוך הדגימה.</p><p id="source" class="source"></p>
+  <form id="orderForm" class="order frame">
+   <h2>פתיחת השקעה</h2><fieldset class="directions"><legend>כיוון ההשקעה</legend><label class="up"><input type="radio" name="direction" value="1" checked><span>↑ עלייה</span></label><label class="down"><input type="radio" name="direction" value="-1"><span>↓ ירידה</span></label></fieldset>
+   <label for="amount">סכום מהבנק — שקלים משחקיים</label><input id="amount" type="text" inputmode="numeric" autocomplete="off" required pattern="[0-9,]+" placeholder="סכום השקעה">
+   <div class="quick" role="group" aria-label="סכום מהיר"><button type="button" data-amount="100">100</button><button type="button" data-amount="1000">1,000</button><button type="button" data-amount="1000000">1M</button><button type="button" data-amount="half">חצי מהיתרה</button></div>
+   <label for="leverage">מינוף <b id="leverageValue">×1</b></label><input id="leverage" type="number" inputmode="numeric" min="1" max="50" value="1" required>
+   <div id="longDuration"><label for="days">תקופת השקעה — ימים שלמים, 1–14</label><div class="periods"><button type="button" data-days="1" aria-pressed="true">1</button><button type="button" data-days="3">3</button><button type="button" data-days="7">7</button><button type="button" data-days="14">14</button></div><input id="days" type="number" inputmode="numeric" min="1" max="14" value="1" required></div>
+   <p id="summary" class="summary"></p><p id="liquidation" class="muted"></p><button class="gold" id="review" type="submit">בדיקת פרטי השקעה</button>
+  </form>
+ </section>
+ <section id="positionsView" class="view" hidden><h2>התיק שלי</h2><p class="muted">שווי פתוח הוא אומדן לפי המחיר האחרון. הסכום הסופי נקבע בעת הסגירה.</p><div id="positions"></div></section>
+ <section id="historyView" class="view" hidden><h2>היסטוריית סגירות</h2><p class="muted">מוצגות עסקאות שנפתחו ב־90 הימים האחרונים, 50 בכל טעינה.</p><div id="history"></div><button id="moreHistory" hidden>טעינת עסקאות קודמות</button></section>
+ <section id="infoView" class="view" hidden><h2>מידע וכללי הבורסה</h2>
+  <p>שקלים משחקיים בלבד. הכסף ננעל מיתרת הבנק. רווח אינו מובטח, והפסד מוגבל לקרן שהושקעה. אין עמלות.</p>
+  <h3>השקעות ארוכות</h3><p>מינוף עד ×50, נעילה ל־1–14 יממות מדויקות ללא מכירה מוקדמת. שערים מתפרסמים ב־00:05 בשעון ישראל. עסקה מסתיימת בשער הראשון שמועד ההערכה שלו חל בזמן הפקיעה או אחריו. תקלה יכולה לעכב את הפרסום והזיכוי.</p>
+  <p>השינוי היומי במדדי המשחקים הוא רווח הבית חלקי סך ההימורים והתשלומים. מדד הבית מקבל חמישית מהשינוי. נספרים רק משחקים שהסתיימו מאז ההפעלה, כולל פעילות המשקיע. יום ללא פעילות אינו משנה את המחיר. מדד הדגים כולל את גלגל הדגים בלבד.</p>
+  <h3>מדד פישר</h3><p>המדד אישי ומחריג את המשקיע. לכל חבר מחושב ערך מתואם: הפקדות, משיכות ותנועות הלוואות משנות את כמות היחידות, ולא את מחירן. קרן השקעה נעולה ממשיכה להיספר לפי הקרן; רווח או הפסד של השקעה משפיע לאחר הזיכוי לבנק. השער משתנה לפי היחס בין סכומי הממוצעים היומיים המשוקללים בזמן של אותם חברים בשני הימים. מצטרף חדש נכלל רק אחרי שני ימי מדידה מלאים. ההשוואה מתבצעת לפי אותה קבוצת חברים כדי למנוע קפיצה בעת הצטרפות או עזיבה. אין תקרת תנודתיות.</p>
+  <h3>מסחר יומי</h3><p>ארבעה נכסים מדומים, עם גרף אקראי משותף שנוצר בשרת. המחירים אינם מחירי קריפטו אמיתיים. מינוף עד ×1,000, אפשר לסגור ידנית, וסגירה אוטומטית אחרי 24 שעות. מחירים מתעדכנים בערך פעם בשנייה כשיש צופים או עסקאות; בזמן הפסקת שרת אין המצאת מחירים אחורה.</p>
+  <p>טווח התנועה האקראית המרבי בכל עדכון: בנימין ±0.002%, פישר ±0.003%, עידו ±0.004%, אביחי ±0.005%. בכל נכס הכיוון מוגרל בלי קשר לעסקאות השחקנים. הגרף מציג נרות דקה מנתונים שנוצרו בפועל.</p>
+  <h3>מינוף וסגירה</h3><p>השווי מחושב כקרן × (1 + כיוון × מינוף × שינוי המחיר). כשהשווי מגיע לאפס או פחות, העסקה נסגרת בהפסד מלא ואינה מתאוששת. כל מחיר שפורסם נבדק בשרת גם כשהשחקן מנותק. במינוף ×1,000 תנועה נגד העסקה של 0.1% מוחקת את הקרן; במינוף ×50 — 2%.</p>
+  <p>סכומי ההחזר מעוגלים מטה לשקל שלם. אם ההחזר חורג מטווח המספרים של הבנק, הזכאות נשמרת ומוצגת „ממתין לזיכוי”. מחירים חסרים או מחיר אפס מונעים פתיחת עסקאות חדשות. ההיסטוריה מתחילה ביום ההפעלה.</p>
+ </section>
+</main>
+<nav class="bottom" aria-label="ניווט בורסה"><a href="bank.html"><img src="img/exchange/nav_home.webp" alt="">בנק</a><button data-view="market"><img src="img/exchange/nav_market.webp" alt="">שוק</button><button data-view="positions"><img src="img/exchange/nav_portfolio.webp" alt="">התיק שלי</button><button data-view="history"><img src="img/exchange/nav_history.webp" alt="">היסטוריה</button><button data-view="info"><img src="img/exchange/nav_info.webp" alt="">מידע</button></nav>
+<dialog id="confirmOrder" aria-labelledby="confirmTitle"><h2 id="confirmTitle">אישור פרטי השקעה</h2><div id="confirmDetails"></div><p>הביצוע יהיה במחיר השרת בעת האישור. כל הקרן עלולה ללכת לאיבוד.</p><p id="confirmError" role="alert"></p><button id="confirmSubmit" class="gold">אישור השקעה ונעילת הסכום</button><button id="confirmCancel">חזרה לעריכה</button></dialog>
+<script src="sfx.js?v=32"></script><script src="guide.js?v=45"></script><script src="exchange.js?v=1793623668"></script>
+</body></html>

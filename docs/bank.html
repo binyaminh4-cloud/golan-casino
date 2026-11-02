@@ -85,6 +85,7 @@
   <div class="q"><button data-q="1000000">1M</button><button data-q="10000000">10M</button><button data-q="half">חצי</button><button data-q="all">הכול</button></div>
   <div class="act"><button class="dep" id="depBtn">⬇ הפקדה לבנק</button><button class="wd" id="wdBtn">⬆ משיכה לארנק</button></div>
   <button type="button" class="loanbtn" id="loanBtn">💳 הלוואות</button>
+  <a href="exchange.html" id="exchangeLink" class="loanbtn" hidden style="box-sizing:border-box;text-align:center;text-decoration:none">בורסת גולן · השקעות</a>
   <div class="msg" id="msg"></div>
   <details><summary>תנועות אחרונות</summary><div class="tx" id="tx"></div></details>
 </section>
@@ -95,7 +96,7 @@ const $ = (id) => document.getElementById(id);
 const fmt = (n) => { n = Number(n) || 0; const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
 const PREVIEW = /[?#&]preview/.test(location.href);
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
-const KIND = { salary_weekly: "משכורת שבועית", salary_monthly: "משכורת חודשית", gift: "מתנה מבעל הבית", deposit: "הפקדה", withdraw: "משיכה", job: "תשלום עבודה", levelup: "מענק עלייה ברמה" };
+const KIND = { salary_weekly: "משכורת שבועית", salary_monthly: "משכורת חודשית", gift: "מתנה מבעל הבית", deposit: "הפקדה", withdraw: "משיכה", job: "תשלום עבודה", levelup: "מענק עלייה ברמה", exchange_lock: "קרן שננעלה להשקעה", exchange_return: "סגירת השקעה" };
 let S = { bank: 0, wallet: 0, tx: [] }, lastQ = null;
 let vaultPlayed = false; addEventListener("pointerdown", () => { if (!vaultPlayed) { vaultPlayed = true; setTimeout(() => { try { SFX.fx("bank_vault", { vol: 0.6 }); } catch (e) {} }, 300); } }, { once: true });
 const img = new Image(); img.onload = () => $("hall").classList.add("img"); img.src = "img/bank/bank_hall.webp?v=1";
@@ -122,8 +123,9 @@ async function move(dir) {
 }
 $("depBtn").onclick = () => move("deposit"); $("wdBtn").onclick = () => move("withdraw");
 (async () => {
-  if (PREVIEW) { S = { bank: 120000000, wallet: 5400000, tx: [{ kind: "salary_weekly", amount: 10000000, at: new Date() }] }; draw(); GC_LOADER.done(); return; }
+  if (PREVIEW) { S = { bank: 120000000, wallet: 5400000, tx: [{ kind: "salary_weekly", amount: 10000000, at: new Date() }] }; $("exchangeLink").hidden=false; draw(); GC_LOADER.done(); return; }
   const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
+  db.rpc("exchange_ready").then(({data,error})=>{if(!error&&data===1)$("exchangeLink").hidden=false;}).catch(()=>{});
   try { await db.rpc("salary_claim"); } catch (e) {}
   const { data } = await db.rpc("bank_state"); if (data) S = data; draw(); GC_LOADER.done(); try { GC_GUIDE.init({ game: "bank", db, mount: document.querySelector(".top"), steps: GC_STEPS.bank() }); } catch (e) {}
 })();

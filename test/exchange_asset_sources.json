@@ -1,0 +1,114 @@
+{
+  "arrow_down.png": {
+    "source_sha256": "e878fe3eca9bf51ba9ecb989e51dd91d1b03ed7eda9e270d9c27828324a14481",
+    "export": "arrow_down.webp"
+  },
+  "arrow_up.png": {
+    "source_sha256": "4eb007121d9d624ec00233e3bfeb3e0fbdef57b57f47ce1cdd3144a47e448cdd",
+    "export": "arrow_up.webp"
+  },
+  "button_disabled.png": {
+    "source_sha256": "1d70bee74ea3911f0e239ee0f0c1822b96a0e17d4efd7bb918fd5ccb8ae01835",
+    "export": "button_disabled.webp"
+  },
+  "button_down_red.png": {
+    "source_sha256": "3d0550dbfada8f9a4ec2cece0c022a09f600868ccded06f178a4a95397080edc",
+    "export": "button_down_red.webp"
+  },
+  "button_primary_gold.png": {
+    "source_sha256": "9826c6be8a57fa9a95dc3a17bed344378c558a445956459b7e7906c7d79c7b92",
+    "export": "button_primary_gold.webp"
+  },
+  "button_up_green.png": {
+    "source_sha256": "10914b5def13ba9306ea4500b2f8019edf015a269ad8de5df36a739f38b0271f",
+    "export": "button_up_green.webp"
+  },
+  "direction_down_selected.png": {
+    "source_sha256": "f011da9535ce9f37fb486379ae4b6ab14d8c1e0514a1848baee222754f548cd6",
+    "export": "direction_down_selected.webp"
+  },
+  "direction_up_selected.png": {
+    "source_sha256": "ef08765fb8e42313d4fe0f9dfff3bda83d55556195507ab7b5a5136bdb3b122f",
+    "export": "direction_up_selected.webp"
+  },
+  "field_input.png": {
+    "source_sha256": "2cd757fb5c1f1d716514616c7f5d6691085272b5cc1f79b71d73193811c3dfba",
+    "export": "field_input.webp"
+  },
+  "icon_fish.png": {
+    "source_sha256": "4aea8ad2609a0a8dbc1a3b4abcea88fda917a7ddce29387717112d0d796a944d",
+    "export": "icon_fish.webp"
+  },
+  "icon_fisher.png": {
+    "source_sha256": "9a6592ea40bfbd639d50b6d471f40d46b2e487de870da35a0f127ff659da090a",
+    "export": "icon_fisher.webp"
+  },
+  "icon_house.png": {
+    "source_sha256": "8983d1047933354d10ccca3bb88312a900e3a119fe42b8a0bafac1b289a880da",
+    "export": "icon_house.webp"
+  },
+  "icon_protein.png": {
+    "source_sha256": "a08501c38dca723ca32ec80998d6e27c566c2480330a95a1d95f2bab790db538",
+    "export": "icon_protein.webp"
+  },
+  "icon_smokehouse.png": {
+    "source_sha256": "27ed1a4ee1c721b1f6c7240471fbff89c78361b86021be9d36c0894a639fd8fc",
+    "export": "icon_smokehouse.webp"
+  },
+  "nav_back.png": {
+    "source_sha256": "5b9e1ee1fc187f4efdcff970747b971b5dfac73175e056e4094887b56d9d6691",
+    "export": "nav_back.webp"
+  },
+  "nav_bar.png": {
+    "source_sha256": "3fbd9a74f4d78b5e203e1419e32aa876df8526b02ec75c2fa468631a163f1b43",
+    "export": "nav_bar.webp"
+  },
+  "nav_history.png": {
+    "source_sha256": "60a3f7aff530b5b8cc95a4bcc02dc973384995f4a2b3a88d90ae600e247bd29d",
+    "export": "nav_history.webp"
+  },
+  "nav_home.png": {
+    "source_sha256": "f53cd9a412ca68557a0252d487c24e1979b2656043944f45268146ec16a69597",
+    "export": "nav_home.webp"
+  },
+  "nav_info.png": {
+    "source_sha256": "07e98a4d098179c43596249e7a21e686185bc226d6c6b7b6c835601b4f2bcf44",
+    "export": "nav_info.webp"
+  },
+  "nav_market.png": {
+    "source_sha256": "87c164bc3257871b11aac08dfa24157eb1ea5bbc4dc428ef8288ea66ac3856d8",
+    "export": "nav_market.webp"
+  },
+  "nav_portfolio.png": {
+    "source_sha256": "f83b6817cffc4d29abbd2afeb034769c8de94e22fbbdf0c4caa478e82fce998e",
+    "export": "nav_portfolio.webp"
+  },
+  "panel_chart.png": {
+    "source_sha256": "4768b3a1668e36e622d28079e08c2b52c4ad665ebbcf06923bee5cd0285c3c81",
+    "export": "panel_chart.webp"
+  },
+  "panel_index_row.png": {
+    "source_sha256": "76bf39d65497cddd3e0fec0b4e8b302374335b3023baf320ef89ebfbad68446d",
+    "export": "panel_index_row.webp"
+  },
+  "panel_portfolio.png": {
+    "source_sha256": "76522313a4529f1020d51f711c3b852a3802fc003a474ec72562105576e46a1c",
+    "export": "panel_portfolio.webp"
+  },
+  "period_default.png": {
+    "source_sha256": "74d4865b95dfd7d02b6975b261a70b609309f230313599abe5f9344e655916e2",
+    "export": "period_default.webp"
+  },
+  "period_selected.png": {
+    "source_sha256": "cbbe0d161b78ce188c63c5b6d57f6e10453832ea0ebbb5d4d7da6364faafa8f0",
+    "export": "period_selected.webp"
+  },
+  "tab_default.png": {
+    "source_sha256": "8d3757b0bf6e317c91d558d4537dc87afe36132aa1e15a1b2fbc32a478c678cf",
+    "export": "tab_default.webp"
+  },
+  "tab_selected.png": {
+    "source_sha256": "52499f616546120fd71b7240448f1101ddce5ece6df9e7f62c6510098ab71db6",
+    "export": "tab_selected.webp"
+  }
+}
