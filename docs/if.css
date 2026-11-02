@@ -62,3 +62,21 @@ html,body{height:100%;overflow:hidden}body{position:fixed;inset:0;height:auto}
 .table{position:absolute;top:40px;left:max(8px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:2px;z-index:4;pointer-events:none;max-width:30%}.table b{font:800 11px Heebo;color:#ffe27a;text-shadow:0 1px 3px #000}.table span{background:#080f1dcc;border:1px solid #3c4a5e;border-radius:99px;padding:1px 8px;font:700 11px Heebo;color:#d7e6f5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.table i{font-style:normal;color:#9bdbb6}
 
 body.closeup .hist,body.closeup .table{opacity:0;transition:opacity .3s}.hist,.table{transition:opacity .3s}
+
+/* Phone portrait: keep all five bet targets and the chip rack within reach. */
+.fishing-rotate{display:none}
+.stagewrap [hidden]{display:none!important}.bonus-value{display:none}
+@media (orientation:portrait){
+ .top{display:flex;flex-wrap:wrap;gap:3px 5px;padding:5px max(6px,env(safe-area-inset-right)) 5px max(6px,env(safe-area-inset-left))}
+ .top .back{order:0;padding:4px 7px;font-size:12px}.top .bal{order:1;flex:1;text-align:center;font-size:11px}.top .bal b{font-size:14px}
+ .top #rulesBtn{order:2;height:32px;padding:0 8px;font-size:12px}.top .sfx-btn{order:3;width:32px;height:32px;font-size:14px}.top .gd-btn{order:4;padding:2px 6px;font-size:11px}.top .gd-btn img,.top .gd-btn .q{width:20px;height:20px}
+ .top .phase{order:5;flex:1;text-align:center;font-size:13px}
+ .betbar{display:flex;flex-direction:column;gap:5px;align-items:stretch;padding:12px max(5px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) max(5px,env(safe-area-inset-left))}
+ .zones{width:100%;gap:3px;flex:none}.zone{padding:3px 1px;min-height:65px;border-radius:9px}.zone img{height:27px}.zone .zn{font-size:11px}.zone small{font-size:9px;white-space:nowrap}
+ .ctl{width:100%;gap:4px}.chips{gap:5px;justify-content:center}.chip{width:clamp(31px,9vw,40px);height:clamp(31px,9vw,40px);font-size:10px}.btns{justify-content:center}.btns .ghost{height:29px}
+ .err{min-height:0}.err:not(:empty){padding:2px 5px;background:#0b1220e8;border-radius:6px}
+ .hist{top:5px;left:6px;max-width:calc(100% - 12px);overflow:hidden;gap:2px}.hist .h{height:23px;padding:1px 3px}.hist img{height:19px}
+ .table{top:33px;left:6px;max-width:32%}.count{top:35px;left:auto;right:7px;transform:none;padding:3px 8px}.count small{font-size:10px}.count b{font-size:32px}
+ .result{top:12%;right:4%;max-width:75%;z-index:7}.bonuspop{top:20%}.bonuspop canvas{height:calc(100% - 52px)}.bonus-value{height:52px;display:grid;place-items:center;background:#080f1d;color:#ffe27a;font:800 clamp(18px,5vw,24px) Inter,Heebo,sans-serif}
+}
+@media (orientation:landscape) and (pointer:coarse){.fishing-rotate{position:fixed;inset:0;z-index:99999;display:grid;place-content:center;text-align:center;background:#060c16;color:#F1D69A;font:700 24px Heebo,sans-serif}}

@@ -14,9 +14,10 @@ const CATNAME = { dark: "דג כהה", light: "דג בהיר", blue: "דג כח�
 
 
 // ---------- art ----------
-const I = {}; const NAMES = ["bg", "main", "upper", "lower", "body", "head", "strain", "ul", "fl", "ur", "fr", "grip", "reel", "box", "lantern", "hole", "front", "splash", "ripple", "blue", "orange", "red", "dark", "light", "blue_i", "orange_i", "red_i", "rim", "hub", "pointer", "stand", "plaque"];
+const I = {}; const NAMES = ["bg", "main", "main_p", "upper", "lower", "body", "head", "strain", "ul", "fl", "ur", "fr", "grip", "reel", "box", "lantern", "hole", "front", "splash", "ripple", "blue", "orange", "red", "dark", "light", "blue_i", "orange_i", "red_i", "rim", "hub", "pointer", "stand", "plaque"];
 const loaded = Promise.all(NAMES.map((k) => new Promise((ok) => { const im = new Image(); im.onload = () => { I[k] = im; ok(); }; im.onerror = ok; im.src = `img/fishing/${k}.webp`; })));
 const cv = $("cv"), ctx = cv.getContext("2d");
+const portraitView = () => matchMedia('(orientation: portrait)').matches;
 const TH = Math.PI * 2 / 53;
 
 // boosts: a list of {seg, mult} (older rounds: one seg + maybe a whole colour)
@@ -31,7 +32,7 @@ function paintZoneBoosts(B) { const z = zoneBoosts(B), key = JSON.stringify(z); 
 // wheel scene (adapted from the kit's wheelFrame): rotation and boost badges come from the round
 function wheelScene(rot, t, B) {
   const C = FishingRender.contain;
-  ctx.clearRect(0, 0, 1920, 1080); ctx.drawImage(I.main, 0, 0, 1920, 1080); ctx.fillStyle = "#03091644"; ctx.fillRect(0, 0, 1920, 1080);
+  if (!portraitView()) { ctx.drawImage(I.main, 0, 0, 1920, 1080); ctx.fillStyle = "#03091644"; ctx.fillRect(0, 0, 1920, 1080); }
   const cx = 610, cy = 550, r = 405; C(ctx, I.stand, cx - 500, 380, 1000, 650);
   ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot);
   const colors = { dark: "#26445a", light: "#a0aeb9", blue: "#1856a0", orange: "#aa6423", red: "#a52e3a" };
@@ -54,7 +55,7 @@ function wheelScene(rot, t, B) {
   }
   ctx.restore();
   C(ctx, I.rim, cx - 480, cy - 480, 960, 960); C(ctx, I.hub, cx - 118, cy - 118, 236, 236); C(ctx, I.pointer, cx - 45, cy - 455, 90, 120);
-  ctx.save(); ctx.translate(-300, 40); ctx.scale(1, 1);   // Ido sits right next to the wheel
+  ctx.save(); if (portraitView()) { ctx.translate(75, 440); ctx.scale(.55, .55); } else ctx.translate(-300, 40); // Ido stays beside the wheel in each layout
   FishingRender.puppet(ctx, I, { bodyAngle: 0, headAngle: 0, handX: 0, handY: 0, reelAngle: t, breathing: 0 }); ctx.restore();
 }
 
@@ -76,6 +77,14 @@ function view(e) {
   const box = document.querySelector(".stagewrap"); if (box.clientWidth !== lastW || box.clientHeight !== lastH) { lastW = box.clientWidth; lastH = box.clientHeight; fit(); }
   // fit the whole wheel (rim top ≈70 → stand ≈1040 in scene pixels) into the space above the betting bar; Ido on its right
   const W = cv.width, H = cv.height, d = cv.width / Math.max(1, cv.clientWidth), bar = (document.querySelector(".betbar").offsetHeight + 6) * d;
+  if (portraitView()) {
+    const vh = H - bar, base = Math.max(.01, Math.min(W / 1020, (vh - 35 * d) / 1020));
+    let u = 0; if (S && S.stop != null) u = ease((e - 17.2) / 1.6) * (1 - ease((e - 21.6) / 1));
+    document.body.classList.toggle("closeup", u > .05);
+    const scale = base * (1 + .7 * u), focusY = 550 + (215 - 550) * u;
+    ctx.setTransform(scale, 0, 0, scale, W / 2 - 610 * scale, vh / 2 - focusY * scale);
+    return;
+  }
   const s0 = Math.max(W / 1920, Math.min((H - bar) / 1050, W / 1250));
   let z = 1, fx = 110 + (W / s0) / 2, fy = 70 + (H - bar) / s0 / 2, u = 0;
   // close-up near the end of the spin: the pointer and the segments under it move to the middle of the screen
@@ -91,6 +100,7 @@ function frame() {
     const e = (srvNow() - S.start) / 1000;
     const isBonus = S.cat && ["blue", "orange", "red"].includes(S.cat) && S.total_mult;
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = "#060c16"; ctx.fillRect(0, 0, cv.width, cv.height);
+    if (portraitView() && I.main_p) { const im = I.main_p, scale = Math.max(cv.width / im.width, cv.height / im.height), w = im.width * scale, h = im.height * scale; ctx.drawImage(im, (cv.width - w) / 2, (cv.height - h) / 2, w, h); ctx.fillStyle = "#03091644"; ctx.fillRect(0, 0, cv.width, cv.height); }
     view(e); wheelScene(rotAt(e), e, e >= 10 ? S.boosts : null); paintZoneBoosts(e >= 10 ? S.boosts : null);
     if (isBonus && e >= 20.8 && I[S.cat]) {   // the wheel stops; the catch opens in its own window over it
       if (pop.hidden) try { SFX.splash(); } catch (er) {} pop.hidden = false; document.body.classList.add("catching");
@@ -100,6 +110,7 @@ function frame() {
       const p = FishingRender.bonusFrame(pctx, I, at, S.total_mult, S.cat);
       const pose = FishingMotion.poseAt(at, S.total_mult), rv = Math.min(1, Math.max(0, pose.reveal));
       if (rv > 0) { const stake = (S.mine && S.mine[S.cat]) || 0, show = p && p.shownMultiplier != null ? p.shownMultiplier : Math.round(S.total_mult * FishingMotion.smooth(rv));
+        if (portraitView()) $("bonusValue").textContent = stake ? fmt(stake * show) + " · ×" + show.toLocaleString("en-US") : "×" + show.toLocaleString("en-US");
         pctx.save(); pctx.textAlign = "center"; pctx.lineJoin = "round";
         const big = stake ? fmt(stake * show) : "×" + show.toLocaleString("en-US"), sz = 120 + 40 * rv;
         pctx.font = `900 ${sz}px Inter, Heebo, sans-serif`; pctx.lineWidth = 16; pctx.strokeStyle = "#2a1600"; pctx.strokeText(big, 780, 330); 
@@ -107,6 +118,7 @@ function frame() {
         if (stake) { pctx.shadowBlur = 0; pctx.font = "800 52px Inter, Heebo, sans-serif"; pctx.lineWidth = 8; pctx.strokeText("×" + show.toLocaleString("en-US"), 780, 400); pctx.fillStyle = "#fff"; pctx.fillText("×" + show.toLocaleString("en-US"), 780, 400); }
         pctx.restore();
         if (rv < 1 && (!frame.ct || performance.now() - frame.ct > 110)) { frame.ct = performance.now(); try { SFX.chip(); } catch (er) {} } }
+      else if (portraitView()) $("bonusValue").textContent = "בונוס דיג";
       if (p.done && endShown !== S.round) showEnd();
     } else { pop.hidden = true; document.body.classList.remove("catching"); }
     if (e >= 20 && S.cat && !isBonus && endShown !== S.round) showEnd();
@@ -235,12 +247,23 @@ $("rulesBtn").onclick = () => $("rules").showModal();
   if (!PREVIEW) { const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; } }
   await loaded; await poll(); smartPoll(); requestAnimationFrame(frame);
   if (window.GC_LOADER) GC_LOADER.done();
-  GC_GUIDE.init({ game: "fishing", db, mount: document.querySelector(".top"), steps: GC_STEPS.fishing() });
+  const steps = GC_STEPS.fishing(), vertical = portraitView(); let seen = false;
+  try { seen = localStorage.getItem("gc_guide2_fishing") === "1"; } catch (e) {}
+  GC_GUIDE.init({ game: "fishing", db, mount: document.querySelector(".top"), steps, auto: !vertical }).then(() => {
+    if (!vertical || seen) return;
+    // The shared guide waits for landscape on touch games; this game now opens in portrait.
+    const wait = setInterval(() => {
+      if (document.hidden || !portraitView() || document.getElementById("gcLoad") || document.querySelector(".soundask,.gc-sit,.gc-bi,.gc-bonus,.gi,.sfx-menu:not([hidden]),.gd,#bonusPop:not([hidden])")) return;
+      clearInterval(wait); GC_GUIDE.run(steps);
+    }, 300);
+    document.querySelector(".top .gd-btn")?.addEventListener("click", () => clearInterval(wait), { once: true });
+    addEventListener("pagehide", () => clearInterval(wait), { once: true });
+  });
 })();
 addEventListener("resize", fit); function fit() {
   const box = document.querySelector(".stagewrap"), d = Math.min(2, devicePixelRatio || 1);
   cv.width = Math.round(box.clientWidth * d); cv.height = Math.round(box.clientHeight * d); cv.style.width = box.clientWidth + "px"; cv.style.height = box.clientHeight + "px";
-  const pw = Math.min(box.clientWidth * .96, box.clientHeight * .9 * 16 / 9); pop.style.width = pw + "px"; pop.style.height = pw * 9 / 16 + "px";
+  const pw = Math.min(box.clientWidth * .96, box.clientHeight * .9 * 16 / 9); pop.style.width = pw + "px"; pop.style.height = (pw * 9 / 16 + (portraitView() ? 52 : 0)) + "px";
 }
 fit(); setTimeout(fit, 300);
 
