@@ -169,7 +169,7 @@
   const caption=document.createElement('div');caption.className='balls-caption';caption.textContent='נותרו '+(110-events.length)+' כדורים · '+(b.black||0)+' שחורים מתוך 4'+(chosen!==undefined?' · הצבע שלך ×'+values[chosen]:'');layout.append(caption);box.append(layout);
  }
  function updateClock(){
-  $('clock').textContent=state&&!preview?Math.ceil(seconds())+'″':'';
+  const remaining=Math.ceil(seconds());$('clock').textContent=state&&!preview?remaining+'″':'';if(state&&!preview)window.ZLM_AUDIO?.countdown(remaining);
   if(state?.spot==='yoav'&&state.bonus.cups){const elapsed=Math.max(0,(now()-Date.parse(state.phase_at))/1000),done=state.phase==='summary';state.bonus.cups.forEach((v,i)=>{const n=done?v:Math.min(v,Math.floor(elapsed*5)),rect=document.querySelector(`[data-liquid="${i}"]`),num=document.querySelector(`[data-cup-number="${i}"]`);if(num)num.textContent='×'+n;if(rect){const h=60*Math.min(1,n/v);rect.setAttribute('y',70-h);rect.setAttribute('height',h);}});}
   if(state&&seconds()<=0)renderControls();
  }

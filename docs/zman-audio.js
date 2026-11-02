@@ -3,7 +3,7 @@
  'use strict';
  const roles=['music_wheel_v2','tick','shot','win','ball','pour','bonus','target'];
  const settings=Object.freeze({effects:.7,music:.3});
- let ctx,fxBus,musicBus,musicSource,musicName='',musicPending='',musicToken=0,unlocked=false,last=null,key='',draws=null,offset=0,spinToken=0;
+ let ctx,fxBus,musicBus,musicSource,musicName='',musicPending='',musicToken=0,unlocked=false,last=null,key='',draws=null,offset=0,spinToken=0,countdownKey='',countdownLast=Infinity;
  const buffers={},loading={},spinSources=new Set(),sources=new Set();
  const visible=()=>!document.hidden&&!matchMedia('(pointer:coarse) and (orientation:landscape)').matches;
  const clock=()=>Date.now()+offset;
@@ -24,8 +24,9 @@
  function load(role){if(buffers[role])return Promise.resolve(buffers[role]);if(loading[role])return loading[role];if(!context())return Promise.resolve(null);
   loading[role]=fetch('snd/zlm/'+role+'.mp3').then(r=>{if(!r.ok)throw Error('audio unavailable');return r.arrayBuffer();}).then(a=>ctx.decodeAudioData(a)).then(b=>buffers[role]=normalize(b,role)).catch(()=>{delete loading[role];return null;});return loading[role];
  }
- function play(buffer,{delay=0,level=1,spin=false}={}){if(!buffer||!unlocked||!visible()||window.SFX?.muted)return null;const s=ctx.createBufferSource(),g=ctx.createGain();s.buffer=buffer;g.gain.value=level;s.connect(g).connect(fxBus);sources.add(s);if(spin)spinSources.add(s);s.onended=()=>{sources.delete(s);spinSources.delete(s);s.disconnect();g.disconnect();};s.start(ctx.currentTime+Math.max(0,delay));return s;}
+ function play(buffer,{delay=0,level=1,spin=false,rate=1}={}){if(!buffer||!unlocked||!visible()||window.SFX?.muted)return null;const s=ctx.createBufferSource(),g=ctx.createGain();s.buffer=buffer;s.playbackRate.value=rate;g.gain.value=level;s.connect(g).connect(fxBus);sources.add(s);if(spin)spinSources.add(s);s.onended=()=>{sources.delete(s);spinSources.delete(s);s.disconnect();g.disconnect();};s.start(ctx.currentTime+Math.max(0,delay));return s;}
  function effect(role,options={}){if(!unlocked||!visible()||window.SFX?.muted)return;const stamp=key;load(role).then(b=>{if(stamp===key)play(b,options);});}
+ function countdown(n){if(!last||last.phase!=='betting')return;if(countdownKey!==key){countdownKey=key;countdownLast=Infinity;}if(n<=0||n>=countdownLast)return;countdownLast=n;if(!unlocked||!visible()||window.SFX?.muted)return;const stamp=key;load('tick').then(b=>{if(key===stamp&&countdownLast===n)play(b,{level:n<=5?1.35:.65,rate:n<=5?1.45:1});});}
  function stopSpin(){spinToken++;for(const s of spinSources)try{s.stop();}catch{}spinSources.clear();}
  async function spin(s){stopSpin();const token=spinToken,b=await load('tick');if(!b||token!==spinToken||!visible()||last?.phase!=='spin')return;
   const duration=(Date.parse(s.deadline)-Date.parse(s.phase_at))/1000,elapsed=Math.max(0,(clock()-Date.parse(s.phase_at))/1000);
@@ -63,5 +64,5 @@
  document.addEventListener('change',e=>{if(e.target.closest('.sfx-menu'))sync();});
  document.addEventListener('visibilitychange',()=>{if(!visible())pause();else sync();});addEventListener('pagehide',pause);
  addEventListener('resize',()=>{if(!visible())pause();});
- window.ZLM_AUDIO={update,effect,pause,settings};
+ window.ZLM_AUDIO={update,effect,countdown,pause,settings};
 })();
