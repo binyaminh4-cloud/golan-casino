@@ -124,5 +124,12 @@ const table=(sql,n)=>{const match=sql.match(new RegExp('create table (?:if not e
  await q("insert into cron.job_run_details(jobid,status,start_time,end_time) select jobid,'succeeded',clock_timestamp(),clock_timestamp() from cron.job where jobname='golan-exchange'");
  // Loan restriction is inherited rather than bypassed by investments.
  await q("insert into loans values($1,'late')",[a]);await assert.rejects(()=>open('house',1,1,1,1,'10000000-0000-0000-0000-000000000010'),/loan_late/);
+ if(process.env.GC_RESET_PREFLIGHT==='1'){
+  const before=await q('select sum(balance::numeric)::text total from bank_accounts');
+  const report=await db.exec(fs.readFileSync('test/economy_reset_preflight.sql','utf8'));
+  assert(report.some(r=>r.rows.some(x=>x.table_name==='positions'&&Array.isArray(x.states))));
+  assert.deepEqual(await q('select sum(balance::numeric)::text total from bank_accounts'),before);
+  console.log('PASS: read-only reset inventory runs against the existing schemas and leaves balances unchanged');
+ }
  await db.close();console.log('PASS: isolated SQL, rerunnable migration, bank escrow, exact amounts, leverage, idempotency, liquidation, expiry, manual close, private ownership, settled sources, Fisher flows and scheduler.');
 })().catch(e=>{console.error(e);process.exit(1)});
