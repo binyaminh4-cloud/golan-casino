@@ -1,10 +1,12 @@
--- Read-only. Run in a NEW SQL Editor query after the entire 0100 migration.
+-- Read-only. Run in a NEW SQL Editor query after both 0100 and 0101.
 select case when
  to_regprocedure('public.exchange_ready()') is not null
  and to_regprocedure('public.exchange_state(text,integer)') is not null
  and to_regprocedure('public.exchange_open(text,integer,bigint,integer,integer,uuid)') is not null
  and to_regprocedure('public.exchange_close(uuid)') is not null
  and to_regprocedure('public.exchange_history(timestamp with time zone,uuid)') is not null
+ and to_regprocedure('gx.worker_ready()') is not null
+ and gx.worker_ready()
  and not has_schema_privilege('authenticated','gx','usage')
  and not has_function_privilege('anon','public.exchange_state(text,integer)','execute')
  and not has_function_privilege('anon','public.exchange_open(text,integer,bigint,integer,integer,uuid)','execute')

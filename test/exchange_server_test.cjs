@@ -28,12 +28,16 @@ const table=(sql,n)=>{const match=sql.match(new RegExp('create table (?:if not e
  const a='00000000-0000-0000-0000-000000000001',b='00000000-0000-0000-0000-000000000002';
  for(const [u,n]of [[a,'alpha'],[b,'beta']]){await q('insert into auth.users values($1)',[u]);await q('insert into profiles(id,nickname)values($1,$2)',[u,n]);await q('insert into wallets(user_id,balance)values($1,0)',[u]);await q('insert into bank_accounts values($1,1000000)',[u]);}
  const sql=read('0100_golan_exchange.sql');await db.exec(sql);await db.exec(sql);
+ const guard=read('0101_exchange_scheduler_guard.sql');await db.exec(guard);await db.exec(guard);
+ assert.equal((await q('select gx.worker_ready() v'))[0].v,false,'no successful worker run means not ready');
+ await q("insert into cron.job_run_details(jobid,status,start_time,end_time) select jobid,'succeeded',clock_timestamp(),clock_timestamp() from cron.job where jobname='golan-exchange'");
  const uid=async u=>q("select set_config('request.jwt.sub',$1,false)",[u]);
  const rpc=async(s,args=[])=>(await q('select '+s+' as v',args))[0].v;
  await uid('');await assert.rejects(()=>rpc('exchange_state()'),/not_signed_in/);await uid(a);
  let state=await rpc('exchange_state()');assert.equal(state.markets.length,9);assert.equal(state.bank,'1000000');
  await rpc("bank_move(50,'withdraw','regression-withdraw')");await rpc("bank_move(50,'deposit','regression-deposit')");assert.equal((await rpc('exchange_state()')).bank,'1000000','existing bank deposit and withdrawal remain functional');
  const open=async(code,dir=1,amount=100,lev=1,days=1,ref='10000000-0000-0000-0000-000000000001')=>rpc('exchange_open($1,$2,$3,$4,$5,$6)',[code,dir,amount,lev,days,ref]);
+ await q("update cron.job set active=false where jobname='golan-exchange'");await assert.rejects(()=>open('house'),/price_unavailable/);assert.equal((await rpc('exchange_state()')).bank,'1000000');await q("update cron.job set active=true where jobname='golan-exchange'");
  state=await open('house');assert.equal(state.bank,'999900');assert.equal(state.positions.length,1);const first=state.positions[0].id;
  assert.equal(await rpc('exchange_wealth($1)',[a]),'1000000','escrow does not reduce leaderboard wealth');
  assert.equal((await open('house')).bank,'999900');await assert.rejects(()=>open('house',-1),/request_conflict/);
@@ -116,6 +120,8 @@ const table=(sql,n)=>{const match=sql.match(new RegExp('create table (?:if not e
  await uid(b);assert.deepEqual(await rpc('exchange_history($1,$2)',[cursor.opened_at,cursor.id]),[]);await uid(a);
  await db.exec('set role authenticated');await assert.rejects(()=>q('select * from gx.positions'),/permission denied/);assert.equal((await rpc('exchange_state()')).markets.length,9);await db.exec('reset role');
  await db.exec('set role anon');await assert.rejects(()=>rpc('exchange_state()'),/permission denied/);await db.exec('reset role');
+ await q("insert into cron.job_run_details(jobid,status,start_time,end_time) select jobid,'failed',clock_timestamp(),clock_timestamp() from cron.job where jobname='golan-exchange'");assert.equal(await rpc('exchange_ready()'),0,'a failed latest worker run disables new orders');
+ await q("insert into cron.job_run_details(jobid,status,start_time,end_time) select jobid,'succeeded',clock_timestamp(),clock_timestamp() from cron.job where jobname='golan-exchange'");
  // Loan restriction is inherited rather than bypassed by investments.
  await q("insert into loans values($1,'late')",[a]);await assert.rejects(()=>open('house',1,1,1,1,'10000000-0000-0000-0000-000000000010'),/loan_late/);
  await db.close();console.log('PASS: isolated SQL, rerunnable migration, bank escrow, exact amounts, leverage, idempotency, liquidation, expiry, manual close, private ownership, settled sources, Fisher flows and scheduler.');
