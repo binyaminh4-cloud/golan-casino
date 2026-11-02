@@ -12,7 +12,7 @@ const VAL = [null, [30000, 120000, 600000], [45000, 180000, 900000], [60000, 240
 const SPEED = [0, 1, 1.2, 1.4, 1.5][LEVEL] * (EXTREME ? 1.25 * 2.5 : 1);
 const GAP = [0, 1.25, 1.15, 1.05, 1.0][LEVEL];                      // seconds between falling items
 const BOMB = [0, 0.22, 0.28, 0.34, 0.36][LEVEL], SPIKY = [0, 0.04, 0.05, 0.06, 0.07][LEVEL];
-const DROPS = EXTREME ? 10 : 20, NEED_RARE = 5, LIVES = 3;
+const DROPS = EXTREME ? 10 : 20, NEED_RARE = 5, LIVES = EXTREME ? 1 : 3;
 const KINDS = {
   plain: { img: "ball_gold", s: 78, val: 0 }, engraved: { img: "ball_engraved", s: 84, val: 1 }, rare: { img: "ball_rare", s: 92, val: 2 },
   bomb: { img: "bomb", s: 92 }, spiky: { img: "bomb_spiky", s: 100 },
@@ -115,13 +115,13 @@ async function begin() {
 }
 async function end() {
   if (G.done) return; G.done = true; $("leaveBtn").hidden = true;
-  const out = G.spiky > 0 || (EXTREME && G.count.rare < NEED_RARE);
+  const out = G.spiky > 0 || (EXTREME && (G.bombs > 0 || G.count.rare < NEED_RARE));
   let paid = out ? 0 : total(), lvl = null;
   if (!PREVIEW) { const { data, error } = await db.rpc("tamer_finish", { p_id: run.id, p_plain: G.count.plain, p_engraved: G.count.engraved, p_rare: G.count.rare,
       p_drops: G.dropped, p_bombs: G.bombs, p_spiky: G.spiky });
     if (error) paid = -1; else { paid = data.paid; lvl = data.level; } }
   try { if (paid > 0) SFX.win(paid >= VAL[2] * 2); } catch (e) {}
-  const title = G.spiky ? "❌ פצצה עם קוצים — נפסלת" : EXTREME && G.count.rare < NEED_RARE ? `❌ צריך ${NEED_RARE} כדורים נדירים — נפסלת` : G.bombs >= LIVES ? "💥 נגמרה הסבלנות" : "🦁 סוף המופע";
+  const title = G.spiky ? "❌ פצצה עם קוצים — נפסלת" : EXTREME && G.bombs > 0 ? "❌ פגיעה בפצצה — נפסלת" : EXTREME && G.count.rare < NEED_RARE ? `❌ צריך ${NEED_RARE} כדורים נדירים — נפסלת` : G.bombs >= LIVES ? "💥 נגמרה הסבלנות" : "🦁 סוף המופע";
   const rows = EXTREME ? [["כדורים נדירים", `${G.count.rare}/${NEED_RARE}`, fmt(G.count.rare * VAL[2])]]
     : [["⚪ כדור זהב", G.count.plain, fmt(G.count.plain * VAL[0])], ["〰️ כדור מחורץ", G.count.engraved, fmt(G.count.engraved * VAL[1])], ["🟠 כדור נדיר", G.count.rare, fmt(G.count.rare * VAL[2])]];
   $("sumBox").innerHTML = `<div class="card"><h2>${title}</h2>${rows.map(([a, b, c]) => `<div class="row"><span>${a} · ${b}</span><b>${c}</b></div>`).join("")}
@@ -132,7 +132,7 @@ async function end() {
 
 (async () => {
   if (EXTREME) { $("stTitle").textContent = "🔥 מאלף אריות · אקסטרים"; $("stText").innerHTML = `נופלים רק <b>כדורים נדירים</b>, והם מהירים. <b>10 כדורים</b> — צריך לתפוס לפחות <b>${NEED_RARE}</b>, אחרת אין תשלום. כל כדור נדיר שווה ${fmt(VAL[2])}.`;
-    $("hDrop").textContent = "0/10"; }
+    $("hDrop").textContent = "0/10"; $("hLife").textContent = "❤"; $("stRules").innerHTML = "באקסטרים, <b>פגיעה בפצצה רגילה או בפצצה עם קוצים פוסלת מיד — ללא תשלום</b>, גם אם כבר נאספו חמישה כדורים נדירים."; }
   if (!PREVIEW) { const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; } }
   await ready; try { GC_LOADER.done(); } catch (e) {}
   G = fresh(true); $("goBtn").onclick = begin; requestAnimationFrame(loop);

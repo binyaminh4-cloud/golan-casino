@@ -44,7 +44,7 @@ canvas{display:block;border-radius:8px;touch-action:manipulation;max-width:100%;
   <button id="start" hidden>התחל</button><span id="betInfo" class="bal"></span><button id="newBet" hidden>הימור חדש</button><button id="cash" hidden style="display:none">קח וצא</button><button id="more" hidden style="display:none">עוד שלושה</button><span id="err"></span></div></header>
 <div class="wrap"><canvas id="game" width="1920" height="1080" aria-label="שדה החפירה. לחץ כדי לשלוח את הקרס"></canvas><small id="info">טוען…</small></div>
 <script src="sfx.js?v=32"></script>
-<script src="guide.js?v=1793655212"></script>
+<script src="guide.js?v=1793658340"></script>
 <script src="vendor/pm_scene.js?v=4"></script>
 <script src="pm-geometry.js?v=1793655212"></script>
 <script src="slot-bets.js?v=1"></script>
@@ -65,7 +65,7 @@ function fromServer(v) { runId = v.id; stake = +v.stake; r.mode = v.mode; r.laye
 function betPop(title) {
   GC_BI_CSS(); document.querySelectorAll(".gc-bi.bet").forEach((n) => n.remove());
   const o = document.createElement("div"); o.className = "gc-bi bet";
-  o.innerHTML = `<div class="box"><h2>${title || "💪 כמה מהמרים?"}</h2><ul><li style="text-align:center"><span class="st"></span></li>
+  o.innerHTML = `<div class="box"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><h2 style="min-width:0">${title || "💪 כמה מהמרים?"}</h2><a class="pm-lobby" href="./" style="flex:none;white-space:nowrap;color:#F1D69A;text-decoration:none;border:1px solid #827453;border-radius:99px;padding:6px 12px;font-size:14px">→ ללובי</a></div><ul><li style="text-align:center"><span class="st"></span></li>
     <li style="display:flex;gap:6px;justify-content:center">${[["easy", "קל"], ["normal", "רגיל"], ["extreme", "אקסטרים"]].map(([k, t]) => `<button type="button" class="md" data-m="${k}" style="flex:1;height:38px;font-size:15px;${k === el("mode").value ? "" : "background:#2a1c10;color:#F1D69A;border:1px solid #C5A05A"}">${t}</button>`).join("")}</li>
     <li style="font-size:12px;color:#B9AA94">המזון נע ימינה ושמאלה. ברמות הגבוהות ובשכבות העמוקות יש יותר פצצות; בכל שכבה לפחות 4 מטרות מזון. הכיוון והמיקום ננעלים בזמן שליחת הקרס.</li><li style="font-size:12px;color:#B9AA94">בהשלמת כל 12 השליפות: החזר כולל מינימלי פי 2 בקל, פי 5 ברגיל ופי 10 באקסטרים. יציאה מוקדמת משלמת את הקופה שנאספה.</li></ul><button type="button" class="go">⛏️ התחל</button></div>`;
   document.body.appendChild(o);

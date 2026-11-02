@@ -1,0 +1,18 @@
+const fs=require('fs');const{PGlite}=require('../.poker-test-runtime/node_modules/@electric-sql/pglite');(async()=>{const d=new PGlite();await d.exec(fs.readFileSync('test/supabase_stub.sql','utf8').replace(/create extension[^;]*;/gi,''));await d.exec(`create schema storage;create table storage.buckets(id text primary key,name text,public boolean);create table storage.objects(id uuid,bucket_id text);create function extensions.gen_random_bytes(int)returns bytea language sql as $$select decode(repeat('ab',$1),'hex')$$;create function extensions.crypt(text,text)returns text language sql as $$select 'local-test-stub'::text$$;create function extensions.gen_salt(text)returns text language sql as $$select 'local-test-stub'::text$$;create schema cron;create table cron.job(jobid bigserial,jobname text unique,schedule text,command text,active boolean default true);create table cron.job_run_details(jobid bigint,status text,start_time timestamptz,end_time timestamptz,return_message text);create function cron.schedule(text,text,text) returns bigint language plpgsql as $$begin insert into cron.job(jobname,schedule,command)values($1,$2,$3)on conflict(jobname)do update set schedule=$2,command=$3;return 1;end$$;`);for(const f of fs.readdirSync('supabase/migrations').sort().filter(f=>f.slice(0,4)<='0106')){try{await d.exec(fs.readFileSync('supabase/migrations/'+f,'utf8').replace(/create extension[^;]*;/gi,''));}catch(e){throw new Error('Migration '+f+': '+e.message)}}
+
+
+const assert=require('node:assert/strict'),q=async(s,a=[])=>(await d.query(s,a)).rows,rpc=async(s,a=[])=>(await q('select '+s+' v',a))[0].v;
+const u='00000000-0000-0000-0000-000000000001';await q("insert into invitations(email)values('tamer@fixture.test')");await q("insert into auth.users(id,email)values($1,'tamer@fixture.test')",[u]);await q("select set_config('request.jwt.sub',$1,false)",[u]);
+const sql=fs.readFileSync('supabase/migrations/0107_tamer_extreme_first_bomb.sql','utf8');await d.exec(sql);await d.exec(sql);
+await d.exec("create or replace function gc_shabbat_until()returns timestamptz language sql stable as $$select now()+interval '1 hour'$$");assert.equal(await rpc('gc_job_mult()'),3);
+for(const [level,rare,bombs,spiky,expected]of [[4,5,1,0,0],[4,10,1,0,0],[4,5,2,0,0],[4,5,3,0,0],[4,5,0,1,0],[4,4,0,0,0],[4,5,0,0,37500000],[1,5,2,0,9000000],[2,5,3,0,13500000],[3,5,3,0,18000000],[1,5,0,1,0]]){
+ const j=await rpc('tamer_start($1)',[level]);await q("update job_runs set started_at=now()-interval '1 minute' where id=$1",[j.id]);const before=BigInt(await rpc('bank_bal($1)',[u]));
+ const r=await rpc('tamer_finish($1,0,0,$2,10,$3,$4)',[j.id,rare,bombs,spiky]);assert.equal(r.paid,expected);assert.equal(BigInt(await rpc('bank_bal($1)',[u]))-before,BigInt(expected));
+ assert.equal((await q('select done from job_runs where id=$1',[j.id]))[0].done,true);
+ if(expected===0)assert.equal((await q("select count(*)::int n from bank_tx where ref=$1",['job:'+j.id]))[0].n,0);
+ await assert.rejects(()=>rpc('tamer_finish($1,0,0,5,10,0,0)',[j.id]),/already_done/);
+}
+const bad=await rpc('tamer_start(4)');await q("update job_runs set started_at=now()-interval '1 minute' where id=$1",[bad.id]);await assert.rejects(()=>rpc('tamer_finish($1,0,0,5,10,null,0)',[bad.id]),/invalid_result/);
+assert.match((await q(fs.readFileSync('test/tamer_extreme_live_check.sql','utf8')))[0].validation,/^PASS:/);
+console.log('PASS: first bomb zeroes extreme pay even after 5/10 rare catches; no bank credit; once-only settlement; normal levels preserved; spiky bomb; Shabbat; null validation');await d.close();
+})().catch(e=>{console.error(e.stack);process.exit(1)});

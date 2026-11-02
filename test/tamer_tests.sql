@@ -16,8 +16,12 @@ do $$ declare j jsonb; r jsonb; m bigint := gc_job_mult(); b0 bigint; begin
   j := tamer_start(4);
   perform t_assert((j->>'drops')::int = 10, 'extreme has 10 balls');
   update job_runs set started_at = started_at - interval '60 seconds' where id = (j->>'id')::uuid;
-  r := tamer_finish((j->>'id')::uuid, 0, 0, 5, 10, 1, 0);
+  r := tamer_finish((j->>'id')::uuid, 0, 0, 5, 10, 0, 0);
   perform t_assert((r->>'paid')::bigint = 5 * 2500000 * m, 'extreme 5 rare pays');
+  j := tamer_start(4);
+  update job_runs set started_at = started_at - interval '60 seconds' where id = (j->>'id')::uuid;
+  r := tamer_finish((j->>'id')::uuid, 0, 0, 5, 10, 1, 0);
+  perform t_assert((r->>'paid')::bigint = 0, 'extreme first bomb pays nothing after 5 rare');
   j := tamer_start(4);
   update job_runs set started_at = started_at - interval '60 seconds' where id = (j->>'id')::uuid;
   r := tamer_finish((j->>'id')::uuid, 0, 0, 4, 10, 0, 0);
