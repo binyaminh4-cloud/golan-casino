@@ -113,6 +113,7 @@ async function main(){
   await page.route('**/sfx.js?*',r=>r.fulfill({contentType:'application/javascript',body:'window.GC_CHIPIFY=(el)=>el.classList.add("gcchip");window.SFX={muted:true,musicOn:false};'}));
   const failures=[];page.on('pageerror',e=>failures.push(e.message));
   await page.goto((process.env.GC_TEST_ORIGIN||'http://127.0.0.1:8766')+'/zman.html');await page.locator('#gcLoad').waitFor({state:'detached'});
+  const clockBox=await page.locator('#clock').boundingBox();assert(clockBox.y>=60&&clockBox.y<=90);assert(Math.abs(390-(clockBox.x+clockBox.width)-8)<2);
   const callsBeforeResize=stateCalls;await page.evaluate(async()=>{for(let i=0;i<20;i++)dispatchEvent(new Event('resize'));await new Promise(requestAnimationFrame);});assert(stateCalls<=callsBeforeResize+1,'portrait resize events must not create extra polling');
   await page.locator('#guideMount .gd-btn').click();await page.locator('.gd').waitFor();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);await page.locator('.gd-skip').click();
   await page.locator('[data-spot=one]:enabled').waitFor();await page.locator('[data-spot=one]').click();

@@ -1,9 +1,9 @@
 /* ElevenLabs assets. Local 70/30 mix; shared mute/music preferences are respected. */
 (function(){
  'use strict';
- const roles=['music','tick','shot','win','ball','pour','bonus','target'];
+ const roles=['music_wheel_v2','tick','shot','win','ball','pour','bonus','target'];
  const settings=Object.freeze({effects:.7,music:.3});
- let ctx,fxBus,musicBus,musicSource,musicStarting=false,unlocked=false,last=null,key='',draws=null,offset=0,spinToken=0;
+ let ctx,fxBus,musicBus,musicSource,musicName='',musicPending='',musicToken=0,unlocked=false,last=null,key='',draws=null,offset=0,spinToken=0;
  const buffers={},loading={},spinSources=new Set(),sources=new Set();
  const visible=()=>!document.hidden&&!matchMedia('(pointer:coarse) and (orientation:landscape)').matches;
  const clock=()=>Date.now()+offset;
@@ -11,7 +11,7 @@
  function normalize(buffer,role){
   let peak=0,energy=0,count=0;
   for(let c=0;c<buffer.numberOfChannels;c++){const a=buffer.getChannelData(c);for(let i=0;i<a.length;i++){const v=a[i];peak=Math.max(peak,Math.abs(v));if(Math.abs(v)>.002){energy+=v*v;count++;}}}
-  const rms=Math.sqrt(energy/Math.max(1,count)),gain=Math.min(role==='music'?.14/Math.max(.001,rms):.2/Math.max(.001,rms),.85/Math.max(.001,peak));
+  const rms=Math.sqrt(energy/Math.max(1,count)),gain=Math.min(role.startsWith('music')?.14/Math.max(.001,rms):.2/Math.max(.001,rms),.85/Math.max(.001,peak));
   for(let c=0;c<buffer.numberOfChannels;c++){const a=buffer.getChannelData(c);for(let i=0;i<a.length;i++)a[i]*=gain;}
   if(role==='tick'){
    let onset=0;const a=buffer.getChannelData(0),threshold=Math.max(.005,peak*gain*.12);
@@ -22,7 +22,7 @@
   return buffer;
  }
  function load(role){if(buffers[role])return Promise.resolve(buffers[role]);if(loading[role])return loading[role];if(!context())return Promise.resolve(null);
-  loading[role]=fetch('snd/zlm/'+role+'.mp3').then(r=>{if(!r.ok)throw Error('audio unavailable');return r.arrayBuffer();}).then(a=>ctx.decodeAudioData(a)).then(b=>buffers[role]=normalize(b,role)).catch(()=>null);return loading[role];
+  loading[role]=fetch('snd/zlm/'+role+'.mp3').then(r=>{if(!r.ok)throw Error('audio unavailable');return r.arrayBuffer();}).then(a=>ctx.decodeAudioData(a)).then(b=>buffers[role]=normalize(b,role)).catch(()=>{delete loading[role];return null;});return loading[role];
  }
  function play(buffer,{delay=0,level=1,spin=false}={}){if(!buffer||!unlocked||!visible()||window.SFX?.muted)return null;const s=ctx.createBufferSource(),g=ctx.createGain();s.buffer=buffer;g.gain.value=level;s.connect(g).connect(fxBus);sources.add(s);if(spin)spinSources.add(s);s.onended=()=>{sources.delete(s);spinSources.delete(s);s.disconnect();g.disconnect();};s.start(ctx.currentTime+Math.max(0,delay));return s;}
  function effect(role,options={}){if(!unlocked||!visible()||window.SFX?.muted)return;const stamp=key;load(role).then(b=>{if(stamp===key)play(b,options);});}
@@ -32,14 +32,19 @@
   // Closely spaced little clicks become progressively farther apart as the wheel brakes.
   for(let at=0;at<duration;at+=.018+.34*Math.pow(at/duration,3))if(at>=elapsed)play(b,{delay:at-elapsed,level:.65,spin:true});
  }
- async function startMusic(){if(musicSource||musicStarting||!unlocked||!visible()||window.SFX?.musicOn===false)return;musicStarting=true;const b=await load('music');musicStarting=false;if(!b||musicSource||!visible()||window.SFX?.musicOn===false)return;
-  musicSource=ctx.createBufferSource();musicSource.buffer=b;musicSource.loop=true;musicSource.connect(musicBus);musicSource.start();
+ function desiredMusic(){return last&&!['betting','spin'].includes(last.phase)&&['yoav','range','vip','balls'].includes(last.spot)?'music_'+last.spot:'music_wheel_v2';}
+ function stopMusic(){musicToken++;musicPending='';if(musicSource){try{musicSource.stop();musicSource.disconnect();}catch{}musicSource=null;}musicName='';}
+ async function startMusic(){const name=desiredMusic();if(!unlocked||!visible()||window.SFX?.musicOn===false||musicSource&&musicName===name||musicPending===name)return;
+  const token=++musicToken;musicPending=name;const b=await load(name);if(token!==musicToken)return;musicPending='';
+  if(!b||!visible()||window.SFX?.musicOn===false||desiredMusic()!==name)return;
+  if(musicSource){try{musicSource.stop();musicSource.disconnect();}catch{}}
+  musicSource=ctx.createBufferSource();musicSource.buffer=b;musicSource.loop=true;musicSource.connect(musicBus);musicName=name;musicSource.start();
  }
  function sync(){if(!ctx||!unlocked)return;fxBus.gain.setTargetAtTime(window.SFX?.muted||!visible()?0:settings.effects,ctx.currentTime,.02);musicBus.gain.setTargetAtTime(window.SFX?.musicOn===false||!visible()?0:settings.music,ctx.currentTime,.15);
-  if(window.SFX?.musicOn===false||!visible()){if(musicSource){try{musicSource.stop();musicSource.disconnect();}catch{}musicSource=null;}}else startMusic();
+  if(window.SFX?.musicOn===false||!visible()){stopMusic();}else startMusic();
   const button=document.getElementById('sound');if(button)button.textContent=window.SFX?.muted&&window.SFX?.musicOn===false?'🔇':'🔊';
  }
- function update(s){offset=Date.parse(s.server_time)-Date.now();sync();const next=s.id+':'+s.phase,changed=next!==key,first=last===null,fresh=clock()-Date.parse(s.phase_at)<2200;last=s;
+ function update(s){offset=Date.parse(s.server_time)-Date.now();const next=s.id+':'+s.phase,changed=next!==key,first=last===null,fresh=clock()-Date.parse(s.phase_at)<2200;last=s;sync();
   if(changed){key=next;stopSpin();if(s.phase==='spin'&&unlocked)spin(s);}
   if(!first&&changed&&fresh){
    if(s.phase==='choice')effect('bonus');
@@ -52,7 +57,7 @@
   if(s.spot==='balls'&&s.draws>0&&draws!==null&&s.draws===draws+1){const eventTime=s.phase==='balls'?Date.parse(s.phase_at)+s.draws*3000:Date.parse(s.phase_at);if(clock()-eventTime<1800)effect('ball');}
   draws=s.spot==='balls'?s.draws:null;
  }
- function pause(){stopSpin();for(const s of sources)try{s.stop();}catch{}sources.clear();if(musicSource){try{musicSource.stop();musicSource.disconnect();}catch{}musicSource=null;}last=null;key='';draws=null;}
+ function pause(){stopSpin();for(const s of sources)try{s.stop();}catch{}sources.clear();stopMusic();last=null;key='';draws=null;}
  addEventListener('pointerdown',()=>{if(!context())return;unlocked=true;ctx.resume().catch(()=>{});roles.forEach(load);sync();if(last?.phase==='spin'&&spinSources.size===0)spin(last);},{capture:true});
  document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementById('sound');if(b&&window.GC_SOUND_MENU)GC_SOUND_MENU(b);});
  document.addEventListener('change',e=>{if(e.target.closest('.sfx-menu'))sync();});
