@@ -31,10 +31,11 @@
   const auto = () => { clearInterval(timer); timer = setInterval(() => { if (!document.hidden && !document.body.classList.contains("gpage")) go(k + 1); }, 4500); };
   const build = () => {
     // the 6 newest games, newest first (owner's order of launch)
-    const NEWEST = ["poker.html?bots=1", "dp.html?g=uth&t=1", "dp.html?g=tcp&t=1", "dp.html?g=csp&t=1", "chicken.html", "dragons.html", "fishing.html"];
-    const list = NEWEST.map((h) => document.querySelector(`#gamesBox .game[href="${h}"]`)).filter(Boolean).slice(0, 6);
+    const NEWEST = ["zman.html", "poker.html?bots=1", "dp.html?g=uth&t=1", "dp.html?g=tcp&t=1", "dp.html?g=csp&t=1", "chicken.html", "dragons.html", "fishing.html"];
+    const list = NEWEST.map((h) => document.querySelector(`#gamesBox .game[href="${h}"]`)).filter(g => g && (g.id !== 'zlmLobbyCard' || g.style.display !== 'none')).slice(0, 6);
     host.innerHTML = list.map((g, i) => { const cs = getComputedStyle(g), art = cs.getPropertyValue("--poster") || cs.getPropertyValue("--art") || "", locked = g.classList.contains("soon");
       const t = g.querySelector("h3")?.textContent || "", p = g.querySelector("p")?.textContent || "";
+      if (g.id === 'zlmLobbyCard') return `<a class="sl zlm-slide${i ? '' : ' on'}" href="zman.html" aria-label="זמן למטווח"><img src="img/zlm/promo-user.jpg" alt="זמן למטווח"></a>`;
       return `<${locked ? "div" : "a"} class="sl${i ? "" : " on"}" ${locked ? "" : `href="${g.getAttribute("href")}"`} style="background-image:linear-gradient(to left,rgba(10,7,5,.92),rgba(10,7,5,.55) 45%,rgba(10,7,5,0) 70%),${art}"><span><em>${locked ? "בקרוב 🔒" : "חדש"}</em><b>${t}</b><small>${p}</small></span></${locked ? "div" : "a"}>`; }).join("");
     dots.innerHTML = list.map((_, i) => `<i class="${i ? "" : "on"}"></i>`).join("");
     k = 0; auto();
@@ -45,6 +46,7 @@
   host.addEventListener("pointerup", (e) => { if (x0 === null) return; const dx = e.clientX - x0; x0 = null; if (Math.abs(dx) > 40) { moved = true; go(k + (dx < 0 ? -1 : 1)); auto(); } });
   host.addEventListener("click", (e) => { if (moved) { e.preventDefault(); moved = false; } }, true);
   setTimeout(build, 1200);
+  addEventListener('zlm-ready', build);
 })();
 
 // friends sheet: works from home and from the games page; closes with ✕, a tap outside, or Esc

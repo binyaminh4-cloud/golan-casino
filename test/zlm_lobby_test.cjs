@@ -2,7 +2,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
 const code=fs.readFileSync('docs/zman-lobby.js','utf8');
 async function check({session=true,ready=1,error=null,preview=false}){
  let shown=false,calls=[];
- const sandbox={document:{getElementById:()=>({style:{removeProperty:k=>{assert.equal(k,'display');shown=true;}}})},
+ const sandbox={window:{dispatchEvent:()=>{}},Event:class {},document:{getElementById:()=>({style:{removeProperty:k=>{assert.equal(k,'display');shown=true;}}})},
  location:{search:preview?'?preview':''},db:{auth:{getSession:async()=>({data:{session:session?{}:null}})},rpc:async name=>{calls.push(name);return{data:ready,error};}}};
  await vm.runInNewContext(code,sandbox);return {shown,calls};
 }

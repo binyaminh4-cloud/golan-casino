@@ -17,7 +17,7 @@ async function main(){
    assert.equal(await page.locator('.zlm-bar').evaluate(el=>getComputedStyle(el).display),'grid');
    assert(await page.locator('.zlm-bar').evaluate(el=>el.getBoundingClientRect().width<=540));
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,name+' '+scene+' overflows');
-   for(const im of await page.locator('img:visible').all())assert(await im.evaluate(el=>el.complete&&el.naturalWidth>0),'missing image '+await im.getAttribute('src'));
+   for(const im of await page.locator('img:visible').all()){await im.evaluate(el=>el.decode());assert(await im.evaluate(el=>el.complete&&el.naturalWidth>0),'missing image '+await im.getAttribute('src'));}
    if(scene==='main'){
     const centered=await page.evaluate(()=>{const w=document.querySelector('.wheel-wrap').getBoundingClientRect(),p=document.querySelector('.pointer').getBoundingClientRect();return Math.abs((p.x+p.width/2)-(w.x+w.width/2))<2;});assert(centered,'pointer must stay at 12 oclock in RTL');
     assert.equal(await page.locator('.bet-spot').count(),17);
@@ -25,12 +25,13 @@ async function main(){
     assert.equal(await page.locator('.odds').count(),13);assert.equal(await page.locator('[data-spot=one] .odds').innerText(),'1:1');assert.equal(await page.locator('[data-spot=f1] .odds').innerText(),'25:1');assert.equal(await page.locator('[data-spot=b1] .odds').innerText(),'42:1');
     assert(await page.locator('#board').evaluate(el=>el.getBoundingClientRect().height>210));
     const chip=page.locator('#chips button').first(),value=await chip.getAttribute('data-value');await chip.click();await page.locator('[data-spot=f1]').click();
+    assert.equal(await page.locator('#totalBet').innerText(),'הימור כולל: ₪'+BigInt(value).toLocaleString('en-US'));
     assert.equal(await page.locator('[data-spot=f1] .chip').getAttribute('aria-label'),'₪'+BigInt(value).toLocaleString('en-US'));assert.equal(await page.locator('[data-spot=i1] .chip').count(),0);
     assert((await page.locator('[data-spot=f1] .chip').getAttribute('style')).includes('img/chips/chip_'));
     await page.locator('#cancel').click();assert.equal(await page.locator('.bet-spot .chip').count(),0);
     await page.locator('#rulesBtn').click();assert(await page.locator('#rules').isVisible());await page.locator('#closeRules').click();
    }
-   if(query.includes('summary')){assert.equal(await page.locator('.bonus-total').count(),1);assert((await page.locator('.bonus-total').innerText()).includes('₪'));assert(!(await page.locator('.bonus-total').innerText()).includes('='));}
+   if(query.includes('summary')){assert((await page.locator('#receipt').innerText()).includes('₪'));assert(!(await page.locator('#receipt').innerText()).includes('='));}
    if(scene==='vip'){
     for(let i=0;i<3;i++)await page.locator('.target').nth(i).click();
     assert.equal(await page.locator('.target.selected').count(),3);assert.equal(await page.locator('.target:enabled').count(),0);

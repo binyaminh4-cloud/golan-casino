@@ -7,5 +7,6 @@
    const {data,error}=await db.rpc('zlm_ready');if(error||data!==1)return;
   }
   card.style.removeProperty('display');
+  window.dispatchEvent(new Event('zlm-ready'));
  }catch{ /* Remain hidden until a later successful lobby load. */ }
 })();

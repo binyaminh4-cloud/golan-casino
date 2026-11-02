@@ -14,6 +14,7 @@ async function main(){
  const migration=fs.readFileSync('supabase/migrations/0097_zman_lamatvach.sql','utf8');
  await db.exec(migration);await db.exec(migration);
  const batchMigration=fs.readFileSync('supabase/migrations/0098_zman_repeat_bets.sql','utf8');await db.exec(batchMigration);await db.exec(batchMigration);
+ const spinMigration=fs.readFileSync('supabase/migrations/0099_zman_spin_duration.sql','utf8');await db.exec(spinMigration);await db.exec(spinMigration);
  const users=['00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000002'];
  for(const u of users)await db.query("insert into auth.users values($1);",[u]);
  for(const u of users){await db.query("insert into profiles(id,nickname) values($1,'test_zlm')",[u]);await db.query('insert into wallets(user_id,balance)values($1,1000000)',[u]);}
@@ -42,7 +43,7 @@ async function main(){
  for(const u of users){await uid(u);await bet(s.id,'one',100,'30000000-0000-0000-0000-000000000001');const cancelled=await bet(s.id,'one',0,'30000000-0000-0000-0000-000000000002');assert.equal(cancelled.balance,'1000000');}await uid(users[0]);
  await assert.rejects(()=>bet(s.id,'not-a-spot',100),/invalid_bet/);
  await assert.rejects(()=>bet(s.id,'one',1000001),/invalid_amount/);
- await bet(s.id,'one',100);const oldId=s.id;s=await next();assert.equal(s.phase,'spin');
+ await bet(s.id,'one',100);const oldId=s.id;s=await next();assert.equal(s.phase,'spin');assert.equal(Date.parse(s.deadline)-Date.parse(s.phase_at),9000);
  assert(Object.keys(s.boosts).length>=3&&Object.keys(s.boosts).length<=10);
  assert(s.cell>=1&&s.cell<=54);await assert.rejects(()=>bet(s.id,'one',1),/betting_closed/);
  await assert.rejects(()=>rpc('zlm_bet_batch',[s.id,{one:'1'},'40000000-0000-0000-0000-000000000004']),/betting_closed/);
@@ -119,15 +120,15 @@ async function main(){
   await page.locator('#retry').click();await page.locator('[data-spot=one] .chip').waitFor();
   assert.equal((await q("select count(*)::int n from wallet_transactions where user_id=$1 and kind='stake'",[users[0]]))[0].n,betsBefore+1);
   const refresh=()=>page.evaluate(()=>dispatchEvent(new Event('online')));
-  await next();await force(2);await refresh();await page.locator('#phase').filter({hasText:'מסתובב'}).waitFor();
+  await next();await force(2);await refresh();await page.waitForFunction(()=>document.querySelector('#wheelTurn').getAnimations().length>0);
   assert(await page.locator('#wheelTurn').evaluate(el=>el.getAnimations().length>0));
-  await next();await refresh();await page.locator('#receipt').filter({hasText:'זכייה ₪200'}).waitFor();
+  await next();await refresh();await page.locator('#receipt').filter({hasText:'זכייה כוללת ₪200'}).waitFor();
   s=await newRound();await refresh();await page.locator('[data-spot=range]:enabled').waitFor();await page.locator('[data-spot=range]').click();await page.locator('[data-spot=range] .chip').waitFor();
   await next();await force(1,2);await next();
   await db.exec(`update zlm_private.rounds set secret='{"people":[0,1,2,3,4],"values":[10,100,25,30,50]}' where id=(select round_id from zlm_private.control)`);
   await refresh();await page.locator('.target:enabled').first().waitFor();await page.locator('.target').nth(3).click();
   await page.locator('.target.selected').waitFor();assert.deepEqual((await state()).bonus.picks,[3]);
-  await next();await next();await refresh();await page.locator('#phase').filter({hasText:'ירייה נוספת'}).waitFor();
+  await next();await next();await refresh();await page.locator('.target:enabled').first().waitFor();
   await page.locator('.target').nth(1).click();assert.equal((await state()).bonus.extra,1);
   await next();await next();await refresh();await page.locator('#receipt').filter({hasText:'26,100'}).waitFor();
   s=await newRound();await refresh();await page.locator('#repeat:enabled').click();await page.locator('[data-spot=range] .chip').waitFor();assert.equal((await state()).bets.range,'100');
