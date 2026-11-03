@@ -1,4 +1,5 @@
 import {RULES,slotsFor} from './pc_rules.mjs';
+import {reelPhase} from './pc_presentation.mjs?v=1793694647';
 export const W=1600,H=900;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function trim(canvas,factory){
@@ -59,10 +60,13 @@ export class Renderer {
   character(id,x,feet,totalHeight,pose=0){
     const c=this.c,b=this.art.bodies[pose],anchor=this.art.anchors[pose],head=this.art.heads[id];
     // Uniform body scale and independent original head layer; never stretch face.
-    const bodyH=totalHeight*.66,s=bodyH/b.image.height,bw=b.image.width*s;
-    const top=feet-bodyH,headH=totalHeight*.45,headW=head.width/head.height*headH;
+    // totalHeight includes the head, even when an atlas pose has a high neck.
+    // This keeps the original face intact inside each bonus cell's clip.
+    const extent=Math.max(.66,.66-anchor.y*(.66/b.image.height)+.45-.01),unit=totalHeight/extent;
+    const bodyH=unit*.66,s=bodyH/b.image.height,bw=b.image.width*s;
+    const top=feet-bodyH,headH=unit*.45,headW=head.width/head.height*headH;
     const bodyX=x-anchor.x*s;c.drawImage(b.image,bodyX,top,bw,bodyH);
-    const neckY=top+anchor.y*s;c.drawImage(head,x-headW/2,neckY-headH+5,headW,headH);
+    const neckY=top+anchor.y*s;c.drawImage(head,x-headW/2,neckY-headH+unit*.01,headW,headH);
   }
   path(id,start,end){
     this._paths??={};const key=id+':'+Math.round(start)+':'+Math.round(end);if(this._paths[key])return this._paths[key];
@@ -93,16 +97,30 @@ export class Renderer {
     for(let r=0;r<3;r++)for(let col=0;col<5;col++){
       const px=x+cw*col,py=y+ch*r;c.fillStyle='#eadcc0';this.rr(px+3,py+3,cw-6,ch-6,8);c.fill();
       const index=r*5+col;let icon=state.grid[index];
-      if(state.spinning)icon=(Math.floor(time*14+col*3)+r)%7;
+      const moving=state.spinning&&(!state.reels||time<state.reels.stops[col]);
+      const phase=state.reels?reelPhase(state.reels,col,time):time*14;
+      const landing=moving&&state.reels&&Math.floor(phase)>=Math.ceil((state.reels.stops[col]-state.reels.start)*16)-1;
+      if(moving)icon=landing?state.grid[((r+1)%3)*5+col]:((col*3+r-Math.floor(phase))%7+7)%7;
       c.save();c.beginPath();c.rect(px+6,py+6,cw-12,ch-12);c.clip();
-      const offset=state.spinning?Math.sin(time*32+col)*12:0;
+      const offset=moving?(phase%1)*ch:0;
       this.symbol(icon,px+25,py+15+offset,cw-50,ch-30);
-      if(!state.spinning&&icon===6){this.plate('BONUS',px+35,py+ch-58,cw-70,33,19);const badge=state.badges[index];if(badge)this.plate('×'+badge,px+cw-68,py+10,52,34,20);}
+      if(moving)this.symbol(landing?state.grid[index]:(icon+6)%7,px+25,py+15+offset-ch,cw-50,ch-30);
+      if(!moving&&icon===6){this.plate('BONUS',px+35,py+ch-58,cw-70,33,19);const badge=state.badges[index];if(badge)this.plate('×'+badge,px+cw-68,py+10,52,34,20);}
       c.restore();
+    }
+    if(state.spinning&&state.reels&&state.reels.anticipationAt!==null&&time>=state.reels.anticipationAt){
+      const col=state.reels.stops.findIndex(t=>time<t);
+      if(col>=0){c.save();c.strokeStyle='#ffe27a';c.shadowColor='#ffd368';c.shadowBlur=18;c.lineWidth=6;this.rr(x+col*cw+4,y+4,cw-8,ch*3-8,10);c.stroke();c.restore();}
     }
     // Keep full arms within side margins; originals supply the unchanged heads.
     this.character('avichai',150,880,470,7);this.character('fisher',1450,880,470,7);
     this.plate(state.betLabel||'',580,820,300,48,23);this.plate(state.msg||'',910,820,220,48,23);
+    if(state.winHighlight){
+      const win=state.winHighlight;c.save();c.strokeStyle='#fff0a6';c.shadowColor='#ffd54a';c.shadowBlur=15;c.lineWidth=8;c.lineJoin='round';c.beginPath();
+      win.cells.forEach((index,i)=>{const px=x+(index%5+.5)*cw,py=y+(Math.floor(index/5)+.5)*ch;i?c.lineTo(px,py):c.moveTo(px,py);});c.stroke();
+      for(const index of win.cells){this.rr(x+(index%5)*cw+8,y+Math.floor(index/5)*ch+8,cw-16,ch-16,12);c.lineWidth=5;c.stroke();}
+      c.shadowBlur=0;this.plate(win.label,x+cw*2.5-195,y+ch*1.5-42,390,84,48);c.restore();
+    }
   }
   bonus(state,time){
     const c=this.c,slots=slotsFor(state.mode),left=105,right=1495,cell=(right-left)/slots.length;

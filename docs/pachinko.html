@@ -6,6 +6,7 @@
 <script src="loader.js?v=14"></script>
 <title>מכונת השירותים · גולן קזינו</title>
 <link rel="icon" href="img/brand/favicon.png?v=2">
+<link rel="preload" href="snd/pc_anticipation.mp3?v=2" as="fetch" crossorigin="anonymous">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;800&family=Inter:wght@700;800&display=swap">
 <style>
 *{box-sizing:border-box}html,body{margin:0;height:100%}
@@ -33,6 +34,7 @@ body{display:block!important}
 #bets{display:grid;justify-items:center;gap:3px}#bets button{width:44px;height:30px;padding:0;font-size:14px}#bets b{font:800 14px Inter;color:#ffe2a2}#bets small{font-size:10px;color:#b9bdad;margin-top:-3px}
 #spin{min-width:0!important;width:80px;height:80px;border-radius:50%!important;font-size:18px!important}
 #buy{padding:5px 6px;font-size:12px}
+.bottom .gc-auto .m{left:auto;right:0;transform:none;max-width:calc(100vw - 20px)}
 
 /* overlay top bar: lobby (right) · Ido (next to it) · sound + wallet (left); nothing overlaps */
 .top .gd-btn{position:absolute;right:max(84px,calc(78px + env(safe-area-inset-right)));top:3px;padding:2px 9px 2px 3px;font-size:11px;gap:4px}
@@ -49,10 +51,11 @@ body{display:block!important}
 <footer class="bottom"><div class="ctl" id="bets"></div><button id="buy" title="קניית בונוס">🛒 בונוס</button><span id="autoH"></span><button id="spin">סובב</button></footer>
 <script src="sfx.js?v=32"></script>
 <script src="slot-bets.js?v=1"></script>
-<script src="guide.js?v=1793691886"></script>
+<script src="guide.js?v=1793694647"></script>
 <script type="module">
 import { scoreDrops } from "./vendor/pc_rules.mjs?v=1";
-import { Renderer, prepareArt } from "./vendor/pc_renderer.mjs?v=4";
+import { reelPlan, winningLines, WIN_HOLD } from "./vendor/pc_presentation.mjs?v=1793694647";
+import { Renderer, prepareArt } from "./vendor/pc_renderer.mjs?v=1793694647";
 // Golan Casino wiring: every spin and bonus is decided on the server (pc_spin); the kit's renderer only plays it back.
 const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 
@@ -70,35 +73,63 @@ function showBal(v) { balance = +v; $("bal").textContent = fmt(v); drawBets(); }
 const badgesOf = (b) => Object.fromEntries(Object.entries(b || {}).map(([k, v]) => [+k, v]));
 $("spin").onclick = async () => {
   if (busy) return; busy = true; $("spin").disabled = true; $("err").textContent = "";
-  state = { ...state, mode: "slot", spinning: true, spinEnd: clock() + 99, msg: "בהצלחה…" };
+  state = { ...state, mode: "slot", spinning: true, reels: null, winHighlight: null, spinEnd: clock() + 99, msg: "בהצלחה…" };
   const { data, error } = await db.rpc("pc_spin", { p_stake: bet, p_ref: crypto.randomUUID ? crypto.randomUUID() : Date.now() + "" + Math.random() });
   if (error) { const m = error.message || ""; $("err").textContent = m.includes("insufficient") ? "אין מספיק שקלים." : m.includes("invalid_amount") ? "הסכום מעל המקסימום שלך." : "משהו השתבש.";
     state.spinning = false; busy = false; $("spin").disabled = false; return; }
   playResult(data);
 };
-function playResult(data) {
+const wait = seconds => new Promise(resolve => setTimeout(resolve, Math.max(0, seconds) * 1000));
+let stopTension = () => {};
+addEventListener("pointerdown", () => { try { SFX.fx("pc_anticipation", { vol: 0, dur: .01 }); } catch (e) {} }, { once: true, capture: true });
+addEventListener("pagehide", () => stopTension());
+document.addEventListener("visibilitychange", () => { if (document.hidden) stopTension(); });
+async function playResult(data, skipSpin = false) {
   showBal(data.balance - data.payout);
-  setTimeout(() => {
-    const lineWin = Math.floor(data.stake * data.line_mult / 10);
-    state = { mode: "slot", grid: data.grid, badges: badgesOf(data.badges), spinning: false, betLabel: "הימור " + fmt(data.stake),
-      msg: data.bonus ? (data.bonus.kind === "super" ? "סופר בונוס!" : "בונוס!") : lineWin ? "זכית " + fmt(lineWin) : "לא הפעם" };
-    try { lineWin ? SFX.slotWin(false) : data.bonus ? SFX.win(true) : SFX.lose(); } catch (e) {}
-    if (!data.bonus) { showBal(data.balance); busy = false; $("spin").disabled = false; return; }
-    const b = data.bonus, out = scoreDrops(b.kind, b.entry, b.targets);
+  const b = data.bonus, out = b ? scoreDrops(b.kind, b.entry, b.targets) : null;
+  try {
+    const reels = skipSpin ? null : reelPlan(data.grid, clock());
+    state = { mode: "slot", grid: data.grid, badges: badgesOf(data.badges), spinning: !skipSpin, reels,
+      betLabel: "הימור " + fmt(data.stake), msg: "" };
+    if (reels) {
+      for (let col = 0; col < 5; col++) {
+        await wait(reels.stops[col] - clock());
+        try { SFX.flip(); } catch (e) {}
+        if (col < 4 && reels.anticipationAt === reels.stops[col] && !document.hidden) {
+          try { stopTension = SFX.fx("pc_anticipation", { vol: .8, loop: true }); } catch (e) {}
+        }
+      }
+      stopTension(); stopTension = () => {}; state.spinning = false;
+    }
+    const wins = winningLines(data, out?.total || 0), lineWin = wins.reduce((n, w) => n + w.amount, 0);
+    state.msg = b ? (b.kind === "super" ? "סופר בונוס!" : "בונוס!") : lineWin ? "זכית " + fmt(lineWin) : "לא הפעם";
+    for (const win of wins) {
+      state.winHighlight = { ...win, label: fmt(win.amount) };
+      try { SFX.slotWin(false); } catch (e) {}
+      await wait(WIN_HOLD);
+    }
+    if (wins.length > 1) {
+      state.winHighlight = { cells: [...new Set(wins.flatMap(w => w.cells))], label: "סה״כ " + fmt(lineWin) };
+      await wait(.8);
+    }
+    delete state.winHighlight;
+    if (!b) return;
+    if (!wins.length) await wait(.6);
+    try { SFX.bonus(); } catch (e) {}
+    await GC_BONUS_INTRO(b.kind === "super" ? "💩 סופר בונוס של פישר!" : "🚽 הבונוס של אביחי!", b.kind === "super"
+      ? ["פישר יושב על האסלה ומשחרר 20 גושים קטנים.", "כל גוש קופץ בין הפינים ונוחת אצל אחד החברים. כל נחיתה מוסיפה את הערך שלו.", `מכפיל הכניסה שלך: ×${b.entry}. הכל משולם ביחס להימור.`]
+      : ["אביחי נוסע על המסילה ומשחרר גוש אחד.", "הגוש קופץ מפין לפין ונוחת באחד התאים: ×5 עד ×100.", "נחיתה ב״דאבל״ מכפילה את כל הערכים ומקבלים עוד נפילה.", `מכפיל הכניסה שלך: ×${b.entry}.`], "img/pc/avichai.webp");
+    state = { mode: b.kind, outcome: out, startedAt: clock() };
     const dur = b.kind === "super" ? 1.4 + 19 * .9 + 6.2 : 1.4 + (b.targets.length - 1) * 10 + 9;
-    setTimeout(async () => {
-      await GC_BONUS_INTRO(b.kind === "super" ? "💩 סופר בונוס של פישר!" : "🚽 הבונוס של אביחי!", b.kind === "super"
-        ? ["פישר יושב על האסלה ומשחרר 20 גושים קטנים.", "כל גוש קופץ בין הפינים ונוחת אצל אחד החברים. כל נחיתה מוסיפה את הערך שלו.", `מכפיל הכניסה שלך: ×${b.entry}. הכל משולם ביחס להימור.`]
-        : ["אביחי נוסע על המסילה ומשחרר גוש אחד.", "הגוש קופץ מפין לפין ונוחת באחד התאים: ×5 עד ×100.", "נחיתה ב״דאבל״ מכפילה את כל הערכים ומקבלים עוד נפילה.", `מכפיל הכניסה שלך: ×${b.entry}.`], "img/pc/avichai.webp");
-      state = { mode: b.kind, outcome: out, startedAt: clock() };
-      setTimeout(() => {
-        showBal(data.balance);
-        if (window.GC_BONUS) GC_BONUS(b.kind === "super" ? `💩 סופר בונוס ×${out.total}` : `🚽 בונוס ×${out.total}`, data.payout, b.entry > 1 ? `מכפיל כניסה ×${b.entry}` : "");
-        state = { mode: "slot", grid: data.grid, badges: badgesOf(data.badges), spinning: false, betLabel: "הימור " + fmt(data.stake), msg: "זכית " + fmt(data.payout) };
-        busy = false; $("spin").disabled = false;
-      }, (dur + 1.2) * 1000);
-    }, 1800);
-  }, 1300);
+    await wait(dur + 1.2);
+    if (window.GC_BONUS) GC_BONUS(b.kind === "super" ? `💩 סופר בונוס ×${out.total}` : `🚽 בונוס ×${out.total}`, data.payout - lineWin, `סה״כ בסיבוב ${fmt(data.payout)}` + (b.entry > 1 ? ` · מכפיל כניסה ×${b.entry}` : ""));
+    state = { mode: "slot", grid: data.grid, badges: badgesOf(data.badges), spinning: false, betLabel: "הימור " + fmt(data.stake), msg: "זכית " + fmt(data.payout) };
+  } catch (e) {
+    $("err").textContent = "לא הצלחנו להציג את התוצאה. היתרה עודכנה לפי השרת.";
+    state = { mode: "slot", grid: data.grid, badges: badgesOf(data.badges), spinning: false, betLabel: "הימור " + fmt(data.stake), msg: "זכית " + fmt(data.payout) };
+  } finally {
+    stopTension(); stopTension = () => {}; showBal(data.balance); busy = false; $("spin").disabled = false;
+  }
 }
 // bonus buy: Avichai's pachinko or Fisher's super, straight away
 $("buy").onclick = async () => {
@@ -108,13 +139,13 @@ $("buy").onclick = async () => {
   if (!kind) return; busy = true; $("spin").disabled = true; $("err").textContent = "";
   const { data, error } = await db.rpc("pc_buy", { p_kind: kind, p_stake: bet, p_ref: crypto.randomUUID ? crypto.randomUUID() : Date.now() + "" + Math.random() });
   if (error) { const m = error.message || ""; $("err").textContent = m.includes("insufficient") ? "אין מספיק שקלים." : "הקנייה נכשלה."; busy = false; $("spin").disabled = false; return; }
-  data.grid = state.grid; playResult(data);
+  data.grid = state.grid; playResult(data, true);
 };
 const load = (src) => new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => no(new Error(src)); im.src = src; });
 (async () => {
   const ids = ["friend_01", "friend_02", "friend_03", "fisher", "friend_05", "friend_06", "yoav", "avichai"], images = {};
   await Promise.all([["background", "background"], ["symbols", "symbols"], ["bodies", "bodies"], ...ids.map((i) => [i, i])].map(async ([k, f]) => images[k] = await load(`img/pc/${f}.webp`)));
-  const manifest = { originals: ids, faceCropBottom: { friend_01: .419, friend_02: .407, friend_03: .405, fisher: .405, friend_05: .395, friend_06: .413, yoav: .455, avichai: .412 },
+  const manifest = { originals: ids, faceCropBottom: { friend_01: .419, friend_02: .407, friend_03: .405, fisher: .455, friend_05: .395, friend_06: .413, yoav: .455, avichai: .455 },
     bodyAtlas: { neckAnchors: [[0.6, 0.06], [0.6, 0.07], [0.44, 0.07], [0.5, 0.07], [0.54, 0.23], [0.5, 0.32], [0.5, 0.17], [0.51, 0.07]] } };
   const art = prepareArt(images, manifest, (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; });
   renderer = new Renderer($("game"), art);
