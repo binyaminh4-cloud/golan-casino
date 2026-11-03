@@ -5,7 +5,7 @@ const{chromium}=require(process.env.GC_PLAYWRIGHT||'C:/Users/hp/.cache/codex-run
  const browser=await chromium.launch({channel:'msedge',headless:true,args:['--mute-audio']});
  try{
  for(const viewport of [{width:390,height:844},{width:320,height:568},{width:1024,height:768}]){
-  const page=await browser.newPage({viewport});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  const page=await browser.newPage({viewport,hasTouch:true,isMobile:viewport.width<700,...(viewport.width>=700?{userAgent:'Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1'}:{})});const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(()=>{localStorage.setItem('gc_sound_chosen','1');localStorage.setItem('gc_install_seen','done');});
   await page.route('**/supabase.min.js',r=>r.fulfill({contentType:'text/javascript',body:`
    window.hCalls=0;window.hMode='items';const members=[{id:'00000000-0000-0000-0000-000000000001',nickname:'שחקן עם שם ארוך מאוד לבדיקה',wealth:123456789012345},{id:'00000000-0000-0000-0000-000000000002',nickname:'חבר',wealth:50000000},{id:'00000000-0000-0000-0000-000000000003',nickname:'ניסיון חוזר',wealth:1}];
@@ -19,6 +19,23 @@ const{chromium}=require(process.env.GC_PLAYWRIGHT||'C:/Users/hp/.cache/codex-run
   for(const name of ['chat','install','zman-lobby'])await page.route('**/'+name+'.js?*',r=>r.fulfill({contentType:'text/javascript',body:''}));
   await page.goto('http://127.0.0.1:'+server.address().port+'/index.html');await page.locator('#lbBox .dh-button').first().waitFor();
   assert.equal(await page.evaluate(()=>hCalls),0,'loading rankings must not query highlights');
+  // Reproduce the real row: level badges, online status, favourite game and a large balance.
+  await page.evaluate(()=>{
+   document.querySelectorAll('#lbBox .lvu').forEach(el=>{el.innerHTML='<img class="lvi" src="img/lvl/lv3.webp" alt="רמה 3" style="width:27px;height:27px;object-fit:contain">';});
+   document.querySelectorAll('#lbBox .fav').forEach(el=>el.textContent='🎮 מכונת השירותים');
+  });
+  const rows=await page.locator('#lbBox li').evaluateAll(els=>els.slice(0,3).map(el=>{
+   const rect=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom};};
+   return {row:rect(el),avatar:rect(el.querySelector('.av')),name:rect(el.querySelector('.nmt')),meta:rect(el.querySelector('.player-meta')),button:rect(el.querySelector('.dh-button')),wealth:rect(el.querySelector('.w')),fav:rect(el.querySelector('.fav'))};
+  }));
+  const frame=await page.locator('#lobbyView .lb').boundingBox();
+  if(viewport.height<650){await page.locator('#lbBox li').nth(2).scrollIntoViewIfNeeded();const last=await page.locator('#lbBox li').nth(2).boundingBox();assert(last.y+last.height<=frame.y+frame.height-3,'short screens can scroll to the full third row');await page.locator('#lbBox').evaluate(el=>el.scrollTop=0);}
+  for(const r of rows){if(viewport.height>=650)assert(r.row.bottom<=frame.y+frame.height-3,JSON.stringify({message:'all three rows must fit inside the gold frame',viewport,frame,row:r.row}));assert(r.row.right-r.avatar.right<=15,'avatar stays at right edge');
+   for(const k of ['avatar','name','meta','button','wealth','fav'])assert(r[k].x>=r.row.x-1&&r[k].right<=r.row.right+1&&r[k].y>=r.row.y-1&&r[k].bottom<=r.row.bottom+1,JSON.stringify({viewport,k,r}));
+   assert(r.button.right<=r.meta.x+1&&r.meta.right<=r.name.x+1,'icons must have separate horizontal space');
+   assert(r.wealth.right<=r.fav.x+1,'wealth and favourite must not overlap');
+  }
+
   fs.mkdirSync('../asset-intake/daily-highlights',{recursive:true});await page.screenshot({path:'../asset-intake/daily-highlights/lobby-'+viewport.width+'.png'});await page.evaluate(()=>openFriends());await page.screenshot({path:'../asset-intake/daily-highlights/friends-'+viewport.width+'.png'});await page.locator('#frSheet .dh-button').first().click();await page.locator('.dh-list li').last().waitFor();
   assert.equal(await page.locator('.dh-list li').count(),5);assert.equal(await page.locator('.dh-list img').count(),0,'labels must be text, not HTML');
   assert.equal(await page.locator('.dh-profit').last().getAttribute('title'),'+9,007,199,254,740,993 ₪');
