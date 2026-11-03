@@ -44,9 +44,9 @@ canvas{display:block;border-radius:8px;touch-action:manipulation;max-width:100%;
   <button id="start" hidden>התחל</button><span id="betInfo" class="bal"></span><button id="newBet" hidden>הימור חדש</button><button id="cash" hidden style="display:none">קח וצא</button><button id="more" hidden style="display:none">עוד שלושה</button><span id="err"></span></div></header>
 <div class="wrap"><canvas id="game" width="1920" height="1080" aria-label="שדה החפירה. לחץ כדי לשלוח את הקרס"></canvas><small id="info">טוען…</small></div>
 <script src="sfx.js?v=32"></script>
-<script src="guide.js?v=1793688310"></script>
+<script src="guide.js?v=1793691886"></script>
 <script src="vendor/pm_scene.js?v=4"></script>
-<script src="pm-geometry.js?v=1793655212"></script>
+<script src="pm-geometry.js?v=1793691886"></script>
 <script src="slot-bets.js?v=1"></script>
 <script>
 'use strict';
@@ -60,14 +60,14 @@ let r = { mode: "normal", rocks: [], layer: 0, successes: 0, bankUnits: 0, phase
 let introAt = 0, shot = null, reveal = null, angle = 0, busy = false, walletBalance = 0, motionTime = 0, lastFrameAt = null;
 const active = () => ["intro", "playing", "checkpoint"].includes(r.phase);
 function fromServer(v) { runId = v.id; stake = +v.stake; r.mode = v.mode; r.layer = v.layer; r.successes = v.successes; r.bankUnits = +v.bank_units;
-  r.rocks = v.rocks.map((x, i) => ({ ...x, ...PM_GEOMETRY.position(x.id % 12, motionTime, !x.bomb), w: 70 + x.w * .6, rewardUnits: x.units })); if (r.phase !== "intro") r.phase = v.phase; if (v.balance != null) { walletBalance = Number(v.balance); el("bal").textContent = fmt(v.balance); } }
+  r.rocks = v.rocks.map((x, i) => ({ ...x, ...PM_GEOMETRY.position(x.id % 12, motionTime, true), w: 70 + x.w * .6, rewardUnits: x.units })); if (r.phase !== "intro") r.phase = v.phase; if (v.balance != null) { walletBalance = Number(v.balance); el("bal").textContent = fmt(v.balance); } }
 // choosing the bet happens in the middle of the screen; afterwards only a small label stays on top
 function betPop(title) {
   GC_BI_CSS(); document.querySelectorAll(".gc-bi.bet").forEach((n) => n.remove());
   const o = document.createElement("div"); o.className = "gc-bi bet";
   o.innerHTML = `<div class="box"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><h2 style="min-width:0">${title || "💪 כמה מהמרים?"}</h2><a class="pm-lobby" href="./" style="flex:none;white-space:nowrap;color:#F1D69A;text-decoration:none;border:1px solid #827453;border-radius:99px;padding:6px 12px;font-size:14px">→ ללובי</a></div><ul><li style="text-align:center"><span class="st"></span></li>
     <li style="display:flex;gap:6px;justify-content:center">${[["easy", "קל"], ["normal", "רגיל"], ["extreme", "אקסטרים"]].map(([k, t]) => `<button type="button" class="md" data-m="${k}" style="flex:1;height:38px;font-size:15px;${k === el("mode").value ? "" : "background:#2a1c10;color:#F1D69A;border:1px solid #C5A05A"}">${t}</button>`).join("")}</li>
-    <li style="font-size:12px;color:#B9AA94">המזון נע ימינה ושמאלה. ברמות הגבוהות ובשכבות העמוקות יש יותר פצצות; בכל שכבה לפחות 4 מטרות מזון. הכיוון והמיקום ננעלים בזמן שליחת הקרס.</li><li style="font-size:12px;color:#B9AA94">בהשלמת כל 12 השליפות: החזר כולל מינימלי פי 2 בקל, פי 5 ברגיל ופי 10 באקסטרים. יציאה מוקדמת משלמת את הקופה שנאספה.</li></ul><button type="button" class="go">⛏️ התחל</button></div>`;
+    <li style="font-size:12px;color:#B9AA94">המזון והפצצות נעים בכיוונים משתנים, גם בזמן שליחת הקרס. ברמות הגבוהות ובשכבות העמוקות יש יותר פצצות; בכל שכבה לפחות 4 מטרות מזון. כיוון הקרס נקבע בלחיצה; התפיסה נקבעת רק במגע עם המטרה.</li><li style="font-size:12px;color:#B9AA94">בהשלמת כל 12 השליפות: החזר כולל מינימלי פי 2 בקל, פי 5 ברגיל ופי 10 באקסטרים. יציאה מוקדמת משלמת את הקופה שנאספה.</li></ul><button type="button" class="go">⛏️ התחל</button></div>`;
   document.body.appendChild(o);
   const steps = GC_SLOT_LADDER(10, walletBalance), host = o.querySelector(".st");
   let amount = GC_SLOT_SELECT(steps, +el("stake").value || 100), index = steps.indexOf(amount);
@@ -98,7 +98,7 @@ function checkpointPop() {
   o.innerHTML = `<div class="box"><h2>💪 קופה: ${fmt(pot)}</h2><ul>
     <li>אספת ${r.successes} שליפות. אפשר לקחת עכשיו את <b>${fmt(pot)}</b> ולסיים.</li>
     ${last ? "<li>זו הייתה השכבה האחרונה.</li>" : `<li>⛏️ <b>שכבה ${nl + 1} מתוך 4</b>: הפרסים שווים פי ${DEPTH[nl]} מהשכבה הראשונה, הסלעים גדולים יותר. אפשר לקחת עוד 3 שליפות.</li>
-    <li>⚠️ הסיכון: בשכבה הבאה ${bombs} פצצות ו־${safe} מטרות מזון. המזון זז בזמן הכוונה. פריט עם תג של יואב בטוח מפצצות. פצצה מאפסת את כל הקופה.</li>`}
+    <li>⚠️ הסיכון: בשכבה הבאה ${bombs} פצצות ו־${safe} מטרות מזון. המזון והפצצות ממשיכים לנוע גם בזמן השליחה. פריט עם תג של יואב בטוח מפצצות. פצצה מאפסת את כל הקופה.</li>`}
     </ul><button type="button" class="take">💰 קח ${fmt(pot)}</button>${last ? "" : `<button type="button" class="go" style="margin-top:8px;background:#2a1c10;color:#F1D69A;border:1px solid #C5A05A">⛏️ עוד שלושה</button>`}</div>`;
   document.body.appendChild(o);
   o.querySelector(".take").onclick = () => { o.remove(); next(true); };
@@ -123,23 +123,48 @@ async function next(cash) { if (busy) return; busy = true; const { data, error }
 el("cash").onclick = () => next(true); el("more").onclick = () => next(false);
 // same aim geometry as the kit: the first open rock on the claw's line
 function hitTest(a) { return PM_GEOMETRY.hit(r.rocks, r.layer, a); }
-canvas.addEventListener("pointerdown", () => { if (r.phase !== "playing" || shot || busy) return; const hit = hitTest(angle), max = PM_GEOMETRY.limit(angle);
-  shot = { start: performance.now() / 1000, angle, distance: hit ? Math.min(hit.distance, max) : max, rock: hit && hit.distance <= max ? hit.rock : null, done: false, res: null };
-  { const s = shot; busy = true; db.rpc("pm_collect", { p_run: runId, p_rock: s.rock ? s.rock.id : -1 }).then(({ data, error }) => { busy = false; s.res = error ? { error } : data; }); }
-  reveal = null; });
+function collectShot(s) {
+  if (s.requested) return;
+  s.requested = true; busy = true;
+  db.rpc("pm_collect", { p_run: runId, p_rock: s.rock ? s.rock.id : -1 })
+    .then(({ data, error }) => { s.res = error ? { error } : data; })
+    .catch(error => { s.res = { error }; })
+    .finally(() => { busy = false; });
+}
+canvas.addEventListener("pointerdown", () => {
+  if (r.phase !== "playing" || shot || busy) return;
+  shot = { start: motionTime, sampledAt: motionTime, angle, max: PM_GEOMETRY.limit(angle), length: 45,
+    distance: null, contactAt: null, rock: null, requested: false, done: false, res: null };
+  reveal = null;
+});
 function frame(now) {
   const t = now / 1000; let state = { round: r, time: r.phase === "intro" ? t - introAt : t, stake, angle, length: 45 };
   if (r.phase === "intro" && t - introAt >= 7) { r.phase = "playing"; controls(); }
-  // Advance a local play clock only while aiming. The same target coordinates
-  // are used for drawing and hit testing, and stay locked throughout a shot.
-  if (lastFrameAt !== null && r.phase === "playing" && !shot && !busy) motionTime += Math.min(.05, Math.max(0, t - lastFrameAt));
+  // One play clock drives moving targets AND the claw, including during RPCs.
+  // Hidden tabs pause the simulation instead of skipping over collisions.
+  if (lastFrameAt !== null && r.phase === "playing" && !document.hidden) motionTime += Math.min(.05, Math.max(0, t - lastFrameAt));
   lastFrameAt = t;
-  for (const k of r.rocks) Object.assign(k, PM_GEOMETRY.position(k.id % 12, motionTime, !k.bomb));
+  for (const k of r.rocks) Object.assign(k, PM_GEOMETRY.position(k.id % 12, motionTime, true));
   if (!shot) { angle = Math.sin(t * (PM_GEOMETRY.speed[r.mode] || 1.8)) * 1.46; state.angle = r.phase === "playing" ? angle : 0; }
-  if (shot) { const sh = shot, e = t - sh.start, out = sh.distance / 1500, back = sh.distance / (sh.rock ? 820 : 1250), total = out + .18 + back;
-    state.angle = sh.angle; state.closed = e >= out; state.pose = e >= out ? "pull" : "idle"; state.bodyTilt = Math.sin(t * 15) * .006; state.crankAngle = t * 10;
-    if (e < out) state.length = 45 + (sh.distance - 45) * S.ease(e / out); else if (e < out + .18) state.length = sh.distance; else state.length = sh.distance - (sh.distance - 45) * S.ease((e - out - .18) / back);
-    if (sh.rock && e >= out) { state.hiddenRock = sh.rock.id; if (e < total) state.carried = sh.rock; }
+  if (shot) { const sh = shot;
+    if (sh.contactAt === null) {
+      const length = Math.min(sh.max, 45 + (motionTime - sh.start) * 1500);
+      const contact = PM_GEOMETRY.sweep(r.rocks, r.layer, sh.angle, sh.length, length, sh.sampledAt, motionTime);
+      if (contact) {
+        sh.rock = contact.rock; sh.distance = contact.distance;
+        sh.contactAt = sh.sampledAt + (motionTime - sh.sampledAt) * contact.fraction;
+        sh.length = sh.distance; collectShot(sh);
+      } else {
+        sh.length = length;
+        if (length >= sh.max) { sh.distance = sh.max; sh.contactAt = motionTime; collectShot(sh); }
+      }
+      sh.sampledAt = motionTime;
+    }
+    const caught = sh.contactAt !== null, e = caught ? motionTime - sh.contactAt : 0;
+    const back = caught ? sh.distance / (sh.rock ? 820 : 1250) : 0, total = caught ? .18 + back : Infinity;
+    state.angle = sh.angle; state.closed = caught; state.pose = caught ? "pull" : "idle"; state.bodyTilt = Math.sin(t * 15) * .006; state.crankAngle = t * 10;
+    state.length = caught ? e < .18 ? sh.distance : sh.distance - (sh.distance - 45) * S.ease(Math.min(1, (e - .18) / back)) : sh.length;
+    if (sh.rock && caught) { state.hiddenRock = sh.rock.id; if (e < total) state.carried = sh.rock; }
     if (e >= total && !sh.done && sh.res) { sh.done = true; shot = null;
       if (sh.res && !sh.res.error) { const g = sh.res.got; fromServer(sh.res); if (g.miss) { reveal = null; controls(); } else { if (!g.bomb) r.history.push({ ...g, rewardUnits: g.units }); reveal = { ...g, at: t }; controls();
         try { g.bomb ? SFX.lose() : SFX.win(false); } catch (er) {} }

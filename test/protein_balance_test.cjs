@@ -34,9 +34,9 @@ await d.exec(fs.readFileSync('test/protein_balance_live_check.sql','utf8'));
 // maximum-size sprites, across a complete motion cycle. No bomb blocks a food.
 const ctx={window:{}};require('node:vm').runInNewContext(fs.readFileSync('docs/pm-geometry.js','utf8'),ctx);const geo=ctx.window.PM_GEOMETRY;
 for(let mask=0;mask<4096;mask++)for(let t=0;t<4;t+=.25){
- const rocks=Array.from({length:12},(_,i)=>({id:i,layer:0,w:134.8,bomb:!!(mask&(1<<i)),...geo.position(i,t,!(mask&(1<<i)))}));
+ const rocks=Array.from({length:12},(_,i)=>({id:i,layer:0,w:134.8,bomb:!!(mask&(1<<i)),...geo.position(i,t,true)}));
  for(const k of rocks){assert(k.x-k.w*.625>=0&&k.x+k.w*.625<=1920&&k.y+k.w*.625<=1080);const angle=Math.atan2(k.x-1000,k.y-280);assert(Math.abs(angle)<=1.46);const hit=geo.hit(rocks,0,angle);assert.equal(hit.rock.id,k.id,'no inaccessible target');assert(hit.distance<=geo.limit(angle));}
 }
-assert.notEqual(geo.position(5,0,true).x,geo.position(5,1,true).x);assert.equal(geo.position(5,0,false).x,geo.position(5,1,false).x);
+assert.notEqual(geo.position(5,0,true).x,geo.position(5,1,true).x);assert.notEqual(geo.position(5,0,true).y,geo.position(5,1,true).y);
 console.log('PASS: 1500 boards; exact bombs by mode/layer; >=4 foods; safe tags; preserved old runs and payouts; 12 catches; auth; empty claw; no double pay; all moving targets reachable');await d.close();
 })().catch(e=>{console.error(e.stack);process.exit(1)});
