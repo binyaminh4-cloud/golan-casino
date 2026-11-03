@@ -1,5 +1,5 @@
 import {RULES,slotsFor} from './pc_rules.mjs';
-import {reelPhase} from './pc_presentation.mjs?v=1793694647';
+import {reelPhase,bonusTimeline,releasePosition} from './pc_presentation.mjs?v=1793696860';
 export const W=1600,H=900;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function trim(canvas,factory){
@@ -42,7 +42,9 @@ function originalHead(img,bottom,factory){
   // Softly restrict lower shoulder area; facial pixels stay unchanged.
   ctx.globalCompositeOperation='destination-in';ctx.beginPath();
   ctx.moveTo(w*.18,0);ctx.lineTo(w*.82,0);ctx.lineTo(w*.82,h*.60);ctx.lineTo(w*.69,h*.75);ctx.lineTo(w*.62,h*.90);ctx.lineTo(w*.57,h);ctx.lineTo(w*.43,h);ctx.lineTo(w*.38,h*.90);ctx.lineTo(w*.31,h*.75);ctx.lineTo(w*.18,h*.60);ctx.closePath();ctx.fill();
-  ctx.globalCompositeOperation='source-over';return trim(c,factory).image;
+  ctx.globalCompositeOperation='source-over';const trimmed=trim(c,factory);
+  trimmed.image.neckAnchor={x:w*.5-trimmed.offset[0],y:h-3-trimmed.offset[1]};
+  return trimmed.image;
 }
 export function prepareArt(images,manifest,factory){
   const symbols=atlasCells(images.symbols,factory),bodies=atlasCells(images.bodies,factory),heads={};
@@ -62,25 +64,26 @@ export class Renderer {
     // Uniform body scale and independent original head layer; never stretch face.
     // totalHeight includes the head, even when an atlas pose has a high neck.
     // This keeps the original face intact inside each bonus cell's clip.
-    const extent=Math.max(.66,.66-anchor.y*(.66/b.image.height)+.45-.01),unit=totalHeight/extent;
+    const neck=head.neckAnchor??{x:head.width/2,y:head.height};
+    const overlap=.055,extent=Math.max(.66,.66-anchor.y*(.66/b.image.height)+.45*neck.y/head.height-overlap),unit=totalHeight/extent;
     const bodyH=unit*.66,s=bodyH/b.image.height,bw=b.image.width*s;
     const top=feet-bodyH,headH=unit*.45,headW=head.width/head.height*headH;
     const bodyX=x-anchor.x*s;c.drawImage(b.image,bodyX,top,bw,bodyH);
-    const neckY=top+anchor.y*s;c.drawImage(head,x-headW/2,neckY-headH+unit*.01,headW,headH);
+    const neckY=top+anchor.y*s,headScale=headH/head.height;
+    c.drawImage(head,x-neck.x*headScale,neckY-neck.y*headScale+unit*overlap,headW,headH);
   }
   path(id,start,end){
     this._paths??={};const key=id+':'+Math.round(start)+':'+Math.round(end);if(this._paths[key])return this._paths[key];
     let seed=(id*9301+49297)%233280;const rnd=()=>(seed=(seed*9301+49297)%233280)/233280;
-    const pinsAt=r=>{const xs=[];for(let col=0;col<13;col++){const px=150+col*104+(r%2)*44;if(px<=1450)xs.push(px);}return xs;};
-    const pts=[{x:start,y:225}];let x=start;
+    const corridor=80,pts=[{x:start,y:225}];
     for(let r=0;r<8;r++){
-      const xs=pinsAt(r);let pin=xs.reduce((a,b)=>Math.abs(b-x)<Math.abs(a-x)?b:a);if(Math.abs(pin-x)>22||r===7)pin=x;
-      pts.push({x:pin+(rnd()-.5)*8,y:268+r*43-14});
-      // drift toward the target a share at a time, so the last pin is already above the right cell (no late jump)
-      const left=Math.max(1,7-r),need=end-pin,jit=(rnd()-.5)*Math.min(90,26*left);
-      x=Math.max(120,Math.min(1480,pin+need/left+jit*(left>2?1:0)));
+      const aim=end+(rnd()-.5)*38,pins=[];
+      for(let col=0;col<13;col++){const x=150+col*104+(r%2)*44;if(x<=1450)pins.push(x);}
+      const pin=pins.reduce((a,b)=>Math.abs(b-aim)<Math.abs(a-aim)?b:a);
+      const side=rnd()<.5?-1:1;
+      pts.push({x:clamp(pin+side*13,end-corridor,end+corridor),y:268+r*43-14});
     }
-    pts.push({x:x+(end-x)*.6,y:268+8*43+10});pts.push({x:end,y:640});pts.push({x:end,y:715});
+    pts.push({x:end,y:640});pts.push({x:end,y:715});
     return this._paths[key]=pts;
   }
   frame(state,time){
@@ -98,8 +101,8 @@ export class Renderer {
       const px=x+cw*col,py=y+ch*r;c.fillStyle='#eadcc0';this.rr(px+3,py+3,cw-6,ch-6,8);c.fill();
       const index=r*5+col;let icon=state.grid[index];
       const moving=state.spinning&&(!state.reels||time<state.reels.stops[col]);
-      const phase=state.reels?reelPhase(state.reels,col,time):time*14;
-      const landing=moving&&state.reels&&Math.floor(phase)>=Math.ceil((state.reels.stops[col]-state.reels.start)*16)-1;
+      const phase=state.reels?reelPhase(state.reels,col,time):time*16;
+      const landing=moving&&state.reels&&Math.floor(phase)>=state.reels.cycles[col]-1;
       if(moving)icon=landing?state.grid[((r+1)%3)*5+col]:((col*3+r-Math.floor(phase))%7+7)%7;
       c.save();c.beginPath();c.rect(px+6,py+6,cw-12,ch-12);c.clip();
       const offset=moving?(phase%1)*ch:0;
@@ -125,16 +128,13 @@ export class Renderer {
   bonus(state,time){
     const c=this.c,slots=slotsFor(state.mode),left=105,right=1495,cell=(right-left)/slots.length;
     const elapsed=Math.max(0,time-state.startedAt),events=state.outcome.events;
-    const releases=events.map((_,i)=>state.mode==='super'?1.4+i*.9:1.4+i*10.0);
-    const duration=state.mode==='super'?6.2:9;const settled=[];const flying=[];
+    const timeline=state.timeline??(state.timeline=bonusTimeline(state.mode,events)),{releases,duration}=timeline;
+    const settled=[];const flying=[];
     for(let i=0;i<events.length;i++){
       const age=elapsed-releases[i];if(age>=duration)settled.push(events[i]);else if(age>=0)flying.push({event:events[i],progress:age/duration,i});
     }
     const last=settled.at(-1),scale=last?.scale??state.outcome.entry,total=last?.total??0;
-    const released=releases.filter(t=>t<=elapsed).length;
-    const nextIndex=clamp(released,0,events.length-1),nextRelease=releases[nextIndex];
-    const sourceAt=t=>800+Math.sin(t*1.4)*500;
-    const performerX=sourceAt(Math.min(elapsed,nextRelease));
+    const performerX=releasePosition(timeline,elapsed);
     // Thin rail; toilet and seated body remain a single translating assembly.
     c.fillStyle='#b28b46';c.fillRect(100,194,1400,5);c.fillStyle='#384b3d';c.fillRect(100,201,1400,5);
     this.symbol(6,performerX-61,111,122,130);
@@ -165,8 +165,8 @@ export class Renderer {
     }
     c.fillStyle='#26483e';c.fillRect(right-7,661,7,166);
     for(const f of flying){
-      // a real pachinko fall: the ball hops pin to pin under gravity, nudged so it ends in the cell the server chose
-      const start=sourceAt(releases[f.i]),end=left+(f.event.target+.5)*cell;
+      // Local pin-to-pin bounces below the stationary release point; no cross-board steering.
+      const start=timeline.sources[f.i],end=left+(f.event.target+.5)*cell;
       const path=this.path(f.i+(state.mode==='super'?100:0),start,end);
       const n=path.length-1,q=f.progress*n,k=Math.min(n-1,Math.floor(q)),u=q-k,a=path[k],b=path[k+1];
       const lift=k===0?0:(b.y-a.y)<60?26:10;            // a small bounce off each pin, then gravity takes over

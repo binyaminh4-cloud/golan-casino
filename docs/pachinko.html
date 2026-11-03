@@ -7,6 +7,7 @@
 <title>מכונת השירותים · גולן קזינו</title>
 <link rel="icon" href="img/brand/favicon.png?v=2">
 <link rel="preload" href="snd/pc_anticipation.mp3?v=2" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="snd/pc_reel_fast.mp3?v=2" as="fetch" crossorigin="anonymous">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;800&family=Inter:wght@700;800&display=swap">
 <style>
 *{box-sizing:border-box}html,body{margin:0;height:100%}
@@ -51,11 +52,11 @@ body{display:block!important}
 <footer class="bottom"><div class="ctl" id="bets"></div><button id="buy" title="קניית בונוס">🛒 בונוס</button><span id="autoH"></span><button id="spin">סובב</button></footer>
 <script src="sfx.js?v=32"></script>
 <script src="slot-bets.js?v=1"></script>
-<script src="guide.js?v=1793694647"></script>
+<script src="guide.js?v=1793696860"></script>
 <script type="module">
 import { scoreDrops } from "./vendor/pc_rules.mjs?v=1";
-import { reelPlan, winningLines, WIN_HOLD } from "./vendor/pc_presentation.mjs?v=1793694647";
-import { Renderer, prepareArt } from "./vendor/pc_renderer.mjs?v=1793694647";
+import { reelPlan, winningLines, WIN_HOLD, bonusTimeline } from "./vendor/pc_presentation.mjs?v=1793696860";
+import { Renderer, prepareArt } from "./vendor/pc_renderer.mjs?v=1793696860";
 // Golan Casino wiring: every spin and bonus is decided on the server (pc_spin); the kit's renderer only plays it back.
 const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 
@@ -81,7 +82,7 @@ $("spin").onclick = async () => {
 };
 const wait = seconds => new Promise(resolve => setTimeout(resolve, Math.max(0, seconds) * 1000));
 let stopTension = () => {};
-addEventListener("pointerdown", () => { try { SFX.fx("pc_anticipation", { vol: 0, dur: .01 }); } catch (e) {} }, { once: true, capture: true });
+addEventListener("pointerdown", () => { try { for (const name of ["pc_anticipation", "pc_reel_fast"]) SFX.fx(name, { vol: 0, dur: .01 }); } catch (e) {} }, { once: true, capture: true });
 addEventListener("pagehide", () => stopTension());
 document.addEventListener("visibilitychange", () => { if (document.hidden) stopTension(); });
 async function playResult(data, skipSpin = false) {
@@ -93,11 +94,16 @@ async function playResult(data, skipSpin = false) {
       betLabel: "הימור " + fmt(data.stake), msg: "" };
     if (reels) {
       for (let col = 0; col < 5; col++) {
-        await wait(reels.stops[col] - clock());
-        try { SFX.flip(); } catch (e) {}
-        if (col < 4 && reels.anticipationAt === reels.stops[col] && !document.hidden) {
-          try { stopTension = SFX.fx("pc_anticipation", { vol: .8, loop: true }); } catch (e) {}
+        if (reels.turboStarts[col] !== null) {
+          await wait(reels.turboStarts[col] - clock());
+          if (!document.hidden) { try { stopTension = SFX.fx("pc_reel_fast", { vol: .8, loop: true }); } catch (e) {} }
+          await wait(reels.turboStarts[col] + 1.5 - clock());
+          stopTension(); stopTension = () => {};
+          if (!document.hidden) { try { stopTension = SFX.fx("pc_anticipation", { vol: .8, loop: true }); } catch (e) {} }
         }
+        await wait(reels.stops[col] - clock());
+        stopTension(); stopTension = () => {};
+        try { SFX.flip(); } catch (e) {}
       }
       stopTension(); stopTension = () => {}; state.spinning = false;
     }
@@ -119,9 +125,9 @@ async function playResult(data, skipSpin = false) {
     await GC_BONUS_INTRO(b.kind === "super" ? "💩 סופר בונוס של פישר!" : "🚽 הבונוס של אביחי!", b.kind === "super"
       ? ["פישר יושב על האסלה ומשחרר 20 גושים קטנים.", "כל גוש קופץ בין הפינים ונוחת אצל אחד החברים. כל נחיתה מוסיפה את הערך שלו.", `מכפיל הכניסה שלך: ×${b.entry}. הכל משולם ביחס להימור.`]
       : ["אביחי נוסע על המסילה ומשחרר גוש אחד.", "הגוש קופץ מפין לפין ונוחת באחד התאים: ×5 עד ×100.", "נחיתה ב״דאבל״ מכפילה את כל הערכים ומקבלים עוד נפילה.", `מכפיל הכניסה שלך: ×${b.entry}.`], "img/pc/avichai.webp");
-    state = { mode: b.kind, outcome: out, startedAt: clock() };
-    const dur = b.kind === "super" ? 1.4 + 19 * .9 + 6.2 : 1.4 + (b.targets.length - 1) * 10 + 9;
-    await wait(dur + 1.2);
+    const timeline = bonusTimeline(b.kind, out.events);
+    state = { mode: b.kind, outcome: out, startedAt: clock(), timeline };
+    await wait(timeline.endsAt + 1.2);
     if (window.GC_BONUS) GC_BONUS(b.kind === "super" ? `💩 סופר בונוס ×${out.total}` : `🚽 בונוס ×${out.total}`, data.payout - lineWin, `סה״כ בסיבוב ${fmt(data.payout)}` + (b.entry > 1 ? ` · מכפיל כניסה ×${b.entry}` : ""));
     state = { mode: "slot", grid: data.grid, badges: badgesOf(data.badges), spinning: false, betLabel: "הימור " + fmt(data.stake), msg: "זכית " + fmt(data.payout) };
   } catch (e) {
@@ -146,7 +152,7 @@ const load = (src) => new Promise((ok, no) => { const im = new Image(); im.onloa
   const ids = ["friend_01", "friend_02", "friend_03", "fisher", "friend_05", "friend_06", "yoav", "avichai"], images = {};
   await Promise.all([["background", "background"], ["symbols", "symbols"], ["bodies", "bodies"], ...ids.map((i) => [i, i])].map(async ([k, f]) => images[k] = await load(`img/pc/${f}.webp`)));
   const manifest = { originals: ids, faceCropBottom: { friend_01: .419, friend_02: .407, friend_03: .405, fisher: .455, friend_05: .395, friend_06: .413, yoav: .455, avichai: .455 },
-    bodyAtlas: { neckAnchors: [[0.6, 0.06], [0.6, 0.07], [0.44, 0.07], [0.5, 0.07], [0.54, 0.23], [0.5, 0.32], [0.5, 0.17], [0.51, 0.07]] } };
+    bodyAtlas: { neckAnchors: [[.634,.082], [.618,.098], [.405,.091], [.436,.091], [.470,.209], [.580,.252], [.557,.177], [.507,.052]] } };
   const art = prepareArt(images, manifest, (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; });
   renderer = new Renderer($("game"), art);
   state = { mode: "slot", grid: [0, 1, 2, 3, 4, 6, 5, 2, 4, 1, 3, 2, 0, 5, 1], badges: {}, spinning: false, betLabel: "הימור " + fmt(bet), msg: "לחץ סובב" };
