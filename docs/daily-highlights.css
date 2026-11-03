@@ -1,0 +1,16 @@
+.dh-button{display:block;max-width:100%;justify-self:start;margin-top:5px;padding:4px 9px;border:1px solid #80602e;border-radius:99px;background:#17120fe8;color:#f1d69a;font:600 11px Heebo,sans-serif;line-height:1.5;white-space:normal;cursor:pointer;text-align:right}
+#lobbyView .lb .dh-button{font-size:0;display:inline-block;margin-top:3px;padding:2px 8px}
+#lobbyView .lb .dh-button::before{content:'📊';font-size:14px}
+.dh-overlay[hidden]{display:none!important}
+.dh-overlay{position:fixed;inset:0;z-index:10050;background:#000b;display:grid;place-items:center;padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));box-sizing:border-box;direction:rtl;overscroll-behavior:contain}
+.dh-box{box-sizing:border-box;width:min(100%,500px);max-height:90dvh;overflow:auto;overscroll-behavior:contain;border:1px solid #c5a05a;border-radius:18px;background:linear-gradient(145deg,#241a0d,#100c08);color:#f5ecdd;padding:18px;box-shadow:0 12px 50px #000b;font-family:Heebo,sans-serif}
+.dh-head{display:flex;align-items:flex-start;gap:12px;justify-content:space-between}
+.dh-head h2{font-size:20px;line-height:1.5;margin:0;overflow-wrap:anywhere}
+.dh-close,.dh-retry{border:1px solid #80602e;background:#17120f;color:#f1d69a;border-radius:10px;padding:8px 12px;font:700 16px Heebo,sans-serif;cursor:pointer}
+.dh-close{flex:none;min-width:44px;min-height:44px}
+.dh-note{font-size:12px;line-height:1.7;color:#cdbb98;margin:10px 0}
+.dh-list{margin:18px 0;padding-inline-start:24px}
+.dh-list li{padding:12px 3px;border-bottom:1px solid #c5a05a33;font-size:15px;overflow-wrap:anywhere}
+.dh-list li span{display:block}
+.dh-profit{display:block;color:#a9e3b3;font:800 19px Inter,Arial,sans-serif;text-align:right;margin-top:5px}
+.dh-content{min-height:50px}
