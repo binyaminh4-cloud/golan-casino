@@ -8,8 +8,8 @@
   // Two independent oscillations produce diagonal/curved movement for every
   // item. Bounded aiming lanes keep food reachable and sprites inside the field.
   function position(index, time = 0, moving = false) {
-    const a = -1.35 + index * 2.7 / 11 + (moving ? .05 * Math.sin(time * 1.7 + index * .85) : 0);
-    const radius = 620 + (moving ? 32 * Math.sin(time * 2.3 + index * 1.31) : 0);
+    const a = -1.35 + index * 2.7 / 11 + (moving ? .10 * Math.sin(time * 2.55 + index * .85) : 0);
+    const radius = 620 + (moving ? 64 * Math.sin(time * 3.45 + index * 1.31) : 0);
     return { x: 1000 + Math.sin(a) * radius, y: 280 + Math.cos(a) * radius };
   }
   function hit(rocks, layer, angle) {
