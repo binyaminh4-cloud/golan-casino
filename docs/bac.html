@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="he" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="loader.js?v=14"></script>
+<title>באקרה מול הבוט · גולן קזינו</title>
+<link rel="icon" href="img/brand/favicon.png?v=2">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;800;900&family=Inter:wght@700;800;900&display=swap">
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden}
+body{position:fixed;inset:0;background:#02060c url(img/bots/bots_hall_bg.webp) center/cover;color:#dff8ff;font:15px Heebo,Arial,sans-serif}
+/* the whole scene is drawn at 844×390 and scaled to the screen */
+#stage{position:absolute;left:50%;top:50%;width:844px;height:390px;transform-origin:50% 50%}
+.he{direction:rtl}
+.top{position:absolute;left:8px;top:6px;display:flex;gap:6px;z-index:9;direction:rtl}
+.top a,.top button{font:700 12px Heebo;color:#dff8ff;background:#0a0f1ccc;border:1px solid #29d8ff88;border-radius:99px;padding:3px 10px;text-decoration:none;cursor:pointer}
+.bot{position:absolute;right:150px;bottom:0;height:262px;filter:drop-shadow(0 0 20px #ff4fd855);transition:transform .4s}
+.bot.talk{transform:scale(1.04)}
+.bname{position:absolute;right:200px;bottom:8px;padding:2px 12px;border-radius:99px;background:#0a0f1ccc;border:1px solid #ff4fd8;color:#ff9be9;font:800 13px Heebo;direction:rtl}
+.score{position:absolute;right:6px;top:6px;width:136px;height:378px;background:url(img/bots/bac_score_panel.webp) center/100% 100%;padding:14px 12px;direction:rtl}
+.score h4{margin:0 0 4px;font:800 12px Heebo;text-align:center;color:#8fdcef}
+.score .t{display:flex;justify-content:space-around;margin-bottom:6px;font:700 11px Heebo;color:#8fb7c4}.score .t b{display:block;text-align:center;font:900 20px Inter}
+.cols{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;direction:ltr}
+.c{border:1px solid #29d8ff44;border-radius:4px;background:#00000055;text-align:center;font:700 8px Inter;color:#6f9aa8}
+.c div{font:900 12px Inter;height:15px;line-height:15px}.c .w{color:#2fe07a;text-shadow:0 0 6px #2fe07a}.c .l{color:#ff4d6d}
+.c.now{border-color:#29d8ff;box-shadow:0 0 8px #29d8ff}
+.leg{margin-top:6px;font:600 9px Heebo;color:#7f9fb0;text-align:center}
+.big{position:absolute;left:300px;top:50%;transform:translate(-50%,-50%);text-align:center;direction:rtl}
+.q{font:800 20px Heebo;color:#dff8ff;margin-bottom:8px;text-shadow:0 0 10px #29d8ff}
+.ch{display:flex;gap:6px;direction:rtl}
+.ch button{width:150px;height:72px;border:0;background:transparent center/100% 100% no-repeat;display:grid;place-content:center;font:900 22px Heebo;cursor:pointer;transition:transform .15s,filter .15s}
+.ch button:active{transform:scale(.95)}.ch button:disabled{filter:grayscale(.6) brightness(.6);cursor:default}
+.ch button small{display:block;font:800 12px Inter;opacity:.85}
+.ch .P{background-image:url(img/bots/bac_btn_player.webp);color:#7ff0ff;text-shadow:0 0 10px #29d8ff}
+.ch .T{background-image:url(img/bots/bac_btn_tie.webp);color:#ffe9a8;text-shadow:0 0 10px #ffd36e}
+.ch .B{background-image:url(img/bots/bac_btn_banker.webp);color:#ff9be9;text-shadow:0 0 10px #ff4fd8}
+.reveal{font:800 18px Heebo}.reveal b{display:block;margin-top:6px;font:900 48px Heebo;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+.reveal b.P{color:#7ff0ff;text-shadow:0 0 18px #29d8ff}.reveal b.B{color:#ff9be9;text-shadow:0 0 18px #ff4fd8}.reveal b.T{color:#ffe9a8;text-shadow:0 0 18px #ffd36e}
+.hands{display:flex;gap:30px;direction:rtl}
+.hand h5{margin:0 0 6px;font:900 18px Heebo}.hand.B h5{color:#ff9be9}.hand.P h5{color:#7ff0ff}
+.hand.win h5::after{content:" ✓"}
+.cards{display:flex;gap:6px;direction:ltr;min-height:88px;justify-content:center}
+.cd{width:62px;height:88px;background:url(img/bots/bac_card_face.webp) center/100% 100%;display:grid;place-items:center;font:900 28px Inter;color:#13233a;line-height:1;animation:deal .45s ease-out}
+.cd small{display:block;font-size:16px}.cd.r{color:#d1293f}
+@keyframes deal{from{transform:translateY(-40px) rotateY(90deg);opacity:0}}
+.sum{margin-top:4px;font:900 32px Inter;min-height:40px}.hand.P .sum{color:#7ff0ff;text-shadow:0 0 12px #29d8ff}.hand.B .sum{color:#ff9be9;text-shadow:0 0 12px #ff4fd8}
+.win{width:430px;height:138px;background:url(img/bots/bots_result_banner.webp) center/100% 100%;display:grid;place-content:center;animation:pop .45s cubic-bezier(.2,1.5,.4,1);padding:0 30px}
+.win h3{margin:0;font:900 30px Heebo;color:#ffe9a8;text-shadow:0 0 14px #ffd36e}.win p{margin:2px 0 0;font:800 16px Heebo;color:#7dff9a}.win p.no{color:#c9d6de}
+.win .btns{display:flex;gap:8px;justify-content:center;margin-top:8px}
+.win .btns button,.win .btns a{font:800 14px Heebo;padding:6px 14px;border-radius:99px;border:1px solid #29d8ff;background:#29d8ff22;color:#dff8ff;text-decoration:none;cursor:pointer}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+.mine{position:absolute;left:300px;bottom:10px;transform:translateX(-50%);padding:3px 12px;border-radius:99px;background:#0a0f1ccc;border:1px solid #29d8ff;font:700 12px Heebo;color:#7ff0ff;direction:rtl;white-space:nowrap}
+.mine:empty{display:none}
+.err{position:absolute;left:300px;top:8px;transform:translateX(-50%);color:#ff8fa3;font:700 13px Heebo;direction:rtl}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=8"></script>
+<script src="landscape.js?v=1"></script>
+</head>
+<body>
+<div id="stage">
+  <div class="top"><a href="challenges.html">→ לאתגרים</a></div>
+  <img class="bot" id="botImg" src="img/ch/bot_3.webp" alt=""><span class="bname" id="botName"></span>
+  <div class="score"><h4 id="handNo">יד 1 מתוך 20</h4><div class="t"><div>אתה<b id="meP" style="color:#7ff0ff">0</b></div><div><span id="botN2">הבוט</span><b id="botP" style="color:#ff9be9">0</b></div></div>
+    <div class="cols" id="cols"></div><div class="leg">ירוק = נקודות · 0 אדום = טעות</div></div>
+  <div class="big" id="big"></div><div class="mine" id="mine"></div><div class="err" id="err"></div>
+</div>
+<script src="sfx.js?v=1793820555"></script>
+<script>
+"use strict";
+// Baccarat vs the bot (migration 0110). The server shuffles, picks for the bot and deals; this page only shows it, one thing at a time.
+const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
+const $ = (id) => document.getElementById(id), sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const BOTS = ["טיפון", "הלורד", "הכריש", "הצל", "המלך"], NAME = { P: "פלייר", B: "באנקר", T: "תיקו" };
+const RANK = (c) => c === 1 ? "A" : c === 11 ? "J" : c === 12 ? "Q" : c === 13 ? "K" : String(c), VAL = (c) => c >= 10 ? 0 : c;
+let run = null, busy = false;
+const S = (k, a) => { try { SFX[k](a); } catch (e) {} };
+function fit() { const vw = innerWidth, vh = innerHeight, s = Math.min(vw / 844, vh / 390); $("stage").style.transform = `translate(-50%,-50%) scale(${s})`; }
+addEventListener("resize", fit); addEventListener("orientationchange", () => setTimeout(fit, 300)); setInterval(fit, 1000); fit();
+const botName = () => BOTS[(run?.bot || 3) - 1];
+function board() {
+  const log = run.log || []; let h = "";
+  for (let i = 0; i < 20; i++) { const e = log[i], cell = (v) => e ? `<div class="${v > 0 ? "w" : "l"}">${v}</div>` : "<div></div>";
+    h += `<div class="c${i === log.length && run.status === "active" ? " now" : ""}">${i + 1}${cell(e?.mg)}${cell(e?.bg)}</div>`; }
+  $("cols").innerHTML = h; $("meP").textContent = run.me; $("botP").textContent = run.bot_pts;
+  $("handNo").textContent = run.status === "done" ? "הקרב הסתיים" : `יד ${log.length + 1} מתוך 20`;
+}
+function setBot() { $("botImg").src = `img/ch/bot_${run.bot}.webp`; $("botName").textContent = botName(); $("botN2").textContent = botName(); }
+function choose() {
+  $("mine").textContent = "";
+  $("big").innerHTML = `<div class="q">על מה אתה הולך ביד הזו?</div><div class="ch">${["P", "T", "B"].map((k) => `<button class="${k}" data-k="${k}">${NAME[k]}<small>+${k === "T" ? 3 : 1}</small></button>`).join("")}</div>`;
+  $("big").querySelectorAll("button").forEach((b) => b.onclick = () => pick(b.dataset.k));
+}
+const cardHtml = (c, i) => { const suit = "♠♥♦♣"[(c * 7 + i * 3) % 4]; return `<div class="cd${suit === "♥" || suit === "♦" ? " r" : ""}">${RANK(c)}<small>${suit}</small></div>`; };
+async function pick(k) {
+  if (busy) return; busy = true; $("err").textContent = ""; S("chip");
+  $("big").querySelectorAll("button").forEach((b) => b.disabled = true);
+  const { data, error } = await db.rpc("bb_pick", { p_run: run.id, p_pick: k });
+  if (error) { busy = false; $("err").textContent = (error.message || "").includes("run_closed") ? "הקרב הזה כבר נסגר." : "לא הצלחנו לשלוח את הבחירה. נסה שוב."; choose(); return; }
+  const e = data.last;
+  // 1. your pick goes small to the bottom; 2. the bot's pick, big
+  $("mine").textContent = `הבחירה שלך: ${NAME[e.me]}`;
+  $("big").innerHTML = `<div class="reveal">${botName()} בחר<b class="${e.bot}">${NAME[e.bot]}</b></div>`; $("botImg").classList.add("talk"); S("whoosh");
+  await sleep(1500); $("botImg").classList.remove("talk");
+  $("mine").textContent = `אתה: ${NAME[e.me]} · ${botName()}: ${NAME[e.bot]}`;
+  // 3. the deal, slowly: player, banker, player, banker, then any third cards
+  $("big").innerHTML = `<div class="hands"><div class="hand B" id="hB"><h5>באנקר</h5><div class="cards" id="cB"></div><div class="sum" id="sB"></div></div><div class="hand P" id="hP"><h5>פלייר</h5><div class="cards" id="cP"></div><div class="sum" id="sP"></div></div></div>`;
+  const tot = { P: 0, B: 0 }, put = async (side, c, i, slow) => { await sleep(slow ? 1100 : 700); $("c" + side).insertAdjacentHTML("beforeend", cardHtml(c, i)); tot[side] = (tot[side] + VAL(c)) % 10; $("s" + side).textContent = tot[side]; S("card"); };
+  await put("P", e.p[0], 0); await put("B", e.b[0], 1); await put("P", e.p[1], 2); await put("B", e.b[1], 3);
+  if (e.p[2] !== undefined) await put("P", e.p[2], 4, true);
+  if (e.b[2] !== undefined) await put("B", e.b[2], 5, true);
+  await sleep(700); if (e.res !== "T") $("h" + e.res).classList.add("win");
+  await sleep(500);
+  // 4. the result
+  const who = e.mg && e.bg ? `אתה ו${botName()} זכיתם ${e.res === "T" ? "ב־3 נקודות" : "בנקודה"}` : e.mg ? (e.res === "T" ? "זכית ב־3 נקודות!" : "זכית בנקודה") : e.bg ? `${botName()} זכה ${e.res === "T" ? "ב־3 נקודות" : "בנקודה"}` : "אף אחד לא צדק";
+  $("big").innerHTML = `<div class="win"><h3>${NAME[e.res]}!</h3><p class="${e.mg ? "" : "no"}">${who}</p></div>`;
+  if (e.mg) S("win", e.res === "T");
+  run = data; board(); await sleep(1900); busy = false;
+  if (run.status === "done") return finish(); choose();
+}
+function finish() {
+  const me = run.me, bt = run.bot_pts, sp = run.season_pts || 0;
+  const head = me > bt ? `ניצחת את ${botName()}!` : me === bt ? "תיקו בקרב!" : `${botName()} ניצח הפעם`;
+  $("mine").textContent = "";
+  $("big").innerHTML = `<div class="win"><h3>${head}</h3><p class="${sp ? "" : "no"}">${me} : ${bt}${sp ? ` · +${sp} נקודות לעונה` : ""}</p>
+    <div class="btns">${run.left_today > 0 ? `<button id="again">קרב נוסף (נשארו ${run.left_today} היום)</button>` : ""}<a href="challenges.html">לאתגרים</a></div></div>`;
+  if (sp) S("win", true); const a = $("again"); if (a) a.onclick = start;
+}
+async function start() {
+  $("err").textContent = ""; const { data, error } = await db.rpc("bb_start");
+  if (error) { const m = error.message || ""; $("big").innerHTML = `<div class="win"><h3>${m.includes("daily_limit") ? "סיימת להיום" : "אי אפשר להתחיל עכשיו"}</h3><p class="no">${m.includes("daily_limit") ? "3 קרבות ביום. מחר נפתחים שוב." : m.includes("paused") ? "האתגרים בהפסקה." : "נסה שוב בעוד רגע."}</p><div class="btns"><a href="challenges.html">לאתגרים</a></div></div>`; return; }
+  run = data; setBot(); board(); if (run.status === "done") return finish(); choose();
+}
+(async () => {
+  const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
+  if (window.GC_LOADER) GC_LOADER.done();
+  $("big").innerHTML = `<div class="win"><h3>באקרה מול הבוט</h3><p class="no">20 ידיים. לפני כל יד בוחרים: פלייר, באנקר או תיקו. ניחוש נכון = נקודה, תיקו נכון = 3. מנצחים את הבוט = 30 נקודות לעונה.</p><div class="btns"><button id="go">יאללה</button><a href="challenges.html">חזרה</a></div></div>`;
+  $("go").onclick = () => { S("chip"); start(); };
+})();
+</script>
+</body>
+</html>
