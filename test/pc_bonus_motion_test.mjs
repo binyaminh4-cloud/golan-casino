@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {reelPlan,reelPhase,REEL_SPEED,bonusTimeline,releasePosition} from '../docs/vendor/pc_presentation.mjs';
+import {reelPlan,reelPhase,REEL_SPEED,bonusTimeline,releasePosition,SWEEP} from '../docs/vendor/pc_presentation.mjs';
 import {Renderer} from '../docs/vendor/pc_renderer.mjs';
 const grid=Array(15).fill(0);grid[0]=grid[6]=6;const plan=reelPlan(grid,10);
 const velocity=(col,t)=>(reelPhase(plan,col,t+.0001)-reelPhase(plan,col,t))/.0001;
@@ -16,9 +16,13 @@ for(const kind of ['regular','super']){
  for(let i=0;i<events.length;i++){
   const end=105+(events[i].target+.5)*tl.cell,release=tl.releases[i];
   for(const delta of [-.15,0,.15])assert(Math.abs(releasePosition(tl,release+delta)-end)<.01,'performer stops above the landing cell');
-  const path=renderer.path(i,tl.sources[i],end);assert.equal(path[0].x,end);assert.equal(path.at(-1).x,end);
-  path.forEach((p,j)=>{assert(Math.abs(p.x-end)<=80);if(j){assert(p.y>path[j-1].y);assert(Math.abs(p.x-path[j-1].x)<150);}});
+  const path=renderer.path(i+(kind==='super'?100:0),tl.sources[i],end);assert.equal(path[0].x,end);assert.equal(path.at(-1).x,end);
+  const wide=kind==='regular';path.forEach((p,j)=>{assert(Math.abs(p.x-end)<=(wide?240:80));if(j){assert(p.y>path[j-1].y);assert(Math.abs(p.x-path[j-1].x)<(wide?320:150));}});
+  if(wide){assert(path.some(p=>Math.abs(p.x-end)>40),'regular drop wanders between the pins');
+   // at least two right-left passes over the pins before the performer settles above the cell
+   let turns=0,dir=0,prev=releasePosition(tl,release-SWEEP-.3);for(let t=release-SWEEP-.3;t<release;t+=.02){const x=releasePosition(tl,t),d=Math.sign(x-prev);if(d&&d!==dir){if(dir)turns++;dir=d;}prev=x;}
+   assert(turns>=3,'sweeps right-left at least twice');}
  }
- for(let t=0;t<tl.endsAt;t+=.01){const v=Math.abs(releasePosition(tl,t+.001)-releasePosition(tl,t))/.001;assert(v<=1001,'rail motion cannot teleport between releases');}
+ for(let t=0;t<tl.endsAt;t+=.01){const v=Math.abs(releasePosition(tl,t+.001)-releasePosition(tl,t))/.001;assert(v<=(kind==='regular'?3200:1001),'rail motion cannot teleport between releases');}
 }
-console.log('PASS: 1.5s at triple reel speed, long progressive braking, stationary releases, bounded local pin paths and consistent bonus completion');
+console.log('PASS: regular bonus sweeps ≥2× and wanders; 1.5s at triple reel speed, long progressive braking, stationary releases, bounded local pin paths and consistent bonus completion');

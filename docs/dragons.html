@@ -31,6 +31,7 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(14px) bright
 .cell .gl{display:flex;align-items:center;justify-content:center;height:var(--h);max-width:82%;gap:1px;filter:drop-shadow(0 2px 2px #0008)}.cell .gl img{height:100%;width:auto;min-width:0;object-fit:contain;filter:none}.cell .gl .dot{flex:none;width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe9a0,#c8962c 60%,#6b3a00);border:2px solid #4a1a00;align-self:flex-end;margin:0 3px 4%}
 .cell .ov.jpL{font-size:30px;color:#fff;text-shadow:0 2px 0 #7a0000,0 0 10px #ff4040}
 .cell.spinc img{animation:roll .09s linear infinite;filter:blur(3px) brightness(.9)}@keyframes roll{from{transform:translateY(-40%)}to{transform:translateY(40%)}}
+.col.tense{box-shadow:inset 0 0 0 4px #ffb43c,0 0 30px #ff8a1e;border-radius:14px}.col.tense .cell.spinc img{animation-duration:.04s}
 .cell.stopc{animation:bounce .22s ease-out}@keyframes bounce{40%{transform:translateY(10px)}}
 .cell.win{background:radial-gradient(#ffd75e55,transparent 70%)}.cell.win img{animation:pul .45s ease-in-out 3 alternate}@keyframes pul{to{transform:scale(1.12)}}
 .cell.dim img{opacity:.25}.cell.dim{background:#0006}
@@ -101,7 +102,7 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(14px) bright
   <p>כדור יכול להיות סכום או ג׳קפוט: MINI, MINOR, MAJOR. ממלאים את כל 15 המשבצות? <b>GRAND</b> פי 1,000.</p>
   <button id="go">כניסה לארמון 🐉</button><button class="back" onclick="location.href='./'">חזרה ללובי</button>
 </div></div></div>
-<script src="sfx.js?v=32"></script>
+<script src="sfx.js?v=1793790000"></script>
 <script src="slot-bets.js?v=1"></script>
 <script src="guide.js?v=1793696860"></script>
 <script src="vendor/dg_engine.js?v=1"></script>
@@ -142,11 +143,22 @@ async function spinTo(g, o, mask) {
   const free = (c, r) => !mask || !mask[c][r];
   for (let c = 0; c < 5; c++) for (let r = 0; r < 3; r++) if (free(c, r)) { cells[c][r].classList.add("spinc"); cells[c][r].firstChild.style.visibility = ""; }
   const pass = () => { if (!mask) return SYMS[Math.floor(Math.random() * SYMS.length)]; return Math.random() < .5 ? "orb" : "lotus"; };
-  const t = setInterval(() => { for (let c = 0; c < 5; c++) for (let r = 0; r < 3; r++) if (cells[c][r].classList.contains("spinc")) setCell(c, r, pass()); }, 90);
+  // columns stop left to right. In a normal spin, 3+ fire orbs already showing (with 6 still possible) put every
+  // remaining column under tension: ×3 fast, then a slow crawl (same as the toilet machine). Display only.
+  const turbo = [1, 1, 1, 1, 1]; let tick = 0;
+  const t = setInterval(() => { tick++; for (let c = 0; c < 5; c++) { if (turbo[c] === 1 && tick % 3) continue; if (turbo[c] > 1 && turbo[c] < 3 && tick % 2) continue;
+    for (let r = 0; r < 3; r++) if (cells[c][r].classList.contains("spinc")) setCell(c, r, pass()); } }, 30);
   S("reelSpin", auto ? 1.2 : 1.6); await sleep(auto ? 450 : mask ? 900 : 700);
+  let orbs = 0, slow = 0;
   for (let c = 0; c < 5; c++) { if (![0, 1, 2].some((r) => free(c, r))) continue; await sleep(auto ? 110 : mask ? 260 : 180);
-    for (let r = 0; r < 3; r++) if (free(c, r)) { const d = cells[c][r]; d.classList.remove("spinc"); setCell(c, r, g[c][r], o[c][r]); d.classList.remove("stopc"); void d.offsetWidth; d.classList.add("stopc"); }
-    S("flip"); }
+    if (!mask && c > 0 && orbs >= 3 && orbs + 3 * (5 - c) >= 6) {
+      cols[c].classList.add("tense");
+      await GC_TENSION({ scale: auto ? 0.6 : 1, tail: 1800 + 200 * slow++, turbo: (m) => { turbo[c] = m; } });
+      cols[c].classList.remove("tense");
+    }
+    let here = 0;
+    for (let r = 0; r < 3; r++) if (free(c, r)) { const d = cells[c][r]; d.classList.remove("spinc"); setCell(c, r, g[c][r], o[c][r]); d.classList.remove("stopc"); void d.offsetWidth; d.classList.add("stopc"); if (g[c][r] === "orb") here++; }
+    S("flip"); if (!mask && here) { orbs += here; S("bonusLand", Math.max(1, orbs - 2)); } }
   clearInterval(t);
 }
 function toast(html, ms, big) { const t = document.createElement("div"); t.className = "toast" + (big ? " big" : ""); t.innerHTML = html; document.body.appendChild(t); setTimeout(() => t.remove(), ms); }

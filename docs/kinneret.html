@@ -88,7 +88,7 @@ main{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;padding:4p
     <div id="err"></div>
   </div></div>
 </main>
-<script src="sfx.js?v=32"></script>
+<script src="sfx.js?v=1793790000"></script>
 <script src="slot-bets.js?v=1"></script>
 <script src="guide.js?v=1793696860"></script>
 <script src="vendor/kin_engine.js?v=1"></script>
@@ -134,7 +134,7 @@ async function replay(seed, stake, buy) {
       if (s.waves) for (const w of s.waves) { paint(w.b, null, true); await wait(450); }
       paint(s.b, s.m, false); for (const i of s.cells) cells[i].classList.add("fx"); await wait(700); }
     else if (s.t === "fs_start") {   // slow-motion: the grills that triggered it pulse before the intro
-      cells.forEach((d) => /scatter/.test(d.querySelector("img").src) && d.classList.add("fx", "win")); try { SFX.zap(); } catch (e) {}
+      cells.forEach((d) => /scatter/.test(d.querySelector("img").src) && d.classList.add("fx", "win")); try { SFX.bonus(); SFX.zap(); } catch (e) {}
       toast("🔥 נכנסת לסיבובים חינם!", 2200); await new Promise((r) => setTimeout(r, 2400)); cells.forEach((d) => d.classList.remove("fx", "win")); inFs = true;
       await GC_BONUS_INTRO(`🎉 ${s.spins} סיבובים חינם על האש!`, ["המכפילים במשבצות נשארים לכל הסיבובים החינם וממשיכים לגדול.", "מסלול החברים מתחיל מפישר, וההתקדמות נשמרת מסיבוב לסיבוב.", "2 סמלי מנגל בסיבוב חינם: עוד 3 סיבובים. 3 ומעלה: עוד 5."], "img/kin/scatter.webp");
       $("fs").classList.add("on"); $("fsLeft").textContent = s.spins; }

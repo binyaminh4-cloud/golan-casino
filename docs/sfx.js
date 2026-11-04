@@ -107,13 +107,17 @@
   // the jobs / bank / challenges pack: S.fx("bus_horn") plays a file from snd/; {loop:true} returns a stop() function
   const PACK = ["bank_deposit", "bank_vault", "bank_withdraw", "bus_baa", "bus_brake", "bus_bump", "bus_door", "bus_engine", "bus_fare", "bus_horn", "bus_moo",
     "ch_lose", "ch_wheel", "ch_win", "dp_check", "dp_fold", "dp_sweep", "fiber_ok", "fiber_plug", "fiber_splice", "fiber_tick", "fiber_wrong",
-    "fish_cast", "fish_catch", "fish_gold", "fish_miss", "fish_reel", "levelup", "dealer_nmb"];
+    "fish_cast", "fish_catch", "fish_gold", "fish_miss", "fish_reel", "levelup", "dealer_nmb", "pc_reel_fast", "pc_anticipation"];
   addEventListener("pointerdown", () => PACK.forEach(load), { once: true, capture: true });
   S.fx = (name, { vol = 0.8, dur = null, loop = false } = {}) => { load(name);
     if (!loop) return play(name, { vol, dur });
     if (!ac() || muted || !BUF[name]) return () => {};
     const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = BUF[name]; src.loop = true; g.gain.value = vol; src.connect(g).connect(master); src.start();
     return () => { try { g.gain.setTargetAtTime(0, ctx.currentTime, 0.15); src.stop(ctx.currentTime + 0.6); } catch (e) {} }; };
+  // a bonus symbol has just landed on a reel: a bright "caught it" chime (rises with each one: n = 1, 2, 3…)
+  S.bonusLand = (n = 1) => { if (!ac() || muted) return; const k = Math.pow(1.122, Math.max(0, Math.min(6, n - 1)));
+    [1047, 1319, 1568, 2093].forEach((f, i) => tone({ t: i * 0.055, f: f * k, dur: 0.32, type: "triangle", peak: 0.2 }));
+    tone({ f: 523 * k, dur: 0.5, type: "sine", peak: 0.25 }); for (let i = 0; i < 5; i++) noise({ t: 0.08 + i * 0.05, f: 6000 + i * 600, q: 14, dur: 0.05, peak: 0.18 }); };
   S.gong = () => play("no_more_bets", { vol: 0.7, dur: 2.5 }) || synth.drop();
   S.notify = () => play("notify", { vol: 0.6 });
   S.orbLock = () => play("orb_lock", { vol: 0.8, dur: 1.8 }) || synth.zap();
@@ -322,3 +326,20 @@ window.GC_AUTO = function ({ mount, spin, busy, err, before, act }) {
   document.addEventListener("visibilitychange", () => { if (document.hidden) halt(); }); addEventListener("pagehide", halt);
   return { stop: halt, get running() { return running; } };
 };
+
+// Reel machines: the same near-miss tension as the toilet machine (pachinko.html). Called right before a reel stops,
+// when bonus symbols are already showing: the reel runs ×3 fast for 1.5 s (pc_reel_fast), then slows under pc_anticipation.
+// Presentation only: the reel still lands on the symbols the server sent. opt.turbo(on) lets the page speed its reel up.
+(function () {
+  let stop = () => {};
+  const end = () => { try { stop(); } catch (e) {} stop = () => {}; };
+  addEventListener("pagehide", end); document.addEventListener("visibilitychange", () => { if (document.hidden) end(); });
+  const loop = (name) => { if (document.hidden || !window.SFX) return; try { const f = SFX.fx(name, { vol: 0.8, loop: true }); if (typeof f === "function") stop = f; } catch (e) {} };
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  window.GC_TENSION = async function (opt = {}) {
+    const k = opt.scale || 1; end(); loop("pc_reel_fast"); if (opt.turbo) opt.turbo(3);
+    await sleep(1500 * k); end(); loop("pc_anticipation"); if (opt.turbo) opt.turbo(1.6);
+    await sleep((opt.tail || 1800) * k); end(); if (opt.turbo) opt.turbo(1);
+  };
+  window.GC_TENSION.stop = end;
+})();

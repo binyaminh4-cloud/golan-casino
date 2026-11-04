@@ -33,16 +33,34 @@ export function reelPhase(plan,col,time){
  if(t<=fast)return REEL_SPEED*t;
  const u=(t-fast)/tail;return REEL_SPEED*fast+REEL_SPEED*tail*(u-u*u/2);
 }
-// The release point is already above the selected cell. Travel/hold time is
-// shared by the rail performer, every falling piece and the completion timer.
+// Regular bonus: before every drop Avichai sweeps the rail right-left at least twice (SWEEP seconds), then stops above
+// the cell the server chose and releases. Super bonus keeps its quick hops between sources.
+export const SWEEP=4.6;
 export function bonusTimeline(kind,events){
  const count=kind==='super'?7:8,cell=1390/count,sources=events.map(e=>105+(e.target+.5)*cell),releases=[];
- sources.forEach((x,i)=>releases.push(i===0?1.4:releases[i-1]+Math.max(kind==='super'?.9:10,.36+1.5*Math.abs(x-sources[i-1])/1000)));
  const duration=kind==='super'?6.2:9;
- return {sources,releases,duration,cell,endsAt:(releases.at(-1)??0)+duration};
+ sources.forEach((x,i)=>releases.push(kind==='super'?(i===0?1.4:releases[i-1]+Math.max(.9,.36+1.5*Math.abs(x-sources[i-1])/1000)):(i===0?SWEEP+.8:releases[i-1]+duration+SWEEP+.6)));
+ return {kind,sources,releases,duration,cell,endsAt:(releases.at(-1)??0)+duration};
+}
+const smooth=u=>u*u*(3-2*u);
+function sweepPosition(from,to,u){
+ // from -> far end -> near end -> far end -> near end -> target (two full passes), each leg timed by its length
+ const a=from>800?200:1400,b=a===200?1400:200,pts=[from,a,b,a,b,to],len=[];let total=0;
+ for(let i=1;i<pts.length;i++){const d=Math.max(120,Math.abs(pts[i]-pts[i-1]));len.push(d);total+=d;}
+ let t=Math.max(0,Math.min(1,u))*total;
+ for(let i=0;i<len.length;i++){if(t<=len[i])return pts[i]+(pts[i+1]-pts[i])*smooth(t/len[i]);t-=len[i];}
+ return to;
 }
 export function releasePosition(timeline,time){
  const {sources,releases}=timeline;
+ if(timeline.kind==='regular'){
+  for(let i=0;i<releases.length;i++){
+   const end=releases[i]-.25,start=end-SWEEP,from=i===0?800:sources[i-1];
+   if(time<start)return from;
+   if(time<=releases[i]+.18)return sweepPosition(from,sources[i],(time-start)/SWEEP);
+  }
+  return sources.at(-1);
+ }
  if(time<=releases[0]+.18)return sources[0];
  for(let i=1;i<releases.length;i++){
   const start=releases[i-1]+.18,end=releases[i]-.18;

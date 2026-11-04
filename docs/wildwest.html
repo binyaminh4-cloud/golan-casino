@@ -25,6 +25,7 @@ main{position:relative;z-index:1;flex:1;min-height:0;display:grid;grid-template-
 .cell img{width:90%;height:90%;object-fit:contain}
 .cell.win{box-shadow:inset 0 0 0 3px #ffd34d;background:#4a3010}.cell.sticky{background:#3d2a0f}.cell.wild{background:linear-gradient(#5b3a12,#2a1a0d)}
 .cell.spin img{animation:sp .14s linear infinite}@keyframes sp{50%{transform:translateY(-25%);opacity:.5}}
+.cell.tense{box-shadow:inset 0 0 0 2px #ffb43c;background:#4a2a0c}.cell.spin.turbo img{animation-duration:.05s;filter:blur(2px)}
 .cm{position:absolute;top:-2px;left:50%;transform:translateX(-50%);z-index:3;background:#c0392b;color:#fff;font:900 15px Inter;border:2px solid #ffd34d;border-radius:99px;padding:1px 8px}
 .bar{display:flex;gap:6px;align-items:center;flex-wrap:nowrap}
 button{border:1px solid #a3753c;background:#2a1a0d;color:#ffd99a;padding:6px 9px;border-radius:8px;font:700 13px Heebo;cursor:pointer}
@@ -76,7 +77,7 @@ main{height:100dvh;padding-top:4px!important}
   </div>
   <img class="hero" id="bin" src="img/ww/binyamin_idle.webp" alt="בנימין">
 </main>
-<script src="sfx.js?v=32"></script>
+<script src="sfx.js?v=1793790000"></script>
 <script src="slot-bets.js?v=1"></script>
 <script src="guide.js?v=1793696860"></script>
 <script src="vendor/ww_engine.js?v=1"></script>
@@ -96,8 +97,19 @@ const C = (c, r) => cells[c * 5 + r];
 const IMG = (s) => s === "W" ? "horse_wild_active" : s === "x" ? "hat" : s;
 function paint(g, cls) { for (let c = 0; c < 5; c++) for (let r = 0; r < 5; r++) { const d = C(c, r); d.firstChild.src = `img/ww/${IMG(g[c][r])}.webp`; d.className = "cell" + (g[c][r] === "W" || g[c][r] === "horse_wild" ? " wild" : ""); }
   cells.forEach((d) => d.querySelector(".cm")?.remove()); if (cls) for (const [c, r] of cls) C(c, r).classList.add("sticky"); }
+// columns stop left to right. Two scatters of the same bonus already showing (outside a bonus) put every remaining
+// column under tension: ×3 fast, then a slow crawl, like the toilet machine. Display only: the grid is the server's.
 async function spinAnim(g, sticky) { cells.forEach((d) => d.classList.add("spin")); await wait(inBonus ? 800 : 450);
-  for (let c = 0; c < 5; c++) { for (let r = 0; r < 5; r++) { const d = C(c, r); d.classList.remove("spin"); d.firstChild.src = `img/ww/${IMG(g[c][r])}.webp`; d.className = "cell" + (g[c][r] === "horse_wild" ? " wild" : ""); } try { SFX.flip(); } catch (e) {} await wait(inBonus ? 260 : 150); }
+  const sc = {}; let slow = 0, caught = 0;
+  for (let c = 0; c < 5; c++) {
+    if (!inBonus && c > 0 && Object.values(sc).some((n) => n >= 2)) {
+      for (let r = 0; r < 5; r++) C(c, r).classList.add("tense");
+      await GC_TENSION({ scale: FAST ? 0.6 : 1, tail: 1800 + 200 * slow++, turbo: (m) => { for (let r = 0; r < 5; r++) C(c, r).classList.toggle("turbo", m >= 3); } });
+    }
+    let here = false;
+    for (let r = 0; r < 5; r++) { const d = C(c, r); d.classList.remove("spin"); d.firstChild.src = `img/ww/${IMG(g[c][r])}.webp`; d.className = "cell" + (g[c][r] === "horse_wild" ? " wild" : "");
+      if (/_scatter$/.test(g[c][r])) { sc[g[c][r]] = (sc[g[c][r]] || 0) + 1; here = true; } }
+    try { SFX.flip(); if (here && !inBonus) SFX.bonusLand(++caught); } catch (e) {} await wait(inBonus ? 260 : 150); }
   cells.forEach((d) => d.querySelector(".cm")?.remove()); if (sticky) for (const k of sticky) { const [c, r] = k.split(",").map(Number); C(c, r).classList.add("sticky"); } }
 async function duel(d) { const o = document.createElement("div"); o.className = "duel";
   o.innerHTML = `<img src="img/ww/ido_portrait_duel.webp" alt=""><b>VS</b><img src="img/ww/binyamin_portrait_duel.webp" alt="">`; document.body.appendChild(o); try { SFX.zap(); } catch (e) {}
@@ -125,7 +137,7 @@ async function replay(seed, stake, buy) {
       $("ido").src = "img/ww/ido_idle.webp"; $("bin").src = "img/ww/binyamin_idle.webp";
       await wait(st.t === "fs" ? 900 : 150);
     } else if (st.t === "bonus") { kind = st.kind;
-      cells.forEach((d) => /scatter/.test(d.firstChild.src) && d.classList.add("sc")); try { SFX.zap(); } catch (e) {}
+      cells.forEach((d) => /scatter/.test(d.firstChild.src) && d.classList.add("sc")); try { SFX.bonus(); SFX.zap(); } catch (e) {}
       toast(`🎉 נכנסת לבונוס!<small>${BN[kind]}</small>`, 2200, true); await slow(2400); cells.forEach((d) => d.classList.remove("sc")); inBonus = true;
       await GC_BONUS_INTRO(`🤠 ${BN[kind]} · 10 סיבובים חינם`, INTRO[kind], `img/ww/ui_bonus_${kind}.webp`);
       document.body.classList.add("b-" + kind); $("fsHud").hidden = false; }

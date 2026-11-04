@@ -1,5 +1,5 @@
 import {RULES,slotsFor} from './pc_rules.mjs';
-import {reelPhase,bonusTimeline,releasePosition} from './pc_presentation.mjs?v=1793696860';
+import {reelPhase,bonusTimeline,releasePosition} from './pc_presentation.mjs?v=1793790000';
 export const W=1600,H=900;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function trim(canvas,factory){
@@ -75,13 +75,15 @@ export class Renderer {
   path(id,start,end){
     this._paths??={};const key=id+':'+Math.round(start)+':'+Math.round(end);if(this._paths[key])return this._paths[key];
     let seed=(id*9301+49297)%233280;const rnd=()=>(seed=(seed*9301+49297)%233280)/233280;
-    const corridor=80,pts=[{x:start,y:225}];
+    // Regular bonus (id<100): a wandering, slightly confused path between the pins that still ends in the chosen cell.
+    const wander=id<100,corridor=wander?240:80,pts=[{x:start,y:225}];let drift=0;
     for(let r=0;r<8;r++){
-      const aim=end+(rnd()-.5)*38,pins=[];
+      if(wander){drift+=(rnd()-.5)*190;drift*=.92;}
+      const amp=wander?230*(1-r/8.5):0,aim=end+(wander?clamp(drift,-amp,amp):0)+(rnd()-.5)*38,pins=[];
       for(let col=0;col<13;col++){const x=150+col*104+(r%2)*44;if(x<=1450)pins.push(x);}
       const pin=pins.reduce((a,b)=>Math.abs(b-aim)<Math.abs(a-aim)?b:a);
       const side=rnd()<.5?-1:1;
-      pts.push({x:clamp(pin+side*13,end-corridor,end+corridor),y:268+r*43-14});
+      pts.push({x:clamp(pin+side*13,Math.max(130,end-corridor*(1-r/9)),Math.min(1470,end+corridor*(1-r/9))),y:268+r*43-14});
     }
     pts.push({x:end,y:640});pts.push({x:end,y:715});
     return this._paths[key]=pts;

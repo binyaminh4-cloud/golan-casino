@@ -38,6 +38,7 @@ function setReel(r, idx, anim, ms) {
 let FAST = false; try { FAST = localStorage.getItem("gc_sl_fast") === "1"; } catch (e) {}
 const RS = [0, 1, 2].map(() => ({ off: 0, v: 0, run: false, stop: null }));
 let rollRaf = 0, stopNow = false;
+const TURBO = [1, 1, 1];     // ×3 while a reel is under bonus tension (GC_TENSION)
 function rollFrame(now) {
   let any = false; const ch = cellH();
   RS.forEach((R, r) => {
@@ -50,7 +51,7 @@ function rollFrame(now) {
       const k = Math.min(1, (now - R.stop.t0) / R.stop.d), e = 1 - Math.pow(1 - k, 3);
       R.off = R.stop.o0 + (R.stop.T - R.stop.o0) * e;
       if (k >= 1) { R.run = false; R.stop.done(); }
-    } else { R.v = Math.min(R.v + dt * 60, FAST ? 26 : 20); R.off += R.v * dt; if (R.off >= 3 * N) R.off -= N; }
+    } else { R.v = Math.min(R.v + dt * (TURBO[r] > 1 ? 180 : 60), (FAST ? 26 : 20) * TURBO[r]); R.off += R.v * dt; if (R.off >= 3 * N) R.off -= N; }
     reels[r].firstChild.style.transform = `translateY(${-R.off * ch}px)`;
     reels[r].classList.toggle("blur", R.run && !R.stop && R.v > 12);
   });
@@ -70,16 +71,24 @@ function landReel(r, top, d0) {
     R.stop = { c: T - brake, T, d: d0, t0: null, done: () => { SFX.flip(); pos[r] = top; setReel(r, top + N, false); reels[r].classList.remove("blur"); res(); } };
   });
 }
+// Reels stop left to right. On the friends' machine, FREE showing on the first two reels puts the last one under
+// tension (×3 fast, then a slow crawl, like the toilet machine); every FREE that lands gets its own chime.
+const hasFree = (top) => FO && [0, 1, 2].some((row) => STRIP[(top + row) % N] === "FREE");
 async function spinTo(stops) {
   const tops = stops.map((stop) => ((stop - 1) % N + N) % N);
-  const base = FAST ? 350 : 1100, gap = FAST ? 200 : 520, t0 = performance.now();
+  const base = FAST ? 350 : 1100, gap = FAST ? 200 : 520, t0 = performance.now(); let caught = 0;
+  const land = (r, ms) => landReel(r, tops[r], ms).then(() => { if (hasFree(tops[r])) { caught++; try { SFX.bonusLand(caught); } catch (e) {} } });
+  const landing = [];
   for (let r = 0; r < 3; r++) {
-    const wait = Math.max(0, base + r * gap - (performance.now() - t0));
     await new Promise((ok) => { const step = () => { if (stopNow || performance.now() - t0 >= base + r * gap) ok(); else setTimeout(step, 30); }; step(); });
-    if (r < 2 && !stopNow) landReel(r, tops[r], FAST ? 420 : 900); else await Promise.all([landReel(r, tops[r], stopNow ? 380 : FAST ? 420 : 900)]);
-    if (stopNow) { for (let k = r + 1; k < 3; k++) landReel(k, tops[k], 380); }
-    if (stopNow) break;
+    if (r === 2 && !stopNow && hasFree(tops[0]) && hasFree(tops[1])) {
+      await Promise.all(landing);
+      reels[2].classList.add("tense"); await GC_TENSION({ scale: FAST ? 0.6 : 1, turbo: (m) => { TURBO[2] = m; } }); TURBO[2] = 1; reels[2].classList.remove("tense");
+    }
+    landing.push(land(r, stopNow ? 380 : FAST ? 420 : 900));
+    if (stopNow) { for (let k = r + 1; k < 3; k++) landing.push(land(k, 380)); break; }
   }
+  await Promise.all(landing);
   await new Promise((ok) => { const chk = () => RS.some((R) => R.run) ? setTimeout(chk, 30) : ok(); chk(); });
 }
 
@@ -169,7 +178,7 @@ function winToast(amount, big) {
 }
 // free spins: 3 FREE (one on each reel) = 10 spins at the same bet, nothing charged
 function freeState(res) {
-  if (res.free) GC_BONUS_INTRO("🎁 10 סיבובים חינם!", ["הסיבובים משחקים לבד, באותו הימור, בלי לחייב את הארנק.", "כל זכייה בסיבוב חינם נכנסת לארנק.", "גם הג׳קפוטים פתוחים בסיבובים החינם."], "img/slots/fortune/BIN.webp").then(() => { if (FREE_LEFT > 0 && !busy) $("spinBtn").click(); });
+  if (res.free) { try { SFX.bonus(); } catch (e) {} } if (res.free) GC_BONUS_INTRO("🎁 10 סיבובים חינם!", ["הסיבובים משחקים לבד, באותו הימור, בלי לחייב את הארנק.", "כל זכייה בסיבוב חינם נכנסת לארנק.", "גם הג׳קפוטים פתוחים בסיבובים החינם."], "img/slots/fortune/BIN.webp").then(() => { if (FREE_LEFT > 0 && !busy) $("spinBtn").click(); });
   setFree(res.free_left || 0);
 }
 // bonus buy (Binyamin's machine): 10 free spins at the chosen bet

@@ -22,7 +22,7 @@ button{font:inherit;cursor:pointer}
 .lines-l,.lines-r{display:grid;grid-template-rows:repeat(5,1fr);align-items:center;gap:2px}
 .lines-l i,.lines-r i{font:800 12px Inter;font-style:normal;color:var(--muted);background:#0b0806;border:1px solid var(--line);border-radius:6px;text-align:center;padding:2px 0;transition:.2s}
 .lines-l i.on,.lines-r i.on{color:#0B0908;background:var(--champ);box-shadow:0 0 12px rgba(241,214,154,.8)}
-.reels{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;min-height:0;padding:6px;border-radius:10px;
+.reels{position:relative;display:grid;direction:ltr;grid-template-columns:repeat(3,1fr);gap:6px;min-height:0;padding:6px;border-radius:10px;
   background:#060403;box-shadow:inset 0 0 0 2px var(--line),inset 0 18px 22px rgba(0,0,0,.8),inset 0 -18px 22px rgba(0,0,0,.8)}
 .reel{position:relative;overflow:hidden;border-radius:6px;background:linear-gradient(180deg,#d9cdb5,#fbf6ea 30%,#fbf6ea 70%,#d9cdb5)}
 .reel::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.45),transparent 22%,transparent 78%,rgba(0,0,0,.45))}
@@ -110,3 +110,6 @@ body.fortune .jp b{left:30.2%!important;right:12.2%!important;top:41%!important;
 #spinBtn.stopper{font-size:0}#spinBtn.stopper::after{content:"עצור";font-size:18px}
 .fastbtn{margin-inline-start:8px;height:40px;padding:0 12px;border-radius:99px;border:1px solid #C5A05A;background:rgba(11,9,8,.8);color:#F1D69A;font:700 13px Heebo;cursor:pointer}
 .fastbtn[aria-pressed="true"]{background:linear-gradient(180deg,#F1D69A,#C5A05A);color:#0B0908}
+
+/* bonus tension on the last reel (FREE on the first two) */
+.reel.tense{box-shadow:0 0 0 3px #ffcf5c,0 0 26px #ffb43c;animation:slTense .5s ease-in-out infinite alternate}@keyframes slTense{to{box-shadow:0 0 0 3px #fff1b8,0 0 40px #ffcf5c}}
