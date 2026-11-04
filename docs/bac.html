@@ -76,6 +76,9 @@ const BOTS = ["אביחי ניוטון", "נתנאל אמלקה", "יואב הנ
 const RANK = (c) => c === 1 ? "A" : c === 11 ? "J" : c === 12 ? "Q" : c === 13 ? "K" : String(c), VAL = (c) => c >= 10 ? 0 : c;
 let run = null, busy = false;
 const S = (k, a) => { try { SFX[k](a); } catch (e) {} };
+// futuristic sound pack (ElevenLabs): holo card, pick, robot decision, point, tie-break alarm
+const FX = (n, vol = 0.8) => { try { SFX.fx(n, { vol }); } catch (e) {} };
+addEventListener("pointerdown", () => { for (const n of ["bb_card", "bb_pick", "bb_robot", "bb_point", "bb_tiebreak"]) FX(n, 0); }, { once: true, capture: true });
 function fit() { const vw = innerWidth, vh = innerHeight, s = Math.min(vw / 844, vh / 390); $("stage").style.transform = `translate(-50%,-50%) scale(${s})`; }
 addEventListener("resize", fit); addEventListener("orientationchange", () => setTimeout(fit, 300)); setInterval(fit, 1000); fit();
 const botName = () => BOTS[(run?.bot || 3) - 1];
@@ -94,19 +97,19 @@ function choose() {
 }
 const cardHtml = (c, i) => { const suit = "♠♥♦♣"[(c * 7 + i * 3) % 4]; return `<div class="cd${suit === "♥" || suit === "♦" ? " r" : ""}">${RANK(c)}<small>${suit}</small></div>`; };
 async function pick(k) {
-  if (busy) return; busy = true; $("err").textContent = ""; S("chip");
+  if (busy) return; busy = true; $("err").textContent = ""; FX("bb_pick");
   $("big").querySelectorAll("button").forEach((b) => b.disabled = true);
   const { data, error } = await db.rpc("bb_pick", { p_run: run.id, p_pick: k });
   if (error) { busy = false; $("err").textContent = (error.message || "").includes("run_closed") ? "הקרב הזה כבר נסגר." : "לא הצלחנו לשלוח את הבחירה. נסה שוב."; choose(); return; }
   const e = data.last;
   // 1. your pick goes small to the bottom; 2. the bot's pick, big
   $("mine").textContent = `הבחירה שלך: ${NAME[e.me]}`;
-  $("big").innerHTML = `<div class="reveal">${botName()} בחר<b class="${e.bot}">${NAME[e.bot]}</b></div>`; $("botImg").classList.add("talk"); S("whoosh");
+  $("big").innerHTML = `<div class="reveal">${botName()} בחר<b class="${e.bot}">${NAME[e.bot]}</b></div>`; $("botImg").classList.add("talk"); FX("bb_robot", 0.85);
   await sleep(1500); $("botImg").classList.remove("talk");
   $("mine").textContent = `אתה: ${NAME[e.me]} · ${botName()}: ${NAME[e.bot]}`;
   // 3. the deal, slowly: player, banker, player, banker, then any third cards
   $("big").innerHTML = `<div class="hands"><div class="hand B" id="hB"><h5>באנקר</h5><div class="cards" id="cB"></div><div class="sum" id="sB"></div></div><div class="hand P" id="hP"><h5>פלייר</h5><div class="cards" id="cP"></div><div class="sum" id="sP"></div></div></div>`;
-  const tot = { P: 0, B: 0 }, put = async (side, c, i, slow) => { await sleep(slow ? 1100 : 700); $("c" + side).insertAdjacentHTML("beforeend", cardHtml(c, i)); tot[side] = (tot[side] + VAL(c)) % 10; $("s" + side).textContent = tot[side]; S("card"); };
+  const tot = { P: 0, B: 0 }, put = async (side, c, i, slow) => { await sleep(slow ? 1100 : 700); $("c" + side).insertAdjacentHTML("beforeend", cardHtml(c, i)); tot[side] = (tot[side] + VAL(c)) % 10; $("s" + side).textContent = tot[side]; FX("bb_card", 0.7); };
   await put("P", e.p[0], 0); await put("B", e.b[0], 1); await put("P", e.p[1], 2); await put("B", e.b[1], 3);
   if (e.p[2] !== undefined) await put("P", e.p[2], 4, true);
   if (e.b[2] !== undefined) await put("B", e.b[2], 5, true);
@@ -115,11 +118,11 @@ async function pick(k) {
   // 4. the result
   const who = e.mg && e.bg ? `אתה ו${botName()} זכיתם ${e.res === "T" ? "ב־3 נקודות" : "בנקודה"}` : e.mg ? (e.res === "T" ? "זכית ב־3 נקודות!" : "זכית בנקודה") : e.bg ? `${botName()} זכה ${e.res === "T" ? "ב־3 נקודות" : "בנקודה"}` : "אף אחד לא צדק";
   $("big").innerHTML = `<div class="win"><h3>${NAME[e.res]}!</h3><p class="${e.mg ? "" : "no"}">${who}</p></div>`;
-  if (e.mg) S("win", e.res === "T");
+  if (e.mg) FX("bb_point", 0.8);
   const tieNow = data.status === "active" && data.log.length === 20 && data.me === data.bot_pts;
   run = data; board(); await sleep(1900); busy = false;
   if (run.status === "done") return finish();
-  if (tieNow) { $("big").innerHTML = `<div class="win"><h3>תיקו ${run.me}:${run.bot_pts}!</h3><p>שובר שוויון: יד אחרי יד, עד שמישהו מוביל</p></div>`; S("bonus"); await sleep(2600); }
+  if (tieNow) { $("big").innerHTML = `<div class="win"><h3>תיקו ${run.me}:${run.bot_pts}!</h3><p>שובר שוויון: יד אחרי יד, עד שמישהו מוביל</p></div>`; FX("bb_tiebreak", 0.85); await sleep(2600); }
   choose();
 }
 function finish() {
@@ -128,7 +131,7 @@ function finish() {
   $("mine").textContent = "";
   $("big").innerHTML = `<div class="win"><h3>${head}</h3><p class="${sp ? "" : "no"}">${me} : ${bt}${sp ? ` · +${sp} נקודות לעונה` : ""}</p>
     <div class="btns">${run.left_today > 0 ? `<button id="again">קרב נוסף (נשארו ${run.left_today} היום)</button>` : ""}<a href="challenges.html">לאתגרים</a></div></div>`;
-  if (sp) S("win", true); const a = $("again"); if (a) a.onclick = start;
+  if (sp) { FX("bb_point", 0.9); S("win", true); } const a = $("again"); if (a) a.onclick = start;
 }
 async function start() {
   $("err").textContent = ""; const { data, error } = await db.rpc("bb_start");
@@ -139,7 +142,7 @@ async function start() {
   const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
   if (window.GC_LOADER) GC_LOADER.done();
   $("big").innerHTML = `<div class="win"><h3>באקרה מול הבוט</h3><p class="no">20 ידיים. לפני כל יד בוחרים: פלייר, באנקר או תיקו. ניחוש נכון = נקודה, תיקו נכון = 3. תיקו בסוף? שובר שוויון. מנצחים את הבוט = 30 נקודות לעונה.</p><div class="btns"><button id="go">יאללה</button><a href="challenges.html">חזרה</a></div></div>`;
-  $("go").onclick = () => { S("chip"); start(); };
+  $("go").onclick = () => { FX("bb_pick"); start(); };
 })();
 </script>
 </body>
