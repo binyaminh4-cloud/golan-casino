@@ -77,7 +77,7 @@
     src.connect(g).connect(master); const T = now(); src.start(T, offset);
     if (dur) { g.gain.setValueAtTime(vol, T + Math.max(0, dur - 0.4)); g.gain.linearRampToValueAtTime(0.0001, T + dur); src.stop(T + dur + 0.05); }
     return true; }
-  const SAMPLES = ["chip", "tick", "ball_drop", "card_flip", "shuffle", "win_small", "win_medium", "ball_roll", "ball_drop", "no_more_bets", "notify", "orb_lock", "splash", "reel_spin", "reel_stop", "card_deal", "bonus_trigger", "reel_tension", "error", "whoosh", "button", "win_big", "coins_count", "lightning", "jackpot", "ck_squawk", "ck_impact"];
+  const SAMPLES = ["chip", "tick", "ball_drop", "card_flip", "shuffle", "win_small", "win_medium", "ball_roll", "ball_drop", "no_more_bets", "notify", "orb_lock", "splash", "reel_spin", "reel_stop", "card_deal", "bonus_trigger", "reel_tension", "error", "whoosh", "button", "win_big", "coins_count", "lightning", "jackpot", "ck_squawk", "ck_impact", "bonus_land"];
   addEventListener("pointerdown", () => SAMPLES.forEach(load), { once: true, capture: true });
   const synth = { ...S };
   S.chip = () => play("chip", { vol: 0.8 }) || synth.chip();
@@ -115,7 +115,8 @@
     const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = BUF[name]; src.loop = true; g.gain.value = vol; src.connect(g).connect(master); src.start();
     return () => { try { g.gain.setTargetAtTime(0, ctx.currentTime, 0.15); src.stop(ctx.currentTime + 0.6); } catch (e) {} }; };
   // a bonus symbol has just landed on a reel: a bright "caught it" chime (rises with each one: n = 1, 2, 3…)
-  S.bonusLand = (n = 1) => { if (!ac() || muted) return; const k = Math.pow(1.122, Math.max(0, Math.min(6, n - 1)));
+  S.bonusLand = (n = 1) => play("bonus_land", { vol: 0.75, rate: 1 + 0.06 * Math.max(0, Math.min(5, n - 1)) }) || synthLand(n);   // ElevenLabs chime, a little higher for each one
+  const synthLand = (n = 1) => { if (!ac() || muted) return; const k = Math.pow(1.122, Math.max(0, Math.min(6, n - 1)));
     [1047, 1319, 1568, 2093].forEach((f, i) => tone({ t: i * 0.055, f: f * k, dur: 0.32, type: "triangle", peak: 0.2 }));
     tone({ f: 523 * k, dur: 0.5, type: "sine", peak: 0.25 }); for (let i = 0; i < 5; i++) noise({ t: 0.08 + i * 0.05, f: 6000 + i * 600, q: 14, dur: 0.05, peak: 0.18 }); };
   S.gong = () => play("no_more_bets", { vol: 0.7, dur: 2.5 }) || synth.drop();
