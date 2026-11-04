@@ -74,7 +74,7 @@
  async function choose(pick){
   if(acting||!state||seconds()<=0)return;acting=true;epoch++;
   try{
-   if(preview){if(state.phase==='extra')state.bonus.extra=pick;else if(!state.bonus.picks.includes(pick))state.bonus.picks.push(pick);bonusKey='';render();return;}
+   if(preview){if(state.phase==='extra')state.bonus.extra=pick;else if(!state.bonus.picks.includes(pick))state.bonus.picks.push(pick);bonusKey='';render();if(state.spot==='balls')previewBalls();return;}
    const {data,error}=await db.rpc('zlm_choose',{p_round:state.id,p_pick:pick});if(error)throw error;accept(data);$('error').textContent='';
   }catch(e){$('error').textContent=errorText(e);}finally{acting=false;}
  }
@@ -180,6 +180,18 @@
   $('mainGame').classList.toggle('spin-view',!!state&&(state.phase==='spin'||state.phase==='summary'||state.phase==='betting'&&!preview&&remaining<=0));
   if(state?.spot==='yoav'&&state.bonus.cups){const elapsed=Math.max(0,(now()-Date.parse(state.phase_at))/1000),done=state.phase==='summary';state.bonus.cups.forEach((v,i)=>{const n=done?v:Math.min(v,Math.floor(elapsed*5)),rect=document.querySelector(`[data-liquid="${i}"]`),num=document.querySelector(`[data-cup-number="${i}"]`);if(num)num.textContent='×'+n;if(rect){const h=60*Math.min(1,n/v);rect.setAttribute('y',70-h);rect.setAttribute('height',h);}});}
   if(state&&seconds()<=0)renderControls();
+ }
+
+ // Preview only (zman.html?preview&bonus=balls): a local, money-free run of the balls draw so the animation can be checked
+ // without waiting for the bonus on the real wheel. Same bag and ladder as the rules; never touches the server.
+ function previewBalls(){
+  const b=state.bonus,bag=[];for(let c=1;c<=3;c++){for(let i=0;i<27;i++)bag.push(c);for(let i=0;i<3;i++)bag.push(c+3);}for(let i=0;i<20;i++)bag.push(0);
+  b.events=[];b.levels=[0,0,0];b.values=[5,5,5];b.black=0;state.phase='balls';state.phase_at=new Date().toISOString();state.deadline=new Date(Date.now()+600000).toISOString();bonusKey='';render();
+  const tick=()=>{if(!preview||state.spot!=='balls')return;const v=bag.splice(Math.floor(Math.random()*bag.length),1)[0];b.events.push(v);
+   if(v===0)b.black++;else{const c=(v-1)%3;b.levels[c]=Math.min(11,b.levels[c]+(v>3?2:1));b.values[c]=ladder[b.levels[c]];}
+   if(b.black>=4){const mine=b.picks[0];b.profit=b.values[mine];state.phase='summary';state.last_result={round:state.id,stake:'100',payout:String(100*(1+b.profit*(state.boosts[state.cell]||1)))};bonusKey='';render();return;}
+   bonusKey='';render();setTimeout(tick,3000);};
+  setTimeout(tick,3000);
  }
  function fixture(){
   const spot=params.get('bonus'),s={id:'preview',phase:spot?'choice':'betting',phase_at:new Date().toISOString(),deadline:new Date(Date.now()+20000).toISOString(),server_time:new Date().toISOString(),bets:{},balance:'3500000000000',boosts:{1:3,12:2,23:5},cell:spot?({range:1,vip:12,yoav:6,balls:23}[spot]||23):null,spot:spot||null,bonus:{picks:[],extra:null,eligible:true,profit:0,targets:Array.from({length:5},(_,index)=>({index,open:false}))},draws:0,last_result:null};
