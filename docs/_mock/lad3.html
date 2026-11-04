@@ -1,0 +1,28 @@
+<!doctype html><html lang="he" dir="ltr"><head><meta charset="utf-8"><style>
+*{box-sizing:border-box}html,body{margin:0;width:844px;height:390px;overflow:hidden;font-family:Heebo,Arial,sans-serif;color:#dff8ff;background:#02060c url(../img/bots/bots_hall_bg.webp) center/cover}
+.tower{position:absolute;right:8px;top:8px;bottom:8px;width:190px;display:flex;flex-direction:column-reverse;gap:4px;direction:rtl}
+.lv{flex:1;background:url(../img/bots/ladder_tile.webp) center/100% 100%;position:relative;padding:0 78px 0 14px;display:flex;align-items:center;font:700 11px Heebo;color:#c7b3e8}
+.lv.now{background-image:url(../img/bots/ladder_tile_active.webp);color:#fff}.lv b{display:block;font:800 13px Heebo}
+.lv img{position:absolute;right:12px;left:auto;top:50%;transform:translateY(-50%);width:50px;height:50px;border-radius:50%;object-fit:cover;object-position:50% 20%}
+.lv:not(.now):not(.done) img{filter:grayscale(.9) brightness(.5)}.lv.done b::after{content:" ✓";color:#7dff9a}
+.enemy{position:absolute;left:0;bottom:0;height:300px;filter:drop-shadow(0 0 22px #ff4fd877)}
+.bars{position:absolute;left:250px;width:390px;top:8px;display:grid;gap:4px;direction:rtl}
+.bar{height:46px;background:url(../img/bots/bots_progress_frame.webp) center/100% 100%;position:relative;display:flex;align-items:flex-start;padding:5px 30px 0;font:800 12px Heebo}
+.bar i{position:absolute;left:6%;right:6%;top:52%;height:18%;border-radius:99px;overflow:hidden;direction:ltr}.bar i::after{content:"";position:absolute;inset:0 auto 0 0;width:var(--w);background:linear-gradient(90deg,#29d8ff,#7ff0ff);box-shadow:0 0 10px #29d8ff}
+.bar.b i::after{background:linear-gradient(90deg,#ff4fd8,#ff9be9)}.bar em{position:absolute;left:38px;top:2px;font-size:12px!important;font:900 14px Inter;font-style:normal;direction:ltr}.bar span{position:relative;z-index:1}
+.die{position:absolute;left:330px;top:130px;width:96px;height:96px;border-radius:20px;border:2px solid #7ff0ff;background:linear-gradient(145deg,#29d8ff33,#29d8ff08);box-shadow:0 0 40px #29d8ff88,inset 0 0 30px #29d8ff44;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:14px;transform:rotate(-10deg)}
+.die i{width:14px;height:14px;border-radius:50%;background:#e8fdff;box-shadow:0 0 10px #7ff0ff;place-self:center}
+.pot{position:absolute;left:470px;top:128px;text-align:center}.pot b{display:block;font:900 52px Inter;color:#fff;text-shadow:0 0 20px #29d8ff}.pot small{font:700 13px Heebo;color:#9fd8e6}
+.btns{position:absolute;left:250px;width:390px;bottom:36px;display:flex;gap:8px;justify-content:center}
+.bt{width:190px;height:66px;background:center/100% 100% no-repeat;display:grid;place-items:center;font:900 20px Heebo;color:#fff;text-shadow:0 0 10px #000}
+.roll{background-image:url(../img/bots/ladder_btn_roll.webp)}.keep{background-image:url(../img/bots/ladder_btn_keep.webp)}
+.rule{position:absolute;left:250px;width:390px;bottom:10px;text-align:center;font:700 12px Heebo;color:#b9d6e2;direction:rtl}
+</style></head><body>
+<div class="tower"><div class="lv done"><img src="../img/ch/bot_1.webp"><div><b>שלב 1</b>טיפון</div></div><div class="lv done"><img src="../img/ch/bot_2.webp"><div><b>שלב 2</b>הלורד</div></div>
+<div class="lv now"><img src="../img/ch/bot_3.webp"><div><b>שלב 3</b>הכריש</div></div><div class="lv"><img src="../img/ch/bot_4.webp"><div><b>שלב 4</b>הצל</div></div><div class="lv"><img src="../img/ch/bot_5.webp"><div><b>הבוס</b>המלך</div></div></div>
+<img class="enemy" src="../img/ch/bot_3.webp">
+<div class="bars"><div class="bar"><span>אתה</span><i style="--w:70%"></i><em>21/30</em></div><div class="bar b"><span>הכריש</span><i style="--w:83%"></i><em>25/30</em></div></div>
+<div class="die"><i></i><i style="opacity:0"></i><i></i><i style="opacity:0"></i><i style="opacity:0"></i><i style="opacity:0"></i><i></i><i style="opacity:0"></i><i></i></div>
+<div class="pot"><small>בתור הזה</small><b>9</b><small>זרקת 2 פעמים</small></div>
+<div class="btns"><div class="bt keep">✋ עצור ושמור</div><div class="bt roll">🎲 זרוק</div></div>
+<div class="rule">זורקים ואוספים. יצא 1? התור נשרף. ראשון ל־30 עולה שלב.</div></body></html>

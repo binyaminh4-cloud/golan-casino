@@ -1,0 +1,35 @@
+<!doctype html><html lang="he" dir="ltr"><head><meta charset="utf-8"><style>
+*{box-sizing:border-box}html{overflow:hidden}body{margin:0;width:844px;height:390px;overflow:hidden;font-family:Heebo,Arial,sans-serif;color:#dff8ff;
+background:radial-gradient(ellipse at 50% 120%,#0b3a4a 0,#03121a 45%,#010508 80%);position:relative}
+.grid{position:absolute;left:-20%;right:-20%;bottom:-40%;height:70%;background:repeating-linear-gradient(90deg,#29d8ff22 0 1px,transparent 1px 60px),repeating-linear-gradient(0deg,#29d8ff22 0 1px,transparent 1px 40px);transform:perspective(400px) rotateX(62deg)}
+.side{position:absolute;bottom:0;width:250px;height:330px}.side img{position:absolute;bottom:0;width:250px;filter:drop-shadow(0 0 18px #29d8ff66)}
+.me{left:0}.bot{right:0}.bot img{filter:drop-shadow(0 0 18px #ff3b6b66)}
+.me .tag,.bot .tag{position:absolute;top:6px;width:100%;text-align:center;font:800 15px Heebo}.me .tag{color:#7ff0ff}.bot .tag{color:#ff8fa8}
+.hud{position:absolute;top:8px;left:50%;transform:translateX(-50%);display:flex;gap:16px;align-items:center;font:800 26px Inter}
+.hud .s1{color:#7ff0ff;text-shadow:0 0 12px #29d8ff}.hud .s2{color:#ff8fa8;text-shadow:0 0 12px #ff3b6b}.hud small{font:700 12px Heebo;color:#8fb7c4}
+.table{position:absolute;left:50%;top:70px;transform:translateX(-50%);width:330px;height:150px;border-radius:50%;border:2px solid #29d8ffaa;box-shadow:0 0 30px #29d8ff55,inset 0 0 40px #29d8ff33;background:radial-gradient(#29d8ff1a,transparent 70%)}
+.hand{position:absolute;top:38px;display:flex;gap:6px}.hand.p{right:46px}.hand.b{left:46px}
+.card{width:46px;height:66px;border-radius:6px;border:1.5px solid #9ff6ff;background:linear-gradient(160deg,#29d8ff33,#29d8ff0d);display:grid;place-items:center;font:800 22px Inter;color:#e8fdff;text-shadow:0 0 8px #29d8ff;box-shadow:0 0 12px #29d8ff66;animation:fl 2.4s ease-in-out infinite alternate}
+.card.r{color:#ffd0da;text-shadow:0 0 8px #ff3b6b}
+@keyframes fl{to{transform:translateY(-5px)}}
+.lbl{position:absolute;top:10px;font:700 12px Heebo;color:#8fdcef}.lbl.p{right:80px}.lbl.b{left:84px}
+.total{position:absolute;bottom:14px;font:900 22px Inter}.total.p{right:84px;color:#7ff0ff}.total.b{left:88px;color:#ff8fa8}
+.picks{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:10px}
+.pk{width:96px;padding:8px 0;text-align:center;border-radius:10px;border:1.5px solid #29d8ffaa;background:#29d8ff12;font:800 16px Heebo;color:#dff8ff;box-shadow:0 0 14px #29d8ff33}
+.pk small{display:block;font:700 10px Heebo;color:#8fb7c4}.pk.sel{background:#29d8ff40;box-shadow:0 0 24px #29d8ffaa}.pk.tie{border-color:#ffd36e;color:#ffe9a8}.pk.tie small{color:#ffd36e}
+.botpick{position:absolute;right:205px;top:130px;width:58px;height:58px;border-radius:50%;border:2px dashed #ff8fa8;display:grid;place-items:center;font:900 28px Inter;color:#ff8fa8;text-shadow:0 0 10px #ff3b6b;animation:spin 3s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.mypick{position:absolute;left:215px;top:130px;font:800 13px Heebo;color:#7ff0ff;text-align:center}
+.count{position:absolute;top:44px;left:50%;transform:translateX(-50%);font:700 12px Heebo;color:#8fb7c4}
+.scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,#ffffff06 0 1px,transparent 1px 3px);pointer-events:none}
+.tagm{position:absolute;top:6px;left:8px;background:#e56b6f;color:#fff;font:700 11px Heebo;padding:2px 8px;border-radius:99px}
+</style></head><body><div class="grid"></div>
+<div class="side me"><span class="tag">אתה</span><img src="../img/chars/../ch/bot_1.webp" style="opacity:0"><div style="position:absolute;bottom:0;left:40px;width:170px;height:260px;border-radius:90px 90px 0 0;background:linear-gradient(#29d8ff33,#29d8ff08);border:2px solid #29d8ff66;display:grid;place-items:center;font:900 60px Heebo;color:#7ff0ff;text-shadow:0 0 20px #29d8ff">ב</div></div>
+<div class="side bot"><span class="tag">בוט הכריש</span><img src="../img/ch/bot_3.webp"></div>
+<div class="hud"><span class="s1">7</span><small>נקודות</small><span class="s2">6</span></div><div class="count">יד 12 מתוך 20</div>
+<div class="table"><span class="lbl p">שחקן</span><span class="lbl b">בנק</span>
+ <div class="hand p"><div class="card">7</div><div class="card r">K</div></div><div class="hand b"><div class="card r">4</div><div class="card">2</div><div class="card r">A</div></div>
+ <span class="total p">7</span><span class="total b">7</span></div>
+<div class="mypick">הבחירה שלך<br>⬤ תיקו</div><div class="botpick">?</div>
+<div class="picks"><div class="pk">שחקן<small>+1</small></div><div class="pk tie sel">תיקו<small>+3</small></div><div class="pk">בנק<small>+1</small></div></div>
+<div class="scan"></div><span class="tagm">סקיצה</span></body></html>

@@ -1,0 +1,48 @@
+<!doctype html><html lang="he" dir="ltr"><head><meta charset="utf-8"><link rel="stylesheet" href="hall.css"><style>
+*{box-sizing:border-box}html,body{margin:0;width:844px;height:390px;overflow:hidden;font-family:Heebo,Arial,sans-serif;color:#13233a}
+.stage{position:absolute;left:0;top:0;width:690px;height:390px}
+.score{position:absolute;right:0;top:0;width:154px;height:390px;background:#ffffffd9;border-left:1px solid #c5d2df;padding:8px 6px;direction:rtl}
+.score h4{margin:0 0 4px;font:800 13px Heebo;text-align:center;color:#2a4a72}
+.tot{display:flex;justify-content:space-around;margin-bottom:6px;font:800 12px Heebo}.tot b{display:block;font:900 22px Inter;text-align:center}.tot .tm b{color:#1477d6}.tot .bt b{color:#d6336c}
+.cols{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;direction:ltr}
+.c{border:1px solid #c5d2df;border-radius:5px;background:#fff;text-align:center;font:700 9px Inter;color:#7d93ab;padding:1px 0}
+.c div{font:900 13px Inter;height:17px;line-height:17px;border-top:1px solid #e3eaf1}.c div.w{background:#d8f8df;color:#148a3a}.c div.l{background:#ffe0e4;color:#d1293f}.c div.e{color:#c5d2df}
+.c.now{border:2px solid #1477d6}
+.legend{margin-top:6px;font:600 10px Heebo;color:#7d93ab;text-align:center}
+.me,.bot{position:absolute;bottom:0;height:250px}.me{left:4px}.bot{right:4px;filter:drop-shadow(0 0 14px #d6336c55)}
+.av{position:absolute;left:14px;bottom:0;width:130px;height:200px;border-radius:70px 70px 0 0;background:linear-gradient(#1477d633,#1477d60d);border:2px solid #1477d666;display:grid;place-items:center;font:900 54px Heebo;color:#1477d6}
+.name{position:absolute;bottom:6px;padding:2px 10px;border-radius:99px;font:800 12px Heebo;background:#fff;box-shadow:0 2px 6px #0002}.nm{left:40px;color:#1477d6}.nb{right:50px;color:#d6336c}
+.big{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;direction:rtl}
+.q{font:800 22px Heebo;color:#2a4a72;margin-bottom:10px}
+.ch{display:flex;gap:12px;justify-content:center}.ch div{width:122px;padding:18px 0;border-radius:16px;font:900 26px Heebo;background:#ffffffe6;border:2px solid #9fc3e8;box-shadow:0 6px 18px #2a4a7233}
+.ch div small{display:block;font:700 13px Heebo;color:#7d93ab}.ch .t{border-color:#e8b931;color:#a87800}.ch .p{color:#1477d6}.ch .bk{color:#d6336c}
+.picks{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:10px;direction:rtl}
+.picks span{padding:3px 12px;border-radius:99px;background:#fff;font:700 12px Heebo;box-shadow:0 2px 6px #0002}.picks .pm{color:#1477d6}.picks .pb{color:#d6336c}
+.reveal{font:800 18px Heebo;color:#2a4a72}.reveal b{display:block;margin-top:8px;font:900 46px Heebo;color:#d6336c;text-shadow:0 0 16px #d6336c55}
+.hands{display:flex;gap:36px;justify-content:center;direction:rtl}
+.hand h5{margin:0 0 6px;font:900 18px Heebo}.hand.p h5{color:#1477d6}.hand.b h5{color:#d6336c}
+.cards{display:flex;gap:6px;justify-content:center;direction:ltr}.cd{width:58px;height:82px;border-radius:8px;background:#fff;border:1px solid #c5d2df;box-shadow:0 6px 14px #2a4a7233;display:grid;place-items:center;font:900 28px Inter}
+.cd.r{color:#d1293f}.cd.back{background:repeating-linear-gradient(45deg,#1477d6 0 6px,#2f8de6 6px 12px);color:transparent}
+.sum{margin-top:6px;font:900 34px Inter}.hand.p .sum{color:#1477d6}.hand.b .sum{color:#d6336c}
+.win{background:#ffffffee;border-radius:20px;padding:16px 30px;box-shadow:0 10px 30px #2a4a7244;border:2px solid #e8b931}
+.win h3{margin:0;font:900 30px Heebo;color:#a87800}.win p{margin:6px 0 0;font:800 18px Heebo;color:#148a3a}.win small{display:block;margin-top:4px;font:700 13px Heebo;color:#d6336c}
+.tag{position:absolute;top:6px;left:8px;background:#e56b6f;color:#fff;font:700 11px Heebo;padding:2px 8px;border-radius:99px;z-index:9}
+.step{position:absolute;top:6px;left:60px;background:#13233a;color:#fff;font:700 11px Heebo;padding:2px 8px;border-radius:99px;z-index:9;direction:rtl}
+</style></head><body>
+<div class="stage"><div class="hall"><i class="l"></i><i class="r"></i><b class="l"></b><b class="r"></b></div>
+<div class="me"><div class="av">ב</div><span class="name nm">אתה</span></div>
+<div class="bot"><img src="../img/ch/bot_3.webp" style="height:250px"><span class="name nb">הכריש</span></div>
+<div class="big" id="big"></div><div class="picks" id="picks"></div></div>
+<div class="score"><h4>יד 12 מתוך 20</h4><div class="tot"><div class="tm">אתה<b>9</b></div><div class="bt">הכריש<b>6</b></div></div><div class="cols" id="cols"></div><div class="legend">ירוק = נקודות · 0 אדום = טעות</div></div>
+<span class="tag">סקיצה</span><span class="step" id="step"></span>
+<script>
+const st=new URLSearchParams(location.search).get('s')||'1';
+const me=[1,0,3,1,0,1,1,0,0,1,1],bt=[1,1,0,0,1,0,1,1,0,1,0];let h='';
+for(let i=0;i<20;i++){const m=me[i],b=bt[i],cl=v=>v===undefined?'e':v>0?'w':'l';h+=`<div class="c${i===11?' now':''}">${i+1}<div class="${cl(m)}">${m===undefined?'':m}</div><div class="${cl(b)}">${b===undefined?'':b}</div></div>`;}
+cols.innerHTML=h;
+const B=big,P=picks,S=step;
+if(st==='1'){S.textContent='שלב 1 · בוחרים';B.innerHTML='<div class="q">על מה אתה הולך ביד הזו?</div><div class="ch"><div class="p">פלייר<small>+1</small></div><div class="t">תיקו<small>+3</small></div><div class="bk">באנקר<small>+1</small></div></div>';}
+if(st==='2'){S.textContent='שלב 2 · הבוט חושף';P.innerHTML='<span class="pm">הבחירה שלך: באנקר</span>';B.innerHTML='<div class="reveal">הכריש בחר<b>באנקר</b></div>';}
+if(st==='3'){S.textContent='שלב 3 · החלוקה (לאט)';P.innerHTML='<span class="pm">אתה: באנקר</span><span class="pb">הכריש: באנקר</span>';B.innerHTML='<div class="hands"><div class="hand p"><h5>פלייר</h5><div class="cards"><div class="cd">4</div><div class="cd r">K</div></div><div class="sum">4</div></div><div class="hand b"><h5>באנקר</h5><div class="cards"><div class="cd r">7</div><div class="cd back">?</div></div><div class="sum">7</div></div></div>';}
+if(st==='4'){S.textContent='שלב 4 · התוצאה';P.innerHTML='<span class="pm">אתה: באנקר</span><span class="pb">הכריש: באנקר</span>';B.innerHTML='<div class="win"><h3>באנקר!</h3><p>אתה והכריש זכיתם בנקודה</p><small>באנקר 9 · פלייר 4</small></div>';}
+</script></body></html>

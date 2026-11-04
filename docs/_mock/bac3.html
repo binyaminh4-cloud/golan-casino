@@ -1,0 +1,29 @@
+<!doctype html><html lang="he" dir="ltr"><head><meta charset="utf-8"><style>
+*{box-sizing:border-box}html,body{margin:0;width:844px;height:390px;overflow:hidden;font-family:Heebo,Arial,sans-serif;color:#dff8ff;background:#02060c url(../img/bots/bots_hall_bg.webp) center/cover}
+.bot{position:absolute;right:150px;bottom:0;height:260px;filter:drop-shadow(0 0 20px #ff4fd855)}
+.name{position:absolute;right:205px;bottom:8px;padding:2px 12px;border-radius:99px;background:#0a0f1ccc;border:1px solid #ff4fd8;color:#ff9be9;font:800 13px Heebo}
+.score{position:absolute;right:6px;top:6px;width:136px;height:378px;background:url(../img/bots/bac_score_panel.webp) center/100% 100%;padding:14px 12px;direction:rtl}
+.score h4{margin:0 0 4px;font:800 12px Heebo;text-align:center;color:#8fdcef}.score .t{display:flex;justify-content:space-around;margin-bottom:6px;font:700 11px Heebo;color:#8fb7c4}.score .t b{display:block;text-align:center;font:900 20px Inter}
+.cols{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;direction:ltr}.c{border:1px solid #29d8ff44;border-radius:4px;background:#00000055;text-align:center;font:700 8px Inter;color:#6f9aa8}
+.c div{font:900 12px Inter;height:15px;line-height:15px}.c .w{color:#2fe07a;text-shadow:0 0 6px #2fe07a}.c .l{color:#ff4d6d}.c.now{border-color:#29d8ff;box-shadow:0 0 8px #29d8ff}
+.big{position:absolute;left:300px;top:50%;transform:translate(-50%,-50%);text-align:center;direction:rtl}
+.q{font:800 20px Heebo;color:#dff8ff;margin-bottom:8px;text-shadow:0 0 10px #29d8ff}
+.ch{display:flex;gap:6px}.ch div{width:150px;height:72px;background:center/100% 100% no-repeat;display:grid;place-content:center;font:900 22px Heebo;color:#fff;text-shadow:0 0 10px currentColor}
+.ch div small{display:block;font:800 12px Inter;opacity:.85}.ch .p{background-image:url(../img/bots/bac_btn_player.webp);color:#7ff0ff!important}.ch .t2{background-image:url(../img/bots/bac_btn_tie.webp);color:#ffe9a8!important}.ch .bk{background-image:url(../img/bots/bac_btn_banker.webp);color:#ff9be9!important}
+.hands{display:flex;gap:30px}.hand h5{margin:0 0 6px;font:900 18px Heebo}.hp h5{color:#7ff0ff}.hb h5{color:#ff9be9}
+.cards{display:flex;gap:6px;direction:ltr}.cd{width:62px;height:88px;background:url(../img/bots/bac_card_face.webp) center/100% 100%;display:grid;place-items:center;font:900 30px Inter;color:#13233a}.cd.r{color:#d1293f}.cd.back{background-image:url(../img/bots/bac_card_back.webp)}
+.sum{margin-top:4px;font:900 32px Inter}.hp .sum{color:#7ff0ff;text-shadow:0 0 12px #29d8ff}.hb .sum{color:#ff9be9;text-shadow:0 0 12px #ff4fd8}
+.win{width:420px;height:134px;background:url(../img/bots/bots_result_banner.webp) center/100% 100%;display:grid;place-content:center}
+.win h3{margin:0;font:900 30px Heebo;color:#ffe9a8;text-shadow:0 0 14px #ffd36e}.win p{margin:2px 0 0;font:800 16px Heebo;color:#7dff9a}
+.mine{position:absolute;left:300px;bottom:10px;transform:translateX(-50%);padding:3px 12px;border-radius:99px;background:#0a0f1ccc;border:1px solid #29d8ff;font:700 12px Heebo;color:#7ff0ff;direction:rtl}
+</style></head><body>
+<img class="bot" src="../img/ch/bot_3.webp"><span class="name">הכריש</span>
+<div class="score"><h4>יד 12 מתוך 20</h4><div class="t"><div>אתה<b style="color:#7ff0ff">9</b></div><div>הכריש<b style="color:#ff9be9">6</b></div></div><div class="cols" id="cols"></div></div>
+<div class="big" id="big"></div><div id="mine"></div>
+<script>
+const s=new URLSearchParams(location.search).get('s')||'1',me=[1,0,3,1,0,1,1,0,0,1,1],bt=[1,1,0,0,1,0,1,1,0,1,0];let h='';
+for(let i=0;i<20;i++){const f=v=>v===undefined?'':`<div class="${v>0?'w':'l'}">${v}</div>`;h+=`<div class="c${i===11?' now':''}">${i+1}${f(me[i])||'<div></div>'}${f(bt[i])||'<div></div>'}</div>`;}cols.innerHTML=h;
+if(s==='1')big.innerHTML='<div class="q">על מה אתה הולך ביד הזו?</div><div class="ch"><div class="bk">באנקר<small>+1</small></div><div class="t2">תיקו<small>+3</small></div><div class="p">פלייר<small>+1</small></div></div>';
+if(s==='3'){mine.innerHTML='<span class="mine">אתה: באנקר · הכריש: באנקר</span>';big.innerHTML='<div class="hands"><div class="hand hb"><h5>באנקר</h5><div class="cards"><div class="cd r">7</div><div class="cd back"></div></div><div class="sum">7</div></div><div class="hand hp"><h5>פלייר</h5><div class="cards"><div class="cd">4</div><div class="cd r">K</div></div><div class="sum">4</div></div></div>';}
+if(s==='4'){mine.innerHTML='<span class="mine">אתה: באנקר · הכריש: באנקר</span>';big.innerHTML='<div class="win"><h3>באנקר!</h3><p>אתה והכריש זכיתם בנקודה</p></div>';}
+</script></body></html>

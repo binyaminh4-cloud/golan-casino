@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="he" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="loader.js?v=14"></script>
+<title>טורניר הבוטים · גולן קזינו</title>
+<link rel="icon" href="img/brand/favicon.png?v=2">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;800;900&family=Inter:wght@700;800;900&display=swap">
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden}
+body{position:fixed;inset:0;background:#02060c url(img/bots/bots_hall_bg.webp) center/cover;color:#dff8ff;font:15px Heebo,Arial,sans-serif}
+#stage{position:absolute;left:50%;top:50%;width:844px;height:390px}
+.top{position:absolute;left:8px;top:6px;z-index:9;direction:rtl;display:flex;gap:8px;align-items:center}
+.top a,.top span{font:700 12px Heebo;color:#dff8ff;background:#0a0f1ccc;border:1px solid #29d8ff88;border-radius:99px;padding:3px 10px;text-decoration:none}
+.felt{position:absolute;left:150px;top:62px;width:470px;height:230px;border-radius:50%;border:2px solid #29d8ff88;
+  background:radial-gradient(ellipse at 50% 40%,#0c2a44ee,#050d18f2 70%);box-shadow:0 0 40px #29d8ff44,inset 0 0 50px #29d8ff22}
+.board{position:absolute;left:385px;top:150px;transform:translateX(-50%);display:flex;gap:5px;direction:ltr;height:66px}
+.pot{position:absolute;left:385px;top:110px;transform:translateX(-50%);font:900 18px Inter;color:#fff;text-shadow:0 0 12px #29d8ff;direction:rtl;white-space:nowrap}
+.pot small{font:700 12px Heebo;color:#9fd8e6;margin-inline-start:6px}
+.cd{width:46px;height:66px;background:url(img/bots/bac_card_face.webp) center/100% 100%;display:grid;place-items:center;align-content:center;font:900 20px Inter;color:#13233a;line-height:1}
+.cd small{font-size:15px}.cd.r{color:#c4134a}.cd.bk{background-image:url(img/bots/bac_card_back.webp)}
+.cd.sm{width:34px;height:48px;font-size:15px}.cd.sm small{font-size:11px}
+.seat{position:absolute;width:132px;text-align:center;direction:rtl;transition:opacity .3s}
+.seat .av{width:58px;height:58px;border-radius:50%;object-fit:cover;object-position:50% 20%;border:2px solid #29d8ff66;background:#0a0f1c;display:block;margin:0 auto}
+.seat .nm{font:800 12px Heebo;background:#0a0f1cdd;border:1px solid #29d8ff55;border-radius:10px;padding:2px 6px;margin-top:-6px;position:relative}
+.seat .nm b{display:block;font:900 13px Inter;color:#7ff0ff;direction:ltr}
+.seat.turn .av{border-color:#ffe17a;box-shadow:0 0 18px #ffe17a}.seat.turn .nm{border-color:#ffe17a}
+.seat.fold{opacity:.4}.seat.out{opacity:.22;filter:grayscale(1)}
+.seat .hole{position:absolute;top:8px;display:flex;gap:2px;direction:ltr}
+.seat .bet{position:absolute;font:900 12px Inter;color:#ffe9a8;background:#000a;border:1px solid #ffd36e88;border-radius:99px;padding:1px 7px;white-space:nowrap}
+.seat .tag{position:absolute;top:-4px;right:30px;font:900 10px Inter;background:#ffe17a;color:#221;border-radius:99px;padding:1px 5px}
+.seat .said{position:absolute;left:50%;top:-18px;transform:translateX(-50%);font:800 12px Heebo;color:#ff9be9;white-space:nowrap;text-shadow:0 0 8px #000}
+.me .hole{left:-58px}.me .hole .cd{width:52px;height:74px;font-size:22px}
+.side{position:absolute;right:8px;top:40px;width:200px;direction:rtl;display:grid;gap:6px}
+.blinds{background:url(img/bots/bots_progress_frame.webp) center/100% 100%;height:50px;display:grid;place-content:center;text-align:center;font:800 12px Heebo}
+.blinds b{font:900 15px Inter;color:#7ff0ff;direction:ltr;display:block}
+.acts{position:absolute;right:8px;bottom:8px;width:200px;display:grid;gap:5px;direction:rtl}
+.bt{height:44px;border:0;background:transparent center/100% 100% no-repeat;font:900 16px Heebo;color:#fff;text-shadow:0 0 8px #000;cursor:pointer;touch-action:manipulation}
+.bt:disabled{filter:grayscale(.8) brightness(.45);cursor:default}.bt:active:not(:disabled){transform:scale(.96)}
+.b-fold{background-image:url(img/bots/bac_btn_banker.webp)}.b-call{background-image:url(img/bots/bac_btn_player.webp)}.b-raise{background-image:url(img/bots/bac_btn_tie.webp)}
+.sizes{display:flex;gap:4px}.sizes button{flex:1;font:800 12px Heebo;padding:5px 0;border-radius:8px;border:1px solid #29d8ff66;background:#0a0f1ccc;color:#dff8ff;cursor:pointer}
+.sizes button.on{background:#29d8ff44;border-color:#7ff0ff}
+.timer{height:4px;border-radius:99px;background:#ffffff22;overflow:hidden}.timer i{display:block;height:100%;background:#ffe17a;width:var(--w,0%)}
+.msg{position:absolute;left:385px;top:50%;transform:translate(-50%,-50%);z-index:8;width:460px;min-height:150px;background:url(img/bots/bots_result_banner.webp) center/100% 100%;
+  display:grid;place-content:center;text-align:center;direction:rtl;padding:12px 40px;animation:popc .35s ease-out}
+.msg h3{margin:0;font:900 26px Heebo;color:#ffe9a8;text-shadow:0 0 14px #ffd36e}.msg p{margin:3px 0 0;font:800 14px Heebo;color:#7dff9a}.msg p.no{color:#c9d6de}
+.msg .btns2{display:flex;gap:8px;justify-content:center;margin-top:8px}
+.msg button,.msg a{font:800 14px Heebo;padding:6px 14px;border-radius:99px;border:1px solid #29d8ff;background:#29d8ff22;color:#dff8ff;text-decoration:none;cursor:pointer}
+@keyframes popc{from{transform:translate(-50%,-50%) scale(.85);opacity:0}}
+.win{position:absolute;left:385px;top:226px;transform:translateX(-50%);font:900 15px Heebo;color:#ffe9a8;direction:rtl;text-shadow:0 0 10px #000;white-space:nowrap}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=8"></script>
+<script src="landscape.js?v=1"></script>
+</head>
+<body>
+<div id="stage">
+  <div class="top"><a href="challenges.html">→ לאתגרים</a><span id="left"></span></div>
+  <div class="felt"></div>
+  <div class="pot" id="pot"></div>
+  <div class="board" id="board"></div>
+  <div class="win" id="win"></div>
+  <div id="seats"></div>
+  <div class="side"><div class="blinds">בליינדים · יד <span id="hn">1</span><b id="bl">10/20</b></div></div>
+  <div class="acts">
+    <div class="timer"><i id="tm"></i></div>
+    <div class="sizes" id="sizes"><button data-k="min">מינ׳</button><button data-k="half" class="on">½ קופה</button><button data-k="pot">קופה</button><button data-k="all">הכל</button></div>
+    <button class="bt b-raise" id="raise">העלאה</button>
+    <button class="bt b-call" id="call">צ׳ק</button>
+    <button class="bt b-fold" id="fold">ויתור</button>
+  </div>
+  <div id="msg"></div>
+</div>
+<script src="sfx.js?v=1793820555"></script>
+<script>
+"use strict";
+// טורניר הבוטים (migration 0112). The server deals, plays the bots and raises the blinds; this page shows it and sends your moves.
+const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
+const $ = (id) => document.getElementById(id);
+const FX = (n, vol = 0.7) => { try { SFX.fx(n, { vol }); } catch (e) {} };
+addEventListener("pointerdown", () => { for (const n of ["bb_card", "bb_pick", "bb_robot", "bb_point", "bb_tiebreak"]) FX(n, 0); }, { once: true, capture: true });
+function fit() { const s = Math.min(innerWidth / 844, innerHeight / 390); $("stage").style.transform = `translate(-50%,-50%) scale(${s})`; }
+addEventListener("resize", fit); addEventListener("orientationchange", () => setTimeout(fit, 300)); fit();
+// seat positions around the felt (seat 0 = you, bottom)
+const POS = [[319, 262], [150, 196], [196, 34], [442, 34], [462, 196]];
+const BET = [[34, -22], [126, 20], [40, 92], [40, 92], [-60, 20]];
+const SU = { S: "♠", H: "♥", D: "♦", C: "♣" };
+const card = (c, sm) => c ? `<div class="cd${sm ? " sm" : ""}${"HD".includes(c[1]) ? " r" : ""}">${c[0] === "T" ? "10" : c[0]}<small>${SU[c[1]]}</small></div>` : `<div class="cd bk${sm ? " sm" : ""}"></div>`;
+const fmt = (n) => Number(n || 0).toLocaleString("en-US");
+let run = null, busy = false, size = "half", last = { street: null, board: 0, hand: 0, toAct: null, bets: {} }, said = {}, timer = null;
+document.querySelectorAll("#sizes button").forEach((b) => b.onclick = () => { size = b.dataset.k; document.querySelectorAll("#sizes button").forEach((x) => x.classList.toggle("on", x === b)); upd(); });
+function msg(html) { $("msg").innerHTML = html ? `<div class="msg">${html}</div>` : ""; }
+function myTurn() { return run && run.status === "running" && ["preflop", "flop", "turn", "river"].includes(run.street) && run.to_act === run.me; }
+function raiseTo() {
+  const me = run.seats[run.me], all = me.stack + me.bet, minT = run.current_bet + Math.max(run.min_raise || run.bb, run.bb);
+  const callAmt = run.current_bet - me.bet, potAfter = run.pot + callAmt;
+  let t = size === "min" ? minT : size === "half" ? run.current_bet + Math.ceil(potAfter / 2) : size === "pot" ? run.current_bet + potAfter : all;
+  t = Math.max(t, minT); return Math.min(t, all);
+}
+function upd() {
+  const on = myTurn() && !busy; ["fold", "call", "raise"].forEach((k) => $(k).disabled = !on);
+  document.querySelectorAll("#sizes button").forEach((b) => b.disabled = !on);
+  if (!run || !run.seats || run.me == null || !run.seats[run.me]) return;
+  const me = run.seats[run.me], toCall = Math.max(0, run.current_bet - me.bet);
+  $("call").textContent = toCall === 0 ? "צ׳ק" : toCall >= me.stack ? `הכל ${fmt(me.stack)}` : `השוואה ${fmt(toCall)}`;
+  const t = raiseTo(); $("raise").textContent = t >= me.stack + me.bet ? `אול-אין ${fmt(me.stack + me.bet)}` : `העלאה ל־${fmt(t)}`;
+  $("raise").style.visibility = me.stack > toCall ? "visible" : "hidden"; $("fold").style.visibility = toCall === 0 ? "hidden" : "visible";
+}
+function draw() {
+  const v = run; if (!v.seats) return;
+  $("left").textContent = `נשארו ${v.left_today} היום`; $("hn").textContent = v.hand_no || 1; $("bl").textContent = `${fmt(v.sb)}/${fmt(v.bb)}`;
+  $("pot").innerHTML = v.pot ? `${fmt(v.pot)}<small>בקופה</small>` : "";
+  const board = v.board || [];
+  if (board.length > last.board || v.hand_no !== last.hand) $("board").innerHTML = board.map((c) => card(c)).join("");
+  if (board.length > last.board) FX("bb_card", 0.6);
+  const showdown = v.street === "done";
+  $("seats").innerHTML = [0, 1, 2, 3, 4].map((i) => {
+    const s = v.seats[i], [x, y] = POS[i];
+    if (!s) { const o = (v.out || []).find((q) => q.seat === i); return ""; }
+    const mine = i === v.me, cls = ["seat", mine ? "me" : "", v.to_act === i && !showdown && v.status === "running" ? "turn" : "", s.folded ? "fold" : "", !s.in_hand && s.stack === 0 ? "out" : ""].join(" ");
+    const hole = s.in_hand && !s.folded ? (s.hole && s.hole.length ? s.hole.map((c) => card(c, !mine)).join("") : mine ? "" : card(null, true) + card(null, true)) : "";
+    const holeCss = mine ? "" : i <= 1 ? "left:-36px" : i >= 4 ? "right:-36px" : i === 2 ? "left:-36px" : "right:-36px";
+    const [bx, by] = BET[i];
+    return `<div class="${cls}" style="left:${x}px;top:${y}px">${v.dealer === i ? '<span class="tag">D</span>' : ""}${said[i] ? `<span class="said">${said[i]}</span>` : ""}
+      <img class="av" src="${mine ? "img/brand/favicon.png?v=2" : `img/ch/bot_${s.bot}.webp?v=1`}" alt=""><div class="nm">${mine ? "אתה" : s.name}<b>${s.allin ? "ALL-IN" : fmt(s.stack)}</b></div>
+      ${hole ? `<div class="hole" style="${holeCss}">${hole}</div>` : ""}${s.bet ? `<span class="bet" style="left:${bx}px;top:${by}px">${fmt(s.bet)}</span>` : ""}</div>`;
+  }).join("");
+  $("win").textContent = showdown && v.result ? winText(v) : "";
+  upd();
+}
+function winText(v) {
+  const r = v.result, ids = Object.keys(r.won || {}).map(Number);
+  const names = ids.map((i) => i === v.me ? "אתה" : (v.seats[i] || {}).name || "").filter(Boolean);
+  if (!names.length) return "";
+  const hand = r.hands && r.hands[ids[0]] ? r.hands[ids[0]] : "";
+  return `🏆 ${names.join(" + ")} · ${fmt(Object.values(r.won).reduce((a, b) => a + b, 0))}${hand ? " · " + hand : ""}`;
+}
+// what each bot just did, read from the change in its bet
+function actions(prev, v) {
+  if (v.hand_no !== last.hand) { said = {}; return; }
+  if (v.street !== last.street) said = {};
+  for (const i in v.seats) {
+    const s = v.seats[i], p = prev[i]; if (!p || +i === v.me) continue;
+    if (s.folded && !p.folded) said[i] = "ויתור";
+    else if (s.bet > p.bet) { said[i] = s.allin ? "אול-אין!" : s.bet > p.cur ? "העלאה" : "השוואה"; FX("bb_robot", 0.35); }
+    else if (v.to_act !== last.toAct && +i === last.toAct && s.bet === p.bet && !s.folded) said[i] = "צ׳ק";
+  }
+}
+function finish() {
+  clearInterval(timer); timer = null; const p = run.place;
+  if (p === 1) { FX("bb_point", 0.9); try { SFX.win(true); } catch (e) {} }
+  else if (p <= 3) FX("bb_point", 0.7);
+  const t = p === 1 ? "🏆 ניצחת בטורניר!" : p === 2 ? "🥈 מקום שני!" : p === 3 ? "🥉 מקום שלישי" : `מקום ${p}`;
+  msg(`<h3>${t}</h3><p${run.season_pts ? "" : ' class="no"'}>${run.season_pts ? `+${run.season_pts} נקודות לעונה` : "הפעם בלי נקודות. מקומות 1–3 מקבלים 30 / 15 / 5"}</p>
+    <div class="btns2">${run.left_today > 0 ? `<button id="again">עוד טורניר (נשארו ${run.left_today})</button>` : ""}<a href="challenges.html">לאתגרים</a></div>`);
+  const a = $("again"); if (a) a.onclick = start;
+}
+async function tick() {
+  if (!run || busy) return;
+  const { data, error } = await db.rpc("pbt_state", { p_run: run.id }); if (error || !data) return;
+  const prev = {}; for (const i in run.seats || {}) prev[i] = { ...run.seats[i], cur: run.current_bet };
+  actions(prev, data);
+  if (data.street === "done" && last.street !== "done" && data.result) FX("bb_point", 0.5);
+  if (data.hand_no !== last.hand && last.hand) FX("bb_card", 0.5);
+  run = data; draw();
+  if (myTurn() && last.toAct !== run.me) FX("bb_pick", 0.5);
+  last = { street: run.street, board: (run.board || []).length, hand: run.hand_no, toAct: run.to_act };
+  if (run.status === "done") finish();
+}
+setInterval(() => { if (!myTurn() || !run.deadline) { $("tm").style.setProperty("--w", "0%"); return; }
+  const left = (new Date(run.deadline) - Date.now()) / 1000; $("tm").style.setProperty("--w", Math.max(0, Math.min(100, left / 25 * 100)) + "%"); }, 250);
+async function act(a) {
+  if (!myTurn() || busy) return; busy = true; upd();
+  const me = run.seats[run.me], toCall = run.current_bet - me.bet;
+  let action = a, amount = 0;
+  if (a === "call") action = toCall <= 0 ? "check" : "call";
+  if (a === "raise") { amount = raiseTo(); action = amount >= me.stack + me.bet ? "allin" : "raise"; }
+  FX(a === "fold" ? "bb_card" : "bb_pick", 0.6);
+  said[run.me] = "";
+  const { data, error } = await db.rpc("pbt_act", { p_run: run.id, p_action: action, p_amount: amount });
+  busy = false; if (!error && data) { run = data; draw(); last.toAct = run.to_act; }
+  else upd();
+}
+$("fold").onclick = () => act("fold"); $("call").onclick = () => act("call"); $("raise").onclick = () => act("raise");
+async function start() {
+  msg(""); const { data, error } = await db.rpc("pbt_start");
+  if (error) { const m = error.message || "";
+    msg(`<h3>${m.includes("daily_limit") ? "סיימת להיום" : "אי אפשר להתחיל עכשיו"}</h3><p class="no">${m.includes("daily_limit") ? "3 טורנירים ביום. מחר נפתחים שוב (בחצות)." : "נסה שוב בעוד רגע."}</p><div class="btns2"><a href="challenges.html">לאתגרים</a></div>`); return; }
+  run = data; last = { street: null, board: 0, hand: 0, toAct: null }; said = {}; $("board").innerHTML = ""; draw(); FX("bb_robot", 0.6);
+  if (!timer) timer = setInterval(tick, 700);
+}
+(async () => {
+  const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
+  if (window.GC_LOADER) GC_LOADER.done();
+  upd();
+  msg(`<h3>טורניר הבוטים</h3><p class="no">אתה מול 4 בוטים, 1,500 צ׳יפים לכל אחד. הבליינדים עולים כל יד, מי שנגמרים לו הצ׳יפים בחוץ. מקום 1–3: ‏30 / 15 / 5 נקודות לעונה.</p><div class="btns2"><button id="go">יאללה</button><a href="challenges.html">חזרה</a></div>`);
+  $("go").onclick = () => { FX("bb_pick"); start(); };
+})();
+</script>
+</body>
+</html>

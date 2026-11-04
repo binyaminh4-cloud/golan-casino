@@ -1,0 +1,39 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><style>
+*{box-sizing:border-box}body{margin:0;width:844px;height:390px;overflow:hidden;font-family:Heebo,Arial,sans-serif;color:#13233a;background:#c3cfdb;position:relative}
+.tower{position:absolute;right:14px;top:14px;bottom:14px;width:150px;display:flex;flex-direction:column-reverse;gap:6px}
+.lv{flex:1;display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:10px;border:1px solid #b06bff44;background:#ffffffcc;font:700 12px Heebo;color:#4a5f7a}
+.lv img{width:44px;height:44px;border-radius:50%;object-fit:cover;object-position:50% 20%;background:#000;filter:grayscale(.8) brightness(.6)}
+.lv.done{opacity:.55}.lv.done img{filter:none}.lv.done b::after{content:" ✓";color:#7dff9a}
+.lv.now{border:2px solid #ff4fd8;background:#ff4fd822;color:#fff;box-shadow:0 0 20px #ff4fd888}.lv.now img{filter:none;box-shadow:0 0 12px #ff4fd8}
+.lv.boss{border-color:#ffd36e66}.lv b{display:block;font:800 13px Heebo}
+.arena{position:absolute;left:14px;right:180px;top:14px;bottom:14px}
+.enemy{position:absolute;left:0;bottom:0;height:300px;filter:drop-shadow(0 0 22px #ff4fd877)}
+.bars{position:absolute;top:0;left:200px;right:0;display:grid;gap:8px}
+.bar{display:flex;align-items:center;gap:8px;font:800 13px Heebo;background:#ffffffcc;padding:4px 8px;border-radius:99px}.bar span{width:60px}.bar i{flex:1;height:14px;border-radius:99px;background:#ffffff14;overflow:hidden;position:relative}
+.bar i::after{content:"";position:absolute;inset:0 auto 0 0;width:var(--w);border-radius:99px;background:linear-gradient(90deg,#29d8ff,#7ff0ff);box-shadow:0 0 12px #29d8ff}
+.bar.b i::after{background:linear-gradient(90deg,#ff4fd8,#ff9be9);box-shadow:0 0 12px #ff4fd8}.bar em{font:900 15px Inter;font-style:normal;width:56px;direction:ltr}
+.die{position:absolute;left:290px;top:92px;width:110px;height:110px;border-radius:22px;border:2px solid #7ff0ff;background:linear-gradient(145deg,#29d8ff33,#29d8ff08);box-shadow:0 0 40px #29d8ff88,inset 0 0 30px #29d8ff44;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:16px;transform:rotate(-12deg);animation:fl 1.8s ease-in-out infinite alternate}
+.die i{width:16px;height:16px;border-radius:50%;background:#e8fdff;box-shadow:0 0 10px #7ff0ff;place-self:center}
+@keyframes fl{to{transform:rotate(-6deg) translateY(-6px)}}
+.pot{position:absolute;left:420px;top:105px;text-align:center}.pot b{display:block;font:900 52px Inter;color:#1477d6;text-shadow:0 0 20px #29d8ff;direction:ltr}.pot small{font:700 13px Heebo;color:#2a4a72}
+.btns{position:absolute;left:250px;right:0;bottom:30px;display:flex;gap:12px;justify-content:center}
+.bt{padding:12px 26px;border-radius:14px;font:900 20px Heebo;border:2px solid #1477d6;background:#1477d6;color:#fff;box-shadow:0 0 18px #29d8ff66}
+.bt.keep{border-color:#148a3a;background:#148a3a;box-shadow:0 0 18px #148a3a66;color:#fff}
+.rule{position:absolute;left:250px;right:0;bottom:4px;text-align:center;font:600 12px Heebo;color:#2a4a72;font-weight:800}
+.tagm{position:absolute;top:6px;left:8px;background:#e56b6f;color:#fff;font:700 11px Heebo;padding:2px 8px;border-radius:99px;z-index:5}
+.scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,#ffffff05 0 1px,transparent 1px 3px);pointer-events:none}
+</style></head><body><link rel="stylesheet" href="hall.css"><div class="hall"><i class="l"></i><i class="r"></i><b class="l"></b><b class="r"></b></div>
+<div class="tower">
+ <div class="lv done"><img src="../img/ch/bot_1.webp"><div><b>שלב 1</b>בוט טיפון</div></div>
+ <div class="lv done"><img src="../img/ch/bot_2.webp"><div><b>שלב 2</b>הלורד</div></div>
+ <div class="lv now"><img src="../img/ch/bot_3.webp"><div><b>שלב 3</b>הכריש</div></div>
+ <div class="lv"><img src="../img/ch/bot_4.webp"><div><b>שלב 4</b>הצל</div></div>
+ <div class="lv boss"><img src="../img/ch/bot_5.webp"><div><b>הבוס</b>המלך</div></div>
+</div>
+<div class="arena"><img class="enemy" src="../img/ch/bot_3.webp">
+ <div class="bars"><div class="bar"><span>אתה</span><i style="--w:93%"></i><em>28/30</em></div><div class="bar b"><span>הכריש</span><i style="--w:83%"></i><em>25/30</em></div></div>
+ <div class="die"><i></i><i style="opacity:0"></i><i></i><i style="opacity:0"></i><i style="opacity:0"></i><i style="opacity:0"></i><i></i><i style="opacity:0"></i><i></i></div>
+ <div class="pot"><small>בתור הזה</small><b>14</b><small>זרקת 3 פעמים</small></div>
+ <div class="btns"><div class="bt">🎲 זרוק</div><div class="bt keep">✋ עצור ושמור</div></div>
+ <div class="rule">זורקים ואוספים. יצא 1? התור נשרף. ראשון ל־30 עולה שלב.</div>
+</div><div class="scan"></div><span class="tagm">סקיצה</span></body></html>
