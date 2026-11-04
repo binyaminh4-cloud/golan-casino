@@ -15,6 +15,7 @@
  const betting=ZLM_BETS, autoPlan=new betting.AutoPlan();
  let selectedChip='100',lastLayout={},candidate=null,rackKey='',pendingAuto=false,batchReady=preview;
  let state=null, offset=0, timer=null, fetching=false, acting=false, user=null, pending=null, bonusKey='', lastBallKey='', stopped=false, epoch=0, spinId='', spinAnimations=[];
+ const boostOf=s=>Number(s?.boosts?.[s?.cell]||1);   // the wheel multiplier that landed on the bonus / winning cell
  function now(){return Date.now()+offset;}
  function seconds(){return preview?20:state?Math.max(0,(Date.parse(state.deadline)-now())/1000):0;}
  function amount(){const available=BigInt(state?.balance||0),chip=BigInt(selectedChip);if(available<=0n)throw Error('אין יתרה מספיקה');return (chip<available?chip:available).toString();}
@@ -124,7 +125,26 @@
   $('myBets').replaceChildren();for(const [key,n] of Object.entries(s.bets)){const bt=document.createElement('button');bt.textContent=labels[key]+' '+money(n)+' ✕';bt.onclick=()=>sendBet(key,true);$('myBets').append(bt);}
   const last=s.last_result;$('receipt').textContent=s.phase==='summary'&&last?.round===s.id?'זכייה כוללת '+money(last.payout):'';
   if(bonus){const key=[s.id,s.spot,s.phase,JSON.stringify(b.picks),b.extra,s.draws,JSON.stringify(b.targets)].join('|');if(key!==bonusKey){bonusKey=key;renderBonus();}}
+  if(s.phase==='summary'&&s.spot)showResult(s);
   drawRack();renderControls();updateClock();
+ }
+ // End of round: one result chip for everyone, e.g. "פ ×25" or "הכדורים של ביניו ×40". If the wheel multiplier hit that cell,
+ // the base shows first and then counts up to base × multiplier with ticks (display only; the payout is the server's).
+ let resultKey='';
+ function showResult(s){
+  const key=s.id+':'+s.spot;if(resultKey===key)return;resultKey=key;
+  const spot=s.spot,w=boostOf(s),bonus=['yoav','range','vip','balls'].includes(spot);
+  const base=spot==='one'?1:bonus?Number(s.bonus?.profit||0):spot[0]==='b'?42:25;
+  const name=spot==='one'?'1':bonus?labels[spot]:labels[spot].split(' · ')[0];
+  document.querySelector('.zres')?.remove();const el=document.createElement('div');el.className='zres';el.setAttribute('role','status');
+  const n=document.createElement('span');n.textContent=name;const v=document.createElement('b');v.dir='ltr';v.textContent='×'+base;el.append(n,v);
+  if(w>1){const t=document.createElement('i');t.dir='ltr';t.textContent='×'+w;el.append(t);}document.body.append(el);
+  if(w>1&&base>0){const to=base*w,t0=performance.now()+700,dur=1400;let lastTick=0;
+   const step=t=>{if(!el.isConnected)return;const k=Math.max(0,Math.min(1,(t-t0)/dur)),e=1-Math.pow(1-k,3),val=Math.round(base+(to-base)*e);v.textContent='×'+val;
+    if(k>0&&t-lastTick>90&&k<1){lastTick=t;try{SFX.tick();}catch{}}
+    if(k<1)requestAnimationFrame(step);else{el.classList.add('done');try{SFX.win(to>=50);}catch{}}};requestAnimationFrame(step);}
+  else{el.classList.add('done');try{if(base>0)SFX.win(base>=25);}catch{}}
+  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),500);},5200);
  }
  function heading(text){const h=document.createElement('h2');h.textContent=text;$('bonus').append(h);}
  function note(text){const p=document.createElement('div');p.className='bonus-info';p.textContent=text;$('bonus').append(p);}
@@ -136,13 +156,14 @@
   else if(s.phase==='summary')note('הבונוס הושלם והתוצאה נשמרה. חוזרים יחד לגלגל.');
   else if(s.phase==='extra'&&!extra)note('ממתינים לשחקנים שזכו בירייה נוספת');
   else note(s.spot==='vip'?'בחרו שלוש מטרות שונות · נבחרו '+selected.length+' מתוך 3':extra?'בחרו מטרה נוספת':selected.length?'הבחירה נשמרה בשרת':s.spot==='yoav'?'בחרו כוס':s.spot==='balls'?'בחרו צבע':'בחרו מטרה');
+  if(boostOf(s)>1&&s.spot!=='balls'){const m=document.createElement('div');m.className='bx-boost bonus-boost';m.textContent='כולל מכפיל הגלגל ×'+boostOf(s);box.append(m);}
   if(s.spot==='range'||s.spot==='vip'){
    box.classList.add('range-scene');const grid=document.createElement('div');grid.className='targets';
    for(const t of b.targets||[]){const bt=document.createElement('button'),sel=selected.includes(t.index)||b.extra===t.index;
     bt.className='target'+(sel?' selected':'')+(t.open?' open':'')+(sel&&['reveal','extra_reveal'].includes(s.phase)?' hit':'');
-    bt.setAttribute('aria-label',t.open?'מטרה '+(t.index+1)+' · פי '+t.value:'מטרה '+(t.index+1));
+    bt.setAttribute('aria-label',t.open?'מטרה '+(t.index+1)+' · פי '+t.value*boostOf(s):'מטרה '+(t.index+1));
     bt.disabled=!(can&&selected.length<(s.spot==='vip'?3:1)&&!selected.includes(t.index)||extra&&b.extra==null&&!selected.includes(t.index));
-    if(t.open){bt.append(image('range-'+people[t.person],'person'));const prize=document.createElement('span');prize.className='prize';prize.textContent='×'+t.value+(s.spot==='range'&&t.value===30?' +':'');bt.append(prize);}
+    if(t.open){bt.append(image('range-'+people[t.person],'person'));const prize=document.createElement('span');prize.className='prize';prize.textContent='×'+t.value*boostOf(s)+(s.spot==='range'&&t.value===30?' +':'');bt.append(prize);}
     bt.append(image('range-cover','cover'));bt.onclick=()=>choose(t.index);grid.append(bt);
    }box.append(grid);
   }else if(s.spot==='yoav'){
@@ -152,33 +173,46 @@
    }box.append(cups);
   }else renderBalls(can);
  }
+ // Balls bonus (2026-11 layout, approved sketch): blacks counter on top, one card per colour with a 12-step bar and the ×1000 max,
+ // decorative balls looping inside the drum, one window with the last ball out, the last 5 underneath, the host beside the drum.
+ // Values are shown with the wheel multiplier already applied (display only; the server pays profit × the wheel multiplier).
  function renderBalls(can){
-  const s=state,b=s.bonus,box=$('bonus');box.classList.add('balls-scene');const layout=document.createElement('div');layout.className='balls-layout';
-  const levels=b.levels||[0,0,0],values=b.values||[5,5,5],events=b.events||[],chosen=b.picks?.[0];
-  const ladders=document.createElement('div');ladders.className='ladders';
-  for(let c=0;c<3;c++){const l=document.createElement('div');l.className='ladder'+(chosen===c?' selected':'');const bt=document.createElement('div');bt.className='ladder-label '+['g','p','o'][c];bt.textContent=['ירוק','סגול','כתום'][c];l.append(bt);
-   for(let i=11;i>=0;i--){const step=document.createElement('div');step.className='step '+['g','p','o'][c]+(levels[c]===i?' active':'');step.textContent='×'+ladder[i];l.append(step);}ladders.append(l);
-  }layout.append(ladders,image('balls-host','ball-host'));
-  const drum=document.createElement('div');drum.className='drum';drum.append(image('balls-drum'));const deco=document.createElement('div');deco.className='drum-balls';
-  // Decoration only. The visible sequence and remaining counts always use server events.
-  for(let i=0;i<Math.min(24,110-events.length);i++){const im=image('balls-ball_'+(i%6===0?'black':colors[(i-1)%3]));const row=Math.floor(i/5);im.style.cssText=`left:${(i%5)*18+(row%2?6:0)}%;bottom:${2+row*16}%;animation-delay:-${i*.17}s`;deco.append(im);}
-  if(s.phase==='balls')deco.classList.add('mixing');
-  const glass=document.createElement('div');glass.className='glass-front';drum.append(deco,glass);layout.append(drum,image('balls-podium','podium'),image('balls-outlet_tray','outlet'));
-  const counter=document.createElement('div');counter.className='black-count';counter.setAttribute('aria-label',(b.black||0)+' שחורים מתוך 4');for(let i=0;i<4;i++){const el=document.createElement('i');if(i<(b.black||0))el.className='lit';counter.append(el);}layout.append(counter);
-  const collected=document.createElement('div');collected.className='collected';events.forEach((v,i)=>{const im=image('balls-ball_'+(v===0?'black':colors[(v-1)%3]));im.title='שליפה '+(i+1)+(v>3?' · פי 2':'');collected.append(im);});layout.append(collected);
-  if(events.length){const key=s.id+':'+events.length;if(lastBallKey!==key){lastBallKey=key;const v=events.at(-1),el=document.createElement('div');el.className='draw-ball';el.append(image('balls-ball_'+(v===0?'black':colors[(v-1)%3])));if(v>3){const txt=document.createElement('b');txt.textContent='×2';el.append(txt);}const elapsed=Math.max(0,(now()-Date.parse(s.phase_at))/1000-events.length*3);if(s.phase==='balls'&&elapsed<1.8){el.style.animationDelay=-elapsed+'s';layout.append(el);}}}
-  const caption=document.createElement('div');caption.className='balls-caption';caption.textContent='נותרו '+(110-events.length)+' כדורים · '+(b.black||0)+' שחורים מתוך 4'+(chosen!==undefined?' · הצבע שלך: '+['ירוק','סגול','כתום'][chosen]+' ×'+values[chosen]:'');layout.append(caption);box.append(layout);
+  const s=state,b=s.bonus,box=$('bonus');box.classList.add('balls-scene');const lay=document.createElement('div');lay.className='bx';
+  const w=boostOf(s),levels=b.levels||[0,0,0],values=b.values||[5,5,5],events=b.events||[],chosen=b.picks?.[0],cn=['ירוק','סגול','כתום'],ck=['g','p','o'];
+  const blacks=document.createElement('div');blacks.className='bx-blacks';blacks.setAttribute('aria-label',(b.black||0)+' שחורים מתוך 4');blacks.append(Object.assign(document.createElement('span'),{textContent:'שחורים'}));
+  for(let i=0;i<4;i++){const el=document.createElement('i');if(i<(b.black||0))el.className='lit';blacks.append(el);}lay.append(blacks);
+  if(w>1){const m=document.createElement('div');m.className='bx-boost';m.textContent='כולל מכפיל הגלגל ×'+w;lay.append(m);}
+  const cards=document.createElement('div');cards.className='bx-cards';
+  for(let c=0;c<3;c++){const card=document.createElement('div');card.className='bx-card '+ck[c]+(chosen===c?' sel':'');
+   const v=document.createElement('b');v.dir='ltr';v.textContent='×'+values[c]*w;const bar=document.createElement('div');bar.className='bx-bar';
+   for(let k=0;k<12;k++){const d=document.createElement('i');if(k<=levels[c])d.className='on';bar.append(d);}
+   const max=document.createElement('small');max.className='bx-max';max.dir='ltr';max.textContent='max ×'+1000*w;
+   card.append(Object.assign(document.createElement('small'),{textContent:cn[c]}),v,bar,max);if(chosen===c)card.append(Object.assign(document.createElement('span'),{className:'bx-mine',textContent:'הצבע שלך'}));cards.append(card);}
+  lay.append(cards);
+  const stage=document.createElement('div');stage.className='bx-stage';
+  const drum=document.createElement('div');drum.className='bx-drum';const sw=document.createElement('div');sw.className='bx-swirl'+(s.phase==='balls'?' on':'');
+  // decoration only: the real sequence is the server's events
+  for(let i=0;i<14;i++){const im=image('balls-ball_'+['green','purple','orange','black'][i%4]);im.style.setProperty('--r',(70+(i*37)%190)+'%');im.style.animationDuration=(1.3+(i%5)*.27)+'s';im.style.animationDelay=-(i*.31)+'s';sw.append(im);}
+  drum.append(sw,image('balls-drum','bx-glass'));stage.append(drum,image('balls-host','bx-host'));
+  const win=document.createElement('div');win.className='bx-next';const hole=document.createElement('div');hole.className='bx-hole';
+  if(events.length){const v=events.at(-1),key=s.id+':'+events.length;hole.append(image('balls-ball_'+(v===0?'black':colors[(v-1)%3]),lastBallKey!==key?'pop':''));lastBallKey=key;
+   if(v>3)hole.append(Object.assign(document.createElement('b'),{textContent:'×2'}));if(v===0)hole.classList.add('black');}
+  win.append(hole,Object.assign(document.createElement('small'),{textContent:events.length?'הכדור שיצא · '+events.length+' מתוך 110':'הכדורים מתערבבים'}));stage.append(win);lay.append(stage);
+  const hist=document.createElement('div');hist.className='bx-hist';if(events.length>1){hist.append(Object.assign(document.createElement('span'),{textContent:'אחרונים'}));events.slice(-6,-1).reverse().forEach(v=>hist.append(image('balls-ball_'+(v===0?'black':colors[(v-1)%3]))));}
+  lay.append(hist);box.append(lay);
   if(can&&chosen===undefined){const overlay=document.createElement('div');overlay.className='ball-picker';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-labelledby','ballPickerTitle');
    const panel=document.createElement('div');panel.className='ball-picker-panel';const title=document.createElement('h3');title.id='ballPickerTitle';title.textContent='בחרו את צבע הכדור שלכם';panel.append(title);
    const choices=document.createElement('div');choices.className='ball-choices';const message=document.createElement('p');message.className='ball-picker-error';message.setAttribute('role','status');
-   colors.forEach((color,c)=>{const bt=document.createElement('button');bt.type='button';bt.className='ball-choice';bt.setAttribute('aria-label','בחירת כדור '+['ירוק','סגול','כתום'][c]);bt.append(image('balls-ball_'+color));const label=document.createElement('span');label.textContent=['ירוק','סגול','כתום'][c];bt.append(label);bt.onclick=async()=>{message.textContent='';choices.querySelectorAll('button').forEach(x=>x.disabled=true);await choose(c);if(overlay.isConnected&&state?.phase==='choice'&&!state.bonus.picks?.length){message.textContent='הבחירה לא נשמרה. אפשר לנסות שוב.';choices.querySelectorAll('button').forEach(x=>x.disabled=false);}};choices.append(bt);});
+   colors.forEach((color,c)=>{const bt=document.createElement('button');bt.type='button';bt.className='ball-choice';bt.setAttribute('aria-label','בחירת כדור '+cn[c]);bt.append(image('balls-ball_'+color));const label=document.createElement('span');label.textContent=cn[c];bt.append(label);bt.onclick=async()=>{message.textContent='';choices.querySelectorAll('button').forEach(x=>x.disabled=true);await choose(c);if(overlay.isConnected&&state?.phase==='choice'&&!state.bonus.picks?.length){message.textContent='הבחירה לא נשמרה. אפשר לנסות שוב.';choices.querySelectorAll('button').forEach(x=>x.disabled=false);}};choices.append(bt);});
    panel.append(choices,message);overlay.append(panel);box.append(overlay);
   }
  }
  function updateClock(){
-  const remaining=Math.ceil(seconds());$('clock').textContent=state&&!preview?remaining+'″':'';if(state&&!preview)window.ZLM_AUDIO?.countdown(remaining);
+  // close-up on the pointer for the last ~2 seconds of the wheel (display only)
+  const sc=document.querySelector('.wheel-scene');if(sc)sc.classList.toggle('closeup',!!state&&state.phase==='spin'&&(Date.parse(state.deadline)-now())<2200&&!matchMedia('(prefers-reduced-motion:reduce)').matches);
+  const remaining=Math.ceil(seconds()),quiet=state?.phase==='summary';$('clock').textContent=state&&!preview&&!quiet?remaining+'″':'';if(state&&!preview&&!quiet)window.ZLM_AUDIO?.countdown(remaining);
   $('mainGame').classList.toggle('spin-view',!!state&&(state.phase==='spin'||state.phase==='summary'||state.phase==='betting'&&!preview&&remaining<=0));
-  if(state?.spot==='yoav'&&state.bonus.cups){const elapsed=Math.max(0,(now()-Date.parse(state.phase_at))/1000),done=state.phase==='summary';state.bonus.cups.forEach((v,i)=>{const n=done?v:Math.min(v,Math.floor(elapsed*5)),rect=document.querySelector(`[data-liquid="${i}"]`),num=document.querySelector(`[data-cup-number="${i}"]`);if(num)num.textContent='×'+n;if(rect){const h=60*Math.min(1,n/v);rect.setAttribute('y',70-h);rect.setAttribute('height',h);}});}
+  if(state?.spot==='yoav'&&state.bonus.cups){const elapsed=Math.max(0,(now()-Date.parse(state.phase_at))/1000),done=state.phase==='summary';state.bonus.cups.forEach((v,i)=>{const n=done?v:Math.min(v,Math.floor(elapsed*5)),rect=document.querySelector(`[data-liquid="${i}"]`),num=document.querySelector(`[data-cup-number="${i}"]`);if(num)num.textContent='×'+n*boostOf(state);if(rect){const h=60*Math.min(1,n/v);rect.setAttribute('y',70-h);rect.setAttribute('height',h);}});}
   if(state&&seconds()<=0)renderControls();
  }
 
