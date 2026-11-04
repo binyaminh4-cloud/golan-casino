@@ -5,17 +5,17 @@ create or replace function t_rig(u uuid, cards text[]) returns void language sql
 create or replace function t_bal(u uuid) returns bigint language sql as $$ select balance from wallets where user_id = u $$;
 select set_config('request.jwt.sub', '00000000-0000-0000-0000-00000000000a', false);
 update wallets set balance = 100000 where user_id = '00000000-0000-0000-0000-00000000000a';
--- Fisher v2: strikes on ranks, same-hand multiplier, fee 50%
+-- Fisher v2: strikes on ranks, same-hand multiplier, fee 20% (0109)
 select t_assert(bj_hand_mult('["KS","7H"]','{"7":5,"A":3}') = 5 and bj_hand_mult('["KS","9H"]','{"7":5}') = 1 and bj_hand_mult('["7S","AH"]','{"7":5,"A":8}') = 8, 'highest struck multiplier in hand');
 do $$ declare s jsonb; i int; begin
   for i in 1..2000 loop s := bj_strikes();
     if (select count(*) from jsonb_object_keys(s)) not between 2 and 3 or exists (select 1 from jsonb_each_text(s) where value::int not between 2 and 25) then raise exception 'bad strikes %', s; end if; end loop;
   perform t_assert(true, 'strikes: 2-3 ranks, 2x-25x');
 end $$;
--- 1. charge bet + 50% fee; strikes visible from the deal
+-- 1. charge bet + 20% fee; strikes visible from the deal
 select t_rig('00000000-0000-0000-0000-00000000000a', array['KS','7H','QD','KC']);   -- player 20 (K,Q), dealer 17
 select t_assert(jsonb_typeof(bj_deal(100,0,0,0,0,'L1','lightning')->'strikes') = 'object', 'strikes returned on deal');
-select t_assert(t_bal('00000000-0000-0000-0000-00000000000a') = 99850, 'bet + 50% fee charged (150)');
+select t_assert(t_bal('00000000-0000-0000-0000-00000000000a') = 99880, 'bet + 20% fee charged (120)');
 update bj_rounds set strikes = '{"K":10}' where ref = 'L1';
 select bj_action((select id from bj_rounds where ref='L1'),'stand');
 select t_assert(t_bal('00000000-0000-0000-0000-00000000000a') = 99850 + 200 + 900, 'win with struck K x10: profit 100 -> 1000');

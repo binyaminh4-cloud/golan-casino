@@ -314,8 +314,8 @@ function renderBets() {
   $("dealBtn").disabled = !bets.main; $("rebetBtn").disabled = !lastBets;
   if (LIT) { let ft = $("feeTag"); if (!ft) { ft = document.createElement("div"); ft.id = "feeTag"; ft.className = "feetag"; $("stage").appendChild(ft); }
     ft.style.left = SPOTS[0].x + 150 + "px"; ft.style.top = SPOTS[0].y + "px"; ft.hidden = !bets.main;
-    ft.innerHTML = `⚡ עמלת ברק<b class="num">+${fmt(Math.ceil(bets.main / 2))}</b><small>חצי מההימור</small>`; }
-  if (LIT) { const f = Math.ceil(bets.main / 2); $("betSum").textContent = bets.main ? `הימור ${fmt(bets.main)} + עמלת ברק ${fmt(f)} = ${fmt(bets.main + f)}` : "בחר צ׳יפ ולחץ על העיגול. פישר מפיל ברקים על 2–3 קלפים, וניצחון עם קלף כזה ביד מכפיל את הרווח ×2 עד ×25."; return; }
+    ft.innerHTML = `⚡ עמלת ברק<b class="num">+${fmt(Math.ceil(bets.main / 5))}</b><small>20% מההימור</small>`; }
+  if (LIT) { const f = Math.ceil(bets.main / 5); $("betSum").textContent = bets.main ? `הימור ${fmt(bets.main)} + עמלת ברק ${fmt(f)} = ${fmt(bets.main + f)}` : "בחר צ׳יפ ולחץ על העיגול. פישר מפיל ברקים על 2–3 קלפים, וניצחון עם קלף כזה ביד מכפיל את הרווח ×2 עד ×25."; return; }
   $("betSum").textContent = Object.values(bets).some(Boolean) ? "סה״כ " + fmt(Object.values(bets).reduce((a, b) => a + b, 0)) : "בחר צ׳יפ ולחץ על העיגול הגדול. העיגולים הקטנים הם הימורים צדדיים: PP זוג מושלם · 21+3 · LL ליידיז מזל · BB באסטר";
 }
 $("clearBtn").onclick = () => { Object.keys(bets).forEach((k) => bets[k] = 0); renderBets(); };
@@ -409,7 +409,7 @@ $("rulesBtn").onclick = () => $("rules").showModal();
 if (LIT) {
   document.body.classList.add("lit"); document.title = "בלאק ג׳ק הכפולות של פישר · גולן קזינו";
   const r = $("rules"); r.querySelector("h2").textContent = "בלאק ג׳ק הכפולות של פישר · חוקים";
-  r.querySelector("h2").insertAdjacentHTML("afterend", "<p><b>⚡ איך זה עובד:</b></p><p>1. שמים הימור. כל יד עולה <b>הימור + עמלת ברק של חצי מההימור</b> (₪100 + ₪50).</p><p>2. לפני החלוקה די־ג׳יי פישר <b>מפיל ברקים על 2–3 ערכי קלפים</b>, כל אחד עם מכפיל ×2 עד ×25. למשל: A ×5 · 7 ×3. הקלפים האלה זוהרים בזהב כשהם יוצאים.</p><p>3. משחקים בלאק ג׳ק רגיל. <b>אם ניצחת ויש לך ביד קלף מוכה ברק, הרווח מוכפל מיד</b> במכפיל הכי גבוה שביד. ₪100 רווח עם אס ×5 = ₪500. בלאק ג׳ק (₪150) עם ×5 = ₪750.</p><p>אין הימורים צדדיים. החזר משוער לשחקן: כ־98%.</p>");
+  r.querySelector("h2").insertAdjacentHTML("afterend", "<p><b>⚡ איך זה עובד:</b></p><p>1. שמים הימור. כל יד עולה <b>הימור + עמלת ברק של 20% מההימור</b> (₪100 + ₪20).</p><p>2. לפני החלוקה די־ג׳יי פישר <b>מפיל ברקים על 2–3 ערכי קלפים</b>, כל אחד עם מכפיל ×2 עד ×25. למשל: A ×5 · 7 ×3. הקלפים האלה זוהרים בזהב כשהם יוצאים.</p><p>3. משחקים בלאק ג׳ק רגיל. <b>אם ניצחת ויש לך ביד קלף מוכה ברק, הרווח מוכפל מיד</b> במכפיל הכי גבוה שביד. ₪100 רווח עם אס ×5 = ₪500. בלאק ג׳ק (₪150) עם ×5 = ₪750.</p><p>אין הימורים צדדיים. החזר משוער לשחקן: כ־98%.</p>");
 }
 // ---------- start ----------
 // ---------- challenge HUD: hand count, challenge chips, the score to beat ----------

@@ -3,7 +3,7 @@ const $ = (id) => document.getElementById(id);
 const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e12 ? "₪" + +(n / 1e12).toFixed(2) + "T" : a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };   // ₪1.58M · ₪2.4B · ₪1T
 const PREVIEW = /[?#&]preview/.test(location.href);
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
-const PAY = { fiber: [750000, 1200000, 1650000, 18000000], fisher: [1000000, 1500000, 2000000, 12500000], tamer: [1000000, 1500000, 2000000, 12500000], driver: [560000, 840000, 1120000, 14000000], dealer: [170000, 250000, 330000] };
+const PAY = { fiber: [750000, 1200000, 1650000, 100000000], fisher: [1000000, 1500000, 2000000, 12500000], tamer: [1000000, 1500000, 2000000, 12500000], driver: [560000, 840000, 1120000, 14000000], dealer: [170000, 250000, 330000] };
 const LVL = ["⭐ קל", "⭐⭐ בינוני", "⭐⭐⭐ קשה", "🔥 אקסטרים"];
 const LVL_TXT = {
   driver: ["", "", "", "פספוס תחנה = פסילה"],

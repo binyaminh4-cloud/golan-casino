@@ -16,9 +16,11 @@
  let selectedChip='100',lastLayout={},candidate=null,rackKey='',pendingAuto=false,batchReady=preview;
  let state=null, offset=0, timer=null, fetching=false, acting=false, user=null, pending=null, bonusKey='', lastBallKey='', stopped=false, epoch=0, spinId='', spinAnimations=[];
  const boostOf=s=>Number(s?.boosts?.[s?.cell]||1);   // the wheel multiplier that landed on the bonus / winning cell
+ // wallet + free chips from the daily-gift streak (spent first, by the server)
+ const avail=()=>BigInt(state?.balance||0)+BigInt(state?.free_chips||0);
  function now(){return Date.now()+offset;}
  function seconds(){return preview?20:state?Math.max(0,(Date.parse(state.deadline)-now())/1000):0;}
- function amount(){const available=BigInt(state?.balance||0),chip=BigInt(selectedChip);if(available<=0n)throw Error('אין יתרה מספיקה');return (chip<available?chip:available).toString();}
+ function amount(){const available=avail(),chip=BigInt(selectedChip);if(available<=0n)throw Error('אין יתרה מספיקה');return (chip<available?chip:available).toString();}
  const errors={betting_closed:'ההימורים לסיבוב הזה ננעלו.',choice_closed:'זמן הבחירה הסתיים. השרת משלים בחירה חסרה.',invalid_bet:'ההימור אינו תקין.',invalid_amount:'הסכום גבוה מהיתרה הזמינה או מטווח הארנק.',insufficient_funds:'אין יתרה מספיקה.',not_participant:'לא הימרתם על הבונוס הזה.',invalid_pick:'הבחירה אינה זמינה.',not_signed_in:'יש להתחבר מחדש מהלובי.'};
  function errorText(e){const raw=e?.message||String(e);for(const k of Object.keys(errors))if(raw.includes(k))return errors[k];if(/zlm_|schema cache|PGRST202/.test(raw))return 'המשחק עדיין לא הופעל בשרת. יש להשלים את התקנת המשחק.';if(raw==='Failed to fetch')return 'החיבור נותק. מנסים להתחבר מחדש.';return /[\u0590-\u05ff]/.test(raw)?raw:'לא התקבל אישור לפעולה. אפשר לנסות שוב; פעולה שכבר אושרה לא תחויב פעמיים.';}
  function savePending(){try{const key='zlm_pending_'+user;if(pending)localStorage.setItem(key,JSON.stringify(pending));else localStorage.removeItem(key);}catch{}}
@@ -35,11 +37,11 @@
   if(!batchReady||acting||pending||!state||state.phase!=='betting'||seconds()<=0)return;
   const clean=betting.layout(layout),total=betting.sum(clean);
   if(total<=0n){$('error').textContent='קודם הניחו הימור אחד.';stopAuto();return;}
-  if(total>BigInt(state.balance)){$('error').textContent='אין מספיק יתרה כדי לחזור על כל ההימור.';stopAuto();return;}
+  if(total>avail()){$('error').textContent='אין מספיק יתרה כדי לחזור על כל ההימור.';stopAuto();return;}
   pendingAuto=automatic;pending={rpc:'zlm_bet_batch',p_round:state.id,p_layout:clean,p_request:crypto.randomUUID()};savePending();await retry();
  }
  function maybeAuto(){if(!autoPlan.running||!state||state.phase!=='betting'||seconds()<3||acting||pending||stopped||document.hidden||orientationBlocked()||document.querySelector('.gd,.sfx-menu:not([hidden]),dialog[open]')||betting.sum(state.bets)>0n)return;if(autoPlan.claim(state.id))repeatLayout(autoPlan.template,true);}
- function drawRack(){const rack=betting.rack(state?.balance||0),key=rack.join(',');if(!rack.includes(selectedChip))selectedChip=rack[Math.min(2,rack.length-1)];
+ function drawRack(){const rack=betting.rack(avail().toString()),key=rack.join(',');if(!rack.includes(selectedChip))selectedChip=rack[Math.min(2,rack.length-1)];
   if(rackKey!==key){rackKey=key;$('chips').replaceChildren();for(const value of rack){const b=document.createElement('button');b.className='chip-choice';b.dataset.value=value;b.title=money(value);b.setAttribute('aria-label','ז׳יטון '+money(value));b.textContent=short(value);GC_CHIPIFY(b,Number(value));b.onclick=()=>{selectedChip=value;drawRack();window.ZLM_AUDIO?.effect('tick');};$('chips').append(b);}}
   $('chips').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.value===selectedChip)));
  }
@@ -93,7 +95,7 @@
  function renderControls(){
   const active=!!state&&state.phase==='betting'&&seconds()>0&&!acting&&!pending;
   document.querySelectorAll('.bet-spot').forEach(b=>b.disabled=!active);
-  $('chips').querySelectorAll('button').forEach(b=>b.disabled=!active||BigInt(state?.balance||0)<=0n);
+  $('chips').querySelectorAll('button').forEach(b=>b.disabled=!active||avail()<=0n);
   $('cancel').disabled=!active||betting.sum(state?.bets)<=0n;
   $('repeat').disabled=!batchReady||!active||betting.sum(lastLayout)<=0n;$('auto').disabled=!batchReady&&!autoPlan.running;
   $('retry').hidden=!pending;$('retry').disabled=acting;
@@ -101,7 +103,7 @@
  }
  function render(){
   const s=state,b=s.bonus||{};const bonus=['yoav','range','vip','balls'].includes(s.spot)&&!['betting','spin'].includes(s.phase);
-  $('wallet').textContent=money(s.balance);$('totalBet').textContent='הימור כולל: '+money(betting.sum(s.bets));
+  $('wallet').textContent=money(s.balance);{const fc=BigInt(s.free_chips||0);let t=$('freeChips');if(!t){t=document.createElement('b');t.id='freeChips';t.className='free-chips';$('wallet').after(t);}t.hidden=fc<=0n;t.textContent='🎟️ '+short(fc)+' צ׳יפים חינם';t.title='צ׳יפים מתנת הרצף השבועי. מהמרים בהם קודם, לפני הארנק. זכייה נכנסת לארנק.';}$('totalBet').textContent='הימור כולל: '+money(betting.sum(s.bets));
   $('mainGame').hidden=bonus;$('bonus').hidden=!bonus;
   const final=-(s.cell-1)*360/54;
   if(s.phase==='spin'){

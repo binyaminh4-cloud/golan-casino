@@ -76,3 +76,5 @@ body .gd-host{max-width:calc(100vw - 16px);gap:6px}body .gd-ido{width:80px}body 
 .wheel-scene.closeup{overflow:hidden;border-radius:50%}
 .wheel-wrap{transform-origin:50% 7%;transition:scale .6s cubic-bezier(.3,.8,.3,1)}
 .wheel-scene.closeup .wheel-wrap{scale:2.3}
+
+.free-chips{margin-inline-start:8px;padding:1px 8px;border-radius:99px;background:#2f6e3a;color:#eaffe9;font:700 12px Heebo,sans-serif}.free-chips[hidden]{display:none}

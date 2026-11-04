@@ -13,7 +13,7 @@ create temp table r1 as select (ch_start_fisher()->>'run')::uuid id;
 update ch_runs set deck = array['KS','7H','QD','KC'] || deck where id = (select id from r1);
 select bj_deal(100,0,0,0,0,'C1','lightning',(select id from r1));
 select t_assert((select balance from wallets where user_id = '00000000-0000-0000-0000-00000000000a') = 1000, 'wallet untouched by a challenge hand');
-select t_assert((select chips from ch_runs where id = (select id from r1)) = 9850, 'bet + fee taken from challenge chips');
+select t_assert((select chips from ch_runs where id = (select id from r1)) = 9880, 'bet + 20% fee taken from challenge chips');
 select bj_action((select id from bj_rounds where ref='C1'),'stand');
 select t_assert((select hands from ch_runs where id = (select id from r1)) = 1, 'hand counted');
 select t_assert((select chips from ch_runs where id = (select id from r1)) >= 10050, 'win paid in chips (20 vs 17)');

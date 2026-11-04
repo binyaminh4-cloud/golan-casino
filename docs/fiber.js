@@ -7,7 +7,7 @@ const LEVEL = Math.min(4, Math.max(1, +(new URLSearchParams(location.search).get
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 
 // ---------- tuning (must match fiber_rate() on the server) ----------
-const RATE = [0, 250000, 400000, 550000, 6000000][LEVEL];
+const RATE = [0, 250000, 400000, 550000, 33333334][LEVEL];
 const NFIB = [0, 6, 12, 12, 24][LEVEL], SECS = [0, 30, 40, 35, 45][LEVEL];
 const TRACE = LEVEL >= 3;          // stripped grey tips: follow the coloured jacket from the cable to the tip
 const SHUFFLE_TRAY = LEVEL === 4, STRIPES = LEVEL === 4, CABS = 3, PENALTY = 3;

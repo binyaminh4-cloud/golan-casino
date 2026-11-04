@@ -94,6 +94,7 @@ async function showLobby(user) {
     if (sal && (sal.weekly || sal.monthly)) salaryToast(sal); } catch (e) {}
   await refresh();
   GC_LOADER.done();
+  await dailyGift();
   soundAsk(); liveStrips();
   if (!document.querySelector(".top-guide")) { const m = document.createElement("div"); m.className = "top-guide"; document.querySelector("#lobbyView header .me").append(m);
     // whoever skipped saving the app gets the save-to-home-screen popup again, before Ido's tour
@@ -314,3 +315,35 @@ document.getElementById("pwBtn")?.addEventListener("click", () => {
     if (error) { msg.className = "m"; msg.textContent = "לא הצלחנו לשמור. נסה שוב."; return; }
     msg.className = "m ok"; msg.textContent = "✔ הסיסמה נשמרה. מהפעם הבאה נכנסים איתה."; setTimeout(() => o.remove(), 1800); };
 });
+
+// Daily login gift (migration 0109): pops up on entry; only "אסוף פרס" closes it. Day n = n × ₪50M to the wallet,
+// day 7 = ₪500M to the bank + ₪250M free chips for זמן למטווח. A missed day restarts the streak.
+async function dailyGift() {
+  let st; try { const r = await db.rpc("gc_gift_state"); if (r.error || !r.data || !r.data.claimable) return; st = r.data; } catch (e) { return; }
+  const M = (n) => "₪" + (n >= 1e9 ? +(n / 1e9).toFixed(2) + "B" : Math.round(n / 1e6) + "M");
+  if (!document.getElementById("gcGiftCss")) { const c = document.createElement("style"); c.id = "gcGiftCss"; c.textContent = `
+.gc-gift{position:fixed;inset:0;z-index:9600;display:grid;place-items:center;background:rgba(0,0,0,.82);direction:rtl;animation:gcgF .25s}
+.gc-gift .box{width:min(420px,92vw);background:radial-gradient(ellipse at 50% 0%,#3a2a10,#120c08);border:2px solid #F1D69A;border-radius:18px;padding:16px;text-align:center;box-shadow:0 0 50px rgba(255,214,110,.45);animation:gcgP .4s cubic-bezier(.2,1.5,.4,1)}
+.gc-gift .ic{font-size:54px;line-height:1;filter:drop-shadow(0 0 14px #ffd46e)}
+.gc-gift h2{margin:6px 0 2px;font:900 26px Heebo,sans-serif;color:#ffe27a}.gc-gift p{margin:0 0 12px;color:#e9dcc4;font:500 14px Heebo,sans-serif}
+.gc-gift .days{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+.gc-gift .d{border:1px solid #80602E;border-radius:10px;padding:6px 2px;background:rgba(255,255,255,.04);font:700 11px Heebo,sans-serif;color:#b9aa94}
+.gc-gift .d b{display:block;font:800 14px Inter,sans-serif;color:#e9dcc4;direction:ltr}.gc-gift .d.done{opacity:.45}.gc-gift .d.done b::after{content:" ✓"}
+.gc-gift .d.now{border:2px solid #ffe27a;background:#4a3510;color:#ffe27a;box-shadow:0 0 14px #ffd46e88}.gc-gift .d.now b{color:#fff}
+.gc-gift .d.d7{grid-column:span 2}.gc-gift .d.d7 small{display:block;color:#9fe0a8;font-size:10px}
+.gc-gift .amt{font:900 34px Inter,sans-serif;color:#fff;direction:ltr;text-shadow:0 0 18px #ffd46e;margin-bottom:10px}
+.gc-gift button{width:100%;height:52px;border:0;border-radius:99px;background:linear-gradient(180deg,#ffe9a8,#C5A05A);color:#120c08;font:900 21px Heebo,sans-serif;cursor:pointer}
+.gc-gift .err{color:#E89A9F;font-size:13px;min-height:16px;margin-top:6px}
+@keyframes gcgF{from{opacity:0}}@keyframes gcgP{from{transform:scale(.7);opacity:0}}`; document.head.appendChild(c); }
+  const day = st.day, o = document.createElement("div"); o.className = "gc-gift"; o.setAttribute("role", "dialog"); o.setAttribute("aria-modal", "true");
+  const tiles = [1, 2, 3, 4, 5, 6, 7].map((d) => `<div class="d${d < day ? " done" : d === day ? " now" : ""}${d === 7 ? " d7" : ""}">יום ${d}<b>${d < 7 ? M(d * 5e7) : M(5e8)}</b>${d === 7 ? "<small>+ ₪250M צ׳יפים לזמן למטווח</small>" : ""}</div>`).join("");
+  const amt = day < 7 ? M(st.wallet) : M(st.bank) + " + 🎟️ " + M(st.zman_chips);
+  o.innerHTML = `<div class="box"><div class="ic">🎁</div><h2>מתנת ההתחברות</h2><p>${day === 7 ? "שבוע רצוף! הפרס הגדול: לבנק, וצ׳יפים לזמן למטווח." : `יום ${day} ברצף. כל יום שמתחברים המתנה גדלה. מפספסים יום? חוזרים ליום 1.`}</p>
+    <div class="days">${tiles}</div><div class="amt">${amt}</div><button type="button">אסוף פרס</button><div class="err" role="status"></div></div>`;
+  document.body.appendChild(o);
+  await new Promise((done) => { const b = o.querySelector("button");
+    b.onclick = async () => { b.disabled = true; const { error } = await db.rpc("gc_gift_claim");
+      if (error && !(error.message || "").includes("already_claimed")) { b.disabled = false; o.querySelector(".err").textContent = "האיסוף נכשל. נסה שוב."; return; }
+      try { SFX.win(true); } catch (e) {} o.remove(); done(); }; });
+  try { await refresh(); } catch (e) {}
+}

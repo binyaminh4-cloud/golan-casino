@@ -90,7 +90,7 @@ async function load() {
     duels: [{ id: "1", status: "waiting", challenger: "b", challenger_name: "דני", opponent: "a", opponent_name: "בנימין", score_a: 12800 }, { id: "2", status: "done", challenger: "a", opponent_name: "פישר", challenger_name: "בנימין", winner: "a" }],
     board: [{ id: "a", name: "בנימין", fisher: 43, ido: 60, zeus: 0, total: 103 }, { id: "b", name: "דני", fisher: 20, ido: 30, zeus: 0, total: 50 }] }; draw(); return; }
   const [st, zl] = await Promise.all([db.rpc("ch_state"), db.rpc("zeus_list")]);
-  if (st.error) return err(errText(st.error)); if (!zl.error) Z = zl.data || []; S = st.data; draw();
+  if (st.error) return err(errText(st.error)); if (!zl.error) Z = (zl.data || []).slice(0, 3);   // only the 3 latest requests S = st.data; draw();
 }
 $("tnBtn").onclick = async () => {
   const g = $("tnBtn").dataset.go;
