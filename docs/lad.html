@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="he" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="loader.js?v=14"></script>
+<title>סולם הבוטים · גולן קזינו</title>
+<link rel="icon" href="img/brand/favicon.png?v=2">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;800;900&family=Inter:wght@700;800;900&display=swap">
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden}
+body{position:fixed;inset:0;background:#02060c url(img/bots/bots_hall_bg.webp) center/cover;color:#dff8ff;font:15px Heebo,Arial,sans-serif}
+#stage{position:absolute;left:50%;top:50%;width:844px;height:390px}
+.top{position:absolute;left:8px;top:6px;z-index:9;direction:rtl}
+.top a{font:700 12px Heebo;color:#dff8ff;background:#0a0f1ccc;border:1px solid #29d8ff88;border-radius:99px;padding:3px 10px;text-decoration:none}
+.tower{position:absolute;right:8px;top:8px;bottom:8px;width:190px;display:flex;flex-direction:column-reverse;gap:4px;direction:rtl}
+.lv{flex:1;background:url(img/bots/ladder_tile.webp) center/100% 100%;position:relative;padding:0 78px 0 14px;display:flex;align-items:center;font:700 11px Heebo;color:#c7b3e8}
+.lv.now{background-image:url(img/bots/ladder_tile_active.webp);color:#fff}.lv b{display:block;font:800 13px Heebo}
+.lv img{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:50px;height:50px;border-radius:50%;object-fit:cover;object-position:50% 20%}
+.lv:not(.now):not(.done) img{filter:grayscale(.9) brightness(.5)}.lv.done b::after{content:" ✓";color:#7dff9a}
+.enemy{position:absolute;left:0;bottom:0;height:300px;filter:drop-shadow(0 0 22px #ff4fd877);transition:transform .3s}
+.enemy.turn{transform:scale(1.05);filter:drop-shadow(0 0 30px #ff4fd8)}
+.bars{position:absolute;left:250px;width:390px;top:6px;display:grid;gap:4px;direction:rtl}
+.bar{height:46px;background:url(img/bots/bots_progress_frame.webp) center/100% 100%;position:relative;display:flex;align-items:flex-start;padding:5px 30px 0;font:800 12px Heebo}
+.bar i{position:absolute;left:6%;right:6%;top:52%;height:18%;border-radius:99px;overflow:hidden;direction:ltr}
+.bar i::after{content:"";position:absolute;inset:0 auto 0 0;width:var(--w,0%);background:linear-gradient(90deg,#29d8ff,#7ff0ff);box-shadow:0 0 10px #29d8ff;transition:width .5s}
+.bar i b{position:absolute;inset:0 auto 0 var(--w,0%);width:var(--p,0%);background:#7ff0ff55;transition:all .3s}
+.bar.b i::after{background:linear-gradient(90deg,#ff4fd8,#ff9be9)}
+.bar em{position:absolute;left:38px;top:2px;font:900 12px Inter;font-style:normal;direction:ltr}.bar span{position:relative;z-index:1}
+.die{position:absolute;left:330px;top:126px;width:96px;height:96px;border-radius:20px;border:2px solid #7ff0ff;background:linear-gradient(145deg,#29d8ff33,#29d8ff08);
+  box-shadow:0 0 40px #29d8ff88,inset 0 0 30px #29d8ff44;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:14px;transform:rotate(-10deg)}
+.die.bot{border-color:#ff9be9;background:linear-gradient(145deg,#ff4fd833,#ff4fd808);box-shadow:0 0 40px #ff4fd888,inset 0 0 30px #ff4fd844}
+.die.one{border-color:#ff4d6d;box-shadow:0 0 50px #ff4d6d}
+.die.spin{animation:spin .5s cubic-bezier(.3,.7,.4,1)}@keyframes spin{from{transform:rotate(-370deg) scale(.6)}}
+.die i{width:14px;height:14px;border-radius:50%;background:#e8fdff;box-shadow:0 0 10px #7ff0ff;place-self:center;opacity:0}.die i.on{opacity:1}
+.pot{position:absolute;left:460px;top:120px;width:150px;text-align:center;direction:rtl}
+.pot b{display:block;font:900 52px Inter;color:#fff;text-shadow:0 0 20px #29d8ff}.pot small{font:700 13px Heebo;color:#9fd8e6}
+.pot.bot b{text-shadow:0 0 20px #ff4fd8}
+.btns{position:absolute;left:250px;width:390px;bottom:34px;display:flex;gap:8px;justify-content:center;direction:rtl}
+.bt{width:190px;height:66px;border:0;background:transparent center/100% 100% no-repeat;display:grid;place-items:center;font:900 20px Heebo;color:#fff;text-shadow:0 0 10px #000;cursor:pointer}
+.bt:disabled{filter:grayscale(.7) brightness(.5);cursor:default}.bt:active:not(:disabled){transform:scale(.95)}
+.roll{background-image:url(img/bots/ladder_btn_roll.webp)}.keep{background-image:url(img/bots/ladder_btn_keep.webp)}
+.rule{position:absolute;left:250px;width:390px;bottom:8px;text-align:center;font:700 12px Heebo;color:#b9d6e2;direction:rtl}
+.msg{position:absolute;left:445px;top:50%;transform:translate(-50%,-50%);z-index:8;width:430px;height:138px;background:url(img/bots/bots_result_banner.webp) center/100% 100%;
+  display:grid;place-content:center;text-align:center;direction:rtl;animation:pop .4s cubic-bezier(.2,1.5,.4,1);padding:0 34px}
+.msg h3{margin:0;font:900 28px Heebo;color:#ffe9a8;text-shadow:0 0 14px #ffd36e}.msg p{margin:2px 0 0;font:800 15px Heebo;color:#7dff9a}.msg p.no{color:#c9d6de}
+.msg .btns2{display:flex;gap:8px;justify-content:center;margin-top:8px}
+.msg button,.msg a{font:800 14px Heebo;padding:6px 14px;border-radius:99px;border:1px solid #29d8ff;background:#29d8ff22;color:#dff8ff;text-decoration:none;cursor:pointer}
+.flash{position:absolute;left:445px;top:60px;transform:translateX(-50%);font:900 22px Heebo;direction:rtl;text-shadow:0 0 12px currentColor;animation:pop .35s}
+@keyframes pop{from{transform:translateX(-50%) scale(.6);opacity:0}}
+.msg{animation-name:popc}@keyframes popc{from{transform:translate(-50%,-50%) scale(.6);opacity:0}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=8"></script>
+<script src="landscape.js?v=1"></script>
+</head>
+<body>
+<div id="stage">
+  <div class="top"><a href="challenges.html">→ לאתגרים</a></div>
+  <div class="tower" id="tower"></div>
+  <img class="enemy" id="enemy" src="img/ch/bot_1.webp" alt="">
+  <div class="bars"><div class="bar" id="barMe"><span>אתה</span><i><b></b></i><em id="meT">0/30</em></div><div class="bar b" id="barBot"><span id="botN">הבוט</span><i></i><em id="botT">0/30</em></div></div>
+  <div class="die" id="die"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="pot" id="pot"><small id="potL">בתור הזה</small><b id="potV">0</b><small id="potS"></small></div>
+  <div class="btns"><button class="bt keep" id="keep">✋ עצור ושמור</button><button class="bt roll" id="roll">🎲 זרוק</button></div>
+  <div class="rule">זורקים ואוספים. יצא 1? התור נשרף. ראשון ל־30 עולה שלב.</div>
+  <div id="flash"></div><div id="msg"></div>
+</div>
+<script src="sfx.js?v=1793820555"></script>
+<script>
+"use strict";
+// סולם הבוטים (migration 0111). The server rolls every die and plays the bot's turn; this page animates it.
+const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
+const $ = (id) => document.getElementById(id), sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const BOTS = ["אביחי ניוטון", "נתנאל אמלקה", "יואב הנחוש", "23עידו11", "המלך בנימין"];
+const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+let st = null, run = null, busy = false;
+const S = (k, a) => { try { SFX[k](a); } catch (e) {} };
+const FX = (n, vol = 0.8) => { try { SFX.fx(n, { vol }); } catch (e) {} };
+addEventListener("pointerdown", () => { for (const n of ["bb_card", "bb_pick", "bb_robot", "bb_point", "bb_tiebreak"]) FX(n, 0); }, { once: true, capture: true });
+function fit() { const s = Math.min(innerWidth / 844, innerHeight / 390); $("stage").style.transform = `translate(-50%,-50%) scale(${s})`; }
+addEventListener("resize", fit); addEventListener("orientationchange", () => setTimeout(fit, 300)); setInterval(fit, 1000); fit();
+function tower(stage, done) {
+  $("tower").innerHTML = BOTS.map((n, i) => `<div class="lv${done || i + 1 < stage ? " done" : i + 1 === stage ? " now" : ""}"><img src="img/ch/bot_${i + 1}.webp" alt=""><div><b>${i === 4 ? "הבוס" : "שלב " + (i + 1)}</b>${n}</div></div>`).join("");
+}
+function die(n, bot) { const d = $("die"); d.className = "die" + (bot ? " bot" : "") + (n === 1 ? " one" : ""); void d.offsetWidth; d.classList.add("spin");
+  [...d.children].forEach((p, i) => p.classList.toggle("on", !!n && PIPS[n].includes(i))); }
+function bars(me, bot, pot) {
+  $("barMe").style.setProperty("--w", Math.min(100, me / 30 * 100) + "%"); $("barMe").querySelector("b").style.setProperty("--p", Math.min(100 - me / 30 * 100, pot / 30 * 100) + "%");
+  $("barMe").querySelector("b").style.left = Math.min(100, me / 30 * 100) + "%"; $("barMe").querySelector("b").style.width = Math.min(100 - me / 30 * 100, pot / 30 * 100) + "%";
+  $("barBot").style.setProperty("--w", Math.min(100, bot / 30 * 100) + "%");
+  $("meT").textContent = `${me}/30`; $("botT").textContent = `${bot}/30`;
+}
+function pot(v, label, sub, bot) { $("pot").className = "pot" + (bot ? " bot" : ""); $("potV").textContent = v; $("potL").textContent = label; $("potS").textContent = sub || ""; }
+function flash(t, color) { $("flash").innerHTML = `<div class="flash" style="color:${color}">${t}</div>`; setTimeout(() => $("flash").innerHTML = "", 1400); }
+function buttons(on) { $("roll").disabled = !on; $("keep").disabled = !on || !run || run.pot === 0; }
+function msg(html) { $("msg").innerHTML = html ? `<div class="msg">${html}</div>` : ""; }
+function show() { const b = run.stage - 1; $("enemy").src = `img/ch/bot_${run.stage}.webp`; $("botN").textContent = BOTS[b];
+  bars(run.me, run.bot, run.pot); pot(run.pot, "בתור שלך", run.rolls ? `זרקת ${run.rolls} פעמים` : "זרוק כדי להתחיל"); buttons(true); }
+// the bot's turn, roll by roll
+async function botTurn(rolls, me, botScore) {
+  const name = BOTS[run.stage - 1]; $("enemy").classList.add("turn"); FX("bb_robot", 0.8); pot(0, `התור של ${name}`, "", true); await sleep(900);
+  let p = 0; for (const d of rolls) { die(d, true); FX("bb_card", 0.5); await sleep(450); if (d === 1) { p = 0; pot(0, `התור של ${name}`, "יצא 1! נשרף", true); flash(`${name} נשרף!`, "#7dff9a"); } else { p += d; pot(p, `התור של ${name}`, "", true); } await sleep(550); }
+  if (p) flash(`${name} שמר ${p}`, "#ff9be9");
+  $("enemy").classList.remove("turn"); bars(me, botScore, 0); await sleep(1000);
+}
+async function act(hold) {
+  if (busy) return; busy = true; buttons(false); FX(hold ? "bb_pick" : "bb_card", 0.7);
+  const { data, error } = await db.rpc("ld_act", { p_run: run.id, p_hold: hold });
+  if (error) { busy = false; buttons(true); flash("משהו השתבש, נסה שוב", "#ff8fa3"); return; }
+  if (!hold) { die(data.roll); await sleep(500); }
+  if (!hold && data.roll !== 1 && data.status === "active" && !data.bot_rolls) { run = data; show(); busy = false; return; }
+  if (data.bust) { flash("יצא 1! התור נשרף", "#ff4d6d"); S("lose"); await sleep(1300); }
+  else if (data.banked) { flash(`שמרת ${data.banked} נקודות`, "#7dff9a"); FX("bb_point", 0.7); bars(data.me, run.bot, 0); await sleep(1100); }
+  if (data.status === "active" || (data.bot_rolls && data.bot_rolls.length)) {
+    // the bot's turn, roll by roll
+    await botTurn(data.bot_rolls || [], data.me, data.bot);
+  }
+  run = data; busy = false;
+  if (run.status !== "active") return finish();
+  die(0); show();
+}
+function finish() {
+  buttons(false); const name = BOTS[run.stage - 1];
+  if (run.status === "won") {
+    FX("bb_point", 0.9); S("win", true);
+    const boss = run.stage === 5;
+    msg(`<h3>${boss ? "👑 ניצחת את הבוס!" : `ניצחת את ${name}!`}</h3><p>${run.me}:${run.bot} · +${run.season_pts} נקודות לעונה${boss ? " · הסולם הושלם" : ` · עולים לשלב ${run.stage + 1}`}</p>
+      <div class="btns2">${!boss && run.left_today > 0 ? `<button id="next">לשלב הבא (נשארו ${run.left_today} היום)</button>` : ""}<a href="challenges.html">לאתגרים</a></div>`);
+  } else {
+    msg(`<h3>${name} ניצח הפעם</h3><p class="no">${run.me}:${run.bot}${run.stage > 1 ? ` · יורדים לשלב ${run.stage - 1}` : ""}</p>
+      <div class="btns2">${run.left_today > 0 ? `<button id="next">עוד קרב (נשארו ${run.left_today} היום)</button>` : ""}<a href="challenges.html">לאתגרים</a></div>`);
+  }
+  const n = $("next"); if (n) n.onclick = start;
+}
+async function start() {
+  msg(""); const { data, error } = await db.rpc("ld_start");
+  if (error) { const m = error.message || "";
+    msg(`<h3>${m.includes("ladder_done") ? "👑 הסולם הושלם" : m.includes("daily_limit") ? "סיימת להיום" : "אי אפשר להתחיל עכשיו"}</h3><p class="no">${m.includes("ladder_done") ? "ניצחת את כל חמשת הבוטים העונה." : m.includes("daily_limit") ? "5 קרבות ביום. מחר נפתחים שוב (בחצות)." : "נסה שוב בעוד רגע."}</p><div class="btns2"><a href="challenges.html">לאתגרים</a></div>`); return; }
+  run = data; tower(run.stage, false); die(0); bars(0, 0, 0); buttons(false);
+  if (data.opening) { flash(`${BOTS[run.stage - 1]} פותח`, "#ff9be9"); await sleep(900); await botTurn(data.bot_rolls, 0, run.bot); die(0); }
+  show();
+}
+$("roll").onclick = () => act(false); $("keep").onclick = () => act(true);
+(async () => {
+  const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
+  if (window.GC_LOADER) GC_LOADER.done();
+  buttons(false); const { data } = await db.rpc("ld_state"); st = data || { stage: 1, done: false, left_today: 5 };
+  tower(st.stage, st.done); $("enemy").src = `img/ch/bot_${Math.min(5, st.stage)}.webp`; bars(0, 0, 0);
+  if (st.run) { run = st.run; show(); return; }
+  msg(st.done ? `<h3>👑 הסולם הושלם</h3><p class="no">ניצחת את כל חמשת הבוטים העונה.</p><div class="btns2"><a href="challenges.html">לאתגרים</a></div>`
+    : `<h3>סולם הבוטים · שלב ${st.stage}</h3><p class="no">זורקים קובייה ואוספים. יצא 1? התור נשרף. ראשון ל־30 מנצח ועולה שלב. הפסד = שלב אחד למטה.</p><div class="btns2"><button id="go">יאללה (נשארו ${st.left_today} היום)</button><a href="challenges.html">חזרה</a></div>`);
+  const g = $("go"); if (g) g.onclick = () => { FX("bb_pick"); start(); };
+})();
+</script>
+</body>
+</html>
