@@ -1,7 +1,8 @@
 -- 0110 · Challenge vs the bots #1: באקרה מול הבוט (owner-approved 2026-11-04).
 -- 20 hands from a 6-deck shoe. Before each hand the player picks Player / Banker / Tie; the bot picks too (random, with a light
 -- per-bot leaning), then the hand is dealt by standard baccarat drawing rules. Right pick = 1 point, right Tie = 3.
--- No money. At the end: beat the bot = 30 season points, draw = 10 (kind 'bots'). 3 runs a day (Israel time).
+-- No money. Tied after 20: sudden-death tie-break hands until someone leads (max 10 extra, then a draw).
+-- At the end: beat the bot = 30 season points, draw = 10 (kind 'bots'). 3 runs a day (Israel time).
 -- The shoe stays on the server; the browser only sees hands already dealt. Re-runnable.
 begin;
 alter table ch_points drop constraint if exists ch_points_kind_check;
@@ -62,7 +63,8 @@ begin
   bg := case when bp = res then case when res = 'T' then 3 else 1 end else 0 end;
   e := jsonb_build_object('n', r.hand + 1, 'me', p_pick, 'bot', bp, 'p', to_jsonb(pc), 'b', to_jsonb(bc), 'pt', pt, 'bt', bt, 'res', res, 'mg', mg, 'bg', bg);
   update bb_runs set pos = r.pos, hand = hand + 1, me_pts = me_pts + mg, bot_pts = bot_pts + bg, log = log || jsonb_build_array(e) where id = r.id returning * into r;
-  if r.hand >= 20 then
+  -- tied after 20 hands: sudden-death tie-break hands, one at a time, until the score differs (at most 10 extra, then a draw)
+  if r.hand >= 20 and (r.me_pts <> r.bot_pts or r.hand >= 30) then
     sp := case when r.me_pts > r.bot_pts then 30 when r.me_pts = r.bot_pts then 10 else 0 end;
     if sp > 0 then perform ch_add_points(r.season, u, 'bots', sp); end if;
     update bb_runs set status = 'done', season_pts = sp where id = r.id returning * into r;

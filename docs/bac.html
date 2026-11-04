@@ -72,7 +72,7 @@ body{position:fixed;inset:0;background:#02060c url(img/bots/bots_hall_bg.webp) c
 // Baccarat vs the bot (migration 0110). The server shuffles, picks for the bot and deals; this page only shows it, one thing at a time.
 const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 const $ = (id) => document.getElementById(id), sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const BOTS = ["טיפון", "הלורד", "הכריש", "הצל", "המלך"], NAME = { P: "פלייר", B: "באנקר", T: "תיקו" };
+const BOTS = ["אביחי ניוטון", "נתנאל אמלקה", "יואב הנחוש", "23עידו11", "המלך בנימין"]   // bot_1 … bot_5 (5 = the boss), NAME = { P: "פלייר", B: "באנקר", T: "תיקו" };
 const RANK = (c) => c === 1 ? "A" : c === 11 ? "J" : c === 12 ? "Q" : c === 13 ? "K" : String(c), VAL = (c) => c >= 10 ? 0 : c;
 let run = null, busy = false;
 const S = (k, a) => { try { SFX[k](a); } catch (e) {} };
@@ -84,7 +84,7 @@ function board() {
   for (let i = 0; i < 20; i++) { const e = log[i], cell = (v) => e ? `<div class="${v > 0 ? "w" : "l"}">${v}</div>` : "<div></div>";
     h += `<div class="c${i === log.length && run.status === "active" ? " now" : ""}">${i + 1}${cell(e?.mg)}${cell(e?.bg)}</div>`; }
   $("cols").innerHTML = h; $("meP").textContent = run.me; $("botP").textContent = run.bot_pts;
-  $("handNo").textContent = run.status === "done" ? "הקרב הסתיים" : `יד ${log.length + 1} מתוך 20`;
+  $("handNo").textContent = run.status === "done" ? "הקרב הסתיים" : log.length >= 20 ? `⚡ שובר שוויון · יד ${log.length + 1}` : `יד ${log.length + 1} מתוך 20`;
 }
 function setBot() { $("botImg").src = `img/ch/bot_${run.bot}.webp`; $("botName").textContent = botName(); $("botN2").textContent = botName(); }
 function choose() {
@@ -116,8 +116,11 @@ async function pick(k) {
   const who = e.mg && e.bg ? `אתה ו${botName()} זכיתם ${e.res === "T" ? "ב־3 נקודות" : "בנקודה"}` : e.mg ? (e.res === "T" ? "זכית ב־3 נקודות!" : "זכית בנקודה") : e.bg ? `${botName()} זכה ${e.res === "T" ? "ב־3 נקודות" : "בנקודה"}` : "אף אחד לא צדק";
   $("big").innerHTML = `<div class="win"><h3>${NAME[e.res]}!</h3><p class="${e.mg ? "" : "no"}">${who}</p></div>`;
   if (e.mg) S("win", e.res === "T");
+  const tieNow = data.status === "active" && data.log.length === 20 && data.me === data.bot_pts;
   run = data; board(); await sleep(1900); busy = false;
-  if (run.status === "done") return finish(); choose();
+  if (run.status === "done") return finish();
+  if (tieNow) { $("big").innerHTML = `<div class="win"><h3>תיקו ${run.me}:${run.bot_pts}!</h3><p>שובר שוויון: יד אחרי יד, עד שמישהו מוביל</p></div>`; S("bonus"); await sleep(2600); }
+  choose();
 }
 function finish() {
   const me = run.me, bt = run.bot_pts, sp = run.season_pts || 0;
@@ -135,7 +138,7 @@ async function start() {
 (async () => {
   const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
   if (window.GC_LOADER) GC_LOADER.done();
-  $("big").innerHTML = `<div class="win"><h3>באקרה מול הבוט</h3><p class="no">20 ידיים. לפני כל יד בוחרים: פלייר, באנקר או תיקו. ניחוש נכון = נקודה, תיקו נכון = 3. מנצחים את הבוט = 30 נקודות לעונה.</p><div class="btns"><button id="go">יאללה</button><a href="challenges.html">חזרה</a></div></div>`;
+  $("big").innerHTML = `<div class="win"><h3>באקרה מול הבוט</h3><p class="no">20 ידיים. לפני כל יד בוחרים: פלייר, באנקר או תיקו. ניחוש נכון = נקודה, תיקו נכון = 3. תיקו בסוף? שובר שוויון. מנצחים את הבוט = 30 נקודות לעונה.</p><div class="btns"><button id="go">יאללה</button><a href="challenges.html">חזרה</a></div></div>`;
   $("go").onclick = () => { S("chip"); start(); };
 })();
 </script>
