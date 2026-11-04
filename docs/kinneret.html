@@ -26,9 +26,9 @@ main{flex:1;min-height:0;display:grid;grid-template-columns:auto minmax(0,1fr) a
 .cell img{width:88%;height:88%;object-fit:contain;transition:transform .25s,opacity .25s}
 .cell.heat{background:#3b2410}.cell .mx{position:absolute;top:1px;right:2px;font:800 10px Inter;color:#ffe27a;text-shadow:0 1px 2px #000;z-index:2}
 .cell.mult{background:radial-gradient(#7a3a0c,#2b170a)}
-.cell.win img{animation:pulse .5s ease-in-out 2}.cell.gone img{transform:scale(.2);opacity:0}.cell.new img{animation:drop .3s ease-out}
+.cell.win img{animation:pulse .5s ease-in-out 2}.cell.gone img{transform:scale(.2);opacity:0}.cell.new img{animation:drop .62s cubic-bezier(.3,.9,.4,1.12) both}
 .cell.fx{box-shadow:inset 0 0 0 3px #ffd08a}
-@keyframes pulse{50%{transform:scale(1.18)}}@keyframes drop{from{transform:translateY(-60%);opacity:0}}
+@keyframes pulse{50%{transform:scale(1.18)}}@keyframes drop{from{transform:translateY(-130%);opacity:0}35%{opacity:1}}
 .side{display:flex;flex-direction:column;gap:5px;align-items:stretch;min-width:140px;max-height:100%;overflow:auto}
 @media (max-height:500px){.panel b{font-size:16px}.panel{padding:3px 8px}#spin{padding:8px;font-size:18px}.fr span{display:none}.fr{padding:2px}}
 .panel{background:#120c08d9;border:1px solid var(--brass);border-radius:12px;padding:6px 10px;text-align:center}
@@ -97,6 +97,10 @@ main{display:grid!important;direction:ltr;grid-template-columns:var(--fw,118px) 
 .chain small{font:700 clamp(9px,2.2vmin,12px) Heebo;color:#e9d3a6}.chain b{font:800 clamp(18px,5vmin,32px) Inter;color:#ffe27a;text-shadow:0 0 8px #ff9d3b}
 .top a{position:relative;z-index:6}
 @media (max-height:430px){.fr span{display:none}.fr{justify-content:center;padding:2px!important}}
+.friends{justify-content:center!important;align-items:center}
+.nextfr{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 6px;border-radius:14px;background:#120c08d9;border:2px solid #ffd08a;box-shadow:0 0 16px #ffd08a66;width:100%}
+.nextfr small{font:700 11px Heebo;color:#c9b894}.nextfr img{width:100%;max-width:var(--nf,96px);height:auto;border-radius:8px}
+.nextfr b{font:800 15px Heebo;color:#ffe2a2}.nextfr .dots{display:flex;gap:4px}.nextfr .dots i{width:10px;height:10px;border-radius:50%;background:#3a2c1a}.nextfr .dots i.on{background:#ff9d3b;box-shadow:0 0 6px #ff9d3b}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
@@ -137,7 +141,8 @@ const wait = (ms) => new Promise((r) => setTimeout(r, (FAST ? ms * 0.45 : ms) * 
 
 // size the board from the space that's really there (phones report the new size late after rotating or when Safari's bars move)
 function fit() { const vv = window.visualViewport, W = Math.round(vv ? vv.width : innerWidth), H = Math.round(vv ? vv.height : innerHeight), r = document.documentElement.style;
-  const small = H < 440, cw = small ? 112 : 136, fw = W < 700 ? 54 : small ? 64 : 124;
+  const small = H < 440, cw = small ? 112 : 136, fw = W < 700 ? 92 : small ? 108 : 150;
+  r.setProperty("--nf", (W < 700 ? 84 : small ? 100 : 140) + "px");
   r.setProperty("--vh", H + "px"); r.setProperty("--cw", cw + "px"); r.setProperty("--fw", fw + "px");
   r.setProperty("--fi", Math.max(22, Math.min(40, Math.floor((H - 50) / 7) - 10)) + "px"); r.setProperty("--sp", (small ? 64 : 84) + "px"); r.setProperty("--mp", (small ? 66 : 86) + "px");
   const c = document.querySelector(".center").getBoundingClientRect(); r.setProperty("--bs", Math.max(160, Math.floor(Math.min(c.width, c.height))) + "px"); }
@@ -158,7 +163,9 @@ function chainReset() { chainN = 0; chainSum = 0; clearTimeout(chainT); chainT =
 function chainHit(pay, stake) { chainN++; chainSum += pay; clearTimeout(chainT); const el = $("chain");
   if (chainN < 2) return;   // the ring shows from the second cascade: that's a chain
   el.innerHTML = `<small>רצף</small><b>${chainN}</b>`; el.classList.add("on"); el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); }
-function friends(meter, next) { $("friends").innerHTML = K.CFG.order.map((f, i) => `<div class="fr${i === next ? " next" : ""}"><img src="img/kin/${f}.webp" alt=""><span>${NAMES[f]}</span>${i === next ? `<span class="dots">${[0, 1, 2].map((k) => `<i class="${k < meter ? "on" : ""}"></i>`).join("")}</span>` : ""}</div>`).join(""); }
+// only the friend who's next in line, big, with his 3-step meter (the full list of 7 was too busy)
+function friends(meter, next) { const f = K.CFG.order[next];
+  $("friends").innerHTML = `<div class="nextfr"><small>הבא בתור</small><img src="img/kin/${f}.webp" alt="${NAMES[f]}"><b>${NAMES[f]}</b><span class="dots">${[0, 1, 2].map((k) => `<i class="${k < meter ? "on" : ""}"></i>`).join("")}</span></div>`; }
 function drawBets() { const ok = GC_SLOT_LADDER(5, balance); bet = GC_SLOT_SELECT(ok, bet); $("bets").dataset.ok = ok.join(",");
   $("bets").innerHTML = `<button data-d="1" aria-label="הגדל הימור">▲</button><b>${fmt(bet)}</b><button data-d="-1" aria-label="הקטן הימור">▼</button>`; }
 $("bets").onclick = (e) => { const b = e.target.closest("button"); if (!b || busy) return; const ok = $("bets").dataset.ok.split(",").map(Number), i = ok.indexOf(bet) + +b.dataset.d;
@@ -176,8 +183,8 @@ async function replay(seed, stake, buy) {
     else if (s.t === "win") { for (const p of s.parts) for (const i of p.cells) cells[i].classList.add("win");
       roundWin += s.pay; chainHit(s.pay, stake); $("win").textContent = fmt(Math.floor(stake * roundWin)); try { SFX.slotWin(false); } catch (e) {}
       if (inFs || s.pay >= 2) toast(`+${fmt(Math.floor(stake * s.pay))}${inFs ? " · סה״כ " + fmt(Math.floor(stake * roundWin)) : ""}`, 1300);
-      await wait(650); for (const p of s.parts) for (const i of p.cells) cells[i].classList.add("gone"); paintM(s.m); meter = s.meter % 3; friends(Math.min(3, s.meter), next); await wait(280); }
-    else if (s.t === "drop") { paint(s.b, null, true); await wait(380); }
+      await wait(650); for (const p of s.parts) for (const i of p.cells) cells[i].classList.add("gone"); paintM(s.m); meter = s.meter % 3; friends(Math.min(3, s.meter), next); await wait(420); }
+    else if (s.t === "drop") { paint(s.b, null, true); await wait(820); }
     else if (s.t === "friend") { await card(s.who); next = (K.CFG.order.indexOf(s.who) + 1) % 7; meter = 0; friends(0, next);
       for (const i of s.cells) cells[i].classList.add("fx");
       if (s.waves) for (const w of s.waves) { paint(w.b, null, true); await wait(450); }
