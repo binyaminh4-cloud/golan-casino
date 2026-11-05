@@ -19,27 +19,26 @@ body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Ari
 #frame{position:absolute;inset:14px;border:6px solid #9da3aa;border-radius:26px;box-shadow:inset 0 0 0 3px #3b3f45,inset 0 0 40px #000a,0 0 0 3px #2a2c30;pointer-events:none;z-index:3}
 #frame::before{content:"";position:absolute;inset:8px;border:2px solid #c9a24a66;border-radius:18px}
 /* the floor: 6 rooms across the full width */
-#floor{position:absolute;left:0;right:0;top:250px;height:560px;transition:transform .9s cubic-bezier(.5,0,.3,1),opacity .9s}
+#floor{position:absolute;left:0;right:0;top:215px;height:640px;transition:transform .9s cubic-bezier(.5,0,.3,1),opacity .9s}
 #floor.down{transform:translateY(900px);opacity:0}#floor.up{transform:translateY(-900px);opacity:0;transition:none}
-.room{position:absolute;top:0;height:560px;border-radius:999px 999px 18px 18px;
-  background:linear-gradient(#24262b,#141518 70%);border:5px solid #a9afb6;box-shadow:inset 0 0 0 3px #2d3035,inset 0 30px 60px #000c,0 10px 24px #000a}
-.room::before{content:"";position:absolute;left:12%;right:12%;bottom:0;height:20px;border-radius:50%;background:#0008;filter:blur(6px)}
-.room .no{position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:66px;height:66px;border-radius:50%;display:grid;place-items:center;
-  background:radial-gradient(circle at 40% 35%,#f2f4f6,#8d949c 70%);border:3px solid #2d3035;color:#1b1d21;font:900 38px Inter;box-shadow:0 4px 10px #000a;z-index:2}
-.room img{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);max-width:88%;filter:drop-shadow(0 10px 10px #000c)}
-.room .vault{width:82%;max-width:240px;bottom:40px}
+.room{position:absolute;top:0;height:640px;background:url(img/tower/room_tile.webp) 0 0/100% 100%}
+.room .no{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:62px;height:62px;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 40% 35%,#f2f4f6,#8d949c 70%);border:3px solid #2d3035;color:#1b1d21;font:900 36px Inter;box-shadow:0 4px 10px #000a;z-index:2}
+.room img{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);filter:drop-shadow(0 10px 10px #000c)}
+.room .vault{width:68%;max-width:230px;bottom:46px}
 .room .mult{position:absolute;left:50%;bottom:150px;transform:translateX(-50%);font:900 46px Inter;color:#ffe08a;text-shadow:0 3px 0 #5c3d00,0 0 18px #ffb300aa;z-index:2;direction:ltr}
-.room .guard{height:470px;max-width:none}
-.room .gate{height:440px;bottom:6px;max-width:none}.room .lad{height:500px;max-width:none}
-.room .cap{position:absolute;left:0;right:0;bottom:-48px;text-align:center;font:800 26px Heebo;color:#d7dbe0;text-shadow:0 2px 4px #000}
+.room .guard{width:74%;max-width:250px}
+.room .gate{height:400px;bottom:30px}.room .lad{height:470px;bottom:30px}
+.room .cap{position:absolute;left:0;right:0;bottom:-44px;text-align:center;font:800 26px Heebo;color:#e3e6ea;text-shadow:0 2px 4px #000}
 .room.hit{animation:hit .5s ease-out 2}.room.took .vault,.room.took .mult{opacity:.25;transition:opacity .5s}
-.room.cur{border-color:#ffd970;box-shadow:inset 0 0 0 3px #6b4a00,inset 0 30px 60px #000c,0 0 34px #ffcc4dcc}
+.room.cur{box-shadow:inset 0 0 0 5px #ffd970,0 0 40px #ffcc4dcc;z-index:1}
 @keyframes hit{30%{transform:translateX(-14px)}60%{transform:translateX(12px)}}
 /* the player */
-#me{position:absolute;top:610px;width:150px;height:150px;margin-left:-75px;z-index:4;display:grid;place-items:center;font-size:120px;line-height:1;
-  filter:drop-shadow(0 10px 8px #000c);transition:left .7s cubic-bezier(.4,.1,.3,1),top .7s}
-#me.hop{animation:hop .7s ease-out}@keyframes hop{45%{transform:translateY(-120px)}}
-#me.caught{animation:caught 1s ease-out forwards}@keyframes caught{30%{transform:rotate(-20deg) scale(1.1)}100%{transform:rotate(80deg) translateY(80px) scale(.6);opacity:0}}
+#me{position:absolute;top:555px;width:180px;height:300px;margin-left:-90px;z-index:4;filter:drop-shadow(0 0 2px #fff8) drop-shadow(0 12px 8px #000c);transition:left .8s linear,top .8s}
+#me img{width:100%;height:100%;object-fit:contain;object-position:50% 100%}
+#me.left img{transform:scaleX(-1)}
+#me.caught{animation:caught 1s ease-out forwards}@keyframes caught{30%{transform:rotate(-12deg)}100%{transform:rotate(-70deg) translateY(60px) scale(.8);opacity:0}}
+#me.glow{filter:drop-shadow(0 0 18px #ffd970) drop-shadow(0 0 40px #ffb300cc)}
 /* top line */
 #top{left:40px;right:40px;top:34px;display:flex;gap:16px;align-items:center;z-index:5}
 .pill{background:rgba(14,15,18,.86);border:2px solid #6b7078;border-radius:99px;padding:10px 26px;font:800 30px Heebo;color:#f3f2e9;text-decoration:none;white-space:nowrap}
@@ -99,7 +98,7 @@ body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Ari
 <div id="stage">
   <div id="wall"></div>
   <div id="floor"></div>
-  <div id="me">🧗</div>
+  <div id="me"><img id="meI" src="img/tower/sol_base_side_standing.webp" alt="הלוחם"></div>
   <div id="frame"></div>
   <div class="abs" id="top"><a class="pill" href="./">→ ללובי</a><span class="pill">הארנק שלי <b id="bal">…</b></span><div id="title">🏰 מגדל הכסף</div></div>
   <div class="abs" id="lvl"></div>
@@ -138,13 +137,13 @@ function fit() {
 addEventListener("resize", fit); addEventListener("orientationchange", () => setTimeout(fit, 300)); try { new ResizeObserver(fit).observe(document.documentElement); } catch (e) {}
 
 // room geometry across the full width
-const roomBox = (i) => { const pad = 60, gap = Math.max(18, (W - 2 * pad) * 0.022), w = (W - 2 * pad - 5 * gap) / 6; return { x: W - pad - w - i * (w + gap), w }; };   // room 1 on the right (Hebrew reading)
+const roomBox = (i) => { const pad = 40, gap = 0, w = (W - 2 * pad) / 6; return { x: W - pad - w - i * (w + gap), w }; };   // room 1 on the right (Hebrew reading)
 function place() {
   document.querySelectorAll(".room").forEach((r, i) => { const b = roomBox(i); r.style.left = b.x + "px"; r.style.width = b.w + "px"; });
   const me = $("me"); me.style.transition = "none"; me.style.left = meX() + "px"; void me.offsetWidth; me.style.transition = "";
 }
 let meRoom = 0;   // 0 = standing at the start of the floor (right side), 1..6 = in a room
-const meX = () => meRoom ? roomBox(meRoom - 1).x + roomBox(meRoom - 1).w / 2 : W - 80;
+const meX = () => meRoom ? roomBox(meRoom - 1).x + roomBox(meRoom - 1).w / 2 : W - 115;
 
 // draw one row of the tower (floors 1..5, row 6 = the corridor to the bonus)
 function drawRow(row, cells, taken) {
@@ -191,11 +190,19 @@ async function rollDie(n) {
   const t0 = Date.now(); while (Date.now() - t0 < 1000) { face(1 + Math.floor(Math.random() * 6)); await sleep(90); }
   face(n); await sleep(500); S("chip"); await sleep(450); d.classList.remove("on");
 }
-async function walkTo(room) { const me = $("me"); meRoom = room; me.classList.remove("hop"); void me.offsetWidth; me.classList.add("hop"); me.style.left = meX() + "px"; await sleep(750); me.classList.remove("hop"); }
+const FR = (n) => "img/tower/sol_" + n + ".webp";
+["walk_01","walk_02","walk_03","walk_04","walk_05","climb_01","climb_02","celebrate","caught"].forEach((n) => { const i = new Image(); i.src = FR(n); });   // preload
+function pose(n) { $("meI").src = FR(n); }
+async function walkTo(room) {   // five walk frames while moving; the soldier faces right, so he is mirrored when walking left
+  const me = $("me"), from = meX(); meRoom = room; const to = meX(); if (Math.abs(to - from) < 2) return;
+  me.classList.toggle("left", to < from); me.style.left = to + "px"; S("tick");
+  for (let k = 0; k < 10; k++) { pose("walk_0" + (1 + (k % 5))); await sleep(80); }
+  pose("base_side_standing"); me.classList.remove("left");
+}
 async function climb(nextRow, cells) {   // the floor drops to the bottom of the screen and the next one comes down from above
-  S("riser"); $("floor").classList.add("down"); $("me").style.top = "-200px"; await sleep(900);
+  S("riser"); let ci = 0; const cl = setInterval(() => pose(ci++ % 2 ? "climb_02" : "climb_01"), 160); $("floor").classList.add("down"); $("me").style.top = "-320px"; await sleep(900); clearInterval(cl); pose("base_side_standing");
   const f = $("floor"); f.classList.remove("down"); f.classList.add("up"); drawRow(nextRow, cells); meRoom = 0; place(); void f.offsetWidth;
-  f.classList.remove("up"); f.style.transition = ""; $("me").style.transition = "none"; $("me").style.top = "610px"; void $("me").offsetWidth; $("me").style.transition = ""; await sleep(900);
+  f.classList.remove("up"); f.style.transition = ""; $("me").style.transition = "none"; $("me").style.top = "555px"; void $("me").offsetWidth; $("me").style.transition = ""; await sleep(900);
 }
 const curRow = (r) => (r.status === "choice" ? 3 : r.floor);
 
@@ -209,10 +216,10 @@ async function play(prev, data) {
     await walkTo(r.die);
     const room = document.querySelectorAll(".room")[r.die - 1]; room.classList.add("cur");
     if (r.cell === -1) {
-      room.classList.add("hit"); $("me").classList.add("caught"); S("drop");
+      room.classList.add("hit"); pose("caught"); $("me").classList.add("caught"); S("drop");
       if (r.row >= 4) { await sleep(900); }
       else { await say("שומר המגדל תפס אותך, מתחילים מחדש", true, 2600); }
-      $("me").classList.remove("caught");
+      $("me").classList.remove("caught"); pose("base_side_standing");
     } else if (r.row === 3 && r.die === 2 && data.status !== "lost" && k === data.rolls.length - 1 && data.status === "choice") {
       S("riser");
     } else if (r.cell > 0) { room.classList.add("took"); S("win"); await say(`כספת ×${r.cell}!`, false, 1100); }
@@ -225,6 +232,7 @@ async function play(prev, data) {
 }
 async function finish(data) {
   showBal(data.balance);
+  if (data.status !== "lost") { pose("celebrate"); $("me").classList.add("glow"); }
   if (data.status === "won") {
     S("win"); if (window.GC_BONUS) GC_BONUS(`🏰 ${BNAME[data.bonus]}!`, data.paid, `שלל ×${data.loot} + ×${PRIZE[data.bonus]}`); else await say(`🏰 ${BNAME[data.bonus]}! זכית ב-${fmt(data.paid)}`, false, 3000);
   } else if (data.status === "cashed") {
@@ -232,7 +240,7 @@ async function finish(data) {
   } else if (data.status === "lost") {
     await say("נתפסת על ידי שומר המגדל, חזור להתחלה. מקווה שזה מחושב בסיכויים שלך.", true, 3200);
   }
-  run = null; shownRow = null; meRoom = 0; drawIdle(); $("floor").classList.remove("down", "up");
+  $("me").classList.remove("glow"); pose("base_side_standing"); run = null; shownRow = null; meRoom = 0; drawIdle(); $("floor").classList.remove("down", "up");
 }
 async function send(fn, args) {
   busy = true; controls(); $("err").textContent = "";
