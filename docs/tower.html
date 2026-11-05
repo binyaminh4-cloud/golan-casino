@@ -229,10 +229,11 @@ const $ = (id) => document.getElementById(id);
 const fmt = (n) => { n = Math.floor(Number(n) + 1e-6); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const S = (k, a) => { try { SFX[k](a); } catch (e) {} };
-let music = null;
+let music = null, rmusic = null;
+function rangeMusic(on) { try { rmusic && rmusic(); } catch (e) {} rmusic = null; if (on && !document.hidden && window.SFX) { try { const f = SFX.fx("tw_range_music", { vol: 0.3, loop: true }); if (typeof f === "function") rmusic = f; } catch (e) {} } }
 function musicOn() { if (music || document.hidden || !window.SFX) return; try { const f = SFX.fx("tw_music", { vol: 0.22, loop: true }); if (typeof f === "function") music = f; } catch (e) {} }
 function musicOff() { try { music && music(); } catch (e) {} music = null; }
-addEventListener("pointerdown", musicOn, { capture: true }); document.addEventListener("visibilitychange", () => (document.hidden ? musicOff() : musicOn())); addEventListener("pagehide", musicOff);
+addEventListener("pointerdown", () => { if (!R) musicOn(); }, { capture: true }); document.addEventListener("visibilitychange", () => { if (document.hidden) { musicOff(); rangeMusic(false); } else if (R) rangeMusic(true); else musicOn(); }); addEventListener("pagehide", () => { musicOff(); rangeMusic(false); });
 const BNAME = ["", "בונוס", "סופר", "קרייזי"], FLOORS = 8, EXIT = 21;
 let W = 1920, balance = 0, bet = 100, run = null, busy = false, shownFloor = 0;
 
@@ -461,7 +462,7 @@ async function openRange(data) {
   $("tally").innerHTML = ""; $("rsum").textContent = fmt(0); $("rintro").hidden = false; fx("tw_reload");
   await new Promise((go) => ($("riGo").onclick = () => { $("rintro").hidden = true; go(); }));
   R = { data, tg, shots: [], hit: new Set(), mult: {}, sum: 0, t0: performance.now(), done: false, mag: 10, reload: false, last: -1e5, streak: 0, wave: false, secs: data.shoot.secs || 40 };
-  drawAmmo(); drawStreak(); musicOn();
+  drawAmmo(); drawStreak(); rangeMusic(true);
   const cv = $("cv"), g = cv.getContext("2d");
   const frame = () => {
     if (!R || R.done) return;
@@ -522,6 +523,7 @@ async function endRange() {
   const t0 = performance.now(), dur = 1800;
   await new Promise((done) => { const step = () => { const k = Math.min(1, (performance.now() - t0) / dur); $("sumN").textContent = fmt(got * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(step); else done(); }; requestAnimationFrame(step); });
   S("win"); await sleep(1600); $("sum").classList.remove("on");
+  rangeMusic(false); musicOn();
   document.querySelectorAll(".mtag").forEach((e) => e.remove());
   $("range").classList.remove("on"); R = null;
   run = res; showBal(res.balance); run = null; meRoom = 0; drawFloor(1, null, 0); pose("base_side_standing"); busy = false; controls();
