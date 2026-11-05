@@ -145,11 +145,17 @@ body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Ari
 #scope .dot{width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#ff2a1a;box-shadow:0 0 12px #ff2a1a}
 #scope .tk{width:520px;height:520px;margin:-260px 0 0 -260px;border-radius:50%;box-shadow:inset 0 0 0 10px #111,inset 0 0 40px 18px #000c}
 #scope.kick{animation:sk .2s ease-out}@keyframes sk{35%{transform:translateY(-34px) scale(1.04)}}
-#fireB{position:absolute;right:70px;bottom:70px;z-index:5;width:220px;height:220px;border-radius:50%;border:6px solid #ffb4a8;
+.fireB{position:absolute;right:50px;bottom:60px;z-index:5;width:300px;height:300px;border-radius:50%;border:6px solid #ffb4a8;
   background:radial-gradient(circle at 45% 35%,#ff7a62,#c8261a 60%,#6a0d07);color:#fff;font:900 60px Heebo;box-shadow:0 0 40px #ff3a2a88,inset 0 -10px 18px #0006;touch-action:none;cursor:pointer}
-#fireB:active{transform:scale(.94)}
+#fireL{right:auto;left:50px}.fireB:active{transform:scale(.94)}
 #clock{position:absolute;left:50%;top:80px;transform:translateX(-50%);z-index:5;min-width:130px;text-align:center;padding:4px 18px;border-radius:18px;background:#000b;border:3px solid #c9a24a;font:900 64px Inter;color:#ffe9a8;pointer-events:none}
 #clock.low{color:#ff8a7a;border-color:#ff6a5a;animation:pulse 1s infinite}
+#life{position:absolute;inset:0;z-index:15;display:none;place-items:center;background:#000a}#life.on{display:grid}
+#life .card{width:1100px;padding:44px;border-radius:30px;background:linear-gradient(#2a1416,#121316);border:4px solid #ff8d8d;text-align:center;box-shadow:0 0 60px #ff4a4a44}
+#life h2{margin:0 0 10px;font:900 60px Heebo;color:#ffd6d6}#life p{margin:0 0 30px;font:700 30px Heebo;color:#e3e6ea}
+#life .row{display:flex;gap:30px}#life button{flex:1;height:140px;border-radius:26px;font:900 44px Heebo;cursor:pointer;line-height:1.1}
+#lifeY{border:4px solid #ffb4a8;background:linear-gradient(#ff7a62,#b0261a);color:#fff}#lifeN{border:3px solid #777;background:#24262b;color:#ccc}
+#life button small{display:block;font:800 26px Heebo;opacity:.9}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
@@ -175,10 +181,12 @@ body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Ari
     <button class="x" id="buyX">ביטול</button></div></div>
   <div id="range"><div id="rhud"><div id="rtitle">🎯 מלך המטווח</div><div id="ammo"></div><div id="tbar"><i></i></div></div>
     <div id="field"><canvas id="cv" width="1600" height="900"></canvas></div>
-    <div id="scope"><i class="h"></i><i class="v"></i><i class="dot"></i><i class="tk"></i></div><button id="fireB">אש</button><div id="clock">45</div><div id="tally"></div><div id="rsum"></div>
+    <div id="scope"><i class="h"></i><i class="v"></i><i class="dot"></i><i class="tk"></i></div><button class="fireB" id="fireB">אש</button><button class="fireB" id="fireL">אש</button><div id="clock">45</div><div id="tally"></div><div id="rsum"></div>
     <div id="rintro" hidden><div class="card"><h2 id="riT">🎯 מלך המטווח</h2><p>12 יריות, 45 שניות. מסתכלים דרך הכוונת: גוררים את האצבע כדי לכוון, ולוחצים <b>אש</b>.</p>
       <p>פחית, בלון זהב ויהלום שווים כפולות מההימור. <b>ציפור זהובה</b> מפילה מכפיל על אחת המטרות הבאות: פגעת בה, והערך שלה מוכפל.</p>
       <p id="riV"></p><button id="riGo">אש! 🎯</button></div></div></div>
+  <div id="life"><div class="card"><h2>❤️ חיים נוספים?</h2><p id="lifeP"></p>
+    <div class="row"><button id="lifeY">להמשיך מכאן<small id="lifeS"></small></button><button id="lifeN">לא, תודה<small>מתחילים מחדש</small></button></div></div></div>
   <div id="dice"><div id="cube"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
 </div>
 <div id="enter" hidden><div class="card">
@@ -186,7 +194,7 @@ body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Ari
   <p>לוחצים <b>המר</b> ורואים את כל הקומה: כספות, שומרי המגדל, ועל כל חדר כמה צריך בקוביה כדי להגיע אליו.</p>
   <p>זורקים ומתקדמים לפי הקוביה, חדר אחרי חדר. אחרי חדר 6 עולים במעלית לקומה הבאה. כספת = כפולה לשלל. שומר = הסבב נגמר.</p>
   <p>בקומה 4, חדר 3: <b>שער יציאה</b>. פורשים עם השלל או ממשיכים. מי שעובר 6 קומות נכנס לקומות הבונוס, ומשם ל<b>מלך המטווח</b>.</p>
-  <p>אפשר גם לקנות את בונוס הירי ישירות.</p>
+  <p>נתפסת? אפשר לקנות פעם אחת חיים נוספים ולהמשיך מאותו חדר. אפשר גם לקנות את בונוס הירי ישירות.</p>
   <button id="goIn">יאללה למגדל 🏰</button><button class="back" onclick="location.href='./'">חזרה ללובי</button>
 </div></div>
 <script src="sfx.js?v=1793807062"></script>
@@ -198,6 +206,10 @@ const $ = (id) => document.getElementById(id);
 const fmt = (n) => { n = Math.floor(Number(n) + 1e-6); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const S = (k, a) => { try { SFX[k](a); } catch (e) {} };
+let music = null;
+function musicOn() { if (music || document.hidden || !window.SFX) return; try { const f = SFX.fx("tw_music", { vol: 0.22, loop: true }); if (typeof f === "function") music = f; } catch (e) {} }
+function musicOff() { try { music && music(); } catch (e) {} music = null; }
+addEventListener("pointerdown", musicOn, { capture: true }); document.addEventListener("visibilitychange", () => (document.hidden ? musicOff() : musicOn())); addEventListener("pagehide", musicOff);
 const BNAME = ["", "בונוס", "סופר", "קרייזי"], FLOORS = 8, EXIT = 21;
 let W = 1920, balance = 0, bet = 100, run = null, busy = false, shownFloor = 0;
 
@@ -261,9 +273,9 @@ $("plus").onclick = () => { const ok = GC_LADDER(10, balance), i = ok.indexOf(be
 const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
 function face(n) { [...$("cube").children].forEach((p, i) => (p.style.visibility = PIPS[n].includes(i) ? "visible" : "hidden")); }
 async function rollDie(n) {
-  const d = $("dice"), c = $("cube"); d.classList.add("on"); c.classList.remove("roll"); void c.offsetWidth; c.classList.add("roll"); S("roll");
+  const d = $("dice"), c = $("cube"); d.classList.add("on"); c.classList.remove("roll"); void c.offsetWidth; c.classList.add("roll"); fx("tw_dice", 0.9);
   const t0 = Date.now(); while (Date.now() - t0 < 1000) { face(1 + Math.floor(Math.random() * 6)); await sleep(90); }
-  face(n); await sleep(500); S("chip"); await sleep(600); d.classList.remove("on");
+  face(n); await sleep(500); await sleep(600); d.classList.remove("on");
 }
 const FR = (n) => "img/tower/sol_" + n + ".webp";
 ["walk_01","walk_02","walk_03","walk_04","walk_05","climb_01","climb_02","celebrate","caught"].forEach((n) => { const i = new Image(); i.src = FR(n); });
@@ -342,6 +354,14 @@ async function send(fn, args) {
 }
 async function after(prev, data) {
   await play(prev, data); run = data;
+  if (data.status === "lost" && data.revive) {   // offer one extra life, priced by the server from this room and the loot
+    $("lifeP").textContent = `שומר המגדל תפס אותך בקומה ${floorOf(data.pos)}. אפשר לקנות חיים ולהמשיך מאותו חדר, עם השלל שאספת (×${data.loot / 100}).`;
+    $("lifeS").textContent = fmt(data.revive); $("life").classList.add("on"); S("riser");
+    const yes = await new Promise((ok) => { $("lifeY").onclick = () => ok(true); $("lifeN").onclick = () => ok(false); });
+    $("life").classList.remove("on"); S("button");
+    if (yes) { const r2 = await send("tw_revive", { p_run: data.id });
+      if (r2 && r2.status === "active") { run = r2; showBal(r2.balance); fx("tw_reload"); await say("❤️ חזרת למשחק! ממשיכים מאותו חדר", false, 1600); drawFloor(shownFloor, r2.layout, r2.pos); busy = false; controls(); return; } }
+  }
   if (["lost", "won", "cashed"].includes(data.status)) await finish(data);
   else if (data.status === "choice") openChoice();
   else if (data.status === "shoot") { await say(`🎯 ${["", "בונוס רגיל", "סופר", "קרייזי"][data.bonus]}! מלך המטווח`, false, 1600); await openRange(data); return; }
@@ -426,11 +446,12 @@ async function openRange(data) {
   $("ammo").innerHTML = "<b></b>".repeat(R_SHOTS); $("tally").innerHTML = ""; $("rsum").textContent = data.loot ? `שלל מהמגדל ×${data.loot / 100}` : "";
   $("rintro").hidden = false; fx("tw_reload");
   await new Promise((ok) => ($("riGo").onclick = () => { $("rintro").hidden = true; ok(); }));
-  R = { data, tg, shots: [], hit: new Set(), mult: {}, sum: 0, t0: performance.now(), done: false, aim: [800, 450] }; moveCross(800, 450);
+  R = { data, tg, shots: [], hit: new Set(), mult: {}, sum: 0, t0: performance.now(), done: false, aim: [800, 450] }; goal = null; moveCross(800, 450);
   const cv = $("cv"), g = cv.getContext("2d");
   const frame = () => {
     if (!R || R.done) return;
     const now = performance.now(), ms = now - R.t0;
+    if (goal) { const a = R.aim; moveCross(a[0] + (goal[0] - a[0]) * 0.45, a[1] + (goal[1] - a[1]) * 0.45); }
     g.clearRect(0, 0, 1600, 900);
     { const tr = g.createLinearGradient(0, 878, 0, 900); tr.addColorStop(0, "#5a5f66"); tr.addColorStop(1, "#1d1f22"); g.fillStyle = tr; g.fillRect(0, 878, 1600, 22);
       g.fillStyle = "#0006"; for (let x = -(ms / 6 % 60); x < 1600; x += 60) g.fillRect(x, 880, 6, 18); }
@@ -451,11 +472,12 @@ function moveCross(x, y) {
   const sc = $("scope"); sc.style.setProperty("--x", sx + "px"); sc.style.setProperty("--y", sy + "px");
 }
 let drag = null;
-$("range").addEventListener("pointerdown", (e) => { if (!R || R.done || !$("rintro").hidden || e.target.closest("#fireB")) return; e.preventDefault(); drag = { x: e.clientX, y: e.clientY, a: R.aim.slice() }; });
-addEventListener("pointermove", (e) => { if (!drag || !R) return; const r = $("field").getBoundingClientRect(), k = 1600 / r.width * 0.9;   // slightly slow for fine aim
-  moveCross(drag.a[0] + (e.clientX - drag.x) * k, drag.a[1] + (e.clientY - drag.y) * k); });
+$("range").addEventListener("pointerdown", (e) => { if (!R || R.done || !$("rintro").hidden || e.target.closest(".fireB")) return; e.preventDefault(); drag = { x: e.clientX, y: e.clientY, a: (goal || R.aim).slice() }; });
+let goal = null;   // where the finger wants the scope; the frame loop eases toward it every frame (smooth, no jumps)
+addEventListener("pointermove", (e) => { if (!drag || !R) return; const r = $("field").getBoundingClientRect(), k = 1600 / r.width * 1.8;
+  goal = [Math.max(0, Math.min(1600, drag.a[0] + (e.clientX - drag.x) * k)), Math.max(0, Math.min(900, drag.a[1] + (e.clientY - drag.y) * k))]; }, { passive: true });
 addEventListener("pointerup", () => (drag = null)); addEventListener("pointercancel", () => (drag = null));
-$("fireB").addEventListener("pointerdown", (e) => {
+const fire = (e) => {
   e.preventDefault(); e.stopPropagation(); if (!R || R.done || !$("rintro").hidden) return;
   const ms = Math.round(performance.now() - R.t0), last = R.shots.length ? R.shots[R.shots.length - 1][2] : -1000;
   if (ms < last + 300 || ms > R_SECS * 1000) return;   // same rate limit the server checks
@@ -474,7 +496,8 @@ $("fireB").addEventListener("pointerdown", (e) => {
   else { const m = R.mult[best] || 1, v = o.v * m / 100; R.sum += v; setTimeout(() => fx("tw_hit", 0.8), 90); pop("×" + +v.toFixed(2));
     const d = document.createElement("div"); if (m > 1) d.className = "m"; d.textContent = (m > 1 ? `×${o.v / 100}·${m} = ` : "") + "×" + +v.toFixed(2); $("tally").prepend(d);
     $("rsum").textContent = `ירי ×${+R.sum.toFixed(2)}` + (R.data.loot ? ` + שלל ×${R.data.loot / 100}` : ""); }
-});
+};
+$("fireB").addEventListener("pointerdown", fire); $("fireL").addEventListener("pointerdown", fire);
 async function endRange() {
   if (!R || R.done) return; R.done = true;
   const r0 = R, res = await send("tw_shoot", { p_run: r0.data.id, p_shots: r0.shots });
