@@ -84,7 +84,7 @@ body{position:fixed;inset:0;background:#02060c url(img/bots/bots_hall_bg.webp) c
 // Baccarat vs the bot (migration 0110). The server shuffles, picks for the bot and deals; this page only shows it, one thing at a time.
 const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 const $ = (id) => document.getElementById(id), sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const BOTS = ["אביחי ניוטון", "נתנאל אמלקה", "יואב הנחוש", "23עידו11", "המלך בנימין"]   // bot_1 … bot_5 (5 = the boss), NAME = { P: "פלייר", B: "באנקר", T: "תיקו" };
+const BOTS = ["אביחי ניוטון", "נתנאל אמלקה", "יואב הנחוש", "23עידו11", "המלך בנימין"], NAME = { P: "פלייר", B: "באנקר", T: "תיקו" };   // bot_1 … bot_5 (5 = the boss)
 const RANK = (c) => c === 1 ? "A" : c === 11 ? "J" : c === 12 ? "Q" : c === 13 ? "K" : String(c), VAL = (c) => c >= 10 ? 0 : c;
 let run = null, busy = false;
 const S = (k, a) => { try { SFX[k](a); } catch (e) {} };
