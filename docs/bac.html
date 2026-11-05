@@ -142,12 +142,12 @@ function finish() {
   const head = me > bt ? `ניצחת את ${botName()}!` : me === bt ? "תיקו בקרב!" : `${botName()} ניצח הפעם`;
   $("mine").textContent = "";
   $("big").innerHTML = `<div class="win"><h3>${head}</h3><p class="${sp ? "" : "no"}">${me} : ${bt}${sp ? ` · +${sp} נקודות לעונה` : ""}</p>
-    <div class="btns">${run.left_today > 0 ? `<button id="again">קרב נוסף (נשארו ${run.left_today} היום)</button>` : ""}<a href="challenges.html">לאתגרים</a></div></div>`;
+    <div class="btns">${run.left_today > 0 ? `<button id="again">קרב נוסף (עוד ${run.left_today} ניצחונות היום)</button>` : ""}<a href="challenges.html">לאתגרים</a></div></div>`;
   if (sp) { FX("bb_point", 0.9); S("win", true); } const a = $("again"); if (a) a.onclick = start;
 }
 async function start() {
   $("err").textContent = ""; const { data, error } = await db.rpc("bb_start");
-  if (error) { const m = error.message || ""; $("big").innerHTML = `<div class="win"><h3>${m.includes("daily_limit") ? "סיימת להיום" : "אי אפשר להתחיל עכשיו"}</h3><p class="no">${m.includes("daily_limit") ? "3 קרבות ביום. מחר נפתחים שוב." : m.includes("paused") ? "האתגרים בהפסקה." : "נסה שוב בעוד רגע."}</p><div class="btns"><a href="challenges.html">לאתגרים</a></div></div>`; return; }
+  if (error) { const m = error.message || ""; $("big").innerHTML = `<div class="win"><h3>${m.includes("daily_limit") ? "סיימת להיום" : "אי אפשר להתחיל עכשיו"}</h3><p class="no">${m.includes("daily_limit") ? "ניצחת 3 פעמים היום. מחר נפתחים שוב." : m.includes("paused") ? "האתגרים בהפסקה." : "נסה שוב בעוד רגע."}</p><div class="btns"><a href="challenges.html">לאתגרים</a></div></div>`; return; }
   run = data; setBot(); board(); if (run.status === "done") return finish(); choose();
 }
 (async () => {

@@ -138,17 +138,17 @@ function finish() {
     FX("bb_point", 0.9); S("win", true);
     const boss = run.stage === 5;
     msg(`<h3>${boss ? "👑 ניצחת את הבוס!" : `ניצחת את ${name}!`}</h3><p>${run.me}:${run.bot} · +${run.season_pts} נקודות לעונה${boss ? " · הסולם הושלם" : ` · עולים לשלב ${run.stage + 1}`}</p>
-      <div class="btns2">${!boss && run.left_today > 0 ? `<button id="next">לשלב הבא (נשארו ${run.left_today} היום)</button>` : ""}<a href="challenges.html">לאתגרים</a></div>`);
+      <div class="btns2">${!boss && run.left_today > 0 ? `<button id="next">לשלב הבא</button>` : ""}<a href="challenges.html">לאתגרים</a></div>`);
   } else {
     msg(`<h3>${name} ניצח הפעם</h3><p class="no">${run.me}:${run.bot}${run.stage > 1 ? ` · יורדים לשלב ${run.stage - 1}` : ""}</p>
-      <div class="btns2">${run.left_today > 0 ? `<button id="next">עוד קרב (נשארו ${run.left_today} היום)</button>` : ""}<a href="challenges.html">לאתגרים</a></div>`);
+      <div class="btns2">${run.left_today > 0 ? `<button id="next">עוד קרב</button>` : ""}<a href="challenges.html">לאתגרים</a></div>`);
   }
   const n = $("next"); if (n) n.onclick = start;
 }
 async function start() {
   msg(""); const { data, error } = await db.rpc("ld_start");
   if (error) { const m = error.message || "";
-    msg(`<h3>${m.includes("ladder_done") ? "👑 הסולם הושלם" : m.includes("daily_limit") ? "סיימת להיום" : "אי אפשר להתחיל עכשיו"}</h3><p class="no">${m.includes("ladder_done") ? "ניצחת את כל חמשת הבוטים העונה." : m.includes("daily_limit") ? "5 קרבות ביום. מחר נפתחים שוב (בחצות)." : "נסה שוב בעוד רגע."}</p><div class="btns2"><a href="challenges.html">לאתגרים</a></div>`); return; }
+    msg(`<h3>${m.includes("ladder_done") ? "👑 הסולם הושלם" : m.includes("daily_limit") ? "סיימת להיום" : "אי אפשר להתחיל עכשיו"}</h3><p class="no">${m.includes("ladder_done") ? "ניצחת את כל חמשת הבוטים העונה." : m.includes("daily_limit") ? "ניצחון אחד ביום. מחר בחצות נפתח קרב חדש." : "נסה שוב בעוד רגע."}</p><div class="btns2"><a href="challenges.html">לאתגרים</a></div>`); return; }
   run = data; tower(run.stage, false); die(0); bars(0, 0, 0); buttons(false);
   if (data.opening) { flash(`${BOTS[run.stage - 1]} פותח`, "#ff9be9"); await sleep(900); await botTurn(data.bot_rolls, 0, run.bot); die(0); }
   show();
@@ -157,11 +157,12 @@ $("roll").onclick = () => act(false); $("keep").onclick = () => act(true);
 (async () => {
   const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
   if (window.GC_LOADER) GC_LOADER.done();
-  buttons(false); const { data } = await db.rpc("ld_state"); st = data || { stage: 1, done: false, left_today: 5 };
+  buttons(false); const { data } = await db.rpc("ld_state"); st = data || { stage: 1, done: false, left_today: 1 };
   tower(st.stage, st.done); $("enemy").src = `img/ch/bot_${Math.min(5, st.stage)}.webp`; bars(0, 0, 0);
   if (st.run) { run = st.run; show(); return; }
   msg(st.done ? `<h3>👑 הסולם הושלם</h3><p class="no">ניצחת את כל חמשת הבוטים העונה.</p><div class="btns2"><a href="challenges.html">לאתגרים</a></div>`
-    : `<h3>סולם הבוטים · שלב ${st.stage}</h3><p class="no">זורקים קובייה ואוספים. יצא 1? התור נשרף. ראשון ל־30 מנצח ועולה שלב. הפסד = שלב אחד למטה.</p><div class="btns2"><button id="go">יאללה (נשארו ${st.left_today} היום)</button><a href="challenges.html">חזרה</a></div>`);
+    : st.left_today < 1 ? `<h3>ניצחת היום ✓</h3><p class="no">ניצחון אחד ביום בסולם. מחר בחצות ממשיכים לשלב ${st.stage}.</p><div class="btns2"><a href="challenges.html">לאתגרים</a></div>`
+    : `<h3>סולם הבוטים · שלב ${st.stage}</h3><p class="no">זורקים קובייה ואוספים. יצא 1? התור נשרף. ראשון ל־30 מנצח ועולה שלב. הפסד = שלב אחד למטה.</p><div class="btns2"><button id="go">יאללה</button><a href="challenges.html">חזרה</a></div>`);
   const g = $("go"); if (g) g.onclick = () => { FX("bb_pick"); start(); };
 })();
 </script>

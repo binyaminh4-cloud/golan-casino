@@ -60,9 +60,9 @@ function draw() {
   $("vaultBar").style.width = p + "%"; $("vaultTxt").textContent = `${fmt(S.vault)} / ${fmt(S.vault_target)}`;
   // board
   const b = (S.board || []).filter((x) => x.total > 0 || x.id === S.me);
-  $("board").innerHTML = `<tr><th>#</th><th>שחקן</th><th>🎧</th><th>🃏</th><th>⚡</th><th>🎡</th><th>סה״כ</th></tr>` +
-    (b.length ? b.map((x, i) => `<tr class="${x.id === S.me ? "me" : ""}"><td class="num">${i + 1}</td><td>${esc(x.name)}</td><td class="num">${x.fisher}</td><td class="num">${x.ido}</td><td class="num">${x.zeus}</td><td class="num">${x.tourney || 0}</td><td class="num tot">${x.total}</td></tr>`).join("")
-             : `<tr><td colspan="7" class="empty">עוד אין נקודות בעונה הזאת. מי פותח?</td></tr>`);
+  $("board").innerHTML = `<tr><th>#</th><th>שחקן</th><th>🎧</th><th>🃏</th><th>⚡</th><th>🎡</th><th>🤖</th><th>סה״כ</th></tr>` +
+    (b.length ? b.map((x, i) => `<tr class="${x.id === S.me ? "me" : ""}"><td class="num">${i + 1}</td><td>${esc(x.name)}</td><td class="num">${x.fisher}</td><td class="num">${x.ido}</td><td class="num">${x.zeus}</td><td class="num">${x.tourney || 0}</td><td class="num">${Math.max(0, x.total - (x.fisher || 0) - (x.ido || 0) - (x.zeus || 0) - (x.tourney || 0))}</td><td class="num tot">${x.total}</td></tr>`).join("")
+             : `<tr><td colspan="8" class="empty">עוד אין נקודות בעונה הזאת. מי פותח?</td></tr>`);
   const L = S.last_results; $("last").innerHTML = L ? `🏆 עונה ${L.season} הסתיימה · הכספת: ${fmt(L.vault || 0)}${L.vault_hit ? " (התמלאה!)" : ""}` : "";
 }
 let Z = [];
@@ -90,7 +90,7 @@ async function load() {
     duels: [{ id: "1", status: "waiting", challenger: "b", challenger_name: "דני", opponent: "a", opponent_name: "בנימין", score_a: 12800 }, { id: "2", status: "done", challenger: "a", opponent_name: "פישר", challenger_name: "בנימין", winner: "a" }],
     board: [{ id: "a", name: "בנימין", fisher: 43, ido: 60, zeus: 0, total: 103 }, { id: "b", name: "דני", fisher: 20, ido: 30, zeus: 0, total: 50 }] }; draw(); return; }
   const [st, zl] = await Promise.all([db.rpc("ch_state"), db.rpc("zeus_list")]);
-  if (st.error) return err(errText(st.error)); if (!zl.error) Z = (zl.data || []).slice(0, 3);   // only the 3 latest requests S = st.data; draw();
+  if (st.error) return err(errText(st.error)); if (!zl.error) Z = (zl.data || []).slice(0, 3); S = st.data; draw();   // Zeus: only the 3 latest requests
 }
 $("tnBtn").onclick = async () => {
   const g = $("tnBtn").dataset.go;
