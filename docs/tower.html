@@ -11,8 +11,8 @@
 *{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden}
 body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Arial,sans-serif;-webkit-user-select:none;user-select:none}
 /* the stage is always 1080 tall; its width follows the screen so the tower fills the whole width */
-#stage{position:absolute;left:0;top:0;height:1080px;transform-origin:0 0;overflow:hidden;background:#1a1916}
-#wall{position:absolute;inset:0;background:url(img/tower/tower_bg.webp) center/cover;filter:brightness(.62) saturate(.8)}
+#stage{position:absolute;left:0;top:0;height:1080px;transform-origin:0 0;overflow:clip;background:#1a1916}
+#wall{position:absolute;inset:-300px 0;background:url(img/tower/tower_bg.webp) center 0/cover repeat-y;filter:brightness(.62) saturate(.8)}
 #wall::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,transparent 35%,#000c 100%),linear-gradient(#0008,transparent 22%,transparent 80%,#000a)}
 .abs{position:absolute}
 /* silver frame around the tower */
@@ -20,7 +20,7 @@ body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Ari
 #frame::before{content:"";position:absolute;inset:8px;border:2px solid #c9a24a66;border-radius:18px}
 /* the floor: 6 rooms across the full width */
 #floor{position:absolute;left:0;right:0;top:215px;height:640px;transition:transform .9s cubic-bezier(.5,0,.3,1),opacity .9s}
-#floor.down{transform:translateY(900px);opacity:0}#floor.up{transform:translateY(-900px);opacity:0;transition:none}
+
 .room{position:absolute;top:0;height:640px;background:url(img/tower/room_tile.webp) 0 0/100% 100%}
 .room .no{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:62px;height:62px;border-radius:50%;display:grid;place-items:center;
   background:radial-gradient(circle at 40% 35%,#f2f4f6,#8d949c 70%);border:3px solid #2d3035;color:#1b1d21;font:900 36px Inter;box-shadow:0 4px 10px #000a;z-index:2}
@@ -31,6 +31,9 @@ body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Ari
 .room .gate{height:400px;bottom:30px}.room .lad{height:470px;bottom:30px}
 .room .cap{position:absolute;left:0;right:0;bottom:-44px;text-align:center;font:800 26px Heebo;color:#e3e6ea;text-shadow:0 2px 4px #000}
 .room.hit{animation:hit .5s ease-out 2}.room.took .vault,.room.took .mult{opacity:.25;transition:opacity .5s}
+.room .need{position:absolute;left:50%;top:84px;transform:translateX(-50%);z-index:3;background:#0d0f14e6;border:3px solid #ffd970;border-radius:16px;padding:4px 14px;font:900 34px Inter;color:#ffe9a8;white-space:nowrap;box-shadow:0 0 16px #ffbf3a88}
+.room.past{filter:brightness(.55)}
+#floor.ghost{pointer-events:none}
 .room.cur{box-shadow:inset 0 0 0 5px #ffd970,0 0 40px #ffcc4dcc;z-index:1}
 @keyframes hit{30%{transform:translateX(-14px)}60%{transform:translateX(12px)}}
 /* the player */
@@ -91,7 +94,7 @@ body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Ari
 #enter .back{background:none;border:1px solid #c9a24a;color:#e7c873;height:auto;padding:6px;font-size:14px}
 
 /* ───── מלך המטווח ───── */
-#range{position:absolute;inset:0;z-index:30;display:none;background:#05070a url(img/tower/range_bg.webp) center/cover;cursor:none;touch-action:none;overflow:hidden}
+#range{position:absolute;inset:0;z-index:30;display:none;background:#05070a url(img/tower/range_bg.webp) center/cover;cursor:crosshair;touch-action:none;overflow:hidden}
 #range::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,transparent 45%,#000b 100%);z-index:2}
 #range.on{display:block}
 #rifle{position:absolute;right:-30px;bottom:-60px;height:760px;z-index:3;pointer-events:none;filter:drop-shadow(0 0 20px #000c);transition:transform .12s ease-out}
@@ -133,6 +136,20 @@ body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Ari
 #buy .row button{flex:1;height:170px;border-radius:24px;border:4px solid #c7a8ff;background:linear-gradient(#5d3fc0,#2c1870);color:#fff;font:900 44px Heebo;cursor:pointer;line-height:1.15}
 #buy .row button small{display:block;font:800 28px Inter;color:#ffe08a}
 #buy .x{margin-top:22px;background:none;border:2px solid #777;color:#ccc;border-radius:99px;padding:10px 40px;font:800 26px Heebo;cursor:pointer}
+
+#scope{position:absolute;inset:0;z-index:3;pointer-events:none;--x:50%;--y:50%;
+  background:radial-gradient(circle at var(--x) var(--y),transparent 0 250px,#000d 256px,#0009 300px,#000a 100%)}
+#scope i{position:absolute;left:var(--x);top:var(--y);pointer-events:none}
+#scope .h{width:500px;height:2px;margin:-1px 0 0 -250px;background:linear-gradient(90deg,#000 0 30%,#000a 30% 46%,transparent 46% 54%,#000a 54% 70%,#000 70%)}
+#scope .v{width:2px;height:500px;margin:-250px 0 0 -1px;background:linear-gradient(#000 0 30%,#000a 30% 46%,transparent 46% 54%,#000a 54% 70%,#000 70%)}
+#scope .dot{width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#ff2a1a;box-shadow:0 0 12px #ff2a1a}
+#scope .tk{width:520px;height:520px;margin:-260px 0 0 -260px;border-radius:50%;box-shadow:inset 0 0 0 10px #111,inset 0 0 40px 18px #000c}
+#scope.kick{animation:sk .2s ease-out}@keyframes sk{35%{transform:translateY(-34px) scale(1.04)}}
+#fireB{position:absolute;right:70px;bottom:70px;z-index:5;width:220px;height:220px;border-radius:50%;border:6px solid #ffb4a8;
+  background:radial-gradient(circle at 45% 35%,#ff7a62,#c8261a 60%,#6a0d07);color:#fff;font:900 60px Heebo;box-shadow:0 0 40px #ff3a2a88,inset 0 -10px 18px #0006;touch-action:none;cursor:pointer}
+#fireB:active{transform:scale(.94)}
+#clock{position:absolute;left:50%;top:80px;transform:translateX(-50%);z-index:5;min-width:130px;text-align:center;padding:4px 18px;border-radius:18px;background:#000b;border:3px solid #c9a24a;font:900 64px Inter;color:#ffe9a8;pointer-events:none}
+#clock.low{color:#ff8a7a;border-color:#ff6a5a;animation:pulse 1s infinite}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
@@ -151,25 +168,25 @@ body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Ari
   <div class="abs" id="err"></div>
   <div class="abs" id="bet"><button class="sq" id="minus" aria-label="הימור קטן יותר">−</button><div id="amt">₪100<small>הימור</small></div><button class="sq" id="plus" aria-label="הימור גדול יותר">+</button><button id="go">המר</button></div>
   <div id="choice"><div class="card"><h2>פורשים עם הכסף או ממשיכים למעלה?</h2><p id="chP"></p>
-    <div class="row"><button id="cash">לפרוש עם השלל<small id="cashS"></small></button><button id="cont">להמשיך למעלה<small>מסדרון עם 5 שומרים מתוך 6, ובסופו מלך המטווח</small></button></div></div></div>
+    <div class="row"><button id="cash">לפרוש עם השלל<small id="cashS"></small></button><button id="cont">להמשיך למעלה<small>ממשיכים לטפס לקומות הבונוס</small></button></div></div></div>
   <button id="buyB" hidden>🎯 קנה בונוס ירי</button>
   <div id="buy"><div class="card"><h2>🎯 קנה את מלך המטווח</h2><div class="row">
     <button data-l="1">בונוס רגיל<small id="bp1"></small></button><button data-l="2">סופר<small id="bp2"></small></button><button data-l="3">קרייזי<small id="bp3"></small></button></div>
     <button class="x" id="buyX">ביטול</button></div></div>
   <div id="range"><div id="rhud"><div id="rtitle">🎯 מלך המטווח</div><div id="ammo"></div><div id="tbar"><i></i></div></div>
-    <div id="field"><canvas id="cv" width="1600" height="900"></canvas><div id="cross"><i></i><i></i><i></i><i></i></div></div>
-    <img id="rifle" src="img/tower/rifle.webp" alt=""><div id="flash"></div><div id="tally"></div><div id="rsum"></div>
-    <div id="rintro" hidden><div class="card"><h2 id="riT">🎯 מלך המטווח</h2><p>10 יריות, 30 שניות. מכוונים עם האצבע ויורים בנגיעה.</p>
+    <div id="field"><canvas id="cv" width="1600" height="900"></canvas></div>
+    <div id="scope"><i class="h"></i><i class="v"></i><i class="dot"></i><i class="tk"></i></div><button id="fireB">אש</button><div id="clock">45</div><div id="tally"></div><div id="rsum"></div>
+    <div id="rintro" hidden><div class="card"><h2 id="riT">🎯 מלך המטווח</h2><p>12 יריות, 45 שניות. מסתכלים דרך הכוונת: גוררים את האצבע כדי לכוון, ולוחצים <b>אש</b>.</p>
       <p>פחית, בלון זהב ויהלום שווים כפולות מההימור. <b>ציפור זהובה</b> מפילה מכפיל על אחת המטרות הבאות: פגעת בה, והערך שלה מוכפל.</p>
       <p id="riV"></p><button id="riGo">אש! 🎯</button></div></div></div>
   <div id="dice"><div id="cube"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
 </div>
 <div id="enter" hidden><div class="card">
   <h2>🏰 מגדל הכסף</h2>
-  <p>לוחצים <b>המר</b> והקוביה קובעת לאיזה חדר נכנסים. בכל קומה שישה חדרים.</p>
-  <p>בחדר עם <b>כספת</b> אוספים את הכפולה שעליה ועולים בסולם. בחדר עם <b>שומר המגדל</b> הסבב נגמר וההימור הולך.</p>
-  <p>בקומה 3, חדר 2, יש <b>שער יציאה</b>: פורשים עם השלל או ממשיכים לבונוס.</p>
-  <p>מי שעובר את המסדרון מגיע ל<b>בונוס</b>. מעליו קומה 4 = <b>סופר</b> וקומה 5 = <b>קרייזי</b>, ואז <b>מלך המטווח</b>: 10 יריות על מטרות עם כפולות. שומר בקומות הבונוס לא לוקח כלום.</p><p>אפשר גם לקנות את בונוס הירי ישירות.</p>
+  <p>לוחצים <b>המר</b> ורואים את כל הקומה: כספות, שומרי המגדל, ועל כל חדר כמה צריך בקוביה כדי להגיע אליו.</p>
+  <p>זורקים ומתקדמים לפי הקוביה, חדר אחרי חדר. אחרי חדר 6 עולים במעלית לקומה הבאה. כספת = כפולה לשלל. שומר = הסבב נגמר.</p>
+  <p>בקומה 4, חדר 3: <b>שער יציאה</b>. פורשים עם השלל או ממשיכים. מי שעובר 6 קומות נכנס לקומות הבונוס, ומשם ל<b>מלך המטווח</b>.</p>
+  <p>אפשר גם לקנות את בונוס הירי ישירות.</p>
   <button id="goIn">יאללה למגדל 🏰</button><button class="back" onclick="location.href='./'">חזרה ללובי</button>
 </div></div>
 <script src="sfx.js?v=1793807062"></script>
@@ -181,8 +198,8 @@ const $ = (id) => document.getElementById(id);
 const fmt = (n) => { n = Math.floor(Number(n) + 1e-6); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const S = (k, a) => { try { SFX[k](a); } catch (e) {} };
-const PRIZE = [0, 14, 35, 70], BNAME = ["", "בונוס", "סופר", "קרייזי"];
-let W = 1920, balance = 0, bet = 100, run = null, busy = false, shownFloor = 1, shownRow = null;
+const BNAME = ["", "בונוס", "סופר", "קרייזי"], FLOORS = 8, EXIT = 21;
+let W = 1920, balance = 0, bet = 100, run = null, busy = false, shownFloor = 0;
 
 function fit() {
   const vw = document.documentElement.clientWidth || innerWidth, vh = document.documentElement.clientHeight || innerHeight, s = vh / 1080;
@@ -190,43 +207,47 @@ function fit() {
   st.style.transform = `scale(${Math.min(s, vw / W)})`; place(); }
 addEventListener("resize", fit); addEventListener("orientationchange", () => setTimeout(fit, 300)); try { new ResizeObserver(fit).observe(document.documentElement); } catch (e) {}
 
-// room geometry across the full width
-const roomBox = (i) => { const pad = 40, gap = 0, w = (W - 2 * pad) / 6; return { x: pad + i * (w + gap), w }; };   // room 1 on the left, 6 on the right (owner's choice)
+// one path: room n (1..48) = floor ceil(n/6), rooms 1–6 left to right on every floor
+const roomBox = (i) => { const pad = 40, w = (W - 2 * pad) / 6; return { x: pad + i * w, w }; };
+const floorOf = (pos) => (pos <= 0 ? 1 : Math.min(FLOORS, Math.ceil(pos / 6)));
+let meRoom = 0;   // 0 = at the left entrance of the floor, 1..6 = in a room, 7 = at the right exit
+const meX = () => (meRoom === 0 ? 70 : meRoom === 7 ? W - 70 : roomBox(meRoom - 1).x + roomBox(meRoom - 1).w / 2);
 function place() {
-  document.querySelectorAll(".room").forEach((r, i) => { const b = roomBox(i); r.style.left = b.x + "px"; r.style.width = b.w + "px"; });
+  document.querySelectorAll("#floor .room").forEach((r, i) => { const b = roomBox(i); r.style.left = b.x + "px"; r.style.width = b.w + "px"; });
   const me = $("me"); me.style.transition = "none"; me.style.left = meX() + "px"; void me.offsetWidth; me.style.transition = "";
 }
-let meRoom = 0;   // 0 = standing at the start of the floor (right side), 1..6 = in a room
-const meX = () => meRoom ? roomBox(meRoom - 1).x + roomBox(meRoom - 1).w / 2 : 115;
+function floorLabel(f) { return f <= 6 ? "קומה " + f : f === 7 ? "בונוס" : "סופר"; }
 
-// draw one row of the tower (floors 1..5, row 6 = the corridor to the bonus)
-function drawRow(row, cells, taken) {
-  shownRow = row;
+// draw floor f of the layout; rooms ahead of pos show the die number needed to land there
+function drawFloor(f, layout, pos) {
+  shownFloor = f;
+  const cells = layout && layout.length ? layout.slice((f - 1) * 6, f * 6) : [0, 0, 0, 0, 0, 0];
   $("floor").innerHTML = cells.map((c, i) => {
-    let inner;
-    if (c === -1) inner = `<img class="guard" src="img/tower/guard.webp" alt="שומר המגדל"><div class="cap">שומר המגדל</div>`;
-    else if (row === 3 && i === 1) inner = `<img class="gate" src="img/tower/exit_gate.webp" alt="שער יציאה"><div class="cap">שער יציאה</div>`;
-    else if (c > 0) inner = `<img class="vault" src="img/tower/vault.webp" alt="כספת"><div class="mult">×${c}</div>`;
-    else inner = row >= 4 && row <= 5 ? `<img class="lad" src="img/tower/ladder.webp" alt="סולם"><div class="cap">${row === 6 ? "לבונוס" : BNAME[row - 2]}</div>` : `<img class="lad" src="img/tower/ladder.webp" alt="סולם"><div class="cap">לבונוס</div>`;
-    return `<div class="room${taken === i + 1 ? " took" : ""}"><div class="no">${i + 1}</div>${inner}</div>`;
+    const n = (f - 1) * 6 + i + 1, need = n - pos;
+    let inner = "";
+    if (layout && layout.length) {
+      if (c === -1) inner = `<img class="guard" src="img/tower/guard.webp" alt="שומר המגדל"><div class="cap">שומר המגדל</div>`;
+      else if (n === EXIT) inner = `<img class="gate" src="img/tower/exit_gate.webp" alt="שער יציאה"><div class="cap">שער יציאה</div>`;
+      else if (c > 0) inner = `<img class="vault" src="img/tower/vault.webp" alt="כספת"><div class="mult">×${c / 100}</div>`;
+      else if (f >= 7) inner = `<div class="cap">${f === 7 ? "בונוס" : "סופר"}</div>`;
+    }
+    const tag = layout && layout.length && need >= 1 && need <= 6 ? `<div class="need">🎲 ${need}</div>` : "";
+    return `<div class="room${n <= pos ? " past" : ""}"><div class="no">${i + 1}</div>${inner}${tag}</div>`;
   }).join("");
   place();
 }
-// before the first bet: an empty floor 1 so the screen isn't bare
-function drawIdle() { drawRow(1, [0, 0, 0, 0, 0, 0].map(() => 0)); document.querySelectorAll(".room img,.room .cap").forEach((e) => e.remove()); }
-
 function hud() {
-  const a = run && ["active", "choice", "bonus"].includes(run.status) && !run.bought, f = a ? run.floor : 1, b = a ? run.bonus : 0;
-  $("lvl").innerHTML = [1, 2, 3, 4, 5].map((n) => `<span class="${n === f ? "on" : ""}${n >= 4 ? " b" : ""}">${n >= 4 ? BNAME[n - 2] : "קומה " + n}</span>`).join("");
+  const a = run && ["active", "choice", "bonus"].includes(run.status) && !run.bought, f = a ? Math.max(shownFloor, 1) : 1;
+  $("lvl").innerHTML = Array.from({ length: FLOORS }, (_, k) => k + 1).map((n) => `<span class="${n === f ? "on" : ""}${n >= 7 ? " b" : ""}">${floorLabel(n)}</span>`).join("");
   const stake = a ? run.stake : bet;
-  $("loot").textContent = a ? (b ? `🎁 ${BNAME[b]} · שלל ×${run.loot} = ${fmt(stake * run.loot)} · בסוף: מלך המטווח` : `💰 שלל ×${run.loot} = ${fmt(stake * run.loot)}`) : `הימור ${fmt(bet)} · בונוס ירי עד ×5000`;
+  $("loot").textContent = a ? (run.status === "bonus" ? `🎁 ${BNAME[run.bonus]} · שלל ${fmt(stake * run.loot / 100)} · בסוף: מלך המטווח` : `💰 שלל ×${run.loot / 100} = ${fmt(stake * run.loot / 100)}`) : `הימור ${fmt(bet)} · בונוס ירי עד ×5000`;
 }
 function controls() {
   const a = run && ["active", "bonus"].includes(run.status);
   const ok = GC_LADDER(10, balance); if (!ok.includes(bet)) bet = ok.filter((v) => v <= bet).pop() || ok[0];
   $("amt").innerHTML = `${fmt(bet)}<small>הימור</small>`;
   $("bet").classList.toggle("run", !!a);
-  $("go").innerHTML = a ? (run.status === "bonus" ? `המר<small>לעלות ל${BNAME[run.bonus + 1]}</small>` : `המר<small>קומה ${run.floor}</small>`) : "המר";
+  $("go").innerHTML = a ? "🎲 זרוק" : "המר";
   $("bet").hidden = busy || (run && ["choice", "shoot"].includes(run.status));
   $("buyB").hidden = busy || !!run;
   hud();
@@ -237,65 +258,81 @@ const errText = (e) => { const m = (e && e.message) || ""; return m.includes("in
 $("minus").onclick = () => { const ok = GC_LADDER(10, balance), i = ok.indexOf(bet); if (i > 0) { bet = ok[i - 1]; S("chip"); controls(); } };
 $("plus").onclick = () => { const ok = GC_LADDER(10, balance), i = ok.indexOf(bet); if (i < ok.length - 1) { bet = ok[i + 1]; S("chip"); controls(); } };
 
-// the die falls into the middle of the screen, rolls, and stops on the server's number
 const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
 function face(n) { [...$("cube").children].forEach((p, i) => (p.style.visibility = PIPS[n].includes(i) ? "visible" : "hidden")); }
 async function rollDie(n) {
   const d = $("dice"), c = $("cube"); d.classList.add("on"); c.classList.remove("roll"); void c.offsetWidth; c.classList.add("roll"); S("roll");
   const t0 = Date.now(); while (Date.now() - t0 < 1000) { face(1 + Math.floor(Math.random() * 6)); await sleep(90); }
-  face(n); await sleep(500); S("chip"); await sleep(450); d.classList.remove("on");
+  face(n); await sleep(500); S("chip"); await sleep(600); d.classList.remove("on");
 }
 const FR = (n) => "img/tower/sol_" + n + ".webp";
-["walk_01","walk_02","walk_03","walk_04","walk_05","climb_01","climb_02","celebrate","caught"].forEach((n) => { const i = new Image(); i.src = FR(n); });   // preload
+["walk_01","walk_02","walk_03","walk_04","walk_05","climb_01","climb_02","celebrate","caught"].forEach((n) => { const i = new Image(); i.src = FR(n); });
 function pose(n) { $("meI").src = FR(n); }
-async function walkTo(room) {   // five walk frames while moving; the soldier faces right, so he is mirrored when walking left
-  const me = $("me"), from = meX(); meRoom = room; const to = meX(); if (Math.abs(to - from) < 2) return;
-  me.classList.toggle("left", to < from); me.style.left = to + "px"; S("tick");
-  for (let k = 0; k < 10; k++) { pose("walk_0" + (1 + (k % 5))); await sleep(80); }
-  pose("base_side_standing"); me.classList.remove("left");
+// slow walk: ~0.65 s per room, five walk frames on a loop
+async function walkTo(room) {
+  const me = $("me"), from = meX(); meRoom = room; const to = meX(), dist = Math.abs(to - from); if (dist < 2) return;
+  const ms = Math.max(600, dist / roomBox(0).w * 650);
+  me.style.transition = `left ${ms}ms linear`; me.style.left = to + "px";
+  const t0 = Date.now(); let k = 0; while (Date.now() - t0 < ms) { pose("walk_0" + (1 + (k++ % 5))); if (k % 5 === 0) S("tick"); await sleep(95); }
+  pose("base_side_standing"); me.style.transition = "";
 }
-async function climb(nextRow, cells) {   // the floor drops to the bottom of the screen and the next one comes down from above
-  S("riser"); let ci = 0; const cl = setInterval(() => pose(ci++ % 2 ? "climb_02" : "climb_01"), 160); $("floor").classList.add("down"); $("me").style.top = "-320px"; await sleep(900); clearInterval(cl); pose("base_side_standing");
-  const f = $("floor"); f.classList.remove("down"); f.classList.add("up"); drawRow(nextRow, cells); meRoom = 0; place(); void f.offsetWidth;
-  f.classList.remove("up"); f.style.transition = ""; $("me").style.transition = "none"; $("me").style.top = "555px"; void $("me").offsetWidth; $("me").style.transition = ""; await sleep(900);
+// elevator: the floor slides slowly down out of view while the next floor comes down from above
+async function elevator(nextF, layout, pos) {
+  const f = $("floor"), me = $("me"); S("riser");
+  let ci = 0; const cl = setInterval(() => pose(ci++ % 2 ? "climb_02" : "climb_01"), 220);
+  const old = f.cloneNode(true); old.id = ""; old.classList.add("ghost"); f.parentNode.insertBefore(old, f);
+  drawFloor(nextF, layout, pos); meRoom = 0;
+  f.style.transition = "none"; f.style.transform = "translateY(-1000px)"; me.style.transition = "none"; me.style.left = meX() + "px";
+  void f.offsetWidth;
+  f.style.transition = old.style.transition = "transform 2.4s cubic-bezier(.45,0,.3,1)";
+  f.style.transform = "translateY(0)"; old.style.transform = "translateY(1000px)";
+  $("wall").style.transition = "background-position 2.4s cubic-bezier(.45,0,.3,1)"; $("wall").style.backgroundPositionY = (nextF * 140) + "px";
+  await sleep(2450); old.remove(); clearInterval(cl); pose("base_side_standing"); f.style.transition = ""; me.style.transition = "";
+  hud();
 }
-const curRow = (r) => (r.status === "choice" ? 3 : r.floor);
-
-// animate the rolls the server added, one by one
+// one roll: walk forward room by room; crossing the end of a floor rides the elevator up
+async function moveAlong(r, data) {
+  let p = r.from;
+  while (p < Math.min(r.to, 48)) {
+    const f = floorOf(p + 1);
+    if (f !== shownFloor) { await walkTo(7); await elevator(f, data.layout, r.from); }
+    const lastOnFloor = Math.min(r.to, f * 6, 48);
+    await walkTo(lastOnFloor - (f - 1) * 6); p = lastOnFloor;
+  }
+  if (r.to > 48) await walkTo(7);
+}
 async function play(prev, data) {
   const seen = prev ? prev.rolls.length : 0;
   for (let k = seen; k < data.rolls.length; k++) {
-    const r = data.rolls[k], cells = data.layout[r.row - 1];
-    if (shownRow !== r.row) await climb(r.row, cells);
+    const r = data.rolls[k];
     await rollDie(r.die);
-    await walkTo(r.die);
-    const room = document.querySelectorAll(".room")[r.die - 1]; room.classList.add("cur");
+    await moveAlong(r, data);
+    if (r.to > 48) { S("win"); await say("עברת את כל המגדל! 🎁 קרייזי", false, 1600); continue; }
+    const room = document.querySelectorAll("#floor .room")[(r.to - 1) % 6]; room.classList.add("cur");
     if (r.cell === -1) {
       room.classList.add("hit"); pose("caught"); $("me").classList.add("caught"); S("drop");
-      if (r.row >= 4) { await sleep(900); }
-      else { await say("שומר המגדל תפס אותך, מתחילים מחדש", true, 2600); }
+      if (r.to > 36) await say(`שומר המגדל עצר אותך · ${BNAME[data.bonus]} → מלך המטווח`, false, 2000);
+      else await say("שומר המגדל תפס אותך, מתחילים מחדש", true, 2600);
       $("me").classList.remove("caught"); pose("base_side_standing");
-    } else if (r.row === 3 && r.die === 2 && data.status !== "lost" && k === data.rolls.length - 1 && data.status === "choice") {
-      S("riser");
-    } else if (r.cell > 0) { room.classList.add("took"); S("win"); await say(`כספת ×${r.cell}!`, false, 1100); }
-    else if (r.row === 6 || r.row >= 4) { S("win"); await say(r.row === 6 ? "עברת את המסדרון! 🎁 בונוס" : `עלית ל${BNAME[r.row - 2]}! 🎁`, false, 1500); }
+    } else if (r.to === EXIT && data.status === "choice") S("riser");
+    else if (r.cell > 0) { room.classList.add("took"); S("win"); await say(`כספת ×${r.cell / 100}!`, false, 1200); }
+    else if (r.to > 36 && r.from <= 36) { S("win"); await say("נכנסת לקומות הבונוס! 🎁", false, 1500); }
+    else if (r.to > 42 && r.from <= 42) { S("win"); await say("עלית לסופר! 🎁", false, 1500); }
     room.classList.remove("cur");
-    // after a vault on floors 1–2 the next floor is drawn by the next roll; after a safe room on floor 3 the bonus floor shows now
+    if (data.status !== "lost") drawFloor(shownFloor, data.layout, r.to);
   }
-  if (data.status === "bonus" && shownRow !== data.floor) await climb(data.floor, data.layout[data.floor - 1]);
-  else if (data.status === "active" && shownRow !== data.floor) await climb(data.floor, data.layout[data.floor - 1]);
 }
 async function finish(data) {
   showBal(data.balance);
   if (data.status !== "lost") { pose("celebrate"); $("me").classList.add("glow"); }
   if (data.status === "won") {
-    S("win"); const hv = (data.hits || []).reduce((a, h) => a + h.v, 0) / 100; if (window.GC_BONUS) GC_BONUS(`🎯 מלך המטווח · ${LV[data.bonus]}`, data.paid, `ירי ×${+hv.toFixed(2)}` + (data.loot ? ` + שלל ×${data.loot}` : "")); else await say(`🎯 זכית ב-${fmt(data.paid)}`, false, 3000);
+    S("win"); const hv = (data.hits || []).reduce((a, h) => a + h.v, 0) / 100; if (window.GC_BONUS) GC_BONUS(`🎯 מלך המטווח · ${LV[data.bonus]}`, data.paid, `ירי ×${+hv.toFixed(2)}` + (data.loot ? ` + שלל ×${data.loot / 100}` : "")); else await say(`🎯 זכית ב-${fmt(data.paid)}`, false, 3000);
   } else if (data.status === "cashed") {
-    await say(data.loot >= 10 ? `פחדן! מי פורש שהוא כל כך קרוב ליעד. זכית ב-${fmt(data.paid)}` : `לקחת ${fmt(data.paid)} 💰`, false, 3200);
+    await say(data.loot >= 800 ? `פחדן! מי פורש שהוא כל כך קרוב ליעד. זכית ב-${fmt(data.paid)}` : `לקחת ${fmt(data.paid)} 💰`, false, 3200);
   } else if (data.status === "lost") {
     await say("נתפסת על ידי שומר המגדל, חזור להתחלה. מקווה שזה מחושב בסיכויים שלך.", true, 3200);
   }
-  $("me").classList.remove("glow"); pose("base_side_standing"); run = null; shownRow = null; meRoom = 0; drawIdle(); $("floor").classList.remove("down", "up");
+  $("me").classList.remove("glow"); pose("base_side_standing"); run = null; meRoom = 0; drawFloor(1, null, 0); $("wall").style.backgroundPositionY = "";
 }
 async function send(fn, args) {
   busy = true; controls(); $("err").textContent = "";
@@ -304,7 +341,6 @@ async function send(fn, args) {
   return data;
 }
 async function after(prev, data) {
-  if (!prev) { showBal(data.balance + (data.status === "won" || data.status === "cashed" ? -data.paid : 0)); drawRow(1, data.layout[0]); meRoom = 0; place(); await sleep(500); }
   await play(prev, data); run = data;
   if (["lost", "won", "cashed"].includes(data.status)) await finish(data);
   else if (data.status === "choice") openChoice();
@@ -314,32 +350,36 @@ async function after(prev, data) {
 $("go").onclick = async () => {
   if (busy || (run && run.status === "choice")) return; S("button");
   const prev = run && ["active", "bonus"].includes(run.status) ? run : null;
-  $("bet").hidden = true;   // the button disappears the moment it is pressed
-  const data = prev ? await send("tw_roll", { p_run: prev.id, p_n: prev.rolls.length })
-                    : await send("tw_start", { p_stake: bet, p_ref: crypto.randomUUID ? crypto.randomUUID() : Date.now() + "" + Math.random() });
+  $("bet").hidden = true;
+  if (!prev) {   // start: the tower is drawn and shown first; the player rolls when ready
+    const data = await send("tw_start", { p_stake: bet, p_ref: crypto.randomUUID ? crypto.randomUUID() : Date.now() + "" + Math.random() });
+    if (!data) return; showBal(data.balance); run = data; meRoom = 0; drawFloor(1, data.layout, 0);
+    S("riser"); await say("זה המגדל שלך. המספר על כל חדר = מה צריך בקוביה כדי להגיע אליו", false, 2600);
+    busy = false; controls(); return;
+  }
+  const data = await send("tw_roll", { p_run: prev.id, p_n: prev.rolls.length });
   if (data) await after(prev, data);
 };
 function openChoice() {
-  $("chP").textContent = `השלל שלך: ×${run.loot} = ${fmt(run.stake * run.loot)}. אם תעבור את המסדרון: השלל + בונוס ירי.`;
-  $("cashS").textContent = fmt(run.stake * run.loot); $("choice").classList.add("on");
+  $("chP").textContent = `השלל שלך: ×${run.loot / 100} = ${fmt(run.stake * run.loot / 100)}. ממשיכים: עוד 2 קומות עם שומרים, ואז קומות הבונוס ומלך המטווח.`;
+  $("cashS").textContent = fmt(run.stake * run.loot / 100); $("choice").classList.add("on");
 }
 async function choose(go) {
   if (busy || !run || run.status !== "choice") return; S("button"); $("choice").classList.remove("on");
   const prev = run, data = await send("tw_choose", { p_run: run.id, p_go: go });
   if (!data) { $("choice").classList.add("on"); return; }
-  if (go) { await climb(6, data.layout[5]); }
   await after(prev, data);
 }
 
 // ───── מלך המטווח: the server drew the range; the page plays it and sends the 10 shots at the end ─────
 const fx = (n, v = 0.8) => { try { SFX.fx(n, { vol: v }); } catch (e) {} };
-const LV = ["", "בונוס רגיל", "סופר", "קרייזי"], RAD = { can: 46, bal: 54, dia: 42, bird: 52 };
+const LV = ["", "בונוס רגיל", "סופר", "קרייזי"], RAD = { can: 46, bottle: 40, bal: 54, plate: 58, dia: 44, gold: 44, bird: 56 };
 function tpos(o, ms) { const sec = (ms - o.t0) / 1000; if (sec < 0 || sec > o.life) return null; return [o.x0 + o.vx * sec, o.y0 + o.amp * Math.sin(o.w * sec + o.ph), sec]; }
-const TIMG = {}; ["can", "bal", "dia", "bird"].forEach((k) => { const i = new Image(); i.src = "img/tower/t_" + k + ".webp"; TIMG[k] = i; });
-const SZ = { can: [91, 120], bal: [103, 190], dia: [144, 110], bird: [112, 130] };
+const TIMG = {}; ["can", "bottle", "bal", "plate", "dia", "gold", "bird"].forEach((k) => { const i = new Image(); i.src = "img/tower/t_" + k + ".webp"; TIMG[k] = i; });
+const SZ = { can: [60, 110], bottle: [44, 110], bal: [85, 190], plate: [116, 120], dia: [144, 110], gold: [92, 80], bird: [112, 130] };
 function drawT(g, o, p, m, now) {
   const [x, y] = p, im = TIMG[o.k];
-  if ((o.k === "can" || o.k === "dia") && im && im.complete) {   // cans and diamonds ride on a target pole that comes up from the ground track
+  if (o.k !== "bal" && o.k !== "bird" && im && im.complete) {   // cans and diamonds ride on a target pole that comes up from the ground track
     const [w, h] = SZ[o.k], top = y + h / 2 - 4, gr = g.createLinearGradient(x - 7, 0, x + 7, 0);
     gr.addColorStop(0, "#2b2b2b"); gr.addColorStop(.5, "#8a8f96"); gr.addColorStop(1, "#262626");
     g.fillStyle = gr; g.fillRect(x - 6, top, 12, 900 - top);
@@ -348,6 +388,7 @@ function drawT(g, o, p, m, now) {
   }
   if (im && im.complete && im.naturalWidth) { const [w, h] = SZ[o.k]; g.save(); g.translate(x, y);
     if (o.k === "bird") { g.scale(o.vx > 0 ? -1 : 1, 1); g.translate(0, Math.sin(now / 90) * 6); g.shadowColor = "#ffcf4a"; g.shadowBlur = 30; }
+    if (o.k === "gold") { g.shadowColor = "#ffd34a"; g.shadowBlur = 22; }
     if (o.k === "dia") { g.rotate(Math.sin(now / 300) * .12); g.shadowColor = "#7fe6ff"; g.shadowBlur = 26; }
     if (o.k === "bal") g.translate(0, h * 0.25);
     g.drawImage(im, -w / 2, -h / 2, w, h); g.restore(); return badge(g, x, y, m); }
@@ -357,7 +398,8 @@ function drawT(g, o, p, m, now) {
   else if (o.k === "bal") { const gr = g.createRadialGradient(-14, -20, 4, 0, 0, 56); gr.addColorStop(0, "#fff3c0"); gr.addColorStop(.4, "#f2c14e"); gr.addColorStop(1, "#8a5a00");
     g.strokeStyle = "#ddd"; g.lineWidth = 2; g.beginPath(); g.moveTo(0, 52); g.quadraticCurveTo(10, 80, -4, 110); g.stroke();
     g.fillStyle = gr; g.beginPath(); g.ellipse(0, 0, 42, 52, 0, 0, 7); g.fill(); }
-  else if (o.k === "dia") { g.rotate(Math.sin(now / 300) * .15); const gr = g.createLinearGradient(-40, -40, 40, 40); gr.addColorStop(0, "#e9fdff"); gr.addColorStop(.5, "#5fd6ff"); gr.addColorStop(1, "#1a6fb0");
+  else if (o.k === "gold") { g.shadowColor = "#ffd34a"; g.shadowBlur = 22; }
+    if (o.k === "dia") { g.rotate(Math.sin(now / 300) * .15); const gr = g.createLinearGradient(-40, -40, 40, 40); gr.addColorStop(0, "#e9fdff"); gr.addColorStop(.5, "#5fd6ff"); gr.addColorStop(1, "#1a6fb0");
     g.fillStyle = gr; g.shadowColor = "#7fe6ff"; g.shadowBlur = 24; g.beginPath(); g.moveTo(0, -42); g.lineTo(38, -12); g.lineTo(0, 44); g.lineTo(-38, -12); g.closePath(); g.fill();
     g.shadowBlur = 0; g.strokeStyle = "#fff9"; g.lineWidth = 2; g.beginPath(); g.moveTo(-38, -12); g.lineTo(38, -12); g.moveTo(0, -42); g.lineTo(-12, -12); g.lineTo(0, 44); g.lineTo(12, -12); g.closePath(); g.stroke(); }
   else { const fl = Math.sin(now / 70) * 26, dir = o.vx > 0 ? 1 : -1; g.scale(dir, 1); g.shadowColor = "#ffcf4a"; g.shadowBlur = 30;
@@ -371,18 +413,20 @@ function badge(g, x, y, m) {
   if (m > 1) { g.save(); g.font = "900 40px Inter"; g.textAlign = "center"; g.fillStyle = "#2a1460"; g.strokeStyle = "#e6d8ff"; g.lineWidth = 3;
     const t = "×" + m, w = g.measureText(t).width + 26; g.beginPath(); g.roundRect(x - w / 2, y - 112, w, 52, 26); g.fill(); g.stroke(); g.fillStyle = "#ffe08a"; g.fillText(t, x, y - 72); g.restore(); }
 }
-let R = null;   // the live round
+let R = null, R_SHOTS = 12, R_SECS = 45;   // the live round
 function rangeScale() { const f = $("field"), sc = Math.min(1, (W - 40) / 1600, 940 / 900); f.style.transform = `translateX(-50%) scale(${sc})`; return sc; }
 async function openRange(data) {
   const lv = data.bonus, tg = data.shoot.targets;
   $("range").classList.add("on"); $("buyB").hidden = true; $("bet").hidden = true; rangeScale();
   $("riT").textContent = "🎯 מלך המטווח · " + LV[lv];
-  const v = lv === 1 ? [0.7, 4, 27] : lv === 2 ? [1.2, 5, 30] : [2, 13, 65];
-  $("riV").innerHTML = `פחית ×${v[0]} · בלון זהב ×${v[1]} · יהלום ×${v[2]} · ציפורים זהובות בסבב: <b>${tg.filter((o) => o.k === "bird").length}</b>`;
-  $("ammo").innerHTML = "<b></b>".repeat(10); $("tally").innerHTML = ""; $("rsum").textContent = data.loot ? `שלל מהמגדל ×${data.loot}` : "";
+  const NM = { can: "פחית", bottle: "בקבוק", bal: "בלון", plate: "מטרת עץ", dia: "יהלום", gold: "מטיל זהב" }, seen = {};
+  tg.forEach((o) => { if (o.k !== "bird") seen[o.k] = o.v; });
+  $("riV").innerHTML = Object.keys(NM).filter((k) => seen[k]).map((k) => `${NM[k]} ×${+(seen[k] / 100).toFixed(2)}`).join(" · ") + ` · ציפורים זהובות: <b>${tg.filter((o) => o.k === "bird").length}</b>`;
+  R_SHOTS = data.shoot.shots || 10; R_SECS = data.shoot.secs || 30;
+  $("ammo").innerHTML = "<b></b>".repeat(R_SHOTS); $("tally").innerHTML = ""; $("rsum").textContent = data.loot ? `שלל מהמגדל ×${data.loot / 100}` : "";
   $("rintro").hidden = false; fx("tw_reload");
   await new Promise((ok) => ($("riGo").onclick = () => { $("rintro").hidden = true; ok(); }));
-  R = { data, tg, shots: [], hit: new Set(), mult: {}, sum: 0, t0: performance.now(), done: false, aim: [800, 450] };
+  R = { data, tg, shots: [], hit: new Set(), mult: {}, sum: 0, t0: performance.now(), done: false, aim: [800, 450] }; moveCross(800, 450);
   const cv = $("cv"), g = cv.getContext("2d");
   const frame = () => {
     if (!R || R.done) return;
@@ -391,23 +435,33 @@ async function openRange(data) {
     { const tr = g.createLinearGradient(0, 878, 0, 900); tr.addColorStop(0, "#5a5f66"); tr.addColorStop(1, "#1d1f22"); g.fillStyle = tr; g.fillRect(0, 878, 1600, 22);
       g.fillStyle = "#0006"; for (let x = -(ms / 6 % 60); x < 1600; x += 60) g.fillRect(x, 880, 6, 18); }
     R.tg.forEach((o, j) => { if (R.hit.has(j)) return; const p = tpos(o, ms); if (p) drawT(g, o, p, R.mult[j] || 1, now); });
-    $("tbar").firstChild.style.width = Math.max(0, 100 - ms / 300) + "%";
-    if (ms >= 30000 || R.shots.length >= 10) { endRange(); return; }
+    const left = Math.max(0, R_SECS * 1000 - ms); $("tbar").firstChild.style.width = left / (R_SECS * 10) + "%";
+    $("clock").textContent = Math.ceil(left / 1000); $("clock").classList.toggle("low", left < 10000);
+    if (left <= 0 || R.shots.length >= R_SHOTS) { endRange(); return; }
     requestAnimationFrame(frame);
   };
   requestAnimationFrame(frame);
 }
 function fieldXY(e) { const r = $("field").getBoundingClientRect(); return [(e.clientX - r.left) * 1600 / r.width, (e.clientY - r.top) * 900 / r.height]; }
-function moveCross(x, y) { const c = $("cross"); c.style.left = x + "px"; c.style.top = y + "px"; $("rifle").style.transform = `translate(${(x - 1100) * 0.18}px,${(y - 600) * 0.12}px) rotate(${(x - 1100) * 0.006}deg)`; }
-$("range").addEventListener("pointermove", (e) => { if (!R) return; const [x, y] = fieldXY(e); R.aim = [x, y]; moveCross(x, y); });
-$("range").addEventListener("pointerdown", (e) => {
-  if (!R || R.done || !$("rintro").hidden) return; e.preventDefault();
+// looking through the scope: the view is dark except a round lens around the aim; drag anywhere to move it, FIRE shoots its centre
+function moveCross(x, y) {
+  x = Math.max(0, Math.min(1600, x)); y = Math.max(0, Math.min(900, y)); if (R) R.aim = [x, y];
+  const r = $("field").getBoundingClientRect(), st = $("stage").getBoundingClientRect(), k = 1080 / st.height;
+  const sx = (r.left - st.left) * k + x * r.width / 1600 * k, sy = (r.top - st.top) * k + y * r.height / 900 * k;
+  const sc = $("scope"); sc.style.setProperty("--x", sx + "px"); sc.style.setProperty("--y", sy + "px");
+}
+let drag = null;
+$("range").addEventListener("pointerdown", (e) => { if (!R || R.done || !$("rintro").hidden || e.target.closest("#fireB")) return; e.preventDefault(); drag = { x: e.clientX, y: e.clientY, a: R.aim.slice() }; });
+addEventListener("pointermove", (e) => { if (!drag || !R) return; const r = $("field").getBoundingClientRect(), k = 1600 / r.width * 0.9;   // slightly slow for fine aim
+  moveCross(drag.a[0] + (e.clientX - drag.x) * k, drag.a[1] + (e.clientY - drag.y) * k); });
+addEventListener("pointerup", () => (drag = null)); addEventListener("pointercancel", () => (drag = null));
+$("fireB").addEventListener("pointerdown", (e) => {
+  e.preventDefault(); e.stopPropagation(); if (!R || R.done || !$("rintro").hidden) return;
   const ms = Math.round(performance.now() - R.t0), last = R.shots.length ? R.shots[R.shots.length - 1][2] : -1000;
-  if (ms < last + 300 || ms > 30000) return;   // same rate limit the server checks
-  const [x, y] = fieldXY(e); moveCross(x, y); R.shots.push([Math.round(x * 10) / 10, Math.round(y * 10) / 10, ms]);
-  const c = $("cross"); c.classList.remove("kick"); void c.offsetWidth; c.classList.add("kick"); fx("tw_shot", 0.9);
-  const rf = $("rifle"), fl = $("flash"), rg = $("range"); rf.classList.remove("kick"); fl.classList.remove("on"); rg.classList.remove("shake"); void rf.offsetWidth; rf.classList.add("kick"); rg.classList.add("shake");
-  { const rr = rf.getBoundingClientRect(), st = $("stage").getBoundingClientRect(), k = 1080 / st.height; fl.style.left = (rr.left - st.left) * k + 5 + "px"; fl.style.top = (rr.top - st.top) * k + rr.height * k * 0.17 + "px"; fl.classList.add("on"); }
+  if (ms < last + 300 || ms > R_SECS * 1000) return;   // same rate limit the server checks
+  const [x, y] = R.aim; R.shots.push([Math.round(x * 10) / 10, Math.round(y * 10) / 10, ms]);
+  fx("tw_shot", 0.9);
+  const sc = $("scope"), rg = $("range"); sc.classList.remove("kick"); rg.classList.remove("shake"); void sc.offsetWidth; sc.classList.add("kick"); rg.classList.add("shake");
   $("ammo").children[R.shots.length - 1].classList.add("used");
   // local preview of the hit (the server recomputes the same thing at the end)
   let best = -1, bd = 1e9;
@@ -419,7 +473,7 @@ $("range").addEventListener("pointerdown", (e) => {
   if (o.k === "bird") { fx("tw_bird"); if (o.on >= 0) { R.mult[o.on] = o.m; pop("🐦 ×" + o.m); const d = document.createElement("div"); d.className = "m"; d.textContent = "🐦 ×" + o.m + " נפל!"; $("tally").prepend(d); } }
   else { const m = R.mult[best] || 1, v = o.v * m / 100; R.sum += v; setTimeout(() => fx("tw_hit", 0.8), 90); pop("×" + +v.toFixed(2));
     const d = document.createElement("div"); if (m > 1) d.className = "m"; d.textContent = (m > 1 ? `×${o.v / 100}·${m} = ` : "") + "×" + +v.toFixed(2); $("tally").prepend(d);
-    $("rsum").textContent = `ירי ×${+R.sum.toFixed(2)}` + (R.data.loot ? ` + שלל ×${R.data.loot}` : ""); }
+    $("rsum").textContent = `ירי ×${+R.sum.toFixed(2)}` + (R.data.loot ? ` + שלל ×${R.data.loot / 100}` : ""); }
 });
 async function endRange() {
   if (!R || R.done) return; R.done = true;
@@ -439,14 +493,13 @@ document.querySelectorAll("#buy .row button").forEach((b) => (b.onclick = async 
 $("cash").onclick = () => choose(false); $("cont").onclick = () => choose(true);
 
 (async () => {
-  fit(); drawIdle(); controls();
+  fit(); drawFloor(1, null, 0); controls();
   const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
   const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single(); if (w.data) showBal(w.data.balance);
   const c = await db.rpc("tw_current");
   if (c.data && c.data.status === "shoot") { run = c.data; controls(); if (window.GC_LOADER) GC_LOADER.done(); busy = true; await openRange(run); return; }
   if (c.data) {   // an unfinished round continues where it stopped
-    run = c.data; const row = curRow(run); drawRow(row, run.layout[row - 1]);
-    const last = run.rolls[run.rolls.length - 1]; if (last && last.row === row) { meRoom = last.die; place(); }
+    run = c.data; const f = floorOf(run.pos); drawFloor(f, run.layout, run.pos); meRoom = run.pos ? run.pos - (f - 1) * 6 : 0; place();
     if (run.status === "choice") openChoice(); say("חזרת לסבב שלך במגדל", false, 1800);
   }
   controls(); if (window.GC_LOADER) GC_LOADER.done();
