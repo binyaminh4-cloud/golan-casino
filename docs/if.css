@@ -80,3 +80,7 @@ body.closeup .hist,body.closeup .table{opacity:0;transition:opacity .3s}.hist,.t
  .result{top:12%;right:4%;max-width:75%;z-index:7}.bonuspop{top:20%}.bonuspop canvas{height:calc(100% - 52px)}.bonus-value{height:52px;display:grid;place-items:center;background:#080f1d;color:#ffe27a;font:800 clamp(18px,5vw,24px) Inter,Heebo,sans-serif}
 }
 @media (orientation:landscape) and (pointer:coarse){.fishing-rotate{position:fixed;inset:0;z-index:99999;display:grid;place-content:center;text-align:center;background:#060c16;color:#F1D69A;font:700 24px Heebo,sans-serif}}
+
+/* QA 5.11: larger invisible tap area for small buttons (no visual change) */
+#allBtn,#rebetBtn,#clearBtn{position:relative}
+#allBtn::before,#rebetBtn::before,#clearBtn::before{content:"";position:absolute;inset:-7px 0}

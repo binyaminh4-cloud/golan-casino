@@ -74,3 +74,7 @@ body.at-table .top{position:fixed;top:0;left:0;right:0}
 /* the seat at the top: name and stack beside the avatar (on its right), so they don't cover the board */
 .seat.up .tag{position:absolute;left:calc(50% + 82px);top:calc(50% + 16px);transform:translateY(-50%);margin:0;white-space:nowrap}
 .seat.up .lact{position:absolute;left:calc(50% + 82px);top:calc(50% + 78px);margin:0}
+
+/* QA 5.11: larger invisible tap area for small buttons (no visual change) */
+#myTablesBtn{position:relative}
+#myTablesBtn::before{content:"";position:absolute;inset:-7px 0}

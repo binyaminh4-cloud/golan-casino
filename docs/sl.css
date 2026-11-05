@@ -113,3 +113,7 @@ body.fortune .jp b{left:30.2%!important;right:12.2%!important;top:41%!important;
 
 /* bonus tension on the last reel (FREE on the first two) */
 .reel.tense{box-shadow:0 0 0 3px #ffcf5c,0 0 26px #ffb43c;animation:slTense .5s ease-in-out infinite alternate}@keyframes slTense{to{box-shadow:0 0 0 3px #fff1b8,0 0 40px #ffcf5c}}
+
+/* QA 5.11: larger invisible tap area for small buttons (no visual change) */
+#rulesBtn{position:relative}
+#rulesBtn::before{content:"";position:absolute;inset:-7px 0}

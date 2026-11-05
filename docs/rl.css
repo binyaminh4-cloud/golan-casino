@@ -392,3 +392,7 @@ body.betfocus .room .side,body.betfocus #seatRow{display:none!important}
 body:not(.live) .controls .betline{min-width:0}
 body:not(.live) .controls #err{position:absolute;bottom:calc(100% + 8px);inset-inline:12px;margin-inline:auto;max-width:min(540px,calc(100vw - 24px));max-height:min(25dvh,100px);overflow:auto;white-space:normal;overflow-wrap:anywhere;text-align:center;padding:7px 12px;border:1px solid #875054;border-radius:8px;background:#241216f2;box-shadow:0 3px 12px #0008;z-index:25;pointer-events:none}
 body:not(.live) .controls #err:empty{display:none}
+
+/* QA 5.11: larger invisible tap area for small buttons (no visual change) */
+#rulesBtn,#viewTable,#viewRace,#zOut,#zIn{position:relative}
+#rulesBtn::before,#viewTable::before,#viewRace::before,#zOut::before,#zIn::before{content:"";position:absolute;inset:-7px 0}
