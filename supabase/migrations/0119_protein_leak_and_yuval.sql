@@ -35,7 +35,7 @@ begin
   select balance into w from wallets where user_id = u;
   if coalesce(w, 0) > 0 then perform apply_tx(u, 'admin', 'reset', -w, 'owner_reset_yuval_wallet'); end if;
   select coalesce(balance, 0) into b from bank_accounts where user_id = u;
-  perform bank_add(u, 'penalty', 500000000 - coalesce(b, 0), 'owner_reset_yuval_bank');
+  perform bank_add(u, 'economy_reset', 500000000 - coalesce(b, 0), 'owner_reset_yuval_bank');
   insert into gc_notices (user_id, title, body) values (u, '🚨 נתפסת על חם גונב מבנימין!',
     'המצלמות של הקזינו ראו הכול: חלבת את שולה החלבון כמו פרה. כל הכסף הוחרם, השארנו לך 500 מיליון בבנק בשביל לחם וחלב, ומהיום אתה ברשימה השחורה של גולן קזינו. עוד תרגיל אחד כזה, ושולה מביאה את החברים מהמאפיה. 🕶️');
   perform chat_sys('lobby', '🚨 הודעת אבטחה: יובל הנווד נתפס על חם חולב את שולה החלבון. הכסף הוחרם, נשארו לו 500 מיליון בבנק, והוא ברשימה השחורה של הקזינו. הפרצה נסגרה. מי שמנסה שוב, שולה מביאה את המאפיה. 🕶️');
