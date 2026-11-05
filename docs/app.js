@@ -207,13 +207,13 @@ function salaryToast(s) {
 
 // ---------- lobby categories: tap a category, then pick a game inside it ----------
 (function cats() {
-  const NAME = { bj: "בלאק ג׳ק", rl: "רולטה", sl: "מכונות מזל", wh: "גלגלי מזל", poker: "פוקר", jobs: "עבודות" };
+  const NAME = { bj: "בלאק ג׳ק", rl: "רולטה", sl: "מכונות מזל", wh: "גלגלי מזל", poker: "פוקר", jobs: "עבודות", ads: "פרסומות" };
   const box = $("gamesBox"), cs = $("cats"); if (!box || !cs) return;
   cs.querySelectorAll(".cat").forEach((b) => {
     const n = box.querySelectorAll(`.game[data-cat="${b.dataset.c}"]`).length, open = box.querySelectorAll(`.game[data-cat="${b.dataset.c}"]:not(.soon)`).length;
-    b.querySelector("small").textContent = b.dataset.c === "jobs" ? "דילר מתלמד · ועוד בדרך" : open ? (n === 1 ? "משחק אחד" : `${n} משחקים`) : "בקרוב";
+    b.querySelector("small").textContent = b.dataset.c === "ads" ? "צפה בסרטון וקבל כסף" : b.dataset.c === "jobs" ? "דילר מתלמד · ועוד בדרך" : open ? (n === 1 ? "משחק אחד" : `${n} משחקים`) : "בקרוב";
     if (!open) b.classList.add("soon");
-    b.onclick = () => { if (b.dataset.c === "jobs") { location.href = "jobs.html"; return; } show(b.dataset.c); };
+    b.onclick = () => { if (b.dataset.c === "jobs") { location.href = "jobs.html"; return; } if (b.dataset.c === "ads") { location.href = "ads.html"; return; } show(b.dataset.c); };
   });
   function show(c) {
     if (c) box.querySelectorAll(".game").forEach((g) => g.hidden = g.dataset.cat !== c);
@@ -226,7 +226,7 @@ function salaryToast(s) {
     try { c ? sessionStorage.setItem("gc_cat", c) : sessionStorage.removeItem("gc_cat"); } catch (e) {}
   }
   $("catBack").onclick = () => show(null);
-  $("gTabs").onclick = (e) => { const t = e.target.closest("button"); if (t) show(t.dataset.c); };
+  $("gTabs").onclick = (e) => { const t = e.target.closest("button"); if (t) { if (t.dataset.c === "ads") { location.href = "ads.html"; return; } show(t.dataset.c); } };
   window.GC_SHOWCAT = show;
   try { const c = sessionStorage.getItem("gc_cat"); if (c && NAME[c]) show(c); } catch (e) {}
 })();
