@@ -59,7 +59,7 @@ const FILES = ["backgrounds/field_desktop.jpg","characters/avichai_idle.png","ch
 let r = { mode: "normal", rocks: [], layer: 0, successes: 0, bankUnits: 0, phase: "ready", history: [] }, runId = null, stake = 100;
 let introAt = 0, shot = null, reveal = null, angle = 0, busy = false, walletBalance = 0, motionTime = 0, lastFrameAt = null;
 const active = () => ["intro", "playing", "checkpoint"].includes(r.phase);
-function fromServer(v) { runId = v.id; stake = +v.stake; r.mode = v.mode; r.layer = v.layer; r.successes = v.successes; r.bankUnits = +v.bank_units;
+function fromServer(v) { runId = v.id; stake = +v.stake; r.mode = v.mode; r.layer = v.layer; r.successes = v.successes; r.bankUnits = +v.bank_units; r.bombsLeft = v.bombs_left || null;
   r.rocks = v.rocks.map((x, i) => ({ ...x, ...PM_GEOMETRY.position(x.id % 12, motionTime, true), w: 70 + x.w * .6, rewardUnits: x.units })); if (r.phase !== "intro") r.phase = v.phase; if (v.balance != null) { walletBalance = Number(v.balance); el("bal").textContent = fmt(v.balance); } }
 // choosing the bet happens in the middle of the screen; afterwards only a small label stays on top
 function betPop(title) {
@@ -93,7 +93,7 @@ const DEPTH = [1, 1.3, 1.7, 2.3];
 let cpShown = -1;
 function checkpointPop() {
   if (r.phase !== "checkpoint" || cpShown === runId + ":" + r.successes || document.querySelector(".gc-bi")) return; cpShown = runId + ":" + r.successes;   // per run: a new run must show its own checkpoints
-  const pot = Math.floor(stake * r.bankUnits / 100), nl = r.layer + 1, last = r.layer >= 3, nextRocks = r.rocks.filter(k => k.layer === nl && !k.taken), bombs = nextRocks.filter(k => k.bomb).length, safe = nextRocks.length - bombs;
+  const pot = Math.floor(stake * r.bankUnits / 100), nl = r.layer + 1, last = r.layer >= 3, nextRocks = r.rocks.filter(k => k.layer === nl && !k.taken), bombs = r.bombsLeft ? +(r.bombsLeft[nl] || 0) : nextRocks.filter(k => k.bomb).length, safe = nextRocks.length - bombs;
   const o = document.createElement("div"); o.className = "gc-bi"; GC_BI_CSS();
   o.innerHTML = `<div class="box"><h2>💪 קופה: ${fmt(pot)}</h2><ul>
     <li>אספת ${r.successes} שליפות. אפשר לקחת עכשיו את <b>${fmt(pot)}</b> ולסיים.</li>

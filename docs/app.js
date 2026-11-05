@@ -122,8 +122,18 @@ async function grantNote() {
 }
 let refreshing = false;
 async function refresh() { if (refreshing) return; refreshing = true; try { await refresh0(); } finally { refreshing = false; } }
+// a one-time message from the owner (gc_notices), as a big popup
+async function ownerNote() {
+  const { data } = await db.rpc("gc_my_notice"); if (!data) return;
+  const o = document.createElement("div"); o.style.cssText = "position:fixed;inset:0;z-index:10050;display:grid;place-items:center;background:#000d;padding:20px";
+  o.innerHTML = `<div style="max-width:440px;background:linear-gradient(#2a1416,#120a0a);border:3px solid #ff5a4a;border-radius:20px;padding:26px;text-align:center;box-shadow:0 0 60px #ff3a2a88;font-family:Heebo,sans-serif">
+    <div style="font-size:64px;line-height:1">🚨</div><h2 style="margin:8px 0;color:#ffd0c8;font:900 26px Heebo">${esc(data.title)}</h2>
+    <p style="color:#f3e6dc;font-size:17px;line-height:1.5;margin:0 0 18px">${esc(data.body)}</p>
+    <button style="width:100%;padding:14px;border:0;border-radius:99px;background:#ff5a4a;color:#fff;font:900 18px Heebo">הבנתי, סליחה 🙇</button></div>`;
+  o.querySelector("button").onclick = () => o.remove(); document.body.appendChild(o);
+}
 async function refresh0() {
-  grantNote().catch(() => {}); db.rpc("gc_top_check").then(() => {}, () => {});
+  grantNote().catch(() => {}); if (!refresh0.noted) { refresh0.noted = true; ownerNote().catch(() => {}); } db.rpc("gc_top_check").then(() => {}, () => {});
   const [w, lb, on] = await Promise.all([
     db.from("wallets").select("balance").eq("user_id", me.id).single(),
     db.from("leaderboard").select("id,nickname,wealth,late").order("wealth", { ascending: false }),
