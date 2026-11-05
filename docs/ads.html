@@ -25,7 +25,7 @@ button.go:disabled{opacity:.5}
 #msg{min-height:22px;text-align:center;color:#cdb98a;font-size:15px}
 .win{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:9}
 .win[hidden]{display:none}.win div{background:#1a120a;border:2px solid #e8c46a;border-radius:18px;padding:22px 26px;text-align:center}
-.win b{display:block;font-size:30px;color:#f6d77a;margin:6px 0 14px}
+.win .home{display:block;margin-top:14px;color:#e8c46a;font-weight:700;text-decoration:none;font-size:17px;padding:8px}.win b{display:block;font-size:30px;color:#f6d77a;margin:6px 0 14px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
@@ -41,7 +41,7 @@ button.go:disabled{opacity:.5}
   </div>
   <p id="msg" role="status" aria-live="polite"></p>
 </main>
-<div class="win" id="win" hidden><div>נכנס לבנק<b id="winAmt"></b><button class="go" id="again">▶ עוד סרטון</button></div></div>
+<div class="win" id="win" hidden><div>נכנס לבנק<b id="winAmt"></b><button class="go" id="again">▶ עוד סרטון</button><a class="home" href="./">→ חזרה ללובי</a></div></div>
 <script>
 'use strict';
 const $ = (id) => document.getElementById(id), db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
@@ -71,6 +71,7 @@ v.addEventListener("ended", async () => {
 });
 document.addEventListener("visibilitychange", () => { if (document.hidden && !v.paused) v.pause(); else if (!document.hidden && cur && v.paused) v.play().catch(() => {}); });
 $("go").onclick = start; $("again").onclick = start;
+$("win").addEventListener("click", (e) => { if (e.target.id === "win") { $("win").hidden = true; $("cover").hidden = false; } });
 init();
 </script>
 <script src="chat.js?v=20"></script>
