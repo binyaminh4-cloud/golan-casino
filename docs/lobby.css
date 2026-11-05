@@ -380,7 +380,7 @@ body.gpage #lobbyView .games .game[data-poster]{background:linear-gradient(180de
 #lobbyView .game[data-poster="roulette_fish"]{--poster:url(img/lobby2/poster_roulette_fish.webp)}#lobbyView .game[data-poster="roulette"]{--poster:url(img/lobby2/poster_roulette.webp)}
 #lobbyView .game[data-poster="roulette_lightning"]{--poster:url(img/lobby2/poster_roulette_lightning.webp)}#lobbyView .game[data-poster="roulette_xxx"]{--poster:url(img/lobby2/poster_roulette_xxx.webp)}
 #lobbyView .game[data-poster="fortune"]{--poster:url(img/lobby2/poster_fortune.webp)}#lobbyView .game[data-poster="slots"]{--poster:url(img/lobby2/poster_slots.webp)}
-#lobbyView .game[data-poster="jobs"]{--poster:url(img/lobby2/poster_jobs.webp)}
+#lobbyView .game[data-poster="jobs"]{--poster:url(img/lobby2/poster_jobs.webp)}#lobbyView .game[data-poster="ads"]{--poster:url(img/lobby2/poster_ads.webp)}
 body.gpage #lobbyView .games .game.soon{filter:none!important}
 body.gpage #lobbyView .games .game.soon::before{content:"";position:absolute;inset:0;background:rgba(5,3,2,.35);border-radius:16px;pointer-events:none}
 #lobbyView .lx-logo img{content:url(img/lobby2/logo_golan.png)!important;height:40px!important;max-width:30vw!important}
