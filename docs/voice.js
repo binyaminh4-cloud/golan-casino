@@ -4,7 +4,7 @@
    Needs: GC_VOICE.room set below to the room link Binyamin creates in the Daily dashboard. */
 (function () {
   if (/[?#&]preview/.test(location.href) || !window.supabase || !window.GC_CONFIG) return;
-  const ROOM = "https://REPLACE-ME.daily.co/golan-casino";   // <- Binyamin's Daily room link goes here
+  const ROOM = "https://golancasino.daily.co/golan-voice-8k3x";   // <- Binyamin's Daily room link goes here
   const KEY = "gc_voice_on";
   const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
