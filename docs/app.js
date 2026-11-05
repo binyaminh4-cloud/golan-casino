@@ -322,7 +322,7 @@ async function dailyGift() {
   let st; try { const r = await db.rpc("gc_gift_state"); if (r.error || !r.data || !r.data.claimable) return; st = r.data; } catch (e) { return; }
   const M = (n) => "₪" + (n >= 1e9 ? +(n / 1e9).toFixed(2) + "B" : Math.round(n / 1e6) + "M");
   if (!document.getElementById("gcGiftCss")) { const c = document.createElement("style"); c.id = "gcGiftCss"; c.textContent = `
-.gc-gift{position:fixed;inset:0;z-index:9600;display:grid;place-items:center;background:rgba(0,0,0,.82);direction:rtl;animation:gcgF .25s}
+.gc-gift{position:fixed;inset:0;z-index:10040;touch-action:manipulation;display:grid;place-items:center;background:rgba(0,0,0,.82);direction:rtl;animation:gcgF .25s}
 .gc-gift .box{width:min(420px,92vw);background:radial-gradient(ellipse at 50% 0%,#3a2a10,#120c08);border:2px solid #F1D69A;border-radius:18px;padding:16px;text-align:center;box-shadow:0 0 50px rgba(255,214,110,.45);animation:gcgP .4s cubic-bezier(.2,1.5,.4,1)}
 .gc-gift .ic{font-size:54px;line-height:1;filter:drop-shadow(0 0 14px #ffd46e)}
 .gc-gift h2{margin:6px 0 2px;font:900 26px Heebo,sans-serif;color:#ffe27a}.gc-gift p{margin:0 0 12px;color:#e9dcc4;font:500 14px Heebo,sans-serif}
@@ -341,9 +341,14 @@ async function dailyGift() {
   o.innerHTML = `<div class="box"><div class="ic">🎁</div><h2>מתנת ההתחברות</h2><p>${day === 7 ? "שבוע רצוף! הפרס הגדול: לבנק, וצ׳יפים לזמן למטווח." : `יום ${day} ברצף. כל יום שמתחברים המתנה גדלה. מפספסים יום? חוזרים ליום 1.`}</p>
     <div class="days">${tiles}</div><div class="amt">${amt}</div><button type="button">אסוף פרס</button><div class="err" role="status"></div></div>`;
   document.body.appendChild(o);
-  await new Promise((done) => { const b = o.querySelector("button");
-    b.onclick = async () => { b.disabled = true; const { error } = await db.rpc("gc_gift_claim");
-      if (error && !(error.message || "").includes("already_claimed")) { b.disabled = false; o.querySelector(".err").textContent = "האיסוף נכשל. נסה שוב."; return; }
-      try { SFX.win(true); } catch (e) {} o.remove(); done(); }; });
+  // one tap is enough: the popup closes at once (on pointerup, so nothing underneath can steal the tap) and the claim runs behind it
+  await new Promise((done) => { const b = o.querySelector("button"); let went = false;
+    const go = async (e) => { if (went) return; went = true; if (e) { e.preventDefault(); e.stopPropagation(); }
+      b.disabled = true; b.textContent = "אוסף…";
+      let { error } = await db.rpc("gc_gift_claim");
+      if (error && !(error.message || "").includes("already_claimed")) ({ error } = await db.rpc("gc_gift_claim"));
+      if (error && !(error.message || "").includes("already_claimed")) { went = false; b.disabled = false; b.textContent = "אסוף פרס"; o.querySelector(".err").textContent = "האיסוף נכשל. נסה שוב."; return; }
+      try { SFX.win(true); } catch (e) {} o.remove(); done(); };
+    b.addEventListener("pointerup", go); b.addEventListener("click", go); });
   try { await refresh(); } catch (e) {}
 }

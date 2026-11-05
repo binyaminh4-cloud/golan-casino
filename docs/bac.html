@@ -45,7 +45,7 @@ body{position:fixed;inset:0;background:#02060c url(img/bots/bots_hall_bg.webp) c
 .cd small{display:block;font-size:16px}.cd.r{color:#d1293f}
 @keyframes deal{from{transform:translateY(-40px) rotateY(90deg);opacity:0}}
 .sum{margin-top:4px;font:900 32px Inter;min-height:40px}.hand.P .sum{color:#7ff0ff;text-shadow:0 0 12px #29d8ff}.hand.B .sum{color:#ff9be9;text-shadow:0 0 12px #ff4fd8}
-.win{width:430px;height:138px;background:url(img/bots/bots_result_banner.webp) center/100% 100%;display:grid;place-content:center;animation:pop .45s cubic-bezier(.2,1.5,.4,1);padding:0 30px}
+.win{position:relative;width:430px;height:138px;background:url(img/bots/bots_result_banner.webp) center/100% 100%;display:grid;place-content:center;animation:pop .45s cubic-bezier(.2,1.5,.4,1);padding:0 30px}
 .win h3{margin:0;font:900 30px Heebo;color:#ffe9a8;text-shadow:0 0 14px #ffd36e}.win p{margin:2px 0 0;font:800 16px Heebo;color:#7dff9a}.win p.no{color:#c9d6de}
 .win .btns{display:flex;gap:8px;justify-content:center;margin-top:8px}
 .win .btns button,.win .btns a{font:800 14px Heebo;padding:6px 14px;border-radius:99px;border:1px solid #29d8ff;background:#29d8ff22;color:#dff8ff;text-decoration:none;cursor:pointer}
@@ -53,6 +53,18 @@ body{position:fixed;inset:0;background:#02060c url(img/bots/bots_hall_bg.webp) c
 .mine{position:absolute;left:300px;bottom:10px;transform:translateX(-50%);padding:3px 12px;border-radius:99px;background:#0a0f1ccc;border:1px solid #29d8ff;font:700 12px Heebo;color:#7ff0ff;direction:rtl;white-space:nowrap}
 .mine:empty{display:none}
 .err{position:absolute;left:300px;top:8px;transform:translateX(-50%);color:#ff8fa3;font:700 13px Heebo;direction:rtl}
+
+/* readability (owner 5.11): text never glows on top of a glowing frame. Dark plate behind banner text, dark outline instead of glow */
+.win,.msg{width:540px!important;height:auto!important;min-height:200px;padding:44px 64px!important}
+.win>*,.msg>*{position:relative}
+.win::before,.msg::before{content:"";position:absolute;inset:34px 46px;border-radius:14px;background:rgba(3,7,14,.88);z-index:0}
+.win h3,.msg h3{color:#ffe08a!important;text-shadow:0 2px 0 #000,0 0 6px #000!important;line-height:1.25}
+.win p,.msg p{line-height:1.45;text-shadow:0 1px 2px #000}
+.sum,.pot b,.pot,.bar em,.bar span,.seat .nm b,.blinds b{text-shadow:0 2px 3px #000!important}
+.cd{filter:none;box-shadow:0 2px 6px #000a}.cd,.cd small{text-shadow:none!important}
+.die i{box-shadow:none!important;background:#fff!important}.die{box-shadow:0 0 14px #29d8ff55,inset 0 0 0 #0000!important;background:#06121e!important}
+.die.bot{box-shadow:0 0 14px #ff4fd855!important;background:#1a0716!important}
+.flash{text-shadow:0 2px 3px #000!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>

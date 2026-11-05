@@ -49,6 +49,18 @@ body{position:fixed;inset:0;background:#02060c url(img/bots/bots_hall_bg.webp) c
 .flash{position:absolute;left:445px;top:60px;transform:translateX(-50%);font:900 22px Heebo;direction:rtl;text-shadow:0 0 12px currentColor;animation:pop .35s}
 @keyframes pop{from{transform:translateX(-50%) scale(.6);opacity:0}}
 .msg{animation-name:popc}@keyframes popc{from{transform:translate(-50%,-50%) scale(.6);opacity:0}}
+
+/* readability (owner 5.11): text never glows on top of a glowing frame. Dark plate behind banner text, dark outline instead of glow */
+.win,.msg{width:540px!important;height:auto!important;min-height:200px;padding:44px 64px!important}
+.win>*,.msg>*{position:relative}
+.win::before,.msg::before{content:"";position:absolute;inset:34px 46px;border-radius:14px;background:rgba(3,7,14,.88);z-index:0}
+.win h3,.msg h3{color:#ffe08a!important;text-shadow:0 2px 0 #000,0 0 6px #000!important;line-height:1.25}
+.win p,.msg p{line-height:1.45;text-shadow:0 1px 2px #000}
+.sum,.pot b,.pot,.bar em,.bar span,.seat .nm b,.blinds b{text-shadow:0 2px 3px #000!important}
+.cd{filter:none;box-shadow:0 2px 6px #000a}.cd,.cd small{text-shadow:none!important}
+.die i{box-shadow:none!important;background:#fff!important}.die{box-shadow:0 0 14px #29d8ff55,inset 0 0 0 #0000!important;background:#06121e!important}
+.die.bot{box-shadow:0 0 14px #ff4fd855!important;background:#1a0716!important}
+.flash{text-shadow:0 2px 3px #000!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
