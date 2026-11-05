@@ -22,14 +22,14 @@
   .gc-voice-panel li{display:flex;align-items:center;gap:6px}.gc-voice-panel li i{width:9px;height:9px;border-radius:50%;background:#6b5a3a;flex:none}
   .gc-voice-panel li.talk i{background:#7fe3a0;box-shadow:0 0 8px #7fe3a0}.gc-voice-panel li.mute{opacity:.55}
   .gc-voice-panel .row{display:flex;gap:6px}.gc-voice-panel button{flex:1;font:700 13px Heebo,sans-serif;border-radius:10px;border:1px solid #8a6a2c;background:#2a2016;color:#f4e7c8;padding:7px 4px;cursor:pointer}
-  .gc-voice-panel .msg{font-size:12px;color:#cdb98a;margin:0 0 6px}`;
+  .gc-voice-panel .x{position:absolute;top:4px;left:4px;width:26px;height:26px;flex:none;padding:0;border:0;background:transparent;color:#cdb98a;font-size:16px;line-height:1}.gc-voice-panel{position:fixed}.gc-voice-panel .msg{font-size:12px;color:#cdb98a;margin:0 0 6px}`;
   document.head.appendChild(css);
 
   const btn = document.createElement("button");
   btn.className = "gc-voice-btn"; btn.type = "button"; btn.textContent = "🎙"; btn.setAttribute("aria-label", "צ׳אט קולי");
   const panel = document.createElement("div");
   panel.className = "gc-voice-panel"; panel.hidden = true;
-  panel.innerHTML = `<h4>🎙 צ׳אט קולי</h4><p class="msg"></p><ul></ul><div class="row"><button type="button" data-a="mute">השתק אותי</button><button type="button" data-a="leave">התנתק</button></div>`;
+  panel.innerHTML = `<button type="button" class="x" data-a="close" aria-label="סגור">✕</button><h4>🎙 צ׳אט קולי</h4><p class="msg"></p><ul></ul><div class="row"><button type="button" data-a="mute">השתק אותי</button><button type="button" data-a="leave">התנתק</button></div>`;
   document.body.append(btn, panel);
   const $msg = panel.querySelector(".msg"), $list = panel.querySelector("ul"), $mute = panel.querySelector('[data-a="mute"]');
 
@@ -96,11 +96,12 @@
   function leave() { try { localStorage.removeItem(KEY); } catch (e) {} if (call) { try { call.leave(); } catch (e) {} } cleanup(); }
 
   btn.onclick = () => {
-    if (state === "off") { join(); return; }
+    if (state === "off" && !panelOpen) { join(); return; }
     panelOpen = !panelOpen; panel.hidden = !panelOpen;
   };
   panel.addEventListener("click", (e) => {
     const a = e.target.closest("[data-a]"); if (!a) return;
+    if (a.dataset.a === "close") { panelOpen = false; panel.hidden = true; return; }
     if (a.dataset.a === "leave") leave();
     if (a.dataset.a === "mute" && call) { muted = !muted; call.setLocalAudio(!muted); $mute.textContent = muted ? "בטל השתקה" : "השתק אותי"; setBtn(); drawList(); }
   });
