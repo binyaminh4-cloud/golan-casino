@@ -339,6 +339,13 @@ const TIMG = {}; ["can", "bal", "dia", "bird"].forEach((k) => { const i = new Im
 const SZ = { can: [91, 120], bal: [103, 190], dia: [144, 110], bird: [112, 130] };
 function drawT(g, o, p, m, now) {
   const [x, y] = p, im = TIMG[o.k];
+  if ((o.k === "can" || o.k === "dia") && im && im.complete) {   // cans and diamonds ride on a target pole that comes up from the ground track
+    const [w, h] = SZ[o.k], top = y + h / 2 - 4, gr = g.createLinearGradient(x - 7, 0, x + 7, 0);
+    gr.addColorStop(0, "#2b2b2b"); gr.addColorStop(.5, "#8a8f96"); gr.addColorStop(1, "#262626");
+    g.fillStyle = gr; g.fillRect(x - 6, top, 12, 900 - top);
+    g.fillStyle = "#3a2a1a"; g.fillRect(x - 34, top - 6, 68, 10);   // small plate under the target
+    g.fillStyle = "#0007"; g.beginPath(); g.ellipse(x, 893, 34, 7, 0, 0, 7); g.fill();
+  }
   if (im && im.complete && im.naturalWidth) { const [w, h] = SZ[o.k]; g.save(); g.translate(x, y);
     if (o.k === "bird") { g.scale(o.vx > 0 ? -1 : 1, 1); g.translate(0, Math.sin(now / 90) * 6); g.shadowColor = "#ffcf4a"; g.shadowBlur = 30; }
     if (o.k === "dia") { g.rotate(Math.sin(now / 300) * .12); g.shadowColor = "#7fe6ff"; g.shadowBlur = 26; }
@@ -381,6 +388,8 @@ async function openRange(data) {
     if (!R || R.done) return;
     const now = performance.now(), ms = now - R.t0;
     g.clearRect(0, 0, 1600, 900);
+    { const tr = g.createLinearGradient(0, 878, 0, 900); tr.addColorStop(0, "#5a5f66"); tr.addColorStop(1, "#1d1f22"); g.fillStyle = tr; g.fillRect(0, 878, 1600, 22);
+      g.fillStyle = "#0006"; for (let x = -(ms / 6 % 60); x < 1600; x += 60) g.fillRect(x, 880, 6, 18); }
     R.tg.forEach((o, j) => { if (R.hit.has(j)) return; const p = tpos(o, ms); if (p) drawT(g, o, p, R.mult[j] || 1, now); });
     $("tbar").firstChild.style.width = Math.max(0, 100 - ms / 300) + "%";
     if (ms >= 30000 || R.shots.length >= 10) { endRange(); return; }
