@@ -175,6 +175,11 @@ body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Ari
 #sum{position:absolute;inset:0;z-index:8;display:none;place-items:center;background:#000b}#sum.on{display:grid}
 #sum .card{width:1000px;padding:40px;border-radius:30px;background:linear-gradient(#2b2015,#140d07);border:4px solid #c9a24a;text-align:center;box-shadow:0 0 80px #ffb04466}
 #sum h2{margin:0;font:900 56px Heebo;color:#ffe9a8}#sumN{font:900 150px Inter;color:#ffe08a;text-shadow:0 6px 0 #5c3d00,0 0 40px #ffb300;direction:ltr}#sum p{margin:0;font:700 30px Heebo;color:#ecdcc0}
+#mag{position:absolute;left:40px;bottom:40px;z-index:6;display:flex;align-items:center;gap:14px;pointer-events:none}
+#magbar{width:300px;height:26px;border-radius:99px;background:#000b;border:3px solid #c9a24a;overflow:hidden}#magbar i{display:block;height:100%;background:linear-gradient(90deg,#ffd970,#ff9a3a);transition:width .12s}
+#magbar.empty{border-color:#ff4a3a;animation:pulse .7s infinite}#magN{font:900 40px Inter;color:#ffe9a8;text-shadow:0 2px 6px #000}
+#reloadB{position:absolute;right:40px;bottom:30px;z-index:7;display:none;padding:22px 50px;border-radius:99px;border:5px solid #ffe7a0;background:radial-gradient(circle at 50% 30%,#ffe9a0,#d39b22 60%,#8a5a00);color:#2b1800;font:900 56px Heebo;cursor:pointer;box-shadow:0 0 40px #ffbf3acc;touch-action:none}
+#reloadB.on{display:block;animation:pulse 1s infinite}#reloadB.nudge{animation:sh .25s}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
@@ -200,8 +205,8 @@ body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Ari
     <button class="x" id="buyX">ביטול</button></div></div>
   <div id="range"><div id="rhud"><div id="rtitle">🎯 מלך המטווח</div><div id="ammo"></div><div id="tbar"><i></i></div></div>
     <div id="field"><canvas id="cv" width="1600" height="900"></canvas></div>
-    <div id="clock">40</div><div id="streak"></div><div id="tally"></div><div id="rsum">₪0</div><div id="wave">⚡ גל הזהב!</div>
-    <div id="rintro" hidden><div class="card"><h2 id="riT">🎯 מלך המטווח</h2><p>40 שניות. <b>נוגעים במטרה ויורים.</b> מחסנית של 6 כדורים, ואז טעינה קצרה.</p>
+    <div id="clock">40</div><div id="mag"><div id="magbar"><i></i></div><b id="magN">10/10</b></div><button id="reloadB">🔄 טעינה</button><div id="streak"></div><div id="tally"></div><div id="rsum">₪0</div><div id="wave">⚡ גל הזהב!</div>
+    <div id="rintro" hidden><div class="card"><h2 id="riT">🎯 מלך המטווח</h2><p>40 שניות. <b>נוגעים במטרה ויורים.</b> 10 כדורים במחסנית; כשנגמר לוחצים <b>טעינה</b> וממשיכים.</p>
       <p>3 פגיעות ברצף = <b>×2</b>, 6 ברצף = <b>×3</b>. ציפור זהובה מפילה מכפיל על מטרה, ובסוף מגיע גל של מטילי זהב.</p>
       <p id="riV"></p><button id="riGo">אש! 🎯</button></div></div>
     <div id="sum"><div class="card"><h2 id="sumT"></h2><div id="sumN">₪0</div><p id="sumS"></p></div></div></div>
@@ -436,7 +441,15 @@ function rangeScale() { const f = $("field"), sc = Math.min((W - 40) / 1600, 980
 function toStage(x, y) { const r = $("field").getBoundingClientRect(), st = $("stage").getBoundingClientRect(), k = 1080 / st.height; return [(r.left - st.left) * k + x * r.width / 1600 * k, (r.top - st.top) * k + y * r.height / 900 * k]; }
 function sprite(src, x, y, size, cls, ms) { const [sx, sy] = toStage(x, y), el = document.createElement("img"); el.src = src; el.className = "spr " + cls; el.style.cssText = `left:${sx - size / 2}px;top:${sy - size / 2}px;width:${size}px`; $("range").appendChild(el); setTimeout(() => el.remove(), ms); }
 function popText(t, x, y, cls = "") { const [sx, sy] = toStage(x, y), el = document.createElement("div"); el.className = "pop " + cls; el.textContent = t; el.style.left = sx - 60 + "px"; el.style.top = sy - 90 + "px"; $("range").appendChild(el); setTimeout(() => el.remove(), 1100); }
-function drawAmmo() { $("ammo").innerHTML = Array.from({ length: 6 }, (_, i) => `<img src="img/tower/bullet.webp" class="${i < R.mag ? "" : "used"}" alt="">`).join("") + (R.reload ? '<b class="rl">טוען…</b>' : ""); }
+function drawAmmo() {
+  $("ammo").innerHTML = Array.from({ length: 10 }, (_, i) => `<img src="img/tower/bullet.webp" class="${i < R.mag ? "" : "used"}" alt="">`).join("");
+  $("magbar").firstChild.style.width = R.mag * 10 + "%"; $("magN").textContent = R.reload ? "טוען…" : R.mag + "/10";
+  $("reloadB").classList.toggle("on", R.mag === 0 && !R.reload); $("magbar").classList.toggle("empty", R.mag === 0);
+}
+// reload: the player presses it when the magazine is empty (server: at least 1 s between the 10th shot and the next)
+$("reloadB").addEventListener("pointerdown", (e) => { e.preventDefault(); e.stopPropagation(); if (!R || R.done || R.reload || R.mag > 0) return;
+  R.reload = true; drawAmmo(); fx("tw_reload", 0.8);
+  setTimeout(() => { if (!R) return; R.reload = false; R.mag = 10; R.last = Math.max(R.last + 1000 - 300, Math.round(performance.now() - R.t0) - 300); drawAmmo(); }, 1000); });
 function drawStreak() { const c = R.streak >= 6 ? 3 : R.streak >= 3 ? 2 : 1; const el = $("streak"); el.textContent = c > 1 ? `🔥 רצף ×${c}` : R.streak ? `רצף ${R.streak}/3` : ""; el.className = c > 1 ? "on c" + c : ""; }
 async function openRange(data) {
   const lv = data.bonus, tg = data.shoot.targets, v3 = (data.shoot.v || 1) >= 3;
@@ -447,7 +460,7 @@ async function openRange(data) {
   $("riV").innerHTML = Object.keys(NM).filter((k) => seen[k]).map((k) => `${NM[k]} <b>${fmt(data.stake * seen[k] / 100)}</b>`).join(" · ") + `<br>ציפורים זהובות: <b>${tg.filter((o) => o.k === "bird").length}</b> · מינימום מובטח <b>${fmt(data.stake * 20)}</b>`;
   $("tally").innerHTML = ""; $("rsum").textContent = fmt(0); $("rintro").hidden = false; fx("tw_reload");
   await new Promise((go) => ($("riGo").onclick = () => { $("rintro").hidden = true; go(); }));
-  R = { data, tg, shots: [], hit: new Set(), mult: {}, sum: 0, t0: performance.now(), done: false, mag: 6, reload: false, last: -1e5, streak: 0, wave: false, secs: data.shoot.secs || 40 };
+  R = { data, tg, shots: [], hit: new Set(), mult: {}, sum: 0, t0: performance.now(), done: false, mag: 10, reload: false, last: -1e5, streak: 0, wave: false, secs: data.shoot.secs || 40 };
   drawAmmo(); drawStreak(); musicOn();
   const cv = $("cv"), g = cv.getContext("2d");
   const frame = () => {
@@ -467,9 +480,10 @@ async function openRange(data) {
 }
 function fieldXY(e) { const r = $("field").getBoundingClientRect(); return [(e.clientX - r.left) * 1600 / r.width, (e.clientY - r.top) * 900 / r.height]; }
 $("range").addEventListener("pointerdown", (e) => {
-  if (!R || R.done || !$("rintro").hidden) return; e.preventDefault();
+  if (!R || R.done || !$("rintro").hidden || e.target.closest("#reloadB")) return; e.preventDefault();
   const ms = Math.round(performance.now() - R.t0);
-  if (R.reload || ms < R.last + 600 || ms > R.secs * 1000) return;   // the same limits the server checks
+  if (R.mag <= 0) { $("reloadB").classList.remove("nudge"); void $("reloadB").offsetWidth; $("reloadB").classList.add("nudge"); fx("tw_hit", 0.3); return; }
+  if (R.reload || ms < R.last + 300 || ms > R.secs * 1000) return;   // the same limits the server checks
   let [x, y] = fieldXY(e);
   // aim assist: snap to the nearest target within its radius + 40
   let best = -1, bd = 1e9;
@@ -477,10 +491,9 @@ $("range").addEventListener("pointerdown", (e) => {
   if (best >= 0) { const p = tpos(R.tg[best], ms); x = p[0]; y = p[1]; }
   R.shots.push([Math.round(x * 10) / 10, Math.round(y * 10) / 10, ms]); R.last = ms; R.mag--;
   // the shot: a quick look through the scope at the tap point, recoil, flash
-  fx("tw_shot", 0.9); sprite("img/tower/scope.webp", x, y, 520, "scopeflash", 320);
+  fx("tw_shot", 0.9);
   const rg = $("range"); rg.classList.remove("shake"); void rg.offsetWidth; rg.classList.add("shake");
-  if (R.mag === 0) { R.reload = true; drawAmmo(); setTimeout(() => fx("tw_reload", 0.7), 150); setTimeout(() => { if (!R) return; R.reload = false; R.mag = 6; R.last = Math.round(performance.now() - R.t0) - 600; drawAmmo(); }, 1500); }
-  else drawAmmo();
+  drawAmmo();
   if (best < 0) { R.streak = 0; drawStreak(); sprite("img/tower/impact.webp", x, y, 90, "imp", 300); return; }
   const o = R.tg[best]; R.hit.add(best); R.streak++; drawStreak();
   const c = R.streak >= 6 ? 3 : R.streak >= 3 ? 2 : 1;
