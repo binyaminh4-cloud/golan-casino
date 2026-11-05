@@ -33,7 +33,7 @@ begin
   update gx.positions set status = 'closed', payout = 0, reason = 'owner_reset', closed_at = now(), credited_at = now() where user_id = u and status = 'open';
   delete from gx.funds where user_id = u;
   select balance into w from wallets where user_id = u;
-  if coalesce(w, 0) > 0 then perform apply_tx(u, 'admin', 'penalty', -w, 'owner_reset_yuval_wallet'); end if;
+  if coalesce(w, 0) > 0 then perform apply_tx(u, 'admin', 'reset', -w, 'owner_reset_yuval_wallet'); end if;
   select coalesce(balance, 0) into b from bank_accounts where user_id = u;
   perform bank_add(u, 'penalty', 500000000 - coalesce(b, 0), 'owner_reset_yuval_bank');
   insert into gc_notices (user_id, title, body) values (u, '🚨 נתפסת על חם גונב מבנימין!',
