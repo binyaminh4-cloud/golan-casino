@@ -89,6 +89,45 @@ body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Ari
 #enter p{margin:.6vh 0;font:600 clamp(12px,2.4vh,18px) Heebo;color:#e3e6ea;line-height:1.45}
 #enter button{margin-top:1.6vh;width:100%;height:clamp(40px,8vh,60px);border:0;border-radius:99px;background:linear-gradient(#ffe39a,#c79a2c);color:#2b1800;font:900 clamp(16px,3vh,24px) Heebo;cursor:pointer}
 #enter .back{background:none;border:1px solid #c9a24a;color:#e7c873;height:auto;padding:6px;font-size:14px}
+
+/* ───── מלך המטווח ───── */
+#range{position:absolute;inset:0;z-index:30;display:none;background:radial-gradient(ellipse at 50% 30%,#2a3b2a,#121a12 60%,#070a07);cursor:none;touch-action:none}
+#range.on{display:block}
+#range::before{content:"";position:absolute;left:0;right:0;bottom:0;height:150px;background:linear-gradient(#3b2414,#1c0f07);border-top:6px solid #c9a24a;box-shadow:0 -10px 30px #0008}
+#field{position:absolute;top:110px;left:50%;width:1600px;height:900px;transform-origin:50% 0}
+#cv{width:100%;height:100%;display:block}
+#cross{position:absolute;width:150px;height:150px;margin:-75px 0 0 -75px;pointer-events:none;z-index:3;left:-200px;top:-200px}
+#cross::before,#cross::after{content:"";position:absolute;left:50%;top:50%;border-radius:50%;transform:translate(-50%,-50%)}
+#cross::before{width:120px;height:120px;border:4px solid #ffd970;box-shadow:0 0 12px #ffbf3a,inset 0 0 8px #ffbf3a66}
+#cross::after{width:12px;height:12px;background:#ff5a4a;box-shadow:0 0 10px #ff5a4a}
+#cross i{position:absolute;background:#ffd970;box-shadow:0 0 6px #ffbf3a}
+#cross i:nth-child(1){left:73px;top:0;width:4px;height:40px}#cross i:nth-child(2){left:73px;bottom:0;width:4px;height:40px}
+#cross i:nth-child(3){top:73px;left:0;height:4px;width:40px}#cross i:nth-child(4){top:73px;right:0;height:4px;width:40px}
+#cross.kick{animation:kick .18s ease-out}@keyframes kick{40%{transform:translateY(-26px) scale(1.12)}}
+#rhud{position:absolute;top:24px;left:40px;right:40px;display:flex;align-items:center;gap:24px;z-index:4;pointer-events:none}
+#rtitle{font:900 48px Heebo;color:#ffe9a8;text-shadow:0 3px 0 #5c3d00}
+#ammo{display:flex;gap:8px;direction:ltr}#ammo b{width:20px;height:54px;border-radius:10px 10px 4px 4px;background:linear-gradient(#ffe39a,#b8862a);box-shadow:0 0 6px #ffbf3a88}
+#ammo b.used{background:#3a3a3a;box-shadow:none}
+#tbar{flex:1;height:22px;border-radius:99px;background:#0008;border:2px solid #c9a24a;overflow:hidden}#tbar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ffd970,#ff9a3a)}
+#tally{position:absolute;right:40px;top:120px;width:250px;z-index:4;pointer-events:none;display:flex;flex-direction:column;gap:8px;max-height:760px;overflow:hidden}
+#tally div{background:#0009;border:2px solid #c9a24a88;border-radius:14px;padding:6px 14px;font:900 30px Inter;color:#ffe08a;direction:ltr;text-align:right;animation:tin .3s ease-out}
+#tally div.m{color:#d9b8ff;border-color:#9c7bff}@keyframes tin{from{transform:translateX(60px);opacity:0}}
+#rsum{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);z-index:4;font:900 52px Heebo;color:#ffe9a8;text-shadow:0 3px 0 #5c3d00;white-space:nowrap;pointer-events:none}
+.pop{position:absolute;z-index:5;font:900 54px Inter;color:#ffe08a;text-shadow:0 3px 0 #5c3d00,0 0 18px #ffb300;pointer-events:none;animation:pop 1s ease-out forwards;direction:ltr}
+@keyframes pop{to{transform:translateY(-110px);opacity:0}}
+#rintro{position:absolute;inset:0;z-index:6;display:grid;place-items:center;background:#000a;cursor:default}
+#rintro[hidden]{display:none}
+#rintro .card{width:1150px;padding:40px 50px;border-radius:30px;background:linear-gradient(#2b2015,#140d07);border:4px solid #c9a24a;text-align:center}
+#rintro h2{margin:0 0 10px;font:900 64px Heebo;color:#ffe9a8}#rintro p{margin:8px 0;font:700 30px Heebo;color:#ecdcc0}
+#rintro button{margin-top:22px;width:520px;height:120px;border-radius:999px;border:4px solid #ffe7a0;background:radial-gradient(circle at 50% 30%,#ffe9a0,#d39b22 60%,#8a5a00);color:#2b1800;font:900 50px Heebo;cursor:pointer}
+#buyB{position:absolute;right:60px;bottom:60px;z-index:9;border:3px solid #c7a8ff;background:linear-gradient(#9c7bff,#4b2aa8);color:#fff;border-radius:99px;padding:14px 30px;font:900 32px Heebo;cursor:pointer}
+#buyB[hidden]{display:none}
+#buy{position:absolute;inset:0;z-index:15;display:none;place-items:center;background:#000b}#buy.on{display:grid}
+#buy .card{width:1250px;padding:40px;border-radius:30px;background:linear-gradient(#24262b,#121316);border:4px solid #9c7bff;text-align:center}
+#buy h2{margin:0 0 24px;font:900 54px Heebo;color:#e6d8ff}#buy .row{display:flex;gap:24px}
+#buy .row button{flex:1;height:170px;border-radius:24px;border:4px solid #c7a8ff;background:linear-gradient(#5d3fc0,#2c1870);color:#fff;font:900 44px Heebo;cursor:pointer;line-height:1.15}
+#buy .row button small{display:block;font:800 28px Inter;color:#ffe08a}
+#buy .x{margin-top:22px;background:none;border:2px solid #777;color:#ccc;border-radius:99px;padding:10px 40px;font:800 26px Heebo;cursor:pointer}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
@@ -107,7 +146,17 @@ body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Ari
   <div class="abs" id="err"></div>
   <div class="abs" id="bet"><button class="sq" id="minus" aria-label="הימור קטן יותר">−</button><div id="amt">₪100<small>הימור</small></div><button class="sq" id="plus" aria-label="הימור גדול יותר">+</button><button id="go">המר</button></div>
   <div id="choice"><div class="card"><h2>פורשים עם הכסף או ממשיכים למעלה?</h2><p id="chP"></p>
-    <div class="row"><button id="cash">לפרוש עם השלל<small id="cashS"></small></button><button id="cont">להמשיך למעלה<small>2 שומרים מתוך 6 בדרך לבונוס</small></button></div></div></div>
+    <div class="row"><button id="cash">לפרוש עם השלל<small id="cashS"></small></button><button id="cont">להמשיך למעלה<small>מסדרון עם 5 שומרים מתוך 6, ובסופו מלך המטווח</small></button></div></div></div>
+  <button id="buyB" hidden>🎯 קנה בונוס ירי</button>
+  <div id="buy"><div class="card"><h2>🎯 קנה את מלך המטווח</h2><div class="row">
+    <button data-l="1">בונוס רגיל<small id="bp1"></small></button><button data-l="2">סופר<small id="bp2"></small></button><button data-l="3">קרייזי<small id="bp3"></small></button></div>
+    <button class="x" id="buyX">ביטול</button></div></div>
+  <div id="range"><div id="rhud"><div id="rtitle">🎯 מלך המטווח</div><div id="ammo"></div><div id="tbar"><i></i></div></div>
+    <div id="field"><canvas id="cv" width="1600" height="900"></canvas><div id="cross"><i></i><i></i><i></i><i></i></div></div>
+    <div id="tally"></div><div id="rsum"></div>
+    <div id="rintro" hidden><div class="card"><h2 id="riT">🎯 מלך המטווח</h2><p>10 יריות, 30 שניות. מכוונים עם האצבע ויורים בנגיעה.</p>
+      <p>פחית, בלון זהב ויהלום שווים כפולות מההימור. <b>ציפור זהובה</b> מפילה מכפיל על אחת המטרות הבאות: פגעת בה, והערך שלה מוכפל.</p>
+      <p id="riV"></p><button id="riGo">אש! 🎯</button></div></div></div>
   <div id="dice"><div id="cube"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
 </div>
 <div id="enter" hidden><div class="card">
@@ -115,7 +164,7 @@ body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Ari
   <p>לוחצים <b>המר</b> והקוביה קובעת לאיזה חדר נכנסים. בכל קומה שישה חדרים.</p>
   <p>בחדר עם <b>כספת</b> אוספים את הכפולה שעליה ועולים בסולם. בחדר עם <b>שומר המגדל</b> הסבב נגמר וההימור הולך.</p>
   <p>בקומה 3, חדר 2, יש <b>שער יציאה</b>: פורשים עם השלל או ממשיכים לבונוס.</p>
-  <p>ראש קומה 3 = <b>בונוס</b> (×14), קומה 4 = <b>סופר</b> (×35), קומה 5 = <b>קרייזי</b> (×70). שומר בקומות הבונוס לא לוקח כלום.</p>
+  <p>מי שעובר את המסדרון מגיע ל<b>בונוס</b>. מעליו קומה 4 = <b>סופר</b> וקומה 5 = <b>קרייזי</b>, ואז <b>מלך המטווח</b>: 10 יריות על מטרות עם כפולות. שומר בקומות הבונוס לא לוקח כלום.</p><p>אפשר גם לקנות את בונוס הירי ישירות.</p>
   <button id="goIn">יאללה למגדל 🏰</button><button class="back" onclick="location.href='./'">חזרה ללובי</button>
 </div></div>
 <script src="sfx.js?v=1793807062"></script>
@@ -162,10 +211,10 @@ function drawRow(row, cells, taken) {
 function drawIdle() { drawRow(1, [0, 0, 0, 0, 0, 0].map(() => 0)); document.querySelectorAll(".room img,.room .cap").forEach((e) => e.remove()); }
 
 function hud() {
-  const a = run && ["active", "choice", "bonus"].includes(run.status), f = a ? run.floor : 1, b = a ? run.bonus : 0;
+  const a = run && ["active", "choice", "bonus"].includes(run.status) && !run.bought, f = a ? run.floor : 1, b = a ? run.bonus : 0;
   $("lvl").innerHTML = [1, 2, 3, 4, 5].map((n) => `<span class="${n === f ? "on" : ""}${n >= 4 ? " b" : ""}">${n >= 4 ? BNAME[n - 2] : "קומה " + n}</span>`).join("");
   const stake = a ? run.stake : bet;
-  $("loot").textContent = a ? (b ? `🎁 ${BNAME[b]} ×${PRIZE[b]} + שלל ×${run.loot} = ${fmt(stake * (run.loot + PRIZE[b]))}` : `💰 שלל ×${run.loot} = ${fmt(stake * run.loot)}`) : `הימור ${fmt(bet)} · בונוס עד ×${PRIZE[3]}`;
+  $("loot").textContent = a ? (b ? `🎁 ${BNAME[b]} · שלל ×${run.loot} = ${fmt(stake * run.loot)} · בסוף: מלך המטווח` : `💰 שלל ×${run.loot} = ${fmt(stake * run.loot)}`) : `הימור ${fmt(bet)} · בונוס ירי עד ×5000`;
 }
 function controls() {
   const a = run && ["active", "bonus"].includes(run.status);
@@ -173,7 +222,8 @@ function controls() {
   $("amt").innerHTML = `${fmt(bet)}<small>הימור</small>`;
   $("bet").classList.toggle("run", !!a);
   $("go").innerHTML = a ? (run.status === "bonus" ? `המר<small>לעלות ל${BNAME[run.bonus + 1]}</small>` : `המר<small>קומה ${run.floor}</small>`) : "המר";
-  $("bet").hidden = busy || (run && run.status === "choice");
+  $("bet").hidden = busy || (run && ["choice", "shoot"].includes(run.status));
+  $("buyB").hidden = busy || !!run;
   hud();
 }
 function say(t, bad, ms = 2200) { const m = $("msg"); m.textContent = t; m.classList.toggle("bad", !!bad); m.hidden = false; clearTimeout(say.t); say.t = setTimeout(() => (m.hidden = true), ms); return sleep(ms); }
@@ -234,7 +284,7 @@ async function finish(data) {
   showBal(data.balance);
   if (data.status !== "lost") { pose("celebrate"); $("me").classList.add("glow"); }
   if (data.status === "won") {
-    S("win"); if (window.GC_BONUS) GC_BONUS(`🏰 ${BNAME[data.bonus]}!`, data.paid, `שלל ×${data.loot} + ×${PRIZE[data.bonus]}`); else await say(`🏰 ${BNAME[data.bonus]}! זכית ב-${fmt(data.paid)}`, false, 3000);
+    S("win"); const hv = (data.hits || []).reduce((a, h) => a + h.v, 0) / 100; if (window.GC_BONUS) GC_BONUS(`🎯 מלך המטווח · ${LV[data.bonus]}`, data.paid, `ירי ×${+hv.toFixed(2)}` + (data.loot ? ` + שלל ×${data.loot}` : "")); else await say(`🎯 זכית ב-${fmt(data.paid)}`, false, 3000);
   } else if (data.status === "cashed") {
     await say(data.loot >= 10 ? `פחדן! מי פורש שהוא כל כך קרוב ליעד. זכית ב-${fmt(data.paid)}` : `לקחת ${fmt(data.paid)} 💰`, false, 3200);
   } else if (data.status === "lost") {
@@ -253,6 +303,7 @@ async function after(prev, data) {
   await play(prev, data); run = data;
   if (["lost", "won", "cashed"].includes(data.status)) await finish(data);
   else if (data.status === "choice") openChoice();
+  else if (data.status === "shoot") { await say(`🎯 ${["", "בונוס רגיל", "סופר", "קרייזי"][data.bonus]}! מלך המטווח`, false, 1600); await openRange(data); return; }
   busy = false; controls();
 }
 $("go").onclick = async () => {
@@ -264,7 +315,7 @@ $("go").onclick = async () => {
   if (data) await after(prev, data);
 };
 function openChoice() {
-  $("chP").textContent = `השלל שלך: ×${run.loot} = ${fmt(run.stake * run.loot)}. בונוס = השלל + ×${PRIZE[1]} לפחות.`;
+  $("chP").textContent = `השלל שלך: ×${run.loot} = ${fmt(run.stake * run.loot)}. אם תעבור את המסדרון: השלל + בונוס ירי.`;
   $("cashS").textContent = fmt(run.stake * run.loot); $("choice").classList.add("on");
 }
 async function choose(go) {
@@ -274,6 +325,90 @@ async function choose(go) {
   if (go) { await climb(6, data.layout[5]); }
   await after(prev, data);
 }
+
+// ───── מלך המטווח: the server drew the range; the page plays it and sends the 10 shots at the end ─────
+const LV = ["", "בונוס רגיל", "סופר", "קרייזי"], RAD = { can: 46, bal: 54, dia: 42, bird: 52 };
+function tpos(o, ms) { const sec = (ms - o.t0) / 1000; if (sec < 0 || sec > o.life) return null; return [o.x0 + o.vx * sec, o.y0 + o.amp * Math.sin(o.w * sec + o.ph), sec]; }
+function drawT(g, o, p, m, now) {
+  const [x, y] = p; g.save(); g.translate(x, y);
+  if (o.k === "can") { const gr = g.createLinearGradient(-26, 0, 26, 0); gr.addColorStop(0, "#7d848c"); gr.addColorStop(.45, "#f0f3f6"); gr.addColorStop(1, "#6b7179");
+    g.fillStyle = gr; g.fillRect(-26, -40, 52, 80); g.fillStyle = "#b9302c"; g.fillRect(-26, -12, 52, 24); g.fillStyle = "#cfd4da"; g.beginPath(); g.ellipse(0, -40, 26, 8, 0, 0, 7); g.fill(); }
+  else if (o.k === "bal") { const gr = g.createRadialGradient(-14, -20, 4, 0, 0, 56); gr.addColorStop(0, "#fff3c0"); gr.addColorStop(.4, "#f2c14e"); gr.addColorStop(1, "#8a5a00");
+    g.strokeStyle = "#ddd"; g.lineWidth = 2; g.beginPath(); g.moveTo(0, 52); g.quadraticCurveTo(10, 80, -4, 110); g.stroke();
+    g.fillStyle = gr; g.beginPath(); g.ellipse(0, 0, 42, 52, 0, 0, 7); g.fill(); }
+  else if (o.k === "dia") { g.rotate(Math.sin(now / 300) * .15); const gr = g.createLinearGradient(-40, -40, 40, 40); gr.addColorStop(0, "#e9fdff"); gr.addColorStop(.5, "#5fd6ff"); gr.addColorStop(1, "#1a6fb0");
+    g.fillStyle = gr; g.shadowColor = "#7fe6ff"; g.shadowBlur = 24; g.beginPath(); g.moveTo(0, -42); g.lineTo(38, -12); g.lineTo(0, 44); g.lineTo(-38, -12); g.closePath(); g.fill();
+    g.shadowBlur = 0; g.strokeStyle = "#fff9"; g.lineWidth = 2; g.beginPath(); g.moveTo(-38, -12); g.lineTo(38, -12); g.moveTo(0, -42); g.lineTo(-12, -12); g.lineTo(0, 44); g.lineTo(12, -12); g.closePath(); g.stroke(); }
+  else { const fl = Math.sin(now / 70) * 26, dir = o.vx > 0 ? 1 : -1; g.scale(dir, 1); g.shadowColor = "#ffcf4a"; g.shadowBlur = 30;
+    g.fillStyle = "#ffd24a"; g.beginPath(); g.ellipse(0, 0, 40, 20, 0, 0, 7); g.fill();
+    g.fillStyle = "#ffe68a"; g.beginPath(); g.moveTo(-8, -4); g.lineTo(-26, -24 - fl); g.lineTo(14, -6); g.fill(); g.beginPath(); g.moveTo(-8, 4); g.lineTo(-22, 22 + fl * .6); g.lineTo(12, 6); g.fill();
+    g.beginPath(); g.arc(36, -8, 14, 0, 7); g.fill(); g.fillStyle = "#c9781a"; g.beginPath(); g.moveTo(48, -10); g.lineTo(62, -6); g.lineTo(48, -2); g.fill();
+    g.fillStyle = "#222"; g.beginPath(); g.arc(40, -11, 3, 0, 7); g.fill(); g.fillStyle = "#ffd24a"; g.beginPath(); g.moveTo(-36, 0); g.lineTo(-58, -14); g.lineTo(-58, 14); g.fill(); }
+  g.restore();
+  if (m > 1) { g.save(); g.font = "900 40px Inter"; g.textAlign = "center"; g.fillStyle = "#2a1460"; g.strokeStyle = "#e6d8ff"; g.lineWidth = 3;
+    const t = "×" + m, w = g.measureText(t).width + 26; g.beginPath(); g.roundRect(x - w / 2, y - 112, w, 52, 26); g.fill(); g.stroke(); g.fillStyle = "#ffe08a"; g.fillText(t, x, y - 72); g.restore(); }
+}
+let R = null;   // the live round
+function rangeScale() { const f = $("field"), sc = Math.min(1, (W - 40) / 1600, 940 / 900); f.style.transform = `translateX(-50%) scale(${sc})`; return sc; }
+async function openRange(data) {
+  const lv = data.bonus, tg = data.shoot.targets;
+  $("range").classList.add("on"); $("buyB").hidden = true; $("bet").hidden = true; rangeScale();
+  $("riT").textContent = "🎯 מלך המטווח · " + LV[lv];
+  const v = lv === 1 ? [0.7, 4, 27] : lv === 2 ? [1.2, 5, 30] : [2, 13, 65];
+  $("riV").innerHTML = `פחית ×${v[0]} · בלון זהב ×${v[1]} · יהלום ×${v[2]} · ציפורים זהובות בסבב: <b>${tg.filter((o) => o.k === "bird").length}</b>`;
+  $("ammo").innerHTML = "<b></b>".repeat(10); $("tally").innerHTML = ""; $("rsum").textContent = data.loot ? `שלל מהמגדל ×${data.loot}` : "";
+  $("rintro").hidden = false; S("riser");
+  await new Promise((ok) => ($("riGo").onclick = () => { $("rintro").hidden = true; ok(); }));
+  R = { data, tg, shots: [], hit: new Set(), mult: {}, sum: 0, t0: performance.now(), done: false, aim: [800, 450] };
+  const cv = $("cv"), g = cv.getContext("2d");
+  const frame = () => {
+    if (!R || R.done) return;
+    const now = performance.now(), ms = now - R.t0;
+    g.clearRect(0, 0, 1600, 900);
+    R.tg.forEach((o, j) => { if (R.hit.has(j)) return; const p = tpos(o, ms); if (p) drawT(g, o, p, R.mult[j] || 1, now); });
+    $("tbar").firstChild.style.width = Math.max(0, 100 - ms / 300) + "%";
+    if (ms >= 30000 || R.shots.length >= 10) { endRange(); return; }
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+function fieldXY(e) { const r = $("field").getBoundingClientRect(); return [(e.clientX - r.left) * 1600 / r.width, (e.clientY - r.top) * 900 / r.height]; }
+function moveCross(x, y) { const c = $("cross"); c.style.left = x + "px"; c.style.top = y + "px"; }
+$("range").addEventListener("pointermove", (e) => { if (!R) return; const [x, y] = fieldXY(e); R.aim = [x, y]; moveCross(x, y); });
+$("range").addEventListener("pointerdown", (e) => {
+  if (!R || R.done || !$("rintro").hidden) return; e.preventDefault();
+  const ms = Math.round(performance.now() - R.t0), last = R.shots.length ? R.shots[R.shots.length - 1][2] : -1000;
+  if (ms < last + 300 || ms > 30000) return;   // same rate limit the server checks
+  const [x, y] = fieldXY(e); moveCross(x, y); R.shots.push([Math.round(x * 10) / 10, Math.round(y * 10) / 10, ms]);
+  const c = $("cross"); c.classList.remove("kick"); void c.offsetWidth; c.classList.add("kick"); S("zap");
+  $("ammo").children[R.shots.length - 1].classList.add("used");
+  // local preview of the hit (the server recomputes the same thing at the end)
+  let best = -1, bd = 1e9;
+  R.tg.forEach((o, j) => { if (R.hit.has(j)) return; const p = tpos(o, ms); if (!p) return; const d = Math.hypot(p[0] - x, p[1] - y); if (d <= RAD[o.k] && d < bd) { bd = d; best = j; } });
+  if (best < 0) return;
+  const o = R.tg[best]; R.hit.add(best);
+  const pop = (t) => { const r = $("field").getBoundingClientRect(), st = $("stage").getBoundingClientRect(), k = 1080 / st.height;
+    const el = document.createElement("div"); el.className = "pop"; el.textContent = t; el.style.left = ((r.left - st.left) * k + x * r.width / 1600 * k - 40) + "px"; el.style.top = ((r.top - st.top) * k + y * r.height / 900 * k - 60) + "px"; $("range").appendChild(el); setTimeout(() => el.remove(), 1000); };
+  if (o.k === "bird") { S("thunder"); if (o.on >= 0) { R.mult[o.on] = o.m; pop("🐦 ×" + o.m); const d = document.createElement("div"); d.className = "m"; d.textContent = "🐦 ×" + o.m + " נפל!"; $("tally").prepend(d); } }
+  else { const m = R.mult[best] || 1, v = o.v * m / 100; R.sum += v; S("chip"); pop("×" + +v.toFixed(2));
+    const d = document.createElement("div"); if (m > 1) d.className = "m"; d.textContent = (m > 1 ? `×${o.v / 100}·${m} = ` : "") + "×" + +v.toFixed(2); $("tally").prepend(d);
+    $("rsum").textContent = `ירי ×${+R.sum.toFixed(2)}` + (R.data.loot ? ` + שלל ×${R.data.loot}` : ""); }
+});
+async function endRange() {
+  if (!R || R.done) return; R.done = true;
+  const r0 = R, res = await send("tw_shoot", { p_run: r0.data.id, p_shots: r0.shots });
+  if (!res) { R.done = false; setTimeout(endRange, 1500); return; }   // network hiccup: try again, the shots are kept
+  await sleep(600); $("range").classList.remove("on"); R = null;
+  run = res; await finish(res); busy = false; controls();
+}
+// buy the shooting bonus directly (×100 / ×250 / ×500)
+$("buyB").onclick = () => { if (busy || run) return; S("button"); [1, 2, 3].forEach((l) => ($("bp" + l).textContent = fmt(bet * [0, 100, 250, 500][l]))); $("buy").classList.add("on"); };
+$("buyX").onclick = () => $("buy").classList.remove("on");
+document.querySelectorAll("#buy .row button").forEach((b) => (b.onclick = async () => {
+  $("buy").classList.remove("on"); const data = await send("tw_buy", { p_level: +b.dataset.l, p_stake: bet, p_ref: crypto.randomUUID ? crypto.randomUUID() : Date.now() + "" + Math.random() });
+  if (!data) return; showBal(data.balance); run = data; await openRange(data);
+}));
+
 $("cash").onclick = () => choose(false); $("cont").onclick = () => choose(true);
 
 (async () => {
@@ -281,6 +416,7 @@ $("cash").onclick = () => choose(false); $("cont").onclick = () => choose(true);
   const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
   const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single(); if (w.data) showBal(w.data.balance);
   const c = await db.rpc("tw_current");
+  if (c.data && c.data.status === "shoot") { run = c.data; controls(); if (window.GC_LOADER) GC_LOADER.done(); busy = true; await openRange(run); return; }
   if (c.data) {   // an unfinished round continues where it stopped
     run = c.data; const row = curRow(run); drawRow(row, run.layout[row - 1]);
     const last = run.rolls[run.rolls.length - 1]; if (last && last.row === row) { meRoom = last.die; place(); }
