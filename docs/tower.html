@@ -156,6 +156,25 @@ body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Ari
 #life .row{display:flex;gap:30px}#life button{flex:1;height:140px;border-radius:26px;font:900 44px Heebo;cursor:pointer;line-height:1.1}
 #lifeY{border:4px solid #ffb4a8;background:linear-gradient(#ff7a62,#b0261a);color:#fff}#lifeN{border:3px solid #777;background:#24262b;color:#ccc}
 #life button small{display:block;font:800 26px Heebo;opacity:.9}
+
+#ammo{display:flex;gap:6px;align-items:center;direction:ltr}#ammo img{height:62px;filter:drop-shadow(0 0 4px #000)}#ammo img.used{opacity:.18;filter:grayscale(1)}
+#ammo .rl{font:900 26px Heebo;color:#ffd970;margin-inline-start:10px;animation:pulse .6s infinite}
+#streak{position:absolute;left:50%;top:170px;transform:translateX(-50%);z-index:5;font:900 40px Heebo;color:#ffe9a8;text-shadow:0 2px 8px #000;pointer-events:none}
+#streak.on{padding:4px 22px;border-radius:99px;background:#000b;border:3px solid #ff9a3a;color:#ffcf7a;animation:pop2 .3s}#streak.c3{border-color:#ff4a2a;color:#ff9a7a;box-shadow:0 0 30px #ff4a2a99}
+@keyframes pop2{from{transform:translateX(-50%) scale(1.5)}}
+#rsum{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);z-index:5;padding:6px 34px;border-radius:99px;background:#000c;border:3px solid #c9a24a;font:900 64px Inter;color:#ffe08a;pointer-events:none;direction:ltr}
+#rsum.bump{animation:bump .3s}@keyframes bump{40%{transform:translateX(-50%) scale(1.15)}}
+.spr{position:absolute;z-index:4;pointer-events:none}.spr.scopeflash{z-index:6;animation:sf .32s ease-out forwards}@keyframes sf{0%{transform:scale(1.25);opacity:.95}100%{transform:scale(.9);opacity:0}}
+.spr.imp{animation:im .4s ease-out forwards}@keyframes im{from{transform:scale(.4)}to{transform:scale(1.2);opacity:0}}
+.spr.coin{animation:cn .7s ease-out forwards}@keyframes cn{from{transform:scale(.3)}60%{opacity:1}to{transform:scale(1.3) translateY(-40px);opacity:0}}
+.pop{position:absolute;z-index:7;font:900 50px Inter;color:#ffe08a;text-shadow:0 3px 0 #5c3d00,0 0 18px #ffb300;pointer-events:none;animation:pop 1.1s ease-out forwards;direction:ltr;white-space:nowrap}
+.pop.m{color:#e6d8ff;text-shadow:0 3px 0 #2a1460,0 0 18px #9c7bff;font-size:62px}.pop.c{color:#ffb37a}
+.mtag{position:absolute;z-index:5;transform:translateX(-50%);padding:2px 16px;border-radius:99px;background:#2a1460e6;border:3px solid #e6d8ff;font:900 38px Inter;color:#ffe08a;pointer-events:none}
+#wave{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%) scale(.6);z-index:7;font:900 110px Heebo;color:#ffd970;text-shadow:0 5px 0 #6b4a00,0 0 40px #ffb300;opacity:0;pointer-events:none;transition:.3s}
+#wave.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#sum{position:absolute;inset:0;z-index:8;display:none;place-items:center;background:#000b}#sum.on{display:grid}
+#sum .card{width:1000px;padding:40px;border-radius:30px;background:linear-gradient(#2b2015,#140d07);border:4px solid #c9a24a;text-align:center;box-shadow:0 0 80px #ffb04466}
+#sum h2{margin:0;font:900 56px Heebo;color:#ffe9a8}#sumN{font:900 150px Inter;color:#ffe08a;text-shadow:0 6px 0 #5c3d00,0 0 40px #ffb300;direction:ltr}#sum p{margin:0;font:700 30px Heebo;color:#ecdcc0}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
@@ -181,12 +200,11 @@ body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Ari
     <button class="x" id="buyX">ביטול</button></div></div>
   <div id="range"><div id="rhud"><div id="rtitle">🎯 מלך המטווח</div><div id="ammo"></div><div id="tbar"><i></i></div></div>
     <div id="field"><canvas id="cv" width="1600" height="900"></canvas></div>
-    <div id="scope"><i class="h"></i><i class="v"></i><i class="dot"></i><i class="tk"></i></div><button class="fireB" id="fireB">אש</button><button class="fireB" id="fireL">אש</button><div id="clock">45</div><div id="tally"></div><div id="rsum"></div>
-    <div id="rintro" hidden><div class="card"><h2 id="riT">🎯 מלך המטווח</h2><p>12 יריות, 45 שניות. מסתכלים דרך הכוונת: גוררים את האצבע כדי לכוון, ולוחצים <b>אש</b>.</p>
-      <p>פחית, בלון זהב ויהלום שווים כפולות מההימור. <b>ציפור זהובה</b> מפילה מכפיל על אחת המטרות הבאות: פגעת בה, והערך שלה מוכפל.</p>
-      <p id="riV"></p><button id="riGo">אש! 🎯</button></div></div></div>
-  <div id="life"><div class="card"><h2>❤️ חיים נוספים?</h2><p id="lifeP"></p>
-    <div class="row"><button id="lifeY">להמשיך מכאן<small id="lifeS"></small></button><button id="lifeN">לא, תודה<small>מתחילים מחדש</small></button></div></div></div>
+    <div id="clock">40</div><div id="streak"></div><div id="tally"></div><div id="rsum">₪0</div><div id="wave">⚡ גל הזהב!</div>
+    <div id="rintro" hidden><div class="card"><h2 id="riT">🎯 מלך המטווח</h2><p>40 שניות. <b>נוגעים במטרה ויורים.</b> מחסנית של 6 כדורים, ואז טעינה קצרה.</p>
+      <p>3 פגיעות ברצף = <b>×2</b>, 6 ברצף = <b>×3</b>. ציפור זהובה מפילה מכפיל על מטרה, ובסוף מגיע גל של מטילי זהב.</p>
+      <p id="riV"></p><button id="riGo">אש! 🎯</button></div></div>
+    <div id="sum"><div class="card"><h2 id="sumT"></h2><div id="sumN">₪0</div><p id="sumS"></p></div></div></div>
   <div id="dice"><div id="cube"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
 </div>
 <div id="enter" hidden><div class="card">
@@ -391,119 +409,109 @@ async function choose(go) {
   await after(prev, data);
 }
 
-// ───── מלך המטווח: the server drew the range; the page plays it and sends the 10 shots at the end ─────
+// ───── מלך המטווח v3: tap a target to shoot. The server drew the range; the page plays it and sends every shot at the end ─────
 const fx = (n, v = 0.8) => { try { SFX.fx(n, { vol: v }); } catch (e) {} };
 const LV = ["", "בונוס רגיל", "סופר", "קרייזי"], RAD = { can: 46, bottle: 40, bal: 54, plate: 58, dia: 44, gold: 44, bird: 56 };
 function tpos(o, ms) { const sec = (ms - o.t0) / 1000; if (sec < 0 || sec > o.life) return null; return [o.x0 + o.vx * sec, o.y0 + o.amp * Math.sin(o.w * sec + o.ph), sec]; }
-const TIMG = {}; ["can", "bottle", "bal", "plate", "dia", "gold", "bird"].forEach((k) => { const i = new Image(); i.src = "img/tower/t_" + k + ".webp"; TIMG[k] = i; });
+const IMG = {}; ["can", "bottle", "bal", "plate", "dia", "gold", "bird", "stand"].forEach((k) => { const i = new Image(); i.src = "img/tower/t_" + k + ".webp"; IMG[k] = i; });
 const SZ = { can: [60, 110], bottle: [44, 110], bal: [85, 190], plate: [116, 120], dia: [144, 110], gold: [92, 80], bird: [112, 130] };
+const ok = (i) => i && i.complete && i.naturalWidth;
 function drawT(g, o, p, m, now) {
-  const [x, y] = p, im = TIMG[o.k];
-  if (o.k !== "bal" && o.k !== "bird" && im && im.complete) {   // cans and diamonds ride on a target pole that comes up from the ground track
-    const [w, h] = SZ[o.k], top = y + h / 2 - 4, gr = g.createLinearGradient(x - 7, 0, x + 7, 0);
-    gr.addColorStop(0, "#2b2b2b"); gr.addColorStop(.5, "#8a8f96"); gr.addColorStop(1, "#262626");
-    g.fillStyle = gr; g.fillRect(x - 6, top, 12, 900 - top);
-    g.fillStyle = "#3a2a1a"; g.fillRect(x - 34, top - 6, 68, 10);   // small plate under the target
-    g.fillStyle = "#0007"; g.beginPath(); g.ellipse(x, 893, 34, 7, 0, 0, 7); g.fill();
+  const [x, y] = p, im = IMG[o.k], [w, h] = SZ[o.k];
+  if (o.k !== "bal" && o.k !== "bird" && ok(IMG.stand)) {   // grounded targets stand on a steel range stand (photo art)
+    const top = y + h / 2 - 2, sh = 900 - top + 30, sw = sh * 165 / 420; g.drawImage(IMG.stand, x - sw / 2, top - sh * 0.13, sw, sh);
   }
-  if (im && im.complete && im.naturalWidth) { const [w, h] = SZ[o.k]; g.save(); g.translate(x, y);
-    if (o.k === "bird") { g.scale(o.vx > 0 ? -1 : 1, 1); g.translate(0, Math.sin(now / 90) * 6); g.shadowColor = "#ffcf4a"; g.shadowBlur = 30; }
-    if (o.k === "gold") { g.shadowColor = "#ffd34a"; g.shadowBlur = 22; }
-    if (o.k === "dia") { g.rotate(Math.sin(now / 300) * .12); g.shadowColor = "#7fe6ff"; g.shadowBlur = 26; }
-    if (o.k === "bal") g.translate(0, h * 0.25);
-    g.drawImage(im, -w / 2, -h / 2, w, h); g.restore(); return badge(g, x, y, m); }
+  if (!ok(im)) return;
   g.save(); g.translate(x, y);
-  if (o.k === "can") { const gr = g.createLinearGradient(-26, 0, 26, 0); gr.addColorStop(0, "#7d848c"); gr.addColorStop(.45, "#f0f3f6"); gr.addColorStop(1, "#6b7179");
-    g.fillStyle = gr; g.fillRect(-26, -40, 52, 80); g.fillStyle = "#b9302c"; g.fillRect(-26, -12, 52, 24); g.fillStyle = "#cfd4da"; g.beginPath(); g.ellipse(0, -40, 26, 8, 0, 0, 7); g.fill(); }
-  else if (o.k === "bal") { const gr = g.createRadialGradient(-14, -20, 4, 0, 0, 56); gr.addColorStop(0, "#fff3c0"); gr.addColorStop(.4, "#f2c14e"); gr.addColorStop(1, "#8a5a00");
-    g.strokeStyle = "#ddd"; g.lineWidth = 2; g.beginPath(); g.moveTo(0, 52); g.quadraticCurveTo(10, 80, -4, 110); g.stroke();
-    g.fillStyle = gr; g.beginPath(); g.ellipse(0, 0, 42, 52, 0, 0, 7); g.fill(); }
-  else if (o.k === "gold") { g.shadowColor = "#ffd34a"; g.shadowBlur = 22; }
-    if (o.k === "dia") { g.rotate(Math.sin(now / 300) * .15); const gr = g.createLinearGradient(-40, -40, 40, 40); gr.addColorStop(0, "#e9fdff"); gr.addColorStop(.5, "#5fd6ff"); gr.addColorStop(1, "#1a6fb0");
-    g.fillStyle = gr; g.shadowColor = "#7fe6ff"; g.shadowBlur = 24; g.beginPath(); g.moveTo(0, -42); g.lineTo(38, -12); g.lineTo(0, 44); g.lineTo(-38, -12); g.closePath(); g.fill();
-    g.shadowBlur = 0; g.strokeStyle = "#fff9"; g.lineWidth = 2; g.beginPath(); g.moveTo(-38, -12); g.lineTo(38, -12); g.moveTo(0, -42); g.lineTo(-12, -12); g.lineTo(0, 44); g.lineTo(12, -12); g.closePath(); g.stroke(); }
-  else { const fl = Math.sin(now / 70) * 26, dir = o.vx > 0 ? 1 : -1; g.scale(dir, 1); g.shadowColor = "#ffcf4a"; g.shadowBlur = 30;
-    g.fillStyle = "#ffd24a"; g.beginPath(); g.ellipse(0, 0, 40, 20, 0, 0, 7); g.fill();
-    g.fillStyle = "#ffe68a"; g.beginPath(); g.moveTo(-8, -4); g.lineTo(-26, -24 - fl); g.lineTo(14, -6); g.fill(); g.beginPath(); g.moveTo(-8, 4); g.lineTo(-22, 22 + fl * .6); g.lineTo(12, 6); g.fill();
-    g.beginPath(); g.arc(36, -8, 14, 0, 7); g.fill(); g.fillStyle = "#c9781a"; g.beginPath(); g.moveTo(48, -10); g.lineTo(62, -6); g.lineTo(48, -2); g.fill();
-    g.fillStyle = "#222"; g.beginPath(); g.arc(40, -11, 3, 0, 7); g.fill(); g.fillStyle = "#ffd24a"; g.beginPath(); g.moveTo(-36, 0); g.lineTo(-58, -14); g.lineTo(-58, 14); g.fill(); }
-  g.restore(); badge(g, x, y, m);
+  if (o.k === "bird") { g.scale(o.vx > 0 ? -1 : 1, 1); g.translate(0, Math.sin(now / 90) * 6); g.shadowColor = "#ffcf4a"; g.shadowBlur = 30; }
+  if (o.k === "gold") { g.shadowColor = "#ffd34a"; g.shadowBlur = 22; }
+  if (o.k === "dia") { g.rotate(Math.sin(now / 300) * .12); g.shadowColor = "#7fe6ff"; g.shadowBlur = 26; }
+  if (o.k === "bal") g.translate(0, h * 0.25);
+  g.drawImage(im, -w / 2, -h / 2, w, h); g.restore();
+  if (m > 1) { const t = $("tagTpl"); }   // multiplier tags are DOM pills (see tags below)
 }
-function badge(g, x, y, m) {
-  if (m > 1) { g.save(); g.font = "900 40px Inter"; g.textAlign = "center"; g.fillStyle = "#2a1460"; g.strokeStyle = "#e6d8ff"; g.lineWidth = 3;
-    const t = "×" + m, w = g.measureText(t).width + 26; g.beginPath(); g.roundRect(x - w / 2, y - 112, w, 52, 26); g.fill(); g.stroke(); g.fillStyle = "#ffe08a"; g.fillText(t, x, y - 72); g.restore(); }
-}
-let R = null, R_SHOTS = 12, R_SECS = 45;   // the live round
-function rangeScale() { const f = $("field"), sc = Math.min(1, (W - 40) / 1600, 940 / 900); f.style.transform = `translateX(-50%) scale(${sc})`; return sc; }
+let R = null;
+const shekel = (hund) => fmt(R.data.stake * hund / 100);
+function rangeScale() { const f = $("field"), sc = Math.min((W - 40) / 1600, 980 / 900); f.style.transform = `translateX(-50%) scale(${sc})`; return sc; }
+function toStage(x, y) { const r = $("field").getBoundingClientRect(), st = $("stage").getBoundingClientRect(), k = 1080 / st.height; return [(r.left - st.left) * k + x * r.width / 1600 * k, (r.top - st.top) * k + y * r.height / 900 * k]; }
+function sprite(src, x, y, size, cls, ms) { const [sx, sy] = toStage(x, y), el = document.createElement("img"); el.src = src; el.className = "spr " + cls; el.style.cssText = `left:${sx - size / 2}px;top:${sy - size / 2}px;width:${size}px`; $("range").appendChild(el); setTimeout(() => el.remove(), ms); }
+function popText(t, x, y, cls = "") { const [sx, sy] = toStage(x, y), el = document.createElement("div"); el.className = "pop " + cls; el.textContent = t; el.style.left = sx - 60 + "px"; el.style.top = sy - 90 + "px"; $("range").appendChild(el); setTimeout(() => el.remove(), 1100); }
+function drawAmmo() { $("ammo").innerHTML = Array.from({ length: 6 }, (_, i) => `<img src="img/tower/bullet.webp" class="${i < R.mag ? "" : "used"}" alt="">`).join("") + (R.reload ? '<b class="rl">טוען…</b>' : ""); }
+function drawStreak() { const c = R.streak >= 6 ? 3 : R.streak >= 3 ? 2 : 1; const el = $("streak"); el.textContent = c > 1 ? `🔥 רצף ×${c}` : R.streak ? `רצף ${R.streak}/3` : ""; el.className = c > 1 ? "on c" + c : ""; }
 async function openRange(data) {
-  const lv = data.bonus, tg = data.shoot.targets;
-  $("range").classList.add("on"); $("buyB").hidden = true; $("bet").hidden = true; rangeScale();
+  const lv = data.bonus, tg = data.shoot.targets, v3 = (data.shoot.v || 1) >= 3;
+  $("range").classList.add("on"); $("buyB").hidden = true; $("bet").hidden = true; rangeScale(); musicOff();
   $("riT").textContent = "🎯 מלך המטווח · " + LV[lv];
   const NM = { can: "פחית", bottle: "בקבוק", bal: "בלון", plate: "מטרת עץ", dia: "יהלום", gold: "מטיל זהב" }, seen = {};
   tg.forEach((o) => { if (o.k !== "bird") seen[o.k] = o.v; });
-  $("riV").innerHTML = Object.keys(NM).filter((k) => seen[k]).map((k) => `${NM[k]} ×${+(seen[k] / 100).toFixed(2)}`).join(" · ") + ` · ציפורים זהובות: <b>${tg.filter((o) => o.k === "bird").length}</b>`;
-  R_SHOTS = data.shoot.shots || 10; R_SECS = data.shoot.secs || 30;
-  $("ammo").innerHTML = "<b></b>".repeat(R_SHOTS); $("tally").innerHTML = ""; $("rsum").textContent = data.loot ? `שלל מהמגדל ×${data.loot / 100}` : "";
-  $("rintro").hidden = false; fx("tw_reload");
-  await new Promise((ok) => ($("riGo").onclick = () => { $("rintro").hidden = true; ok(); }));
-  R = { data, tg, shots: [], hit: new Set(), mult: {}, sum: 0, t0: performance.now(), done: false, aim: [800, 450] }; goal = null; moveCross(800, 450);
+  $("riV").innerHTML = Object.keys(NM).filter((k) => seen[k]).map((k) => `${NM[k]} <b>${fmt(data.stake * seen[k] / 100)}</b>`).join(" · ") + `<br>ציפורים זהובות: <b>${tg.filter((o) => o.k === "bird").length}</b> · מינימום מובטח <b>${fmt(data.stake * 20)}</b>`;
+  $("tally").innerHTML = ""; $("rsum").textContent = fmt(0); $("rintro").hidden = false; fx("tw_reload");
+  await new Promise((go) => ($("riGo").onclick = () => { $("rintro").hidden = true; go(); }));
+  R = { data, tg, shots: [], hit: new Set(), mult: {}, sum: 0, t0: performance.now(), done: false, mag: 6, reload: false, last: -1e5, streak: 0, wave: false, secs: data.shoot.secs || 40 };
+  drawAmmo(); drawStreak(); musicOn();
   const cv = $("cv"), g = cv.getContext("2d");
   const frame = () => {
     if (!R || R.done) return;
     const now = performance.now(), ms = now - R.t0;
-    if (goal) { const a = R.aim; moveCross(a[0] + (goal[0] - a[0]) * 0.45, a[1] + (goal[1] - a[1]) * 0.45); }
     g.clearRect(0, 0, 1600, 900);
-    { const tr = g.createLinearGradient(0, 878, 0, 900); tr.addColorStop(0, "#5a5f66"); tr.addColorStop(1, "#1d1f22"); g.fillStyle = tr; g.fillRect(0, 878, 1600, 22);
-      g.fillStyle = "#0006"; for (let x = -(ms / 6 % 60); x < 1600; x += 60) g.fillRect(x, 880, 6, 18); }
     R.tg.forEach((o, j) => { if (R.hit.has(j)) return; const p = tpos(o, ms); if (p) drawT(g, o, p, R.mult[j] || 1, now); });
-    const left = Math.max(0, R_SECS * 1000 - ms); $("tbar").firstChild.style.width = left / (R_SECS * 10) + "%";
+    // multiplier pills follow their targets
+    document.querySelectorAll(".mtag").forEach((el) => { const j = +el.dataset.j, p = !R.hit.has(j) && tpos(R.tg[j], ms); if (!p) { el.remove(); return; } const [sx, sy] = toStage(p[0], p[1] - 110); el.style.left = sx + "px"; el.style.top = sy + "px"; });
+    const left = Math.max(0, R.secs * 1000 - ms); $("tbar").firstChild.style.width = left / (R.secs * 10) + "%";
     $("clock").textContent = Math.ceil(left / 1000); $("clock").classList.toggle("low", left < 10000);
-    if (left <= 0 || R.shots.length >= R_SHOTS) { endRange(); return; }
+    if (!R.wave && ms > 30000) { R.wave = true; fx("tw_bird", 0.6); $("wave").classList.add("on"); setTimeout(() => $("wave").classList.remove("on"), 2200); }
+    if (left <= 0) { endRange(); return; }
     requestAnimationFrame(frame);
   };
   requestAnimationFrame(frame);
 }
 function fieldXY(e) { const r = $("field").getBoundingClientRect(); return [(e.clientX - r.left) * 1600 / r.width, (e.clientY - r.top) * 900 / r.height]; }
-// looking through the scope: the view is dark except a round lens around the aim; drag anywhere to move it, FIRE shoots its centre
-function moveCross(x, y) {
-  x = Math.max(0, Math.min(1600, x)); y = Math.max(0, Math.min(900, y)); if (R) R.aim = [x, y];
-  const r = $("field").getBoundingClientRect(), st = $("stage").getBoundingClientRect(), k = 1080 / st.height;
-  const sx = (r.left - st.left) * k + x * r.width / 1600 * k, sy = (r.top - st.top) * k + y * r.height / 900 * k;
-  const sc = $("scope"); sc.style.setProperty("--x", sx + "px"); sc.style.setProperty("--y", sy + "px");
-}
-let drag = null;
-$("range").addEventListener("pointerdown", (e) => { if (!R || R.done || !$("rintro").hidden || e.target.closest(".fireB")) return; e.preventDefault(); drag = { x: e.clientX, y: e.clientY, a: (goal || R.aim).slice() }; });
-let goal = null;   // where the finger wants the scope; the frame loop eases toward it every frame (smooth, no jumps)
-addEventListener("pointermove", (e) => { if (!drag || !R) return; const r = $("field").getBoundingClientRect(), k = 1600 / r.width * 1.8;
-  goal = [Math.max(0, Math.min(1600, drag.a[0] + (e.clientX - drag.x) * k)), Math.max(0, Math.min(900, drag.a[1] + (e.clientY - drag.y) * k))]; }, { passive: true });
-addEventListener("pointerup", () => (drag = null)); addEventListener("pointercancel", () => (drag = null));
-const fire = (e) => {
-  e.preventDefault(); e.stopPropagation(); if (!R || R.done || !$("rintro").hidden) return;
-  const ms = Math.round(performance.now() - R.t0), last = R.shots.length ? R.shots[R.shots.length - 1][2] : -1000;
-  if (ms < last + 300 || ms > R_SECS * 1000) return;   // same rate limit the server checks
-  const [x, y] = R.aim; R.shots.push([Math.round(x * 10) / 10, Math.round(y * 10) / 10, ms]);
-  fx("tw_shot", 0.9);
-  const sc = $("scope"), rg = $("range"); sc.classList.remove("kick"); rg.classList.remove("shake"); void sc.offsetWidth; sc.classList.add("kick"); rg.classList.add("shake");
-  $("ammo").children[R.shots.length - 1].classList.add("used");
-  // local preview of the hit (the server recomputes the same thing at the end)
+$("range").addEventListener("pointerdown", (e) => {
+  if (!R || R.done || !$("rintro").hidden) return; e.preventDefault();
+  const ms = Math.round(performance.now() - R.t0);
+  if (R.reload || ms < R.last + 600 || ms > R.secs * 1000) return;   // the same limits the server checks
+  let [x, y] = fieldXY(e);
+  // aim assist: snap to the nearest target within its radius + 40
   let best = -1, bd = 1e9;
-  R.tg.forEach((o, j) => { if (R.hit.has(j)) return; const p = tpos(o, ms); if (!p) return; const d = Math.hypot(p[0] - x, p[1] - y); if (d <= RAD[o.k] && d < bd) { bd = d; best = j; } });
-  if (best < 0) return;
-  const o = R.tg[best]; R.hit.add(best);
-  const pop = (t) => { const r = $("field").getBoundingClientRect(), st = $("stage").getBoundingClientRect(), k = 1080 / st.height;
-    const el = document.createElement("div"); el.className = "pop"; el.textContent = t; el.style.left = ((r.left - st.left) * k + x * r.width / 1600 * k - 40) + "px"; el.style.top = ((r.top - st.top) * k + y * r.height / 900 * k - 60) + "px"; $("range").appendChild(el); setTimeout(() => el.remove(), 1000); };
-  if (o.k === "bird") { fx("tw_bird"); if (o.on >= 0) { R.mult[o.on] = o.m; pop("🐦 ×" + o.m); const d = document.createElement("div"); d.className = "m"; d.textContent = "🐦 ×" + o.m + " נפל!"; $("tally").prepend(d); } }
-  else { const m = R.mult[best] || 1, v = o.v * m / 100; R.sum += v; setTimeout(() => fx("tw_hit", 0.8), 90); pop("×" + +v.toFixed(2));
-    const d = document.createElement("div"); if (m > 1) d.className = "m"; d.textContent = (m > 1 ? `×${o.v / 100}·${m} = ` : "") + "×" + +v.toFixed(2); $("tally").prepend(d);
-    $("rsum").textContent = `ירי ×${+R.sum.toFixed(2)}` + (R.data.loot ? ` + שלל ×${R.data.loot / 100}` : ""); }
-};
-$("fireB").addEventListener("pointerdown", fire); $("fireL").addEventListener("pointerdown", fire);
+  R.tg.forEach((o, j) => { if (R.hit.has(j)) return; const p = tpos(o, ms); if (!p) return; const d = Math.hypot(p[0] - x, p[1] - y); if (d <= RAD[o.k] + 40 && d < bd) { bd = d; best = j; } });
+  if (best >= 0) { const p = tpos(R.tg[best], ms); x = p[0]; y = p[1]; }
+  R.shots.push([Math.round(x * 10) / 10, Math.round(y * 10) / 10, ms]); R.last = ms; R.mag--;
+  // the shot: a quick look through the scope at the tap point, recoil, flash
+  fx("tw_shot", 0.9); sprite("img/tower/scope.webp", x, y, 520, "scopeflash", 320);
+  const rg = $("range"); rg.classList.remove("shake"); void rg.offsetWidth; rg.classList.add("shake");
+  if (R.mag === 0) { R.reload = true; drawAmmo(); setTimeout(() => fx("tw_reload", 0.7), 150); setTimeout(() => { if (!R) return; R.reload = false; R.mag = 6; R.last = Math.round(performance.now() - R.t0) - 600; drawAmmo(); }, 1500); }
+  else drawAmmo();
+  if (best < 0) { R.streak = 0; drawStreak(); sprite("img/tower/impact.webp", x, y, 90, "imp", 300); return; }
+  const o = R.tg[best]; R.hit.add(best); R.streak++; drawStreak();
+  const c = R.streak >= 6 ? 3 : R.streak >= 3 ? 2 : 1;
+  sprite("img/tower/impact.webp", x, y, 220, "imp", 400);
+  if (o.k === "bird") {
+    fx("tw_bird"); if (o.on >= 0) { R.mult[o.on] = o.m; popText("🐦 ×" + o.m, x, y, "m");
+      const t = document.createElement("div"); t.className = "mtag"; t.dataset.j = o.on; t.textContent = "×" + o.m; $("range").appendChild(t);
+      const d = document.createElement("div"); d.className = "m"; d.textContent = `🐦 ×${o.m} נפל על מטרה!`; $("tally").prepend(d); }
+  } else {
+    const m = R.mult[best] || 1, v = o.v * m * c; R.sum += v; setTimeout(() => fx("tw_hit", 0.8), 80);
+    sprite("img/tower/coins.webp", x, y, m > 1 || c > 1 || o.k === "gold" ? 260 : 170, "coin", 700);
+    popText("+" + shekel(v), x, y, m > 1 ? "m" : c > 1 ? "c" : "");
+    const d = document.createElement("div"); if (m > 1) d.className = "m"; d.textContent = "+" + shekel(v) + (m > 1 ? ` (×${m})` : "") + (c > 1 ? ` 🔥×${c}` : ""); $("tally").prepend(d);
+    $("rsum").textContent = shekel(R.sum); $("rsum").classList.remove("bump"); void $("rsum").offsetWidth; $("rsum").classList.add("bump");
+  }
+});
 async function endRange() {
   if (!R || R.done) return; R.done = true;
   const r0 = R, res = await send("tw_shoot", { p_run: r0.data.id, p_shots: r0.shots });
-  if (!res) { R.done = false; setTimeout(endRange, 1500); return; }   // network hiccup: try again, the shots are kept
-  await sleep(600); $("range").classList.remove("on"); R = null;
-  run = res; await finish(res); busy = false; controls();
+  if (!res) { R.done = false; setTimeout(endRange, 1500); return; }
+  // summary: the win counts up
+  const shot = (res.hits || []).reduce((a, h) => a + h.v, 0), got = res.paid, minHit = (res.shoot && res.shoot.min) && shot < 2000;
+  $("sumT").textContent = "🎯 " + LV[res.bonus]; $("sumN").textContent = fmt(0);
+  $("sumS").textContent = `${(res.hits || []).length} פגיעות מתוך ${r0.shots.length} יריות` + (minHit ? " · הופעל המינימום המובטח" : "") + (res.loot ? ` · כולל שלל מהמגדל` : "");
+  $("sum").classList.add("on"); fx("tw_reload", 0.4);
+  const t0 = performance.now(), dur = 1800;
+  await new Promise((done) => { const step = () => { const k = Math.min(1, (performance.now() - t0) / dur); $("sumN").textContent = fmt(got * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(step); else done(); }; requestAnimationFrame(step); });
+  S("win"); await sleep(1600); $("sum").classList.remove("on");
+  document.querySelectorAll(".mtag").forEach((e) => e.remove());
+  $("range").classList.remove("on"); R = null;
+  run = res; showBal(res.balance); run = null; meRoom = 0; drawFloor(1, null, 0); pose("base_side_standing"); busy = false; controls();
 }
 // buy the shooting bonus directly (×100 / ×250 / ×500)
 $("buyB").onclick = () => { if (busy || run) return; S("button"); [1, 2, 3].forEach((l) => ($("bp" + l).textContent = fmt(bet * [0, 100, 250, 500][l]))); $("buy").classList.add("on"); };
