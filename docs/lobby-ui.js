@@ -31,7 +31,7 @@
   const auto = () => { clearInterval(timer); timer = setInterval(() => { if (!document.hidden && !document.body.classList.contains("gpage")) go(k + 1); }, 4500); };
   const build = () => {
     // the 6 newest games, newest first (owner's order of launch)
-    const NEWEST = ["zman.html", "poker.html?bots=1", "dp.html?g=uth&t=1", "dp.html?g=tcp&t=1", "dp.html?g=csp&t=1", "chicken.html", "dragons.html", "fishing.html"];
+    const NEWEST = ["tower.html", "zman.html", "poker.html?bots=1", "dp.html?g=uth&t=1", "dp.html?g=tcp&t=1", "dp.html?g=csp&t=1", "chicken.html", "dragons.html", "fishing.html"];
     const list = NEWEST.map((h) => document.querySelector(`#gamesBox .game[href="${h}"]`)).filter(g => g && (g.id !== 'zlmLobbyCard' || g.style.display !== 'none')).slice(0, 6);
     host.innerHTML = list.map((g, i) => { const cs = getComputedStyle(g), art = g.id === 'zlmLobbyCard' ? 'url(img/zlm/promo-landscape-v2.jpg)' : cs.getPropertyValue("--poster") || cs.getPropertyValue("--art") || "", locked = g.classList.contains("soon");
       const t = g.querySelector("h3")?.textContent || "", p = g.id === 'zlmLobbyCard' ? 'גלגל משותף וארבעה בונוסים' : g.querySelector("p")?.textContent || "";
