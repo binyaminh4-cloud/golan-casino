@@ -516,3 +516,7 @@ body:not(.gpage) #lobbyView .lb li .w{grid-column:3;grid-row:2;justify-self:end;
 #lobbyView .game .blsel .mode button{flex:1;padding:7px 4px;border:0;background:transparent;color:#e8dcc4;font:700 13px Heebo;cursor:pointer}
 #lobbyView .game .blsel .mode button.on{background:linear-gradient(#F1D69A,#C5A05A);color:#1b0f06}
 .w.neg,#frSheet .w.neg{color:#ff8a8a!important}.latebadge{font:700 11px Heebo;font-style:normal;color:#ffb3b3;background:rgba(120,20,28,.7);border-radius:99px;padding:1px 6px;margin-inline-start:4px;white-space:nowrap}
+
+/* small "ads" pill on the jobs strip (doesn't change the layout) */
+#lobbyView .lx-jobwrap{flex:none;position:relative}#lobbyView .lx-jobwrap .lx-jobs{width:100%}
+#lobbyView .lx-ads{position:absolute;z-index:3;left:66px;top:50%;transform:translateY(-50%);background:linear-gradient(#f6d77a,#c9952f);color:#1a1208;font:800 13px Heebo,sans-serif;text-decoration:none;border-radius:20px;padding:6px 11px;box-shadow:0 2px 8px rgba(0,0,0,.5);white-space:nowrap}
