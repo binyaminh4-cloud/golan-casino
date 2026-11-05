@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="loader.js?v=14"></script>
+<title>מגדל הכסף · גולן קזינו</title>
+<link rel="icon" href="img/brand/favicon.png?v=2">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&family=Inter:wght@700;800;900&display=swap">
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden}
+body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Arial,sans-serif;-webkit-user-select:none;user-select:none}
+/* the stage is always 1080 tall; its width follows the screen so the tower fills the whole width */
+#stage{position:absolute;left:0;top:0;height:1080px;transform-origin:0 0;overflow:hidden;background:#1a1916}
+#wall{position:absolute;inset:0;background:url(img/tower/tower_bg.webp) center/cover;filter:brightness(.62) saturate(.8)}
+#wall::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,transparent 35%,#000c 100%),linear-gradient(#0008,transparent 22%,transparent 80%,#000a)}
+.abs{position:absolute}
+/* silver frame around the tower */
+#frame{position:absolute;inset:14px;border:6px solid #9da3aa;border-radius:26px;box-shadow:inset 0 0 0 3px #3b3f45,inset 0 0 40px #000a,0 0 0 3px #2a2c30;pointer-events:none;z-index:3}
+#frame::before{content:"";position:absolute;inset:8px;border:2px solid #c9a24a66;border-radius:18px}
+/* the floor: 6 rooms across the full width */
+#floor{position:absolute;left:0;right:0;top:250px;height:560px;transition:transform .9s cubic-bezier(.5,0,.3,1),opacity .9s}
+#floor.down{transform:translateY(900px);opacity:0}#floor.up{transform:translateY(-900px);opacity:0;transition:none}
+.room{position:absolute;top:0;height:560px;border-radius:999px 999px 18px 18px;
+  background:linear-gradient(#24262b,#141518 70%);border:5px solid #a9afb6;box-shadow:inset 0 0 0 3px #2d3035,inset 0 30px 60px #000c,0 10px 24px #000a}
+.room::before{content:"";position:absolute;left:12%;right:12%;bottom:0;height:20px;border-radius:50%;background:#0008;filter:blur(6px)}
+.room .no{position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:66px;height:66px;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 40% 35%,#f2f4f6,#8d949c 70%);border:3px solid #2d3035;color:#1b1d21;font:900 38px Inter;box-shadow:0 4px 10px #000a;z-index:2}
+.room img{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);max-width:88%;filter:drop-shadow(0 10px 10px #000c)}
+.room .vault{width:82%;max-width:240px;bottom:40px}
+.room .mult{position:absolute;left:50%;bottom:150px;transform:translateX(-50%);font:900 46px Inter;color:#ffe08a;text-shadow:0 3px 0 #5c3d00,0 0 18px #ffb300aa;z-index:2;direction:ltr}
+.room .guard{height:470px;max-width:none}
+.room .gate{height:440px;bottom:6px;max-width:none}.room .lad{height:500px;max-width:none}
+.room .cap{position:absolute;left:0;right:0;bottom:-48px;text-align:center;font:800 26px Heebo;color:#d7dbe0;text-shadow:0 2px 4px #000}
+.room.hit{animation:hit .5s ease-out 2}.room.took .vault,.room.took .mult{opacity:.25;transition:opacity .5s}
+.room.cur{border-color:#ffd970;box-shadow:inset 0 0 0 3px #6b4a00,inset 0 30px 60px #000c,0 0 34px #ffcc4dcc}
+@keyframes hit{30%{transform:translateX(-14px)}60%{transform:translateX(12px)}}
+/* the player */
+#me{position:absolute;top:610px;width:150px;height:150px;margin-left:-75px;z-index:4;display:grid;place-items:center;font-size:120px;line-height:1;
+  filter:drop-shadow(0 10px 8px #000c);transition:left .7s cubic-bezier(.4,.1,.3,1),top .7s}
+#me.hop{animation:hop .7s ease-out}@keyframes hop{45%{transform:translateY(-120px)}}
+#me.caught{animation:caught 1s ease-out forwards}@keyframes caught{30%{transform:rotate(-20deg) scale(1.1)}100%{transform:rotate(80deg) translateY(80px) scale(.6);opacity:0}}
+/* top line */
+#top{left:40px;right:40px;top:34px;display:flex;gap:16px;align-items:center;z-index:5}
+.pill{background:rgba(14,15,18,.86);border:2px solid #6b7078;border-radius:99px;padding:10px 26px;font:800 30px Heebo;color:#f3f2e9;text-decoration:none;white-space:nowrap}
+.pill b{color:#ffd970;font-family:Inter}
+#title{margin-inline-start:auto;font:900 46px Heebo;color:#e9ecef;text-shadow:0 3px 0 #3a3d42,0 0 20px #fff3}
+#lvl{top:120px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:5}
+#lvl span{min-width:120px;text-align:center;padding:6px 14px;border-radius:14px;background:#15171bcc;border:2px solid #4a4f57;font:800 24px Heebo;color:#9aa1aa}
+#lvl span.on{border-color:#ffd970;color:#ffe9a8;background:#3a2c08cc}
+#lvl span.b{color:#d9b8ff;border-color:#6f4fa3}
+#loot{top:180px;left:50%;transform:translateX(-50%);z-index:5;font:900 34px Heebo;color:#ffe9a8;text-shadow:0 2px 6px #000;white-space:nowrap}
+/* the die, over everything */
+#dice{position:absolute;inset:0;z-index:20;display:none;place-items:center;background:#0006}
+#dice.on{display:grid}
+#cube{width:230px;height:230px;border-radius:40px;background:linear-gradient(145deg,#ffffff,#cfd3d8);box-shadow:inset 0 -12px 20px #0003,0 30px 50px #000c;
+  display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:30px;gap:8px}
+#cube i{border-radius:50%;background:radial-gradient(circle at 40% 35%,#3c4048,#0d0e10);visibility:hidden}
+#cube.roll{animation:roll 1.25s cubic-bezier(.2,.7,.3,1)}
+@keyframes roll{0%{transform:translateY(-800px) rotate(0) scale(.7)}35%{transform:translateY(0) rotate(400deg) scale(1)}55%{transform:translateY(-120px) rotate(560deg)}75%{transform:translateY(0) rotate(690deg)}88%{transform:translateY(-30px) rotate(710deg)}100%{transform:translateY(0) rotate(720deg)}}
+/* the bet button: shown only while waiting for a roll */
+#bet{left:50%;bottom:40px;transform:translateX(-50%);z-index:10;display:flex;align-items:center;gap:20px;padding:16px 22px;border-radius:999px;
+  background:rgba(12,13,16,.9);border:3px solid #9da3aa;box-shadow:0 14px 40px #000c;direction:ltr;transition:opacity .2s,transform .2s}
+#bet[hidden]{display:flex;opacity:0;pointer-events:none;transform:translate(-50%,40px)}
+.sq{width:88px;height:88px;border-radius:50%;border:3px solid #5b6068;background:linear-gradient(#3a3e46,#1d2026);color:#fff;font:900 52px Inter;cursor:pointer;display:grid;place-items:center;padding:0;line-height:1}
+.sq:disabled{opacity:.3}
+#amt{min-width:200px;text-align:center;font:900 50px Inter;color:#ffd970}#amt small{display:block;font:700 20px Heebo;color:#9aa6b6}
+#go{width:300px;height:130px;border-radius:999px;border:4px solid #ffe7a0;background:radial-gradient(circle at 50% 30%,#ffe9a0,#d39b22 60%,#8a5a00);color:#2b1800;
+  font:900 62px Heebo;cursor:pointer;box-shadow:inset 0 -8px 14px #0005,0 0 30px #ffbf3a88;animation:pulse 1.6s ease-in-out infinite;touch-action:manipulation}
+#go small{display:block;font:800 22px Heebo;margin-top:-6px}
+@keyframes pulse{50%{box-shadow:inset 0 -8px 14px #0005,0 0 55px #ffcf5acc}}
+#bet.run .sq,#bet.run #amt{display:none}
+/* the exit choice (temporary buttons, only at the exit gate) */
+#choice{position:absolute;inset:0;z-index:15;display:none;place-items:center;background:#000a}
+#choice.on{display:grid}
+#choice .card{width:1100px;padding:44px;border-radius:30px;background:linear-gradient(#24262b,#121316);border:4px solid #c9a24a;text-align:center;box-shadow:0 0 60px #ffb04455}
+#choice h2{margin:0 0 10px;font:900 56px Heebo;color:#ffe9a8}#choice p{margin:0 0 30px;font:700 30px Heebo;color:#d7dbe0}
+#choice .row{display:flex;gap:30px;justify-content:center}
+#choice button{flex:1;height:130px;border-radius:26px;font:900 42px Heebo;cursor:pointer;line-height:1.1}
+#cash{border:4px solid #ffe7a0;background:linear-gradient(#ffe39a,#c79a2c);color:#3a2400}
+#cont{border:4px solid #c7a8ff;background:linear-gradient(#9c7bff,#4b2aa8);color:#fff}
+#choice button small{display:block;font:800 24px Heebo;opacity:.85}
+#msg{left:50%;top:430px;transform:translateX(-50%);z-index:16;background:rgba(14,15,18,.93);border:3px solid #ffd970;border-radius:26px;padding:20px 44px;
+  font:900 44px Heebo;color:#ffe9a8;text-align:center;max-width:1500px;pointer-events:none;transition:opacity .3s}
+#msg.bad{border-color:#ff8d8d;color:#ffd6d6}#msg[hidden]{display:block;opacity:0}
+#err{left:0;right:0;bottom:200px;text-align:center;color:#ffb0b0;font:800 30px Heebo;z-index:11;text-shadow:0 2px 4px #000;pointer-events:none}
+#enter{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:#000d}#enter[hidden]{display:none}
+#enter .card{width:min(92vw,720px);max-height:92dvh;overflow:auto;padding:4vh 4vw;border-radius:20px;background:linear-gradient(#24262b,#121316);border:3px solid #c9a24a;text-align:center}
+#enter h2{margin:0 0 1vh;font:900 clamp(24px,6vh,46px) Heebo;color:#ffe9a8}
+#enter p{margin:.6vh 0;font:600 clamp(12px,2.4vh,18px) Heebo;color:#e3e6ea;line-height:1.45}
+#enter button{margin-top:1.6vh;width:100%;height:clamp(40px,8vh,60px);border:0;border-radius:99px;background:linear-gradient(#ffe39a,#c79a2c);color:#2b1800;font:900 clamp(16px,3vh,24px) Heebo;cursor:pointer}
+#enter .back{background:none;border:1px solid #c9a24a;color:#e7c873;height:auto;padding:6px;font-size:14px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=8"></script>
+<script src="landscape.js?v=1"></script>
+</head>
+<body>
+<div id="stage">
+  <div id="wall"></div>
+  <div id="floor"></div>
+  <div id="me">🧗</div>
+  <div id="frame"></div>
+  <div class="abs" id="top"><a class="pill" href="./">→ ללובי</a><span class="pill">הארנק שלי <b id="bal">…</b></span><div id="title">🏰 מגדל הכסף</div></div>
+  <div class="abs" id="lvl"></div>
+  <div class="abs" id="loot"></div>
+  <div class="abs" id="msg" hidden></div>
+  <div class="abs" id="err"></div>
+  <div class="abs" id="bet"><button class="sq" id="minus" aria-label="הימור קטן יותר">−</button><div id="amt">₪100<small>הימור</small></div><button class="sq" id="plus" aria-label="הימור גדול יותר">+</button><button id="go">המר</button></div>
+  <div id="choice"><div class="card"><h2>פורשים עם הכסף או ממשיכים למעלה?</h2><p id="chP"></p>
+    <div class="row"><button id="cash">לפרוש עם השלל<small id="cashS"></small></button><button id="cont">להמשיך למעלה<small>2 שומרים מתוך 6 בדרך לבונוס</small></button></div></div></div>
+  <div id="dice"><div id="cube"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+</div>
+<div id="enter" hidden><div class="card">
+  <h2>🏰 מגדל הכסף</h2>
+  <p>לוחצים <b>המר</b> והקוביה קובעת לאיזה חדר נכנסים. בכל קומה שישה חדרים.</p>
+  <p>בחדר עם <b>כספת</b> אוספים את הכפולה שעליה ועולים בסולם. בחדר עם <b>שומר המגדל</b> הסבב נגמר וההימור הולך.</p>
+  <p>בקומה 3, חדר 2, יש <b>שער יציאה</b>: פורשים עם השלל או ממשיכים לבונוס.</p>
+  <p>ראש קומה 3 = <b>בונוס</b> (×14), קומה 4 = <b>סופר</b> (×35), קומה 5 = <b>קרייזי</b> (×70). שומר בקומות הבונוס לא לוקח כלום.</p>
+  <button id="goIn">יאללה למגדל 🏰</button><button class="back" onclick="location.href='./'">חזרה ללובי</button>
+</div></div>
+<script src="sfx.js?v=1793807062"></script>
+<script>
+"use strict";
+// Golan Casino wiring: the tower, every die and every vault are drawn on the server (tw_start / tw_roll / tw_choose); the page only animates.
+const db = supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
+const $ = (id) => document.getElementById(id);
+const fmt = (n) => { n = Math.floor(Number(n) + 1e-6); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const S = (k, a) => { try { SFX[k](a); } catch (e) {} };
+const PRIZE = [0, 14, 35, 70], BNAME = ["", "בונוס", "סופר", "קרייזי"];
+let W = 1920, balance = 0, bet = 100, run = null, busy = false, shownFloor = 1, shownRow = null;
+
+function fit() {
+  const vw = document.documentElement.clientWidth || innerWidth, vh = document.documentElement.clientHeight || innerHeight, s = vh / 1080;
+  W = Math.max(1500, Math.round(vw / s)); const st = $("stage"); st.style.width = W + "px";
+  st.style.transform = `scale(${Math.min(s, vw / W)})`; place(); }
+addEventListener("resize", fit); addEventListener("orientationchange", () => setTimeout(fit, 300)); try { new ResizeObserver(fit).observe(document.documentElement); } catch (e) {}
+
+// room geometry across the full width
+const roomBox = (i) => { const pad = 60, gap = Math.max(18, (W - 2 * pad) * 0.022), w = (W - 2 * pad - 5 * gap) / 6; return { x: W - pad - w - i * (w + gap), w }; };   // room 1 on the right (Hebrew reading)
+function place() {
+  document.querySelectorAll(".room").forEach((r, i) => { const b = roomBox(i); r.style.left = b.x + "px"; r.style.width = b.w + "px"; });
+  const me = $("me"); me.style.transition = "none"; me.style.left = meX() + "px"; void me.offsetWidth; me.style.transition = "";
+}
+let meRoom = 0;   // 0 = standing at the start of the floor (right side), 1..6 = in a room
+const meX = () => meRoom ? roomBox(meRoom - 1).x + roomBox(meRoom - 1).w / 2 : W - 80;
+
+// draw one row of the tower (floors 1..5, row 6 = the corridor to the bonus)
+function drawRow(row, cells, taken) {
+  shownRow = row;
+  $("floor").innerHTML = cells.map((c, i) => {
+    let inner;
+    if (c === -1) inner = `<img class="guard" src="img/tower/guard.webp" alt="שומר המגדל"><div class="cap">שומר המגדל</div>`;
+    else if (row === 3 && i === 1) inner = `<img class="gate" src="img/tower/exit_gate.webp" alt="שער יציאה"><div class="cap">שער יציאה</div>`;
+    else if (c > 0) inner = `<img class="vault" src="img/tower/vault.webp" alt="כספת"><div class="mult">×${c}</div>`;
+    else inner = row >= 4 && row <= 5 ? `<img class="lad" src="img/tower/ladder.webp" alt="סולם"><div class="cap">${row === 6 ? "לבונוס" : BNAME[row - 2]}</div>` : `<img class="lad" src="img/tower/ladder.webp" alt="סולם"><div class="cap">לבונוס</div>`;
+    return `<div class="room${taken === i + 1 ? " took" : ""}"><div class="no">${i + 1}</div>${inner}</div>`;
+  }).join("");
+  place();
+}
+// before the first bet: an empty floor 1 so the screen isn't bare
+function drawIdle() { drawRow(1, [0, 0, 0, 0, 0, 0].map(() => 0)); document.querySelectorAll(".room img,.room .cap").forEach((e) => e.remove()); }
+
+function hud() {
+  const a = run && ["active", "choice", "bonus"].includes(run.status), f = a ? run.floor : 1, b = a ? run.bonus : 0;
+  $("lvl").innerHTML = [1, 2, 3, 4, 5].map((n) => `<span class="${n === f ? "on" : ""}${n >= 4 ? " b" : ""}">${n >= 4 ? BNAME[n - 2] : "קומה " + n}</span>`).join("");
+  const stake = a ? run.stake : bet;
+  $("loot").textContent = a ? (b ? `🎁 ${BNAME[b]} ×${PRIZE[b]} + שלל ×${run.loot} = ${fmt(stake * (run.loot + PRIZE[b]))}` : `💰 שלל ×${run.loot} = ${fmt(stake * run.loot)}`) : `הימור ${fmt(bet)} · בונוס עד ×${PRIZE[3]}`;
+}
+function controls() {
+  const a = run && ["active", "bonus"].includes(run.status);
+  const ok = GC_LADDER(10, balance); if (!ok.includes(bet)) bet = ok.filter((v) => v <= bet).pop() || ok[0];
+  $("amt").innerHTML = `${fmt(bet)}<small>הימור</small>`;
+  $("bet").classList.toggle("run", !!a);
+  $("go").innerHTML = a ? (run.status === "bonus" ? `המר<small>לעלות ל${BNAME[run.bonus + 1]}</small>` : `המר<small>קומה ${run.floor}</small>`) : "המר";
+  $("bet").hidden = busy || (run && run.status === "choice");
+  hud();
+}
+function say(t, bad, ms = 2200) { const m = $("msg"); m.textContent = t; m.classList.toggle("bad", !!bad); m.hidden = false; clearTimeout(say.t); say.t = setTimeout(() => (m.hidden = true), ms); return sleep(ms); }
+function showBal(v) { if (v != null) { balance = +v; $("bal").textContent = fmt(v); } }
+const errText = (e) => { const m = (e && e.message) || ""; return m.includes("insufficient") ? "אין מספיק שקלים." : m.includes("invalid_amount") ? "הסכום מעל המקסימום שלך." : "משהו השתבש, נסה שוב."; };
+$("minus").onclick = () => { const ok = GC_LADDER(10, balance), i = ok.indexOf(bet); if (i > 0) { bet = ok[i - 1]; S("chip"); controls(); } };
+$("plus").onclick = () => { const ok = GC_LADDER(10, balance), i = ok.indexOf(bet); if (i < ok.length - 1) { bet = ok[i + 1]; S("chip"); controls(); } };
+
+// the die falls into the middle of the screen, rolls, and stops on the server's number
+const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+function face(n) { [...$("cube").children].forEach((p, i) => (p.style.visibility = PIPS[n].includes(i) ? "visible" : "hidden")); }
+async function rollDie(n) {
+  const d = $("dice"), c = $("cube"); d.classList.add("on"); c.classList.remove("roll"); void c.offsetWidth; c.classList.add("roll"); S("roll");
+  const t0 = Date.now(); while (Date.now() - t0 < 1000) { face(1 + Math.floor(Math.random() * 6)); await sleep(90); }
+  face(n); await sleep(500); S("chip"); await sleep(450); d.classList.remove("on");
+}
+async function walkTo(room) { const me = $("me"); meRoom = room; me.classList.remove("hop"); void me.offsetWidth; me.classList.add("hop"); me.style.left = meX() + "px"; await sleep(750); me.classList.remove("hop"); }
+async function climb(nextRow, cells) {   // the floor drops to the bottom of the screen and the next one comes down from above
+  S("riser"); $("floor").classList.add("down"); $("me").style.top = "-200px"; await sleep(900);
+  const f = $("floor"); f.classList.remove("down"); f.classList.add("up"); drawRow(nextRow, cells); meRoom = 0; place(); void f.offsetWidth;
+  f.classList.remove("up"); f.style.transition = ""; $("me").style.transition = "none"; $("me").style.top = "610px"; void $("me").offsetWidth; $("me").style.transition = ""; await sleep(900);
+}
+const curRow = (r) => (r.status === "choice" ? 3 : r.floor);
+
+// animate the rolls the server added, one by one
+async function play(prev, data) {
+  const seen = prev ? prev.rolls.length : 0;
+  for (let k = seen; k < data.rolls.length; k++) {
+    const r = data.rolls[k], cells = data.layout[r.row - 1];
+    if (shownRow !== r.row) await climb(r.row, cells);
+    await rollDie(r.die);
+    await walkTo(r.die);
+    const room = document.querySelectorAll(".room")[r.die - 1]; room.classList.add("cur");
+    if (r.cell === -1) {
+      room.classList.add("hit"); $("me").classList.add("caught"); S("drop");
+      if (r.row >= 4) { await sleep(900); }
+      else { await say("שומר המגדל תפס אותך, מתחילים מחדש", true, 2600); }
+      $("me").classList.remove("caught");
+    } else if (r.row === 3 && r.die === 2 && data.status !== "lost" && k === data.rolls.length - 1 && data.status === "choice") {
+      S("riser");
+    } else if (r.cell > 0) { room.classList.add("took"); S("win"); await say(`כספת ×${r.cell}!`, false, 1100); }
+    else if (r.row === 6 || r.row >= 4) { S("win"); await say(r.row === 6 ? "עברת את המסדרון! 🎁 בונוס" : `עלית ל${BNAME[r.row - 2]}! 🎁`, false, 1500); }
+    room.classList.remove("cur");
+    // after a vault on floors 1–2 the next floor is drawn by the next roll; after a safe room on floor 3 the bonus floor shows now
+  }
+  if (data.status === "bonus" && shownRow !== data.floor) await climb(data.floor, data.layout[data.floor - 1]);
+  else if (data.status === "active" && shownRow !== data.floor) await climb(data.floor, data.layout[data.floor - 1]);
+}
+async function finish(data) {
+  showBal(data.balance);
+  if (data.status === "won") {
+    S("win"); if (window.GC_BONUS) GC_BONUS(`🏰 ${BNAME[data.bonus]}!`, data.paid, `שלל ×${data.loot} + ×${PRIZE[data.bonus]}`); else await say(`🏰 ${BNAME[data.bonus]}! זכית ב-${fmt(data.paid)}`, false, 3000);
+  } else if (data.status === "cashed") {
+    await say(data.loot >= 10 ? `פחדן! מי פורש שהוא כל כך קרוב ליעד. זכית ב-${fmt(data.paid)}` : `לקחת ${fmt(data.paid)} 💰`, false, 3200);
+  } else if (data.status === "lost") {
+    await say("נתפסת על ידי שומר המגדל, חזור להתחלה. מקווה שזה מחושב בסיכויים שלך.", true, 3200);
+  }
+  run = null; shownRow = null; meRoom = 0; drawIdle(); $("floor").classList.remove("down", "up");
+}
+async function send(fn, args) {
+  busy = true; controls(); $("err").textContent = "";
+  const { data, error } = await db.rpc(fn, args);
+  if (error) { $("err").textContent = errText(error); busy = false; controls(); return null; }
+  return data;
+}
+async function after(prev, data) {
+  if (!prev) { showBal(data.balance + (data.status === "won" || data.status === "cashed" ? -data.paid : 0)); drawRow(1, data.layout[0]); meRoom = 0; place(); await sleep(500); }
+  await play(prev, data); run = data;
+  if (["lost", "won", "cashed"].includes(data.status)) await finish(data);
+  else if (data.status === "choice") openChoice();
+  busy = false; controls();
+}
+$("go").onclick = async () => {
+  if (busy || (run && run.status === "choice")) return; S("button");
+  const prev = run && ["active", "bonus"].includes(run.status) ? run : null;
+  $("bet").hidden = true;   // the button disappears the moment it is pressed
+  const data = prev ? await send("tw_roll", { p_run: prev.id, p_n: prev.rolls.length })
+                    : await send("tw_start", { p_stake: bet, p_ref: crypto.randomUUID ? crypto.randomUUID() : Date.now() + "" + Math.random() });
+  if (data) await after(prev, data);
+};
+function openChoice() {
+  $("chP").textContent = `השלל שלך: ×${run.loot} = ${fmt(run.stake * run.loot)}. בונוס = השלל + ×${PRIZE[1]} לפחות.`;
+  $("cashS").textContent = fmt(run.stake * run.loot); $("choice").classList.add("on");
+}
+async function choose(go) {
+  if (busy || !run || run.status !== "choice") return; S("button"); $("choice").classList.remove("on");
+  const prev = run, data = await send("tw_choose", { p_run: run.id, p_go: go });
+  if (!data) { $("choice").classList.add("on"); return; }
+  if (go) { await climb(6, data.layout[5]); }
+  await after(prev, data);
+}
+$("cash").onclick = () => choose(false); $("cont").onclick = () => choose(true);
+
+(async () => {
+  fit(); drawIdle(); controls();
+  const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
+  const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single(); if (w.data) showBal(w.data.balance);
+  const c = await db.rpc("tw_current");
+  if (c.data) {   // an unfinished round continues where it stopped
+    run = c.data; const row = curRow(run); drawRow(row, run.layout[row - 1]);
+    const last = run.rolls[run.rolls.length - 1]; if (last && last.row === row) { meRoom = last.die; place(); }
+    if (run.status === "choice") openChoice(); say("חזרת לסבב שלך במגדל", false, 1800);
+  }
+  controls(); if (window.GC_LOADER) GC_LOADER.done();
+  if (!run) { $("enter").hidden = false; await new Promise((ok) => ($("goIn").onclick = () => { $("enter").hidden = true; S("button"); ok(); })); }
+})();
+</script>
+<script src="chat.js?v=20"></script>
+</body>
+</html>
