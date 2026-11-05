@@ -374,6 +374,7 @@ body.gpage #lobbyView .games .game[data-poster]{background:linear-gradient(180de
 #lobbyView .game[data-poster="bj_together"]{--poster:url(img/lobby2/poster_bj_together.webp)}#lobbyView .game[data-poster="bj_fisher"]{--poster:url(img/lobby2/poster_bj_fisher.webp)}
 #lobbyView .game[data-poster="fisher90"]{--poster:url(img/lobby2/poster_fisher90.webp)}#lobbyView .game[data-poster="protein"]{--poster:url(img/lobby2/poster_protein.webp)}
 #lobbyView .game[data-poster="pachinko"]{--poster:url(img/lobby2/poster_pachinko.webp)}#lobbyView .game[data-poster="kinneret"]{--poster:url(img/lobby2/poster_kinneret.webp)}
+#lobbyView .game[data-poster="tower"]{--poster:url(img/lobby2/poster_tower.webp)}
 #lobbyView .game[data-poster="chicken"]{--poster:url(img/lobby2/poster_chicken.webp)}#lobbyView .game[data-poster="dragons"]{--poster:url(img/lobby2/poster_dragons.webp)}
 #lobbyView .game[data-poster="wildwest"]{--poster:url(img/lobby2/poster_wildwest.webp)}#lobbyView .game[data-poster="fishing"]{--poster:url(img/lobby2/poster_fishing.webp)}
 #lobbyView .game[data-poster="roulette_fish"]{--poster:url(img/lobby2/poster_roulette_fish.webp)}#lobbyView .game[data-poster="roulette"]{--poster:url(img/lobby2/poster_roulette.webp)}
