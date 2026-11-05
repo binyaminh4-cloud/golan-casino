@@ -178,8 +178,9 @@ body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Ari
 #mag{position:absolute;left:40px;bottom:40px;z-index:6;display:flex;align-items:center;gap:14px;pointer-events:none}
 #magbar{width:300px;height:26px;border-radius:99px;background:#000b;border:3px solid #c9a24a;overflow:hidden}#magbar i{display:block;height:100%;background:linear-gradient(90deg,#ffd970,#ff9a3a);transition:width .12s}
 #magbar.empty{border-color:#ff4a3a;animation:pulse .7s infinite}#magN{font:900 40px Inter;color:#ffe9a8;text-shadow:0 2px 6px #000}
-#reloadB{position:absolute;right:40px;bottom:30px;z-index:7;display:none;padding:22px 50px;border-radius:99px;border:5px solid #ffe7a0;background:radial-gradient(circle at 50% 30%,#ffe9a0,#d39b22 60%,#8a5a00);color:#2b1800;font:900 56px Heebo;cursor:pointer;box-shadow:0 0 40px #ffbf3acc;touch-action:none}
-#reloadB.on{display:block;animation:pulse 1s infinite}#reloadB.nudge{animation:sh .25s}
+#reloadB{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);z-index:7;display:none;padding:22px 50px;border-radius:99px;border:5px solid #ffe7a0;background:radial-gradient(circle at 50% 30%,#ffe9a0,#d39b22 60%,#8a5a00);color:#2b1800;font:900 56px Heebo;cursor:pointer;box-shadow:0 0 40px #ffbf3acc;touch-action:none}
+#reloadB.on{display:block;animation:pulse 1s infinite}#reloadB.nudge{animation:pulse .25s}
+#reloadB.on ~ #rsum{bottom:160px}#rsum{transition:bottom .2s}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
