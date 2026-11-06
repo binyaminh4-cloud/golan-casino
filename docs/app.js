@@ -354,11 +354,11 @@ async function dailyGift() {
   // one tap is enough: the popup closes at once (on pointerup, so nothing underneath can steal the tap) and the claim runs behind it
   await new Promise((done) => { const b = o.querySelector("button"); let went = false;
     const go = async (e) => { if (went) return; went = true; if (e) { e.preventDefault(); e.stopPropagation(); }
-      b.disabled = true; b.textContent = "אוסף…";
+      b.disabled = true; o.style.display = "none"; try { SFX.win(true); } catch (e) {}
       let { error } = await db.rpc("gc_gift_claim");
       if (error && !(error.message || "").includes("already_claimed")) ({ error } = await db.rpc("gc_gift_claim"));
-      if (error && !(error.message || "").includes("already_claimed")) { went = false; b.disabled = false; b.textContent = "אסוף פרס"; o.querySelector(".err").textContent = "האיסוף נכשל. נסה שוב."; return; }
-      try { SFX.win(true); } catch (e) {} o.remove(); done(); };
+      if (error && !(error.message || "").includes("already_claimed")) { went = false; b.disabled = false; o.style.display = ""; o.querySelector(".err").textContent = "האיסוף נכשל. נסה שוב."; return; }
+      o.remove(); done(); };
     b.addEventListener("pointerup", go); b.addEventListener("click", go); });
   try { await refresh(); } catch (e) {}
 }
