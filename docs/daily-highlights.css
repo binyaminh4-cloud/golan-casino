@@ -1,6 +1,6 @@
 .dh-button{display:block;max-width:100%;justify-self:start;margin-top:5px;padding:4px 9px;border:1px solid #80602e;border-radius:99px;background:#17120fe8;color:#f1d69a;font:600 11px Heebo,sans-serif;line-height:1.5;white-space:normal;cursor:pointer;text-align:right}
-#lobbyView .lb .dh-button{font-size:0;display:inline-block;margin-top:3px;padding:2px 8px}
-#lobbyView .lb .dh-button::before{content:'';display:inline-block;width:14px;height:21px;vertical-align:bottom;background:url('img/lobby2/daily-highlights-icon.jpg') center/14px 14px no-repeat}
+#lobbyView .lb .dh-button{font-size:0;display:inline-block;margin-top:0;padding:0;border:0;background:none;border-radius:0;line-height:0}
+#lobbyView .lb .dh-button::before{content:'';display:inline-block;width:34px;height:34px;vertical-align:middle;background:url('img/lobby2/daily-highlights-icon.webp') center/contain no-repeat}
 .dh-overlay[hidden]{display:none!important}
 .dh-overlay{position:fixed;inset:0;z-index:10050;background:#000b;display:grid;place-items:center;padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));box-sizing:border-box;direction:rtl;overscroll-behavior:contain}
 .dh-box{box-sizing:border-box;width:min(100%,500px);max-height:90dvh;overflow:auto;overscroll-behavior:contain;border:1px solid #c5a05a;border-radius:18px;background:linear-gradient(145deg,#241a0d,#100c08);color:#f5ecdd;padding:18px;box-shadow:0 12px 50px #000b;font-family:Heebo,sans-serif}
