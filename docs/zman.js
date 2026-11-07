@@ -25,6 +25,8 @@
  function errorText(e){const raw=e?.message||String(e);for(const k of Object.keys(errors))if(raw.includes(k))return errors[k];if(/zlm_|schema cache|PGRST202/.test(raw))return 'המשחק עדיין לא הופעל בשרת. יש להשלים את התקנת המשחק.';if(raw==='Failed to fetch')return 'החיבור נותק. מנסים להתחבר מחדש.';return /[\u0590-\u05ff]/.test(raw)?raw:'לא התקבל אישור לפעולה. אפשר לנסות שוב; פעולה שכבר אושרה לא תחויב פעמיים.';}
  function savePending(){try{const key='zlm_pending_'+user;if(pending)localStorage.setItem(key,JSON.stringify(pending));else localStorage.removeItem(key);}catch{}}
  function accept(s){if(!s?.id)return;
+  // a saved action for a round that is already over can never be confirmed: drop it instead of blocking the board
+  if(pending&&pending.p_round&&pending.p_round!==s.id&&!acting){pending=null;savePending();if($('error').textContent.includes('ממתינה'))$('error').textContent='';}
   if(candidate&&candidate.id!==s.id&&betting.sum(candidate.bets)>0n)lastLayout=betting.layout(candidate.bets);
   candidate={id:s.id,bets:betting.layout(s.bets)};
   if(s.phase!=='betting'&&betting.sum(s.bets)>0n)lastLayout=betting.layout(s.bets);
@@ -69,7 +71,7 @@
     pending=null;if(pendingAuto){autoPlan.confirmed();pendingAuto=false;}state.bets=bets;state.balance=String(balance);$('error').textContent='';render();return;
    }
    const {data,error}=await db.rpc(rpc,args);
-   if(error){if(Object.keys(errors).some(k=>(error.message||'').includes(k))||String(error.code||'').startsWith('22')||error.code==='PGRST202'){pending=null;savePending();}throw error;}
+   if(error){if(error.code||Object.keys(errors).some(k=>(error.message||'').includes(k))){pending=null;savePending();}throw error;}   // the server answered: the action did not happen, so it is safe to forget it
    pending=null;savePending();if(pendingAuto){autoPlan.confirmed();pendingAuto=false;}$('error').textContent='';window.ZLM_AUDIO?.effect('tick');accept(data);
   }catch(e){pendingAuto=false;stopAuto();$('error').textContent=errorText(e);}
   finally{acting=false;renderControls();drawAuto();}
