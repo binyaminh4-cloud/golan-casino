@@ -55,7 +55,7 @@ body{position:fixed;inset:0;background:#1b1530;color:#fff;font:15px Heebo,Arial,
 <body>
 <div id="stage">
   <canvas id="cv"></canvas>
-  <div class="abs" id="top"><a class="pill" href="./">→ ללובי</a><span class="pill">הארנק שלי <b id="bal">…</b></span><span class="top" id="topMount"></span><button id="sound" aria-label="צליל">🔊</button><div id="title">עידו באוויר</div></div>
+  <div class="abs" id="top"><a class="pill" href="./">→ ללובי</a><span class="pill">הארנק שלי <b id="bal">…</b></span><span class="top" id="topMount"></span><div id="title">עידו באוויר</div></div>
   <div class="abs" id="err"></div>
   <div class="abs" id="msg" hidden><h2 id="msgT"></h2><p id="msgN"></p></div>
   <div class="abs" id="betBox"><button id="minus" aria-label="הימור קטן יותר">▼</button><div><small>הימור</small><b id="amt">₪100</b></div><button id="plus" aria-label="הימור גדול יותר">▲</button></div>
@@ -90,15 +90,13 @@ const mulTxt = (v) => "×" + (v >= 100 ? Math.round(v).toLocaleString("en-US") :
 const S = (k) => { try { SFX[k](); } catch (e) {} };
 let muted = false; try { muted = localStorage.getItem("gc_ia_mute") === "1"; } catch (e) {}
 const FX = (f, o) => { if (muted || !window.SFX) return null; try { return SFX.fx(f, o || { vol: 0.8 }); } catch (e) { return null; } };
-$("sound").textContent = muted ? "🔇" : "🔊";
-$("sound").onclick = () => { muted = !muted; $("sound").textContent = muted ? "🔇" : "🔊"; try { localStorage.setItem("gc_ia_mute", muted ? "1" : "0"); } catch (e) {} if (muted) engineOff(); else if (F && F.phase !== "end") engineOn(); };
-let engine = null; const engineOn = () => { if (!engine) { const f = FX("ia_engine", { vol: 0.35, loop: true }); if (typeof f === "function") engine = f; } };
+let engine = null; const engineOn = () => { if (!engine) { const f = FX("ia_fly", { vol: 0.3, loop: true }); if (typeof f === "function") engine = f; } };
 const engineOff = () => { try { engine && engine(); } catch (e) {} engine = null; };
 document.addEventListener("visibilitychange", () => { if (document.hidden) engineOff(); else if (F && F.phase !== "end") engineOn(); });
 
 // ---------- images ----------
 const IMG = {}; const NAMES = ["sky", "hills", "village", "grass", "runway", "plane", "rocket", "c1", "c2", "c5", "c10", "m2", "m3", "m5", "m10", "cloud0", "cloud1", "cloud2", "cloud3", "boom0", "boom1", "boom2", "boom3"];
-const loaded = Promise.all(NAMES.map((n) => new Promise((ok) => { const i = new Image(); i.onload = i.onerror = ok; i.src = "img/ia/" + n + ".webp?v=1"; IMG[n] = i; })));
+const loaded = Promise.all(NAMES.map((n) => new Promise((ok) => { const i = new Image(); i.onload = i.onerror = ok; i.src = "img/ia/" + n + ".webp?v=2"; IMG[n] = i; })));
 const sprite = (e) => e.t === "r" ? "rocket" : (e.t === "c" ? "c" : "m") + e.v;
 
 // ---------- stage ----------
@@ -205,7 +203,7 @@ function step(dt) {
 }
 function pop(it) {
   const f = F, px = PX(), py = altY(planeAltAt(f.t, f.items, f.alts));
-  if (it.t === "r") { f.booms.push({ x: px + 40, y: py, age: 0 }); shake = 0.35; FX("ia_rocket", { vol: 0.7 }); f.pops.push({ txt: "÷2", c: "#ff8a7a", age: 0 }); }
+  if (it.t === "r") { f.booms.push({ x: px + 40, y: py, age: 0 }); shake = 0.35; FX("ia_boom", { vol: 0.75 }); f.pops.push({ txt: "÷2", c: "#ff8a7a", age: 0 }); }
   else if (it.t === "c") { FX("ia_coin", { vol: 0.75 }); f.pops.push({ txt: "+" + fmt(f.stake * it.v), c: "#8dff6a", age: 0 }); }
   else { FX("ia_mult", { vol: 0.8 }) || FX("ia_coin", { vol: 0.8 }); f.pops.push({ txt: "×" + it.v, c: "#ffd34d", age: 0, big: 1 }); }
 }
@@ -220,9 +218,11 @@ function showMsg(t, n, bad) { $("msgT").textContent = t; $("msgN").textContent =
 
 // ---------- drawing ----------
 const FADED = new Map();   // each strip with soft left/right edges, so repeated tiles blend instead of showing a cut
-function faded(img) { let c = FADED.get(img); if (c) return c; c = document.createElement("canvas"); c.width = img.width; c.height = img.height;
+function faded(img, bottom) { const key = bottom ? img.src + "#b" : img; let c = FADED.get(key); if (c) return c; c = document.createElement("canvas"); c.width = img.width; c.height = img.height;
   const x = c.getContext("2d"); x.drawImage(img, 0, 0); x.globalCompositeOperation = "destination-in"; const e = img.width * 0.06, g = x.createLinearGradient(0, 0, img.width, 0);
-  g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(e / img.width, "#000"); g.addColorStop(1 - e / img.width, "#000"); g.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = g; x.fillRect(0, 0, c.width, c.height); FADED.set(img, c); return c; }
+  g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(e / img.width, "#000"); g.addColorStop(1 - e / img.width, "#000"); g.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = g; x.fillRect(0, 0, c.width, c.height);
+  if (bottom) { const v = x.createLinearGradient(0, 0, 0, img.height); v.addColorStop(0, "#000"); v.addColorStop(0.62, "#000"); v.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = v; x.fillRect(0, 0, c.width, c.height); }
+  FADED.set(key, c); return c; }
 function tile(img0, speed, y, h) {
   if (!img0.width) return; const img = faded(img0), w = img0.width * h / img0.height * 0.94, off = -((scroll * speed) % w);
   let k = Math.floor((scroll * speed) / w);
@@ -235,12 +235,13 @@ function draw() {
   // sky (cover, very slow), clouds, hills, village, grass
   const sky = IMG.sky; if (sky.width) { const h = H + 40, w = Math.max(W + 80, sky.width * h / sky.height); ctx.drawImage(sky, -((scroll * 0.02) % 40) - 20, -20, w, h); }
   ["cloud0", "cloud1", "cloud2", "cloud3"].forEach((c, i) => { const im = IMG[c]; if (!im.width) return; const span = W + 600, x = ((i * 520 - scroll * (0.12 + i * 0.03)) % span + span) % span - 300; ctx.globalAlpha = 0.9; ctx.drawImage(im, x, 70 + i * 55, im.width * 0.7, im.height * 0.7); ctx.globalAlpha = 1; });
-  tile(IMG.hills, 0.25, 470, 300); tile(IMG.village, 0.5, 520, 300); tile(IMG.grass, 1, H - 175, 175);
+  tile(IMG.hills, 0.25, 470, 300); tile(IMG.village, 0.5, 520, 300);
   const px = PX(), f = F;
   // runway at the start (scrolls away) and the landing pad at the end
-  const rw = IMG.runway; if (rw.width) { const h = 210, w = rw.width * h / rw.height;
+  const rw0 = IMG.runway; if (rw0.width) { const rw = faded(rw0, true); const h = 210, w = rw0.width * h / rw0.height;
     const x0 = px - 300 - (f ? Math.min(scroll - f.scroll0, 4000) : 0); if (x0 + w > 0) ctx.drawImage(rw, x0, 525, w, h);
     if (f && f.landX != null) { const u = f.phase === "land" ? Math.min(1, (f.t - f.phaseT) / 2.4) : 1, e = 1 - (1 - u) * (1 - u); ctx.drawImage(rw, px - w * 0.55 + (1 - e) * (W + 200), 525, w, h); } }
+  tile(IMG.grass, 1, H - 175, 175);   // in front of the runway, so its bottom edge is hidden
   // items + decoys
   if (f) {
     for (const it of f.items.concat(f.decoys)) { if (!it.decoy && it.hit) continue;
