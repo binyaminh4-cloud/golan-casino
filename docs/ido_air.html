@@ -96,7 +96,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) engin
 
 // ---------- images ----------
 const IMG = {}; const NAMES = ["sky", "hills", "village", "grass", "runway", "plane", "rocket", "c1", "c2", "c5", "c10", "m2", "m3", "m5", "m10", "cloud0", "cloud1", "cloud2", "cloud3", "boom0", "boom1", "boom2", "boom3"];
-const loaded = Promise.all(NAMES.map((n) => new Promise((ok) => { const i = new Image(); i.onload = i.onerror = ok; i.src = "img/ia/" + n + ".webp?v=2"; IMG[n] = i; })));
+const loaded = Promise.all(NAMES.map((n) => new Promise((ok) => { const i = new Image(); i.onload = i.onerror = ok; i.src = "img/ia/" + n + ".webp?v=3"; IMG[n] = i; })));
 const sprite = (e) => e.t === "r" ? "rocket" : (e.t === "c" ? "c" : "m") + e.v;
 
 // ---------- stage ----------
