@@ -223,7 +223,7 @@ body{position:fixed;inset:0;background:#0d0c0b;color:#f3f2e9;font:15px Heebo,Ari
   <p>נתפסת? אפשר לקנות פעם אחת חיים נוספים ולהמשיך מאותו חדר. אפשר גם לקנות את בונוס הירי ישירות.</p>
   <button id="goIn">יאללה למגדל 🏰</button><button class="back" onclick="location.href='./'">חזרה ללובי</button>
 </div></div>
-<script src="sfx.js?v=1793807062"></script>
+<script src="sfx.js?v=1794046058"></script>
 <script>
 "use strict";
 // Golan Casino wiring: the tower, every die and every vault are drawn on the server (tw_start / tw_roll / tw_choose); the page only animates.
@@ -238,7 +238,7 @@ function musicOn() { if (music || document.hidden || !window.SFX) return; try { 
 function musicOff() { try { music && music(); } catch (e) {} music = null; }
 addEventListener("pointerdown", () => { if (!R) musicOn(); }, { capture: true }); document.addEventListener("visibilitychange", () => { if (document.hidden) { musicOff(); rangeMusic(false); } else if (R) rangeMusic(true); else musicOn(); }); addEventListener("pagehide", () => { musicOff(); rangeMusic(false); });
 const BNAME = ["", "בונוס", "סופר", "קרייזי"], FLOORS = 8, EXIT = 21;
-let W = 1920, balance = 0, bet = 100, run = null, busy = false, shownFloor = 0;
+let betTouched = false; let W = 1920, balance = 0, bet = 100, run = null, busy = false, shownFloor = 0;
 
 function fit() {
   const vw = document.documentElement.clientWidth || innerWidth, vh = document.documentElement.clientHeight || innerHeight, s = vh / 1080;
@@ -283,7 +283,7 @@ function hud() {
 }
 function controls() {
   const a = run && ["active", "bonus"].includes(run.status);
-  const ok = GC_LADDER(10, balance); if (!ok.includes(bet)) bet = ok.filter((v) => v <= bet).pop() || ok[0];
+  const ok = GC_LADDER(10, balance); if (!betTouched) bet = GC_START_BET(ok, balance); if (!ok.includes(bet)) bet = ok.filter((v) => v <= bet).pop() || ok[0];
   $("amt").innerHTML = `${fmt(bet)}<small>הימור</small>`;
   $("bet").classList.toggle("run", !!a);
   $("go").innerHTML = a ? "🎲 זרוק" : "המר";
@@ -294,8 +294,8 @@ function controls() {
 function say(t, bad, ms = 2200) { const m = $("msg"); m.textContent = t; m.classList.toggle("bad", !!bad); m.hidden = false; clearTimeout(say.t); say.t = setTimeout(() => (m.hidden = true), ms); return sleep(ms); }
 function showBal(v) { if (v != null) { balance = +v; $("bal").textContent = fmt(v); } }
 const errText = (e) => { const m = (e && e.message) || ""; return m.includes("insufficient") ? "אין מספיק שקלים." : m.includes("invalid_amount") ? "הסכום מעל המקסימום שלך." : "משהו השתבש, נסה שוב."; };
-$("minus").onclick = () => { const ok = GC_LADDER(10, balance), i = ok.indexOf(bet); if (i > 0) { bet = ok[i - 1]; S("chip"); controls(); } };
-$("plus").onclick = () => { const ok = GC_LADDER(10, balance), i = ok.indexOf(bet); if (i < ok.length - 1) { bet = ok[i + 1]; S("chip"); controls(); } };
+$("minus").onclick = () => { betTouched = true; const ok = GC_LADDER(10, balance), i = ok.indexOf(bet); if (i > 0) { bet = ok[i - 1]; S("chip"); controls(); } };
+$("plus").onclick = () => { betTouched = true; const ok = GC_LADDER(10, balance), i = ok.indexOf(bet); if (i < ok.length - 1) { bet = ok[i + 1]; S("chip"); controls(); } };
 
 const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
 function face(n) { [...$("cube").children].forEach((p, i) => (p.style.visibility = PIPS[n].includes(i) ? "visible" : "hidden")); }

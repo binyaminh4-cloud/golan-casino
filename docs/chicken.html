@@ -77,7 +77,7 @@ body::before{content:"";position:fixed;inset:0;backdrop-filter:blur(12px) bright
   <p>אחרי כל צעד מחליטים: <b>להמשיך</b> או <b>לקחת את הכסף</b>. באקסטרים עד <b>×175</b>.</p>
   <button id="goIn">יאללה, לכביש 🐔</button><button class="back" onclick="location.href='./'">חזרה ללובי</button>
 </div></div></div>
-<script src="sfx.js?v=1793807062"></script>
+<script src="sfx.js?v=1794046058"></script>
 <script src="guide.js?v=1793820555"></script>
 <script>
 "use strict";
@@ -89,7 +89,7 @@ const fmt = (n) => { n = Math.floor(Number(n) + 1e-6); const a = Math.abs(n); re
 const T = { easy: [1.05, 1.10, 1.15, 1.22, 1.30, 1.40, 1.52, 1.67, 1.85, 2.10], normal: [1.15, 1.30, 1.50, 1.75, 2.05, 2.45, 2.95, 3.60, 4.45, 5.50],
   hard: [1.30, 1.70, 2.20, 2.90, 3.80, 5, 6.70, 9, 12, 16], extreme: [1.60, 2.60, 4.20, 7, 12, 20, 35, 60, 100, 175] };
 const LANE = [420, 718, 1000, 1280, 1557], SIDE = 190, CARS = ["harel_truck", "roy_motorcycle", "avichai_bicycle"];
-let balance = 0, bet = 100, mode = "normal", run = null, busy = false;
+let betTouched = false; let balance = 0, bet = 100, mode = "normal", run = null, busy = false;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const S = (k, a) => { try { SFX[k](a); } catch (e) {} };
 function fit() { const vw = document.documentElement.clientWidth || innerWidth, vh = document.documentElement.clientHeight || innerHeight, s = Math.min(vw / 1672, vh / 941); $("stage").style.transform = `translate(-50%,-50%) scale(${s})`; }
@@ -105,7 +105,7 @@ function drawMarks() {
 }
 function controls() {
   const a = active(), t = T[a ? run.mode : mode], s = step();
-  const ok = GC_LADDER(10, balance); if (!ok.includes(bet)) bet = ok.filter((v) => v <= bet).pop() || ok[0];
+  const ok = GC_LADDER(10, balance); if (!betTouched) bet = GC_START_BET(ok, balance); if (!ok.includes(bet)) bet = ok.filter((v) => v <= bet).pop() || ok[0];
   $("betV").innerHTML = `${fmt(a ? run.stake : bet)}<small>הימור</small>`;
   $("minus").disabled = $("plus").disabled = a || busy;
   document.querySelectorAll("#lv button").forEach((b) => { b.setAttribute("aria-pressed", b.dataset.m === (a ? run.mode : mode)); b.disabled = a || busy; });
@@ -117,8 +117,8 @@ function controls() {
 }
 function say(t, bad, ms = 1800) { const m = $("msg"); m.textContent = t; m.classList.toggle("bad", !!bad); m.hidden = false; clearTimeout(say.t); say.t = setTimeout(() => (m.hidden = true), ms); }
 function showBal(v) { if (v != null) { balance = +v; $("bal").textContent = fmt(v); } }
-$("minus").onclick = () => { const ok = GC_LADDER(10, balance), i = ok.indexOf(bet); if (i > 0) { bet = ok[i - 1]; S("chip"); controls(); } };
-$("plus").onclick = () => { const ok = GC_LADDER(10, balance), i = ok.indexOf(bet); if (i < ok.length - 1) { bet = ok[i + 1]; S("chip"); controls(); } };
+$("minus").onclick = () => { betTouched = true; const ok = GC_LADDER(10, balance), i = ok.indexOf(bet); if (i > 0) { bet = ok[i - 1]; S("chip"); controls(); } };
+$("plus").onclick = () => { betTouched = true; const ok = GC_LADDER(10, balance), i = ok.indexOf(bet); if (i < ok.length - 1) { bet = ok[i + 1]; S("chip"); controls(); } };
 $("lv").onclick = (e) => { const b = e.target.closest("button"); if (!b || active() || busy) return; mode = b.dataset.m; S("button"); controls(); };
 const errText = (e) => { const m = (e && e.message) || ""; return m.includes("insufficient") ? "אין מספיק שקלים." : m.includes("invalid_amount") ? "הסכום מעל המקסימום שלך." : "משהו השתבש, נסה שוב."; };
 // the animation of one answer from the server: a hop to the next lane, or a vehicle in that lane

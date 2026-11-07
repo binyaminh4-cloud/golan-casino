@@ -282,7 +282,9 @@ window.GC_STEPPER = function (host, input, opts = {}) {
   const [dn, val, up] = host.children, max = () => (opts.max ? opts.max() : Infinity);
   const draw = () => { while (i > 0 && STEPS[i] > max()) i--; input.value = STEPS[i]; val.textContent = f(STEPS[i]); dn.disabled = i === 0; up.disabled = i >= STEPS.length - 1 || STEPS[i + 1] > max(); };
   dn.onclick = () => { if (i > 0) { i--; draw(); try { SFX.chip(); } catch (e) {} } }; up.onclick = () => { if (STEPS[i + 1] <= max()) { i++; draw(); try { SFX.chip(); } catch (e) {} } };
-  draw(); return { refresh: draw, set disabled(v) { dn.disabled = up.disabled = v; if (!v) draw(); } };
+  let touched = false; const auto = () => { if (touched || !opts.bal) return; const t = opts.bal() / 100; let j = 0; while (j + 1 < STEPS.length && STEPS[j + 1] <= t) j++; i = j; };
+  const _dn = dn.onclick, _up = up.onclick; dn.onclick = () => { touched = true; _dn(); }; up.onclick = () => { touched = true; _up(); };
+  auto(); draw(); return { refresh: () => { auto(); draw(); }, set disabled(v) { dn.disabled = up.disabled = v; if (!v) draw(); } };
 };
 // the same stepped bet limit the server enforces (gc_max_bet): <₪500K → ₪50K, ₪500K → ₪100K, ₪1M → ₪200K, ₪2.5M → ₪500K ...
 window.GC_MAXBET = function (bal) { bal = Number(bal) || 0; if (bal < 500000) return 50000; let v = 500000, k = 0;
@@ -291,6 +293,8 @@ window.GC_MAXBET = function (bal) { bal = Number(bal) || 0; if (bal < 500000) re
 window.GC_LADDER = function (min, bal) { const max = GC_MAXBET(bal), out = []; let p = 1;
   for (; p <= max * 10; p *= 10) for (const m of [1, 2.5, 5]) { const v = m * p; if (v >= min && v <= max && Number.isInteger(v)) out.push(v); }
   if (out[out.length - 1] !== max) out.push(max); return out; };
+// opening bet that fits the balance (≈1% of it, on the ladder) until the player picks one himself
+window.GC_START_BET = function (ladder, bal) { const t = (Number(bal) || 0) / 100; return ladder.filter((v) => v <= t).pop() || ladder[0]; };
 // Auto-spin: one small 🔁 button → 10 / 25 / 50 / 100 / ∞ spins. It presses the machine's own spin button, waits for each
 // spin (and any bonus or popup) to finish, and stops on an error, when out of money, or when the player taps it again.
 window.GC_AUTO = function ({ mount, spin, busy, err, before, act }) {
