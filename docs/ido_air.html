@@ -55,7 +55,7 @@ body{position:fixed;inset:0;background:#1b1530;color:#fff;font:15px Heebo,Arial,
 <body>
 <div id="stage">
   <canvas id="cv"></canvas>
-  <div class="abs" id="top"><a class="pill" href="./">→ ללובי</a><span class="pill">הארנק שלי <b id="bal">…</b></span><button id="sound" aria-label="צליל">🔊</button><div id="title">עידו באוויר</div></div>
+  <div class="abs" id="top"><a class="pill" href="./">→ ללובי</a><span class="pill">הארנק שלי <b id="bal">…</b></span><span class="top" id="topMount"></span><button id="sound" aria-label="צליל">🔊</button><div id="title">עידו באוויר</div></div>
   <div class="abs" id="err"></div>
   <div class="abs" id="msg" hidden><h2 id="msgT"></h2><p id="msgN"></p></div>
   <div class="abs" id="betBox"><button id="minus" aria-label="הימור קטן יותר">▼</button><div><small>הימור</small><b id="amt">₪100</b></div><button id="plus" aria-label="הימור גדול יותר">▲</button></div>
@@ -78,6 +78,7 @@ body{position:fixed;inset:0;background:#1b1530;color:#fff;font:15px Heebo,Arial,
     <button id="goIn">יאללה לטוס ✈️</button><button class="no" onclick="location.href='./'">חזרה ללובי</button></div></div>
 </div>
 <script src="sfx.js?v=1794046058"></script>
+<script src="guide.js?v=1794047081"></script>
 <script>
 "use strict";
 // עידו באוויר: the whole flight is drawn on the server (ia_launch, paid at once); the page only animates the path it gets back.
@@ -278,7 +279,8 @@ function loop(ts) {
   else { const { data: { session } } = await db.auth.getSession(); if (!session) { location.href = "./"; return; }
     const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single(); if (w.data) showBal(w.data.balance); }
   if (window.GC_LOADER) GC_LOADER.done();
-  $("enter").hidden = false; $("goIn").onclick = () => { $("enter").hidden = true; S("button"); };
+  $("enter").hidden = false; $("goIn").onclick = () => { $("enter").hidden = true; S("button");
+    if (!PREVIEW && window.GC_GUIDE) try { GC_GUIDE.init({ game: "ido_air", db, mount: $("topMount"), steps: GC_STEPS.ido_air() }); } catch (e) {} };
 })();
 </script>
 <script src="chat.js?v=1793909544"></script>
