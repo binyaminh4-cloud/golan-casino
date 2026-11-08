@@ -11,7 +11,7 @@
     }
     if (page === 'roulette.html') {
       const mode = ['lightning','xxx'].includes(q.get('mode')) ? q.get('mode') : 'classic';
-      return { label: mode === 'classic' ? 'רולטה' : mode === 'lightning' ? 'רולטת הברק המחומש' : 'רולטת XXX',
+      return { label: mode === 'classic' ? 'רולטה' : mode === 'lightning' ? 'רולטת ברקים X' : 'רולטת XXX',
         href: q.has('private') || q.has('duel') ? null : 'roulette.html' + (mode === 'classic' ? '' : '?mode=' + mode + (q.get('skin') === 'fish' ? '&skin=fish' : '')) };
     }
     if (page === 'zman.html') return { label: 'זמן למטווח', href: 'zman.html' };
