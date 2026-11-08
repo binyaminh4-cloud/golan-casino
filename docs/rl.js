@@ -8,7 +8,7 @@ const LIVE = !PREVIEW && !/[?&]private/.test(location.search);   // shared live 
 const DUEL = LIVE ? new URLSearchParams(location.search).get("duel") : null;   // Zeus's duel: duel chips instead of the wallet
 let ZS = null;
 let landed = -1, sent = new Map(), liveSt = null, clockOff = 0, animRound = -1, MY_ID = null;
-const BASE_STRAIGHT = MODE === "xxx" ? 20 : MODE === "lightning" ? 30 : 36;
+const BASE_STRAIGHT = MODE === "xxx" ? 20 : MODE === "lightning" ? 28 : 36;
 let LUCKY = {};
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 const R = RLW;
@@ -682,8 +682,8 @@ if (LIT) {
   const r = document.querySelector("#rules"); r.querySelector("h2").textContent = MODE === "xxx" ? "רולטת ברקים XXXtreme · חוקים" : "רולטת הברק המחומש · חוקים";
   r.querySelector("h2").insertAdjacentHTML("afterend", MODE === "xxx"
     ? "<p><b>⚡ ברקים:</b> לפני כל סיבוב ברקים פוגעים ב־3 עד 5 מספרים עם מכפיל 50x עד 500x. לפעמים <b>שרשרת ברקים</b> מוסיפה מספרים (עד 10), ו<b>מכה כפולה</b> מקפיצה מספר ל־600x עד <b>2,000x</b>. הימור על מספר בודד שזוכה במספר מוכה ברק משלם את המכפיל. מספר בודד רגיל משלם 19:1. שאר ההימורים כרגיל.</p>"
-    : "<p><b>⚡ הברק המחומש:</b> לפני כל סיבוב בדיוק <b>5 מספרים</b> מקבלים ברק, כל אחד עם מכפיל ×50 עד ×500. הימור על מספר בודד שזוכה במספר מוכה ברק משלם את המכפיל. מספר בודד רגיל משלם 29:1. שאר ההימורים כרגיל.</p>");
-  r.querySelector("table tr:nth-child(2) td:last-child").textContent = MODE === "xxx" ? "19:1 · ברק 50–2000x" : "29:1 · ברק 50–500x";
+    : "<p><b>⚡ הברק המחומש:</b> לפני כל סיבוב בדיוק <b>6 מספרים</b> מקבלים ברק, כל אחד עם מכפיל ×50 עד ×500. הימור על מספר בודד שזוכה במספר מוכה ברק משלם את המכפיל. מספר בודד רגיל משלם 27:1. שאר ההימורים כרגיל.</p>");
+  r.querySelector("table tr:nth-child(2) td:last-child").textContent = MODE === "xxx" ? "19:1 · ברק 50–2000x" : "27:1 · ברק 50–500x";
 }
 (async function boot() {
   loadZeus();
