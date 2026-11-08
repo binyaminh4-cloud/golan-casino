@@ -1,5 +1,5 @@
--- Golan Dragons (owner request 8.11): bonus every ~50 spins (was ~91), smaller on average (×28 instead of ×51),
--- same overall return as today (~124%). Bonus seeds are picked with weight total^-0.55, so the small ones come
+-- Golan Dragons (owner request 8.11): bonus every ~40 spins (was ~91), smaller on average (×25 instead of ×51),
+-- a bit more generous than today (~131%, was ~124%). Bonus seeds are picked with weight total^-0.8, so the small ones come
 -- more often and the big ones (×100+) still appear, just more rarely. Seeds and their animations are unchanged.
 -- Base: 0102.
 create or replace function dg_spin(p_stake bigint, p_ref text) returns jsonb language plpgsql security definer set search_path = public as $$
@@ -12,8 +12,8 @@ begin
   perform apply_tx(u, 'dragons', 'stake', -p_stake, 'dgstake:' || u || ':' || p_ref);
   select count(*), count(*) filter (where bonus) into n, b from dg_seeds;
   if n = 0 or b = 0 or 1.75 * b >= n then raise exception 'invalid_bonus_catalog'; end if;
-  if random() < 0.02 then   -- a bonus: small ones more likely (weighted sampling, weight = total^-0.55)
-    select * into k from dg_seeds where bonus order by -ln(1 - random()) * power(total, 0.55) limit 1;
+  if random() < 0.025 then   -- a bonus: small ones more likely (weighted sampling, weight = total^-0.8)
+    select * into k from dg_seeds where bonus order by -ln(1 - random()) * power(total, 0.8) limit 1;
   else
     loop pick := rl_randint(n); select * into k from dg_seeds where id = pick; exit when not k.bonus; end loop;
   end if;
