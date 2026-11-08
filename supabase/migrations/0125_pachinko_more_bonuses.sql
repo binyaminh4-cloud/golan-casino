@@ -1,6 +1,7 @@
 -- Toilet machine (pachinko), owner request 8.11: more bonuses, same return to the player as today.
 -- Regular bonus every ~24 spins (was ~42) with smaller targets more often (avg ×16 instead of ×29);
--- super bonus unchanged (~every 600 spins, avg ×250). Simulated return stays ~144% like today.
+-- super bonus every ~330 spins (was ~600), avg ×140 (was ×245): the extra supers come without multiplier badges.
+-- Simulated return stays ~145% like today.
 -- Only pc_spin changes; bonus buys are untouched. Base: 0102.
 create or replace function pc_spin(p_stake bigint, p_ref text) returns jsonb language plpgsql security definer set search_path = public as $$
 declare u uuid := auth.uid(); old pc_spins; g int[] := array_fill(0, array[15]); badges jsonb := '{}'; bsum int := 0; nb int := 0; t int := 0;
@@ -15,14 +16,14 @@ begin
   if found then return old.result || jsonb_build_object('balance', (select balance from wallets where user_id = u)); end if;
   if p_stake is null or p_stake < 10 or p_stake > (select greatest(0, balance) from wallets where user_id = u) then raise exception 'invalid_amount'; end if;
   perform apply_tx(u, 'pachinko', 'stake', -p_stake, 'pcstake:' || u || ':' || p_ref);
-  if random() < 1.0 / 1390 then mode := 's'; elsif random() < 0.0285 then mode := 'r'; end if;
+  if random() < 1.0 / 450 then mode := 's'; elsif random() < 0.0285 then mode := 'r'; end if;
   loop
   g := array_fill(0, array[15]); badges := '{}'; bsum := 0; t := 0;
   for i in 1..15 loop g[i] := pc_pick(array[20,18,16,14,11,7]); end loop;            -- grid index = row*5 + col (+1)
   for c in 0..4 loop
     if random() < 0.12 then -- restore the original column probability
       r := floor(random() * 3)::int; g[r * 5 + c + 1] := 6; t := t + 1;
-      if random() < 0.12 then nb := (array[2,3,5])[pc_pick(array[60,30,10]) + 1]; badges := badges || jsonb_build_object((r * 5 + c)::text, nb); bsum := bsum + nb; end if;
+      if random() < (case when mode = 's' then 0 else 0.12 end) then nb := (array[2,3,5])[pc_pick(array[60,30,10]) + 1]; badges := badges || jsonb_build_object((r * 5 + c)::text, nb); bsum := bsum + nb; end if;
     end if;
   end loop;
   exit when mode is null or (mode = 's' and t >= 4) or (mode = 'r' and t = 3);
