@@ -112,10 +112,12 @@
    if(spinId!==s.id){
     const start=parseFloat($('wheelTurn').style.transform.replace('rotate(',''))||0;spinAnimations.forEach(a=>a.cancel());spinId=s.id;
     const duration=Date.parse(s.deadline)-Date.parse(s.phase_at),reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
-    const destination=start+720+(((final-start)%360)+360)%360;
-    spinAnimations=[$('wheelTurn'),$('wheelBoosts')].map(el=>{const a=el.animate([{transform:`rotate(${start}deg)`},{transform:`rotate(${destination}deg)`}],{duration:reduced?1:duration,easing:'cubic-bezier(.15,.8,.2,1)',fill:'forwards'});return a;});
+    // two full turns at a steady fast speed, then one more turn plus the rest slowing down smoothly to a full stop.
+    // the split point is chosen so the speed is the same on both sides of it (no jerk when the slowdown starts).
+    const slow=360+(((final-start)%360)+360)%360,destination=start+720+slow,f=720/(720+3*slow),mid=start+720;
+    spinAnimations=[$('wheelTurn'),$('wheelBoosts')].map(el=>el.animate([{transform:`rotate(${start}deg)`,easing:'linear'},{transform:`rotate(${mid}deg)`,offset:f,easing:'cubic-bezier(.33,1,.68,1)'},{transform:`rotate(${destination}deg)`}],{duration:reduced?1:duration,fill:'forwards'}));
+    spinAnimations.forEach(a=>a.currentTime=Math.max(0,now()-Date.parse(s.phase_at)));   // join late, once; later polls must not move it (that made it jump)
    }
-   spinAnimations.forEach(a=>a.currentTime=Math.max(0,now()-Date.parse(s.phase_at)));
   }else{
    spinAnimations.forEach(a=>a.cancel());spinAnimations=[];spinId='';
    if(s.cell){const angle=`rotate(${final}deg)`;$('wheelTurn').style.transform=angle;$('wheelBoosts').style.transform=angle;}
