@@ -112,10 +112,10 @@
    if(spinId!==s.id){
     const start=parseFloat($('wheelTurn').style.transform.replace('rotate(',''))||0;spinAnimations.forEach(a=>a.cancel());spinId=s.id;
     const duration=Date.parse(s.deadline)-Date.parse(s.phase_at),reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
-    // two full turns at a steady fast speed, then one more turn plus the rest slowing down smoothly to a full stop.
+    // two full turns at a steady fast speed, then one more turn plus the rest slowing down: slower, then very slow over the last few cells, so the stop is in doubt.
     // the split point is chosen so the speed is the same on both sides of it (no jerk when the slowdown starts).
-    const slow=360+(((final-start)%360)+360)%360,destination=start+720+slow,f=720/(720+3*slow),mid=start+720;
-    spinAnimations=[$('wheelTurn'),$('wheelBoosts')].map(el=>el.animate([{transform:`rotate(${start}deg)`,easing:'linear'},{transform:`rotate(${mid}deg)`,offset:f,easing:'cubic-bezier(.33,1,.68,1)'},{transform:`rotate(${destination}deg)`}],{duration:reduced?1:duration,fill:'forwards'}));
+    const slow=360+(((final-start)%360)+360)%360,destination=start+720+slow,f=720/(720+4.5*slow),mid=start+720;
+    spinAnimations=[$('wheelTurn'),$('wheelBoosts')].map(el=>el.animate([{transform:`rotate(${start}deg)`,easing:'linear'},{transform:`rotate(${mid}deg)`,offset:f,easing:'cubic-bezier(.22,1,.36,1)'},{transform:`rotate(${destination}deg)`}],{duration:reduced?1:duration,fill:'forwards'}));
     spinAnimations.forEach(a=>a.currentTime=Math.max(0,now()-Date.parse(s.phase_at)));   // join late, once; later polls must not move it (that made it jump)
    }
   }else{
