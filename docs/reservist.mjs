@@ -1,11 +1,11 @@
-import {NAMES,TARGETS,FEATURES,world,camera,point} from './reservist-world.mjs?v=1794218060';
+import {NAMES,TARGETS,FEATURES,world,camera,point} from './reservist-world.mjs?v=1794218732';
 const $=id=>document.getElementById(id),PREVIEW=new URLSearchParams(location.search).has('preview');
 const db=PREVIEW?null:supabase.createClient(GC_CONFIG.supabaseUrl,GC_CONFIG.supabaseKey);
 const compact=n=>Number(n)>=1e6?'₪'+Number((n/1e6).toFixed(2))+'M':'₪'+Number(n).toLocaleString('en-US');
 const fmt=n=>'₪'+Number(n).toLocaleString('en-US'),uid=()=>crypto.randomUUID();
 const files=['range_bg','gate_bg','base_bg','city_separate_bg','window_frame','target','hostile',...TARGETS,'civilian_elder','civilian_woman','civilian_walk_sheet','scope_v2','button_fire','button_scope','muzzle_flash','impact'];
 const art={},canvas=$('scene'),ctx=canvas.getContext('2d');
-const metaReady=fetch('img/reservist/meta.json?v=1794218060').then(r=>{if(!r.ok)throw new Error('art_missing');return r.json();}).then(data=>{meta=data;});
+const metaReady=fetch('img/reservist/meta.json?v=1794218732').then(r=>{if(!r.ok)throw new Error('art_missing');return r.json();}).then(data=>{meta=data;});
 const ready=Promise.all(files.map(name=>new Promise((ok,no)=>{const img=new Image();img.onload=()=>{art[name]=img;ok();};img.onerror=()=>no(new Error('art_missing'));img.src='img/reservist/'+name+'.webp';})));
 let meta={},config,run=null,received=0,zoom=false,view={cx:.5,cy:.57},aim={x:.5,y:.5},cam=null,sending=false,settling=false,unresolved=null,startRef=null,coolUntil=0,lastSecond=-1,flash=0,impact=null,feedbackUntil=0,finishedResult=null,previewBank=0,firedEvents=new Set(),nextFinishAttempt=0;
 const RULES={range:'10 מטרות, אחת בכל פעם למשך 1–2 שניות. נגיעה במרכז העיגולים משלמת מיליון, בשאר המטרה 100 אלף, והחטאה אפס. אפשר לגעת במטרה כדי לירות.',gate:'5 אירועים. המתינו להבזק הירי ופגעו בתוקף בתוך 2 שניות. כל פגיעה נכונה שווה 4 מיליון. פגיעה בדמות שגויה מורידה 25% מהסכום שנצבר, עד אפס.',base:'מצאו את התוקף שמסתתר בין הסככות ופגעו בו בתוך 30 שניות. פגיעה נכונה משלמת 30 מיליון. אין דמויות מסיחות.',sniper:'גררו כדי לסרוק את הרחוב והבניינים. זהו את שלושת היעדים לפי התמונות והתכונות שבתיק. לחצו כוונת להגדלה, כוונו במרכז ולחצו ירי. כל יעד נכון שווה 25 מיליון. פגיעה בכל דמות אחרת מורידה 25% מהסכום שנצבר, עד אפס. זמן המשימה 90 שניות.'};
@@ -47,7 +47,7 @@ function drawDossier(){
 }
 function enter(r){sync(r);zoom=false;view={cx:.5,cy:.57};aim={x:.5,y:.5};lastSecond=-1;finishedResult=null;firedEvents.clear();nextFinishAttempt=0;feedbackUntil=0;impact=null;flash=0;$('feedback').textContent='';
  $('select').hidden=true;$('play').hidden=false;$('mission').textContent=NAMES[r.mode];$('scope').hidden=r.mode!=='sniper';$('scope').setAttribute('aria-pressed','false');$('helpText').textContent=RULES[r.mode];
- $('hint').textContent=r.mode==='sniper'?'גררו לסריקה · כוונת להגדלה · ירי במרכז הכוונת':'געו בדמות או במטרה כדי לכוון ולירות';
+ $('hint').textContent=r.mode==='sniper'?'גררו לסריקה · כוונת להגדלה · ירי במרכז הכוונת':r.mode==='gate'?'המתינו להבזק הירי · שתי שניות לפגיעה בתוקף':'געו בדמות או במטרה כדי לכוון ולירות';
  if(r.mult>1)$('hint').textContent+=' · תוספת שבת +200%';
  drawDossier();if(r.done)showResult({run:r,paid:r.paid,cooldown:0});
 }
@@ -102,7 +102,9 @@ function draw(){
  else{cam={x:0,y:0,w:1,h:1};const bg=art[mode+'_bg'];ctx.drawImage(bg,0,0,w,h);}
  for(const a of actors){if(run.hits.includes(a.id))continue;
   const x=((a.x-a.w/2)-cam.x)/cam.w*w,y=(a.y-a.h-cam.y)/cam.h*h,aw=a.w/cam.w*w,ah=a.h/cam.h*h;
-  sprite(a.asset,x,y,aw,ah,t);
+  // Keep the attacker's identity constant; the pack has no separate holstered pose.
+  const skin=mode==='gate'&&Number(a.id.split(':')[1])===run.scene[a.event].attacker?'hostile':a.asset;
+  sprite(skin,x,y,aw,ah,t);
   if(a.firing){sprite('muzzle_flash',x+aw*.65,y+ah*.2,aw*.7,ah*.23,t);if(!firedEvents.has(a.event)){effect('distant_gunfire');firedEvents.add(a.event);}}
  }
  if(sniper){
@@ -136,7 +138,7 @@ addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat&&!['INPUT','BUTTON
   const state=await call('rv_state');config=state.config;choose();coolUntil=Date.now()+(state.cooldown||0)*1000;
   await Promise.all([ready,metaReady]);
   if(state.run)enter(state.run);else if(PREVIEW)note('מצב הדגמה — ללא תשלום');
-  GC_GUIDE.init({game:'reservist',db,mount:document.querySelector('header'),steps:[{t:'מילואימניק: ארבע משימות. בוחרים משימה וקוראים את הכללים לפני ההתחלה. השכר נכנס לבנק.'},{t:'בצלף גוררים כדי לסרוק, משתמשים בכוונת להגדלה ומשווים את הדמות לתיק היעד. זיהוי שגוי מוריד 25% מהתגמול שנצבר.'}]});
+  GC_GUIDE.init({game:'reservist',db,mount:$('select'),auto:false,steps:[{t:'מילואימניק: ארבע משימות. בוחרים משימה וקוראים את הכללים לפני ההתחלה. השכר נכנס לבנק.'},{t:'בצלף גוררים כדי לסרוק, משתמשים בכוונת להגדלה ומשווים את הדמות לתיק היעד. זיהוי שגוי מוריד 25% מהתגמול שנצבר.'}]});
   requestAnimationFrame(draw);
  }catch(e){note(message(e));}finally{try{GC_LOADER.done();}catch(_){}}
 })();

@@ -10,7 +10,7 @@ const {chromium}=require('C:/Users/hp/.cache/codex-runtimes/codex-primary-runtim
   fs.mkdirSync('../asset-intake/reservist/screens',{recursive:true});
   for(const viewport of [{width:390,height:844},{width:1024,height:768}]){
    const page=await browser.newPage({viewport}),errors=[];page.on('pageerror',e=>errors.push(e.message));
-   await page.route('**/*',route=>{const u=new URL(route.request().url());if(u.hostname!=='127.0.0.1')return route.abort();if(/\/(guide|char)\.js$/.test(u.pathname))return route.fulfill({contentType:'text/javascript',body:'window.GC_GUIDE={init(){}};'});return route.continue();});
+   await page.route('**/*',route=>{const u=new URL(route.request().url());if(u.hostname!=='127.0.0.1')return route.abort();if(/\/(char)\.js$/.test(u.pathname))return route.fulfill({contentType:'text/javascript',body:'window.GC_GUIDE={init(){}};'});return route.continue();});
    await page.goto(`http://127.0.0.1:${server.address().port}/reservist.html?preview`);await page.waitForFunction(()=>document.querySelectorAll('[data-mode]').length===4);await page.locator('#gcLoad').waitFor({state:'detached'});
    assert.equal(await page.locator('body').evaluate(el=>el.scrollWidth<=innerWidth),true);
    await page.screenshot({path:`../asset-intake/reservist/screens/select-${viewport.width}.png`});
