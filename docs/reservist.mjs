@@ -1,6 +1,6 @@
 import {NAMES,TARGETS,FEATURES,world,camera,point} from './reservist-world.mjs?v=1794218732';
 const $=id=>document.getElementById(id),PREVIEW=new URLSearchParams(location.search).has('preview');
-const db=PREVIEW?null:supabase.createClient(GC_CONFIG.supabaseUrl,GC_CONFIG.supabaseKey);
+const db=supabase.createClient(GC_CONFIG.supabaseUrl,GC_CONFIG.supabaseKey);
 const compact=n=>Number(n)>=1e6?'₪'+Number((n/1e6).toFixed(2))+'M':'₪'+Number(n).toLocaleString('en-US');
 const fmt=n=>'₪'+Number(n).toLocaleString('en-US'),uid=()=>crypto.randomUUID();
 const files=['range_bg','gate_bg','base_bg','city_separate_bg','window_frame','target','hostile',...TARGETS,'civilian_elder','civilian_woman','civilian_walk_sheet','scope_v2','button_fire','button_scope','muzzle_flash','impact'];
@@ -58,7 +58,7 @@ async function start(mode){
  try{await Promise.all([ready,metaReady]);startRef??=uid();const r=await call('rv_start',{p_mode:mode,p_ref:startRef});startRef=null;enter(r);note('');}
  catch(e){note(message(e));}finally{sending=false;document.querySelectorAll('[data-mode]').forEach(b=>b.disabled=false);}
 }
-function message(e){const m=e?.message||'';return m.includes('cooldown')?'יש להמתין 15 שניות בין משימות.':m.includes('economy_maintenance')?'המשחק בתחזוקה. נסו שוב מאוחר יותר.':m.includes('art_missing')?'לא כל התמונות נטענו. רעננו לפני תחילת המשימה.':m.includes('run_expired')?'המשימה פגה. חזרו לעמוד העבודות.':'החיבור לא הושלם. אפשר לנסות שוב; התוצאה נשמרת בשרת.';}
+function message(e){const m=e?.message||'';return m.includes('reservist_owner_only')?'העבודה בבדיקה פרטית וזמינה כרגע רק לבנימין.':m.includes('cooldown')?'יש להמתין 15 שניות בין משימות.':m.includes('economy_maintenance')?'המשחק בתחזוקה. נסו שוב מאוחר יותר.':m.includes('art_missing')?'לא כל התמונות נטענו. רעננו לפני תחילת המשימה.':m.includes('run_expired')?'המשימה פגה. חזרו לעמוד העבודות.':'החיבור לא הושלם. אפשר לנסות שוב; התוצאה נשמרת בשרת.';}
 async function shoot(){
  if(!run||run.done||sending||settling||$('help').open)return;
  if(elapsed()>run.seconds&&!unresolved){await finish();return;}
@@ -134,7 +134,9 @@ $('again').onclick=async()=>{$('result').close();run=null;$('play').hidden=true;
 addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat&&!['INPUT','BUTTON','A'].includes(document.activeElement?.tagName)){e.preventDefault();shoot();}});
 (async()=>{
  try{
-  if(!PREVIEW){const {data:{session}}=await db.auth.getSession();if(!session){location.href='./';return;}}
+  const {data:{session}}=await db.auth.getSession();if(!session){location.href='./';return;}
+  const access=await db.rpc('rv_access');if(access.error)throw access.error;
+  if(access.data!==true){note('העבודה בבדיקה פרטית וזמינה כרגע רק לבנימין.');return;}
   const state=await call('rv_state');config=state.config;choose();coolUntil=Date.now()+(state.cooldown||0)*1000;
   await Promise.all([ready,metaReady]);
   if(state.run)enter(state.run);else if(PREVIEW)note('מצב הדגמה — ללא תשלום');

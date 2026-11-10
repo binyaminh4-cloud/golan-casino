@@ -10,7 +10,7 @@ const {chromium}=require('C:/Users/hp/.cache/codex-runtimes/codex-primary-runtim
   fs.mkdirSync('../asset-intake/reservist/screens',{recursive:true});
   for(const viewport of [{width:390,height:844},{width:1024,height:768}]){
    const page=await browser.newPage({viewport}),errors=[];page.on('pageerror',e=>errors.push(e.message));
-   await page.route('**/*',route=>{const u=new URL(route.request().url());if(u.hostname!=='127.0.0.1')return route.abort();if(/\/(char)\.js$/.test(u.pathname))return route.fulfill({contentType:'text/javascript',body:'window.GC_GUIDE={init(){}};'});return route.continue();});
+   await page.route('**/*',route=>{const u=new URL(route.request().url());if(u.hostname==='cdn.jsdelivr.net')return route.fulfill({contentType:'text/javascript',body:`window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:'fixture-owner'}}}})},rpc:async name=>({data:!location.search.includes('locked'),error:null})})};`});if(u.hostname!=='127.0.0.1')return route.abort();if(/\/(char)\.js$/.test(u.pathname))return route.fulfill({contentType:'text/javascript',body:'window.GC_GUIDE={init(){}};'});return route.continue();});
    await page.goto(`http://127.0.0.1:${server.address().port}/reservist.html?preview`);await page.waitForFunction(()=>document.querySelectorAll('[data-mode]').length===4);await page.locator('#gcLoad').waitFor({state:'detached'});
    assert.equal(await page.locator('body').evaluate(el=>el.scrollWidth<=innerWidth),true);
    await page.screenshot({path:`../asset-intake/reservist/screens/select-${viewport.width}.png`});
@@ -45,6 +45,7 @@ const {chromium}=require('C:/Users/hp/.cache/codex-runtimes/codex-primary-runtim
     await page.locator('#again').click();await page.waitForFunction(()=>rvTest.run===null);
    }
    const sound=await page.evaluate(async()=>{const audio=new AudioContext(),report=[];for(const f of ['scope_out','scope_in','success','target_hit','distant_gunfire','shot','target_mechanism','timer','miss','failure']){const b=await audio.decodeAudioData(await(await fetch('snd/rv_'+f+'.mp3')).arrayBuffer()),a=b.getChannelData(0);let sum=0;for(const s of a)sum+=s*s;report.push(b.duration>0&&b.duration<20&&sum/a.length>1e-8);}await audio.close();return report;});assert(sound.every(Boolean),'supplied sound effects must decode and contain audio');
+   for(const query of ['?preview&locked','?locked']){await page.goto(`http://127.0.0.1:${server.address().port}/reservist.html`+query);await page.waitForFunction(()=>document.querySelector('#note').textContent.includes('רק לבנימין'));assert.equal(await page.locator('[data-mode]').count(),0);assert.equal(await page.locator('#play').isVisible(),false);}
    assert.deepEqual(errors,[]);await page.close();
   }
   console.log('PASS: phone/tablet layouts, all four task flows, precise range rewards, gate penalty, base completion, persistent scope coordinates, drag scan and audio files');
