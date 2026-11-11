@@ -216,7 +216,11 @@
  function updateClock(){
   // close-up on the pointer for the last ~2 seconds of the wheel (display only)
   const sc=document.querySelector('.wheel-scene');if(sc)sc.classList.toggle('closeup',!!state&&state.phase==='spin'&&(Date.parse(state.deadline)-now())<2200&&!matchMedia('(prefers-reduced-motion:reduce)').matches);
-  const remaining=Math.ceil(seconds()),quiet=state?.phase==='summary';$('clock').textContent=state&&!preview&&!quiet?remaining+'″':'';if(state&&!preview&&!quiet)window.ZLM_AUDIO?.countdown(remaining);
+  const remaining=Math.ceil(seconds()),quiet=state?.phase==='summary',cl=$('clock');const showClock=!!state&&!preview&&!quiet;
+  // countdown ring (same style as the wheel clock in the roulette): fills down as the time runs out
+  if(showClock){if(!cl.querySelector('.fg'))cl.innerHTML='<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" class="bg"/><circle cx="32" cy="32" r="28" class="fg"/></svg><b></b>';const W=Math.max(1,(Date.parse(state.deadline)-Date.parse(state.phase_at))/1000);cl.querySelector('.fg').style.strokeDashoffset=175.9*(1-Math.min(1,seconds()/W));cl.querySelector('b').textContent=remaining;cl.classList.toggle('hurry',remaining<=5);}
+  else{cl.innerHTML='';cl.classList.remove('hurry');}
+  if(showClock)window.ZLM_AUDIO?.countdown(remaining);
   $('mainGame').classList.toggle('spin-view',!!state&&(state.phase==='spin'||state.phase==='summary'||state.phase==='betting'&&!preview&&remaining<=0));
   if(state?.spot==='yoav'&&state.bonus.cups){const elapsed=Math.max(0,(now()-Date.parse(state.phase_at))/1000),done=state.phase==='summary';state.bonus.cups.forEach((v,i)=>{const n=done?v:Math.min(v,Math.floor(elapsed*5)),rect=document.querySelector(`[data-liquid="${i}"]`),num=document.querySelector(`[data-cup-number="${i}"]`);if(num)num.textContent='×'+n*boostOf(state);if(rect){const h=60*Math.min(1,n/v);rect.setAttribute('y',70-h);rect.setAttribute('height',h);}});}
   if(state&&seconds()<=0)renderControls();
