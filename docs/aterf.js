@@ -334,7 +334,7 @@ const srvNow = () => Date.now() + clockOff;
 const fx = (name, vol = 0.8) => { try { SFX.fx(name, { vol }); } catch (e) {} };
 const BONUS_NAME = { vip: "מטווח VIP", balls: "הכדורים של בנימין" };
 const PK_IMG = { vip: "img/zlm/bet-red_target.webp", balls: "img/zlm/bet-three_balls.webp" };
-const HOST = { idle: "img/aterf/bin_idle.webp", swing: "img/aterf/bin_swing.webp", point: "img/aterf/bin_point.webp", celebrate: "img/aterf/bin_celebrate.webp" };
+const HOST = { idle: "img/aterf/bin_idle.webp?v=2", swing: "img/aterf/bin_swing.webp?v=2", point: "img/aterf/bin_point.webp?v=2", celebrate: "img/aterf/bin_celebrate.webp?v=2" };
 Object.values(HOST).concat(Object.values(PK_IMG)).forEach((s) => { const i = new Image(); i.src = s; });
 let S = null;              // last server state
 let POCKETS = {};          // pockets shown on the layout now: {"17": {t:"vip", m:3}}
