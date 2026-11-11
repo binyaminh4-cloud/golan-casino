@@ -3,7 +3,7 @@ const db = createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 const $ = (id) => document.getElementById(id);
 const fmt = (n) => { n = Number(n); const a = Math.abs(n); return a >= 1e12 ? "₪" + +(n / 1e12).toFixed(2) + "T" : a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };   // ₪1.58M · ₪2.4B · ₪1T
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-let me = null, timer = null;
+let me = null, timer = null, entering = null;
 
 async function boot() {
   const { data: { session } } = await db.auth.getSession();
@@ -13,7 +13,7 @@ db.auth.onAuthStateChange((_e, session) => { session ? showLobby(session.user) :
 
 // ---------- Login ----------
 function showLogin() {
-  clearInterval(timer); me = null;
+  clearInterval(timer); me = null; entering = null;
   $("lobbyView").hidden = true; $("loginView").hidden = false;
   const bg = new Image(); bg.onload = bg.onerror = () => GC_LOADER.done();
   bg.src = innerWidth < innerHeight ? "img/brand/login_bg_mobile.jpg" : "img/brand/login_bg_desktop.jpg";
@@ -81,9 +81,10 @@ $("logout").onclick = () => { GC_LOADER.show(); db.auth.signOut().finally(() => 
 
 // ---------- Lobby ----------
 async function showLobby(user) {
-  if (me && me.id === user.id) return;
+  if ((me && me.id === user.id) || entering === user.id) return;
+  entering = user.id;   // set at once: the session is announced several times on entry, and a second run doubled every entry popup
   $("loginView").hidden = true; $("lobbyView").hidden = false;
-  const { data: prof } = await db.from("profiles").select("id,nickname,is_admin").eq("id", user.id).single();
+  let prof = null; try { ({ data: prof } = await db.from("profiles").select("id,nickname,is_admin").eq("id", user.id).single()); } catch (e) {}
   me = prof || { id: user.id, nickname: user.email, is_admin: false };
   $("hdrName").innerHTML = esc(me.nickname) + `<i class="lvu" data-u="${me.id}"></i>`;
   $("hdrAv").textContent = (me.nickname || "?")[0].toUpperCase();
@@ -329,6 +330,10 @@ document.getElementById("pwBtn")?.addEventListener("click", () => {
 // Daily login gift (migration 0109): pops up on entry; only "אסוף פרס" closes it. Day n = n × ₪50M to the wallet,
 // day 7 = ₪500M to the bank + ₪250M free chips for זמן למטווח. A missed day restarts the streak.
 async function dailyGift() {
+  if (dailyGift.busy || document.querySelector(".gc-gift")) return; dailyGift.busy = true;
+  try { await dailyGift0(); } finally { dailyGift.busy = false; }
+}
+async function dailyGift0() {
   let st; try { const r = await db.rpc("gc_gift_state"); if (r.error || !r.data || !r.data.claimable) return; st = r.data; } catch (e) { return; }
   const M = (n) => "₪" + (n >= 1e9 ? +(n / 1e9).toFixed(2) + "B" : Math.round(n / 1e6) + "M");
   if (!document.getElementById("gcGiftCss")) { const c = document.createElement("style"); c.id = "gcGiftCss"; c.textContent = `
@@ -351,13 +356,15 @@ async function dailyGift() {
   o.innerHTML = `<div class="box"><div class="ic">🎁</div><h2>מתנת ההתחברות</h2><p>${day === 7 ? "שבוע רצוף! הפרס הגדול: לבנק, וצ׳יפים לזמן למטווח." : `יום ${day} ברצף. כל יום שמתחברים המתנה גדלה. מפספסים יום? חוזרים ליום 1.`}</p>
     <div class="days">${tiles}</div><div class="amt">${amt}</div><button type="button">אסוף פרס</button><div class="err" role="status"></div></div>`;
   document.body.appendChild(o);
-  // one tap is enough: the popup closes at once (on pointerup, so nothing underneath can steal the tap) and the claim runs behind it
+  // one tap is enough: the popup disappears at once but keeps covering the screen until the server answers,
+  // so the tap cannot land on whatever is underneath; the claim runs behind it (two tries, 10 s each)
   await new Promise((done) => { const b = o.querySelector("button"); let went = false;
-    const go = async (e) => { if (went) return; went = true; if (e) { e.preventDefault(); e.stopPropagation(); }
-      b.disabled = true; o.style.display = "none"; try { SFX.win(true); } catch (e) {}
-      let { error } = await db.rpc("gc_gift_claim");
-      if (error && !(error.message || "").includes("already_claimed")) ({ error } = await db.rpc("gc_gift_claim"));
-      if (error && !(error.message || "").includes("already_claimed")) { went = false; b.disabled = false; o.style.display = ""; o.querySelector(".err").textContent = "האיסוף נכשל. נסה שוב."; return; }
+    const claim = () => Promise.race([db.rpc("gc_gift_claim"), new Promise((r) => setTimeout(() => r({ error: { message: "timeout" } }), 10000))]).catch((e) => ({ error: { message: String(e && e.message || e) } }));
+    const ok = (r) => !r.error || (r.error.message || "").includes("already_claimed");
+    const go = async (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } if (went) return; went = true;
+      b.disabled = true; o.style.opacity = "0"; try { SFX.win(true); } catch (e) {}
+      let r = await claim(); if (!ok(r)) r = await claim();
+      if (!ok(r)) { went = false; b.disabled = false; o.style.opacity = ""; o.querySelector(".err").textContent = "האיסוף נכשל. נסה שוב."; return; }
       o.remove(); done(); };
     b.addEventListener("pointerup", go); b.addEventListener("click", go); });
   try { await refresh(); } catch (e) {}
