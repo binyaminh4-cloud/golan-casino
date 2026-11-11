@@ -56,3 +56,4 @@
 .hand img{position:absolute;left:0;top:0;width:100%;height:100%}
 .hand .hchip{width:31%;height:auto;left:37.6%;top:-10.5%;transform:rotateX(55deg);transition:opacity .12s}
 .hand .hchip.drop{opacity:0}
+.wheelview:not([hidden]) ~ .result{top:16%;transform:translate(-50%,0)}

@@ -320,7 +320,8 @@ function frame(now) {
       const near = t > R.T.settle - 1.2 ? Math.min(1, (t - (R.T.settle - 1.2)) / 1.6) : 0;   // closing in on the ball at the end
       W.cam.tilt = lerp(W.cam.tilt, topView ? 3 : lerp(48, 34, near), k);
       W.cam.z = lerp(W.cam.z, topView ? 0.78 : lerp(1, 2.6, near), k);
-      W.cam.fx = lerp(W.cam.fx, lerp(600, b.x, near), k); W.cam.fy = lerp(W.cam.fy, lerp(600, b.y, near), k);
+      const f = topView ? 0 : near;                // the top view always shows the whole wheel
+      W.cam.fx = lerp(W.cam.fx, lerp(600, b.x, f), k); W.cam.fy = lerp(W.cam.fy, lerp(600, b.y, f), k);
       if (t > R.T.hit && !dropped) { dropped = true; sfx(() => SFX.ballDrop()); }
     } else W.idle(dt);
     W.camera();
