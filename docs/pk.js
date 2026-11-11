@@ -179,12 +179,12 @@ $("buyYes").onclick = async () => {
   $("buy").close(); S = data; draw();
 };
 $("leaveBtn").onclick = async () => {
-  if (busy) return; busy = true; $("leaveBtn").disabled = true; $("err").textContent = "";
+  if (busy) return; busy = true; $("leaveBtn").disabled = true; let note = "";
   try { const { data, error } = await db.rpc(S && S.tourney ? "poker_leave" : "poker_cash_leave", { p_table: T });
     if (error) throw error;
-    if (data && data.pending) $("err").textContent = "הקימה תושלם בסיום היד והצ׳יפים יוחזרו לאחר החלוקה.";
-  } catch (e) { $("err").textContent = "הקימה נכשלה. נסה שוב."; }
-  finally { busy = false; $("leaveBtn").disabled = false; await poll(); }
+    if (data && data.pending) note = "הקימה תושלם בסיום היד והצ׳יפים יוחזרו לאחר החלוקה.";
+  } catch (e) { note = "הקימה נכשלה. נסה שוב."; }
+  finally { busy = false; $("leaveBtn").disabled = false; try { await poll(); } finally { if (note) $("msg").textContent = note; } }   // the note goes on the table's message line: this page has no "err" element, and asking for one froze the button
 };
 
 // ---------- boot ----------
