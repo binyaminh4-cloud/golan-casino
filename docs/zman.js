@@ -155,7 +155,7 @@
  function heading(text){const h=document.createElement('h2');h.textContent=text;$('bonus').append(h);}
  function note(text){const p=document.createElement('div');p.className='bonus-info';p.textContent=text;$('bonus').append(p);}
  function renderBonus(){
-  const s=state,b=s.bonus,box=$('bonus');box.replaceChildren();box.className='bonus';heading(labels[s.spot]);
+  const s=state,b=s.bonus,box=$('bonus');box.replaceChildren();box.className='bonus';heading(s.spot==='yoav'?'הבר של יואב':labels[s.spot]);
   const can=b.eligible&&s.phase==='choice', extra=s.phase==='extra'&&b.profit===30;
   const selected=b.picks||[];
   if(!b.eligible)note('צופים בבונוס המשותף. ההימורים ייפתחו בסיומו.');
@@ -173,9 +173,10 @@
     bt.append(image('range-cover','cover'));bt.onclick=()=>choose(t.index);grid.append(bt);
    }box.append(grid);
   }else if(s.spot==='yoav'){
-   box.classList.add('yoav-scene');box.append(image('yoav','yoav-host'));const cups=document.createElement('div');cups.className='cups';
+   box.classList.add('yoav-scene');box.append(image('yoav','yoav-host'));const counter=document.createElement('div');counter.className='yoav-counter';box.append(counter);const cups=document.createElement('div');cups.className='cups';
+   // crystal glasses on the marble counter; the drink fills the bowl and the multiplier shows in the gold badge above
    for(let i=0;i<3;i++){const bt=document.createElement('button');bt.className='cup'+(selected.includes(i)?' selected':'');bt.disabled=!can||selected.length>0;bt.setAttribute('aria-label','כוס '+(i+1));bt.onclick=()=>choose(i);
-    bt.innerHTML=`<b data-cup-number="${i}">?</b><svg viewBox="0 0 100 150" aria-hidden="true"><defs><clipPath id="cup-mask-${i}"><path d="M5 10H95L54 66Q50 70 46 66Z"/></clipPath><linearGradient id="wine-${i}" x2="0" y2="1"><stop stop-color="#ff5e68"/><stop offset="1" stop-color="#940a21"/></linearGradient></defs><g clip-path="url(#cup-mask-${i})"><rect data-liquid="${i}" x="0" y="70" width="100" height="0" fill="url(#wine-${i})"/></g><path d="M5 10H95L54 66Q50 70 46 66ZM50 68V132M30 136Q50 129 70 136Q50 142 30 136" fill="none" stroke="#fff2d9" stroke-width="2"/><ellipse cx="50" cy="10" rx="45" ry="5" fill="none" stroke="#fff2d9" stroke-width="2"/></svg>`;cups.append(bt);
+    bt.innerHTML=`<b class="cup-badge" data-cup-number="${i}">?</b><span class="glass"><svg viewBox="0 0 100 157" aria-hidden="true"><defs><clipPath id="cup-mask-${i}"><path d="M4 5H96L53 59Q50 62 47 59Z"/></clipPath><linearGradient id="wine-${i}" x2="0" y2="1"><stop stop-color="#ff5e68"/><stop offset="1" stop-color="#940a21"/></linearGradient></defs><g clip-path="url(#cup-mask-${i})"><rect data-liquid="${i}" x="0" y="70" width="100" height="0" fill="url(#wine-${i})" opacity=".85"/></g></svg><img src="img/zlm/yoav_glass.webp?v=1" alt=""></span>`;cups.append(bt);
    }box.append(cups);
   }else renderBalls(can);
  }
@@ -222,7 +223,7 @@
   else{cl.innerHTML='';cl.classList.remove('hurry');}
   if(showClock)window.ZLM_AUDIO?.countdown(remaining);
   $('mainGame').classList.toggle('spin-view',!!state&&(state.phase==='spin'||state.phase==='summary'||state.phase==='betting'&&!preview&&remaining<=0));
-  if(state?.spot==='yoav'&&state.bonus.cups){const elapsed=Math.max(0,(now()-Date.parse(state.phase_at))/1000),done=state.phase==='summary';state.bonus.cups.forEach((v,i)=>{const n=done?v:Math.min(v,Math.floor(elapsed*5)),rect=document.querySelector(`[data-liquid="${i}"]`),num=document.querySelector(`[data-cup-number="${i}"]`);if(num)num.textContent='×'+n*boostOf(state);if(rect){const h=60*Math.min(1,n/v);rect.setAttribute('y',70-h);rect.setAttribute('height',h);}});}
+  if(state?.spot==='yoav'&&state.bonus.cups){const elapsed=Math.max(0,(now()-Date.parse(state.phase_at))/1000),done=state.phase==='summary';state.bonus.cups.forEach((v,i)=>{const n=done?v:Math.min(v,Math.floor(elapsed*5)),rect=document.querySelector(`[data-liquid="${i}"]`),num=document.querySelector(`[data-cup-number="${i}"]`);if(num)num.textContent='×'+n*boostOf(state);if(rect){const h=57*Math.min(1,n/v);rect.setAttribute('y',62-h);rect.setAttribute('height',h);}});}
   if(state&&seconds()<=0)renderControls();
  }
 

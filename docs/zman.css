@@ -82,3 +82,18 @@ body .gd-host{max-width:calc(100vw - 16px);gap:6px}body .gd-ido{width:80px}body 
 /* QA 5.11: larger invisible tap area for small buttons (no visual change) */
 #sound{position:relative}
 #sound::before{content:"";position:absolute;inset:-7px 0}
+
+/* Yoav's bar (2026-11 look): title plate, dark note strip, Yoav behind a black-marble counter, crystal glasses with gold badges */
+.yoav-scene{background:#110b08 url(img/zlm/bar.webp) center/cover}
+.yoav-scene h2{display:table;margin:14px auto 8px;padding:6px 34px;border:1.5px solid #c9a35c;border-radius:99px;background:linear-gradient(#2a1c10e8,#120b06f0);box-shadow:0 0 18px #000a,inset 0 0 12px #c9a35c33;font-size:26px;letter-spacing:.5px}
+.yoav-scene .bonus-info{background:linear-gradient(90deg,#0000,#120b06e6 15%,#120b06e6 85%,#0000);border-top:1px solid #c9a35c66;border-bottom:1px solid #c9a35c66;font-size:19px;color:#ffe9c0;padding:10px}
+.yoav-scene .yoav-host{position:absolute;left:4%;top:13%;width:92%;height:58%;object-fit:contain;object-position:bottom;z-index:1}
+.yoav-counter{position:absolute;left:0;right:0;bottom:0;height:34%;z-index:2;background:url(img/zlm/yoav_counter.webp?v=1) center top/cover;box-shadow:0 -6px 18px #000c;border-top:2px solid #b8935044}
+.yoav-scene .cups{position:absolute;left:3%;right:3%;bottom:6%;height:30%;margin:0;z-index:3;display:flex;justify-content:space-around;align-items:flex-end;gap:2%;padding:0}
+.yoav-scene .cup{flex:0 1 28%;height:100%;background:none;border:2px solid transparent;border-radius:16px;padding:0 0 4px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4%;cursor:pointer}
+.yoav-scene .cup .glass{position:relative;height:72%;aspect-ratio:100/157;display:block}
+.yoav-scene .cup .glass img,.yoav-scene .cup .glass svg{position:absolute;inset:0;width:100%;height:100%;max-height:none}
+.yoav-scene .cup .glass img{filter:drop-shadow(0 6px 6px #000a)}
+.yoav-scene .cup-badge{min-width:2.1em;height:2.1em;padding:0 .35em;display:grid;place-items:center;border-radius:99px;background:radial-gradient(#2a1c10,#0e0905);border:1.5px solid #d6b06a;box-shadow:0 0 10px #d6b06a66;font:800 20px Inter,sans-serif;color:#ffe2a2}
+.yoav-scene .cup.selected{border-color:#f2cc7a;background:#f2cc7a14;box-shadow:0 0 22px #f2cc7a88,inset 0 0 14px #f2cc7a33}
+.yoav-scene .cup:disabled{opacity:1;cursor:default}
