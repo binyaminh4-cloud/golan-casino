@@ -118,3 +118,10 @@
 /* narrow phones: the friends button shows only its eye so the whole footer fits */
 @media (max-width:800px){#eyeBtn{width:40px;min-width:0;padding:0;overflow:hidden;white-space:nowrap;text-align:center;text-indent:0}footer.controls .btns{gap:4px}}
 @media (max-width:700px){footer.controls .btns .btn{padding-inline:7px;min-width:0}}
+/* entrance card on phones: picture on top, text below (was a squeezed side column) */
+@media (max-width:700px){
+.ebox{flex-direction:column;width:min(94vw,520px);max-height:94vh;max-height:94dvh;overflow-y:auto}
+.ebox>img{width:100%;height:auto;max-height:38vh;object-fit:cover;object-position:50% 18%;flex:none}
+.etxt{overflow:visible;padding:14px 18px 20px}
+.etxt h1{font-size:clamp(24px,7vw,32px);line-height:1.2}
+}
