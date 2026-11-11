@@ -37,10 +37,10 @@ body{display:block!important}
 #buy{padding:5px 6px;font-size:12px}
 .bottom .gc-auto .m{left:auto;right:0;transform:none;max-width:calc(100vw - 20px)}
 
-/* overlay top bar: lobby (right) · Ido (next to it) · sound + wallet (left); nothing overlaps */
-.top .gd-btn{position:absolute;right:max(84px,calc(78px + env(safe-area-inset-right)));top:3px;padding:2px 9px 2px 3px;font-size:11px;gap:4px}
-.top .gd-btn img,.top .gd-btn .q{width:20px;height:20px}
-.top .sfx-btn{position:absolute;left:max(56px,calc(52px + env(safe-area-inset-left)));top:3px;width:32px;height:32px;font-size:15px}
+/* side column (lobby · wallet · Ido · sound, top to bottom): Ido's button is just his face so it fits the column */
+.top .gd-btn{position:static;font-size:0;gap:0;padding:3px;align-self:center}
+.top .gd-btn img,.top .gd-btn .q{width:30px;height:30px}.top .gd-btn .q{font-size:15px}
+.top .sfx-btn{position:static;align-self:center;width:36px;height:36px;font-size:16px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>

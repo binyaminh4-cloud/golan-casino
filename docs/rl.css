@@ -396,3 +396,8 @@ body:not(.live) .controls #err:empty{display:none}
 /* QA 5.11: larger invisible tap area for small buttons (no visual change) */
 #rulesBtn,#viewTable,#viewRace,#zOut,#zIn{position:relative}
 #rulesBtn::before,#viewTable::before,#viewRace::before,#zOut::before,#zIn::before{content:"";position:absolute;inset:-7px 0}
+
+/* phone landscape: everything in the top bar must fit; Ido's button shrinks to his face, then the wallet loses its label */
+@media (max-width:900px){.top{gap:6px}.top .gd-btn{font-size:0;gap:0;padding:4px}.top .gd-btn .q{font-size:14px}.top .rules-btn{padding:6px 4px}}
+@media (max-width:780px){.top .bal{font-size:0}.top .bal b{font-size:15px}.top a.back{padding:6px 4px}.top .gc-limit{margin-inline-start:0}}
+@media (max-width:700px){.top{gap:4px;padding-inline:8px}.top .gc-limit{padding:3px 6px;gap:4px}}
