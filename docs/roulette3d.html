@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="loader.js?v=14"></script>
+<title>רולטה 3D · גולן קזינו</title>
+<link rel="icon" href="img/brand/favicon.png?v=2">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&family=Inter:wght@700;800;900&display=swap">
+<link rel="stylesheet" href="roulette3d.css?v=1">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=8"></script>
+<script src="landscape.js?v=1"></script>
+</head>
+<body>
+<canvas id="scene" aria-label="שולחן רולטה בתלת מימד"></canvas>
+<video id="dealerIdle" src="vid/r3d/fisher_idle_loop.mp4?v=1" muted playsinline preload="auto" hidden></video>
+<video id="dealerThrow" src="vid/r3d/fisher_throw.mp4?v=1" muted playsinline preload="auto" hidden></video>
+
+<header class="top">
+  <a href="./" class="back" aria-label="חזרה ללובי">→ לובי</a>
+  <h1>רולטה 3D</h1>
+  <div class="wallet">הארנק <b id="bal" class="num">…</b></div>
+</header>
+
+<div id="say" class="say" aria-live="polite"></div>
+<div id="hand" class="hand" hidden><img src="img/r3d/hand.webp?v=1" alt=""><img id="handChip" class="hchip" alt=""></div>
+
+<footer class="bar" id="bar">
+  <div class="chips" id="chips" aria-label="בחירת צ׳יפ"></div>
+  <div class="mid"><span>הימור</span><b id="total" class="num">₪0</b></div>
+  <div class="acts">
+    <button type="button" id="undo" class="btn" aria-label="בטל צ׳יפ אחרון">↶</button>
+    <button type="button" id="clear" class="btn">נקה</button>
+    <button type="button" id="repeat" class="btn">חזור</button>
+    <button type="button" id="spin" class="btn gold">סובבי</button>
+  </div>
+</footer>
+
+<div id="wheelView" class="wheelview" hidden>
+  <div id="wheelHost" class="wheelhost"></div>
+  <button type="button" id="topView" class="btn topbtn" aria-pressed="false">מבט על</button>
+</div>
+
+<div id="result" class="result" hidden></div>
+
+<div id="enter" class="enter">
+  <div class="ebox">
+    <img src="vid/r3d/poster.jpg?v=1" alt="">
+    <div class="etxt">
+      <h2>רולטה 3D</h2>
+      <p>אתם עומדים ליד השולחן, ו־<b>Ms Fisher</b> מולכם. בוחרים צ׳יפ, לוחצים על הלוח, ולוחצים <b>סובבי</b>.</p>
+      <p>רולטה אירופאית רגילה: מספר בודד משלם 35:1, צבע וזוגי/אי־זוגי 1:1, תריסר ועמודה 2:1.</p>
+      <p>בזמן שהכדור מסתובב אפשר ללחוץ <b>מבט על</b> ולראות את הגלגל מלמעלה.</p>
+      <button type="button" class="btn gold" id="enterGo">לשולחן</button>
+      <a href="./" class="eback">חזרה ללובי</a>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">{"imports":{"three":"./vendor/three/three.module.min.js"}}</script>
+<script src="sfx.js?v=1794046058"></script>
+<script src="rl_wheel.js?v=3"></script>
+<script type="module" src="rl_wheel3d.js?v=1"></script>
+<script type="module" src="roulette3d.js?v=1"></script>
+</body>
+</html>
