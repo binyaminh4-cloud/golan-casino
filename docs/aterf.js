@@ -350,6 +350,19 @@ function markPocket(k, p, how) {
   if (p.m > 1 && how !== "nomult") { let b = c.querySelector(".pm"); if (!b) { b = document.createElement("i"); b.className = "pm" + (p.m >= 10 ? " big" : ""); b.textContent = "×" + p.m; c.appendChild(b); }
     if (how === "slam") { b.classList.remove("slam"); void b.offsetWidth; b.classList.add("slam"); } }
 }
+// potential table during the spin (like the lightning list): what each bonus pocket can pay at most
+// balls: best colour is the top ladder value 1000; VIP: the best three targets add 100 + 50 + 25 = 175
+const POT_TOP = { balls: 1000, vip: 175 };
+function potList(P, show) {
+  let L = $("bonusPot");
+  if (!L) { L = document.createElement("div"); L.id = "bonusPot"; L.className = "pot"; L.hidden = true; document.body.appendChild(L); }
+  const e = Object.entries(P || {}).filter(([, p]) => POT_TOP[p.t]);
+  if (!show || !e.length) { L.hidden = true; return; }
+  e.sort((a, b) => b[1].m - a[1].m);
+  L.innerHTML = '<div class="pot-h">🎯 בונוסים בסיבוב</div>' + e.map(([k, p]) =>
+    `<div class="pot-row ${p.t}${p.m > 1 ? " mult" : ""}"><img src="${PK_IMG[p.t]}" alt=""><span class="pot-n num">${k}</span><span class="pot-name">${BONUS_NAME[p.t]}</span><b class="pot-m num">${p.m > 1 ? "×" + p.m : ""}</b><b class="pot-x num">עד ×${Math.min(10000, POT_TOP[p.t] * p.m)}</b></div>`).join("");
+  L.hidden = false;
+}
 function drawPockets() { for (const [k, p] of Object.entries(POCKETS)) markPocket(k, p, "still"); }
 function clearPockets() { POCKETS = {}; board.querySelectorAll(".pocket").forEach((c) => { c.classList.remove("pocket", "pk-vip", "pk-balls", "grow", "hitpk"); c.querySelectorAll(".pk,.pm").forEach((x) => x.remove()); }); }
 
@@ -464,7 +477,7 @@ let lastBallKey = "", choosing = false;
 function bonusOn(st) { return !!(st && st.bonus && st.bonus.type && ["intro", "choice", "reveal", "balls", "settle"].includes(st.phase)) || (st && st.phase === "summary" && st.bonus && st.bonus.type && srvNow() - Date.parse(st.phase_at) < 4000); }
 function renderBonus(st) {
   const box = $("bonusBox"), b = st.bonus;
-  const key = [st.id, st.phase, JSON.stringify(b.picks), JSON.stringify(b.shown_picks), (b.events || []).length, JSON.stringify(b.targets), b.profit].join("|");
+  const key = [st.id, st.phase, JSON.stringify(b.picks), JSON.stringify(b.shown_picks), (b.events || []).length, JSON.stringify(b.targets), b.profit, Math.min(5, revealOpen(st))].join("|");
   if (key === bonusKey) return; bonusKey = key;
   box.hidden = false; box.className = "bonusbox " + b.type + "-scene ph-" + st.phase;
   const mult = b.mult > 1 ? b.mult : 1;
@@ -479,7 +492,7 @@ function renderBonus(st) {
     return;
   }
   if (b.type === "vip") renderVip(st, box, mult); else renderBalls(st, box, mult);
-  if ((b.participants || []).length && (["settle", "summary"].includes(st.phase) || (b.type === "vip" && st.phase === "reveal"))) {
+  if ((b.participants || []).length && (["settle", "summary"].includes(st.phase) || (b.type === "vip" && st.phase === "reveal" && revealOpen(st) >= 5))) {
     const tot = Math.min(10000, (b.profit || 0) * mult), r = document.createElement("div"); r.className = "btotal";
     r.innerHTML = `${b.eligible ? "הזכייה שלך" : "התוצאה"}: <b class="num">×${tot}</b>${mult > 1 ? ` <small class="num">(${b.profit} × ${mult})</small>` : ""}`; box.appendChild(r);
   }
@@ -488,15 +501,22 @@ function renderVip(st, box, mult) {
   const b = st.bonus, sel = b.eligible ? b.picks : (st.phase === "choice" ? [] : b.shown_picks || []);
   const can = b.eligible && st.phase === "choice" && b.picks.length < 3;
   const g = document.createElement("div"); g.className = "targets";
-  for (const t of b.targets || []) {
+  const n = revealOpen(st);
+  if (n !== lastRevealN && st.phase === "reveal" && n <= 5) { lastRevealN = n; fx("atf_grow", 0.5); }
+  (b.targets || []).forEach((t, idx) => {
+    const open = t.open && idx < n;                          // the host opens the targets one by one during the reveal
     const bt = document.createElement("button"), mine = sel.includes(t.index);
-    bt.type = "button"; bt.className = "target" + (mine ? " selected" : "") + (t.open ? " open" : "") + (mine && t.open ? " hit" : "");
-    bt.disabled = !(can && !mine); bt.setAttribute("aria-label", t.open ? "מטרה " + (t.index + 1) + " · פי " + t.value * mult : "מטרה " + (t.index + 1));
-    if (t.open) { bt.append(zimg("range-" + PEOPLE[t.person], "person")); const p = document.createElement("span"); p.className = "prize num"; p.textContent = "×" + t.value * mult; bt.append(p); }
+    bt.type = "button"; bt.className = "target" + (mine ? " selected" : "") + (open ? " open" : "") + (mine && open ? " hit" : "");
+    bt.disabled = !(can && !mine); bt.setAttribute("aria-label", open ? "מטרה " + (t.index + 1) + " · פי " + t.value * mult : "מטרה " + (t.index + 1));
+    if (open) { bt.append(zimg("range-" + PEOPLE[t.person], "person")); const p = document.createElement("span"); p.className = "prize num"; p.textContent = "×" + t.value * mult; bt.append(p); }
     bt.append(zimg("range-cover", "cover")); bt.onclick = () => choose(t.index); g.append(bt);
-  }
+  });
   box.appendChild(g);
 }
+// reveal: how many VIP targets are open now (one every REVEAL_STEP ms; all five once the reveal is over)
+const REVEAL_STEP = 2200;
+let lastRevealN = 0;
+function revealOpen(st) { return st.phase !== "reveal" ? 99 : Math.floor((srvNow() - Date.parse(st.phase_at)) / REVEAL_STEP) + 1; }
 function renderBalls(st, box, mult) {
   const b = st.bonus, levels = b.levels || [0, 0, 0], values = b.values || [5, 5, 5], events = b.events || [];
   const chosen = b.eligible ? b.picks[0] : (b.shown_picks || [])[0];
@@ -544,6 +564,7 @@ function accept(d) {
   clockOff = Date.parse(d.server_time) - Date.now();
   const newRound = !S || S.id !== d.id;
   S = d;
+  potList(d.pockets, ["grow", "spin"].includes(d.phase));
   liveSt = { round: d.id, open: d.phase === "betting" && srvNow() < Date.parse(d.deadline), start: Date.parse(d.phase_at), close: d.phase === "betting" ? Date.parse(d.deadline) : Date.parse(d.phase_at),
              players: d.players, present: d.present, result: d.phase === "summary" ? d.result : null };
   if (newRound) {
@@ -644,6 +665,21 @@ function drawBigClock(t) {
   b.querySelector("b").textContent = open && left > 0 ? sec : S.phase === "grow" ? "🪄" : bonusOn(S) ? "🎯" : "🎲";
   b.querySelector("small").textContent = open && left > 0 ? "להמר" : S.phase === "grow" ? "בונוסים" : bonusOn(S) ? "בונוס" : "מסתובב";
 }
+// countdown inside the bonus screen: the same ring as the big clock on the wheel
+// choice = time to pick, reveal = time until the host finishes the targets, balls = time to the next ball (3 s)
+function drawBonusClock(t) {
+  const box = $("bonusBox"); if (!box || box.hidden || !S || !S.bonus || !S.bonus.type) return;
+  const ph = S.phase, old = box.querySelector(".bxclock");
+  if (!["choice", "reveal", "balls"].includes(ph)) { if (old) old.remove(); return; }
+  let c = old;
+  if (!c) { c = document.createElement("div"); c.className = "bxclock"; c.innerHTML = '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" class="bg"/><circle cx="32" cy="32" r="28" class="fg"/></svg><b></b><small></small>'; box.appendChild(c); }
+  const end = Date.parse(S.deadline), W0 = ph === "balls" ? 3000 : Math.max(1, end - Date.parse(S.phase_at));
+  const left = Math.max(0, end - t), sec = Math.ceil(left / 1000);
+  c.querySelector(".fg").style.strokeDashoffset = 175.9 * (1 - Math.min(1, left / W0));   // 2 * pi * 28
+  c.querySelector("b").textContent = sec;
+  c.querySelector("small").textContent = ph === "choice" ? "לבחור" : ph === "reveal" ? "מטרות" : "כדור הבא";
+  c.classList.toggle("hurry", sec <= 5);
+}
 let nmbRound = null;
 function noMoreBets() {
   const b = document.createElement("div"); b.className = "nmb"; b.innerHTML = "NO MORE BETS<small>אין עוד הימורים</small>"; document.body.appendChild(b);
@@ -655,6 +691,7 @@ function drawClock() {
   const t = srvNow();
   if (S.phase === "betting" && t >= Date.parse(S.deadline) && nmbRound !== S.id && t < Date.parse(S.deadline) + 2500) { nmbRound = S.id; busy = true; noMoreBets(); drawChips(); }
   drawBigClock(t);
+  drawBonusClock(t);
   if (S.phase === "betting" && t < Date.parse(S.deadline)) { const s = Math.ceil((Date.parse(S.deadline) - t) / 1000); el.textContent = `הימורים פתוחים · ${s}`; el.className = "liveclock" + (s <= 5 ? " hurry" : ""); }
   else { el.textContent = S.phase === "grow" ? "בנימין מפזר בונוסים" : bonusOn(S) ? "בונוס!" : S.phase === "summary" ? "סיבוב חדש מתחיל" : "אין עוד הימורים"; el.className = "liveclock shut"; }
   if (S.phase === "betting" && t < Date.parse(S.deadline) && busy && !plan && !cine) { busy = false; drawChips(); }
@@ -672,7 +709,7 @@ const FAKE = (() => {
   const ballsRes = (deck) => { const pos = [0, 0, 0]; let b = 0; for (const v of deck) { if (v === 0) b++; else { const c = (v - 1) % 3; pos[c] = Math.min(11, pos[c] + (v > 3 ? 2 : 1)); } if (b === 4) break; } return { black: b, levels: pos, values: pos.map((p) => ladder[p]) }; };
   let bal = 10000000, r = null, hist = [], seq = 0;
   const me = "preview-me";
-  function newRound(t) { r = { id: "r" + (++seq), phase: "betting", phase_at: t, deadline: t + (FAST ? 6000 : 15000), bets: new Map(), pockets: {}, result: null, bonus: null, secret: {}, draws: 0, picks: [], profit: 0, paid: 0 }; }
+  function newRound(t) { r = { id: "r" + (++seq), phase: "betting", phase_at: t, deadline: t + (FAST ? 6000 : 10000), bets: new Map(), pockets: {}, result: null, bonus: null, secret: {}, draws: 0, picks: [], profit: 0, paid: 0 }; }
   function step() {
     const t = Date.now(); if (!r) newRound(t);
     for (let k = 0; k < 50 && t >= r.deadline; k++) {
@@ -694,7 +731,7 @@ const FAKE = (() => {
       } else if (r.phase === "intro") Object.assign(r, { phase: "choice", phase_at: d, deadline: d + (r.bonus === "vip" ? 15000 : 10000) });
       else if (r.phase === "choice") {
         const n = r.eligible ? (r.bonus === "vip" ? 3 : 1) : 0; for (const i of shuf(r.bonus === "vip" ? [0, 1, 2, 3, 4] : [0, 1, 2])) { if (r.picks.length >= n) break; if (!r.picks.includes(i)) r.picks.push(i); }
-        if (r.bonus === "vip") { r.profit = r.picks.reduce((s, i) => s + r.secret.values[i], 0); Object.assign(r, { phase: "reveal", phase_at: d, deadline: d + 4000 }); }
+        if (r.bonus === "vip") { r.profit = r.picks.reduce((s, i) => s + r.secret.values[i], 0); Object.assign(r, { phase: "reveal", phase_at: d, deadline: d + 12000 }); }
         else Object.assign(r, { phase: "balls", phase_at: d, deadline: d + 3000 });
       } else if (r.phase === "reveal") Object.assign(r, { phase: "settle", phase_at: d });
       else if (r.phase === "balls") { const n = Math.min(r.secret.deck.length, Math.floor((t - r.phase_at) / 3000));
@@ -705,7 +742,7 @@ const FAKE = (() => {
         for (const [k, a] of r.bets) { const nums = k.split(",").map(Number); if (!nums.includes(r.result)) continue;
           pay += nums.length === 1 ? (pk ? a * (1 + Math.min(10000, r.profit * m)) : a * 20) : Math.floor(a * 36 / nums.length); }
         r.paid = pay; bal += pay; hist.unshift({ n: r.result, b: pk ? pk.t : null }); hist = hist.slice(0, 18);
-        Object.assign(r, { phase: "summary", phase_at: d, deadline: d + 7000 });
+        Object.assign(r, { phase: "summary", phase_at: d, deadline: d + 4000 });
       } else if (r.phase === "summary") newRound(d);
     }
   }
