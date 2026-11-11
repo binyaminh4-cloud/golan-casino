@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="loader.js?v=14"></script>
+<title>רולטת האטרף של בנימין XXX · גולן קזינו</title>
+<link rel="icon" href="img/brand/favicon.png?v=2">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&family=Frank+Ruhl+Libre:wght@500;700&family=Inter:wght@500;700;800&display=swap">
+<link rel="stylesheet" href="rl.css?v=1794413223">
+<link rel="stylesheet" href="aterf.css?v=1794419520">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=8"></script>
+<script src="landscape.js?v=1"></script>
+</head>
+<body class="aterf">
+<header class="top">
+  <a href="./" class="back">→ ללובי</a>
+  <div class="bal">הארנק שלי <b id="bal" class="num">…</b></div>
+  <button id="rulesBtn" class="rules-btn">חוקים ותשלומים</button>
+</header>
+
+<main class="room" id="room">
+  <aside class="side">
+    <section class="wheel-slot" id="wheelSlot"><div id="wheelHost" class="wheelhost"></div></section>
+    <section class="players" id="players" aria-label="שחקנים בסיבוב" hidden></section>
+    <section class="stats" aria-label="תוצאות אחרונות">
+      <div class="stats-h">תוצאות אחרונות</div>
+      <div class="pct" id="pct"></div>
+      <div class="marquee" id="hist"></div>
+    </section>
+  </aside>
+  <section class="board-slot" id="boardSlot">
+    <div class="tools">
+      <div class="seg" role="group" aria-label="תצוגה">
+        <button id="viewTable" aria-pressed="true">שולחן</button><button id="viewRace" aria-pressed="false">מסלול · שכנים</button>
+      </div>
+      <div class="nbr" id="nbrBox" hidden>שכנים <button id="nMinus" aria-label="פחות שכנים">−</button><b id="nVal">2</b><button id="nPlus" aria-label="יותר שכנים">+</button></div>
+      <div class="zoom"><button id="zOut" aria-label="הקטן לוח">−</button><button id="zIn" aria-label="הגדל לוח">+</button></div>
+    </div>
+    <div class="seatrow" id="seatRow" hidden></div>
+    <div class="board-scroll" id="boardScroll"><div class="rail"><div id="board" class="board" aria-label="שולחן ההימורים"></div></div></div>
+  </section>
+</main>
+
+<footer class="controls">
+  <div class="me" id="me" hidden><img id="meImg" alt=""><span class="me-n" id="meName"></span></div>
+  <div class="chips" role="group" aria-label="ערך צ׳יפ" id="chips"></div>
+  <div class="betline"><span class="liveclock" id="liveClock" hidden></span><span>הימור כולל <b id="total" class="num">₪0</b></span><span class="err" id="err" aria-live="polite"></span></div>
+  <div class="btns">
+    <button class="btn ghost" id="undoBtn" title="הסר את ההימור האחרון" aria-label="הסר את ההימור האחרון">⌫ 1</button>
+    <button class="btn ghost" id="eraseBtn" hidden></button>
+    <button class="btn ghost" id="clearBtn" title="הסר את ההימורים שעוד לא נשלחו">🧹 ניקוי</button>
+    <button class="btn ghost" id="dblBtn">הכפל</button>
+    <button class="btn ghost icon" id="rebetBtn" title="אותו הימור" aria-label="אותו הימור">↻</button>
+    <button class="btn spin" id="spinBtn">אשר הימור</button>
+  </div>
+</footer>
+
+<div id="cine" class="cine" hidden>
+  <div class="cine-msg" id="cineMsg"></div>
+  <div class="result" id="resultCard" hidden></div>
+  <aside class="luckylist" id="luckyList" hidden></aside>
+</div>
+
+<section id="bonusBox" class="bonusbox" hidden aria-live="polite" aria-label="הבונוס המשותף"></section>
+
+<div id="enter" class="enter">
+  <div class="ebox">
+    <img src="img/aterf/aterf_poster.webp" alt="">
+    <div class="etxt">
+      <h1>רולטת האטרף של בנימין <span>XXX</span></h1>
+      <p>שולחן חי לכל החברים. מהמרים 15 שניות, ואז בנימין מנופף במקל ומצמיח <b>בונוסים</b> מתוך המספרים.</p>
+      <p>בכל סיבוב: <b>הכדורים של בנימין</b> ועוד <b>2 עד 13 מטרות VIP</b>, ושני בונוסים מקבלים מכפיל עד <b>×20</b>.</p>
+      <p>הכדור נחת על בונוס? מי שהימר על <b>המספר הבודד</b> משחק אותו. כולם צופים. מספר בלי בונוס משלם 19 ל־1. זכייה עד <b>×10,000</b>.</p>
+      <button class="btn spin" id="enterGo" type="button">שבו לשולחן</button>
+      <a href="./" class="eback">חזרה ללובי</a>
+    </div>
+  </div>
+</div>
+
+<dialog id="rules">
+  <h2>רולטת האטרף של בנימין XXX · חוקים ותשלומים</h2>
+  <p>רולטה אירופאית חיה (0 עד 36) לכל החברים על אותו גלגל, עם שעון משלה: 15 שניות להמר, ואז ההימורים ננעלים. הכול נקבע בשרת אחרי הנעילה, והמסך רק מראה את מה שכבר נקבע.</p>
+  <p><b>🪄 הבונוסים:</b> אחרי הנעילה בנימין מצמיח משבצות בונוס מתוך המספרים: תמיד משבצת אחת של <b>הכדורים של בנימין</b>, ועוד <b>2 עד 13</b> משבצות של <b>מטווח VIP</b> (בדרך כלל מעט, לפעמים הרבה). על <b>שתיים</b> מהמשבצות יש מכפיל <b>×2 עד ×20</b>.</p>
+  <p><b>🎯 מטווח VIP:</b> חמש מטרות (×10, ×20, ×25, ×50, ×100), יורים 3 יריות על 3 מטרות שונות תוך 15 שניות. בנימין תמיד שווה ×100.</p>
+  <p><b>🔮 הכדורים של בנימין:</b> בוחרים צבע תוך 10 שניות. כדור בצבע שלכם מקדם את הסולם (×5 עד ×1000), כדור ×2 מקדם פעמיים, והבונוס נגמר בכדור השחור הרביעי. כדור יוצא כל 3 שניות.</p>
+  <p>בחירה שלא נעשתה בזמן נבחרת לבד. כל השולחן צופה בבונוס, גם מי שלא הימר על המספר.</p>
+  <table>
+    <tr><th>הימור</th><th>מכסה</th><th>משלם</th></tr>
+    <tr><td>מספר בודד עם בונוס</td><td class="num">1</td><td class="num">הבונוס × המכפיל</td></tr>
+    <tr><td>מספר בודד בלי בונוס</td><td class="num">1</td><td class="num">19:1</td></tr>
+    <tr><td>ספליט</td><td class="num">2</td><td class="num">17:1</td></tr>
+    <tr><td>שורה / טריו עם אפס</td><td class="num">3</td><td class="num">11:1</td></tr>
+    <tr><td>פינה / ארבעת הראשונים</td><td class="num">4</td><td class="num">8:1</td></tr>
+    <tr><td>שורה כפולה</td><td class="num">6</td><td class="num">5:1</td></tr>
+    <tr><td>תריסר / טור</td><td class="num">12</td><td class="num">2:1</td></tr>
+    <tr><td>אדום/שחור · זוגי/אי־זוגי · 1‑18/19‑36</td><td class="num">18</td><td class="num">1:1</td></tr>
+  </table>
+  <p>הזכייה הגדולה ביותר על הימור: <b>×10,000</b>. הכסף נכנס לארנק כשהסיבוב נגמר. שקלים משחקיים בלבד.</p>
+  <form method="dialog"><button class="btn" style="width:100%;margin-top:12px">סגור</button></form>
+</dialog>
+
+<script type="importmap">{"imports":{"three":"./vendor/three/three.module.min.js"}}</script>
+<script src="sfx.js?v=1794046058"></script>
+<script src="char.js?v=3"></script>
+<script src="guide.js?v=1794419520"></script>
+<script src="rl_wheel.js?v=3"></script>
+<script type="module" src="rl_wheel3d.js?v=1"></script>
+<script src="aterf.js?v=1794419520"></script>
+<script src="chat.js?v=1793909544"></script>
+<script src="voice.js?v=1793913932"></script>
+</body>
+</html>

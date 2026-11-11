@@ -1,0 +1,120 @@
+/* רולטת האטרף של בנימין XXX — on top of rl.css (the roulette table, wheel and chips) */
+
+/* ---------- bonus pockets: the symbol fills the whole cell and hides the number; a multiplier rides on top ---------- */
+.cell.pocket,.rc.pocket{z-index:2;box-shadow:inset 0 0 0 2px #ffe9a8,0 0 12px 2px rgba(255,214,110,.75);background:radial-gradient(closest-side,rgba(60,30,10,.85),rgba(20,10,4,.92))}
+.cell.pocket.pk-balls,.rc.pocket.pk-balls{box-shadow:inset 0 0 0 2px #d9b8ff,0 0 14px 3px rgba(170,110,255,.8)}
+.cell.pocket>span,.rc.pocket>span{visibility:hidden}
+.cell .pk,.rc .pk{position:absolute;inset:6%;width:88%;height:88%;object-fit:contain;pointer-events:none;filter:drop-shadow(0 2px 4px rgba(0,0,0,.7))}
+.cell.grow .pk,.rc.grow .pk{animation:pkgrow .55s cubic-bezier(.25,1.7,.45,1) both}
+@keyframes pkgrow{0%{transform:scale(0) rotate(-40deg);opacity:0;filter:brightness(3) drop-shadow(0 0 12px #fff2b0)}60%{opacity:1}100%{transform:none;filter:drop-shadow(0 2px 4px rgba(0,0,0,.7))}}
+.cell.grow::after,.rc.grow::after{content:"";position:absolute;inset:-30%;border-radius:50%;pointer-events:none;background:radial-gradient(closest-side,rgba(255,240,180,.9),rgba(255,200,80,.35) 45%,transparent);animation:pkburst .6s ease-out forwards}
+@keyframes pkburst{from{transform:scale(.2);opacity:1}to{transform:scale(1.3);opacity:0}}
+.pm{position:absolute;top:-2px;left:50%;transform:translate(-50%,-48%);z-index:4;font:900 calc(var(--u)*.26) Inter,sans-serif;font-style:normal;color:#1a0d00;white-space:nowrap;pointer-events:none;
+ background:linear-gradient(180deg,#fff6c9,#f2b84c);border:1px solid #fff;border-radius:99px;padding:0 6px;box-shadow:0 0 10px rgba(255,200,80,.95)}
+.pm.big{background:linear-gradient(180deg,#ffe0f0,#ff4fa3);color:#fff;text-shadow:0 1px 2px #6b0035;box-shadow:0 0 14px rgba(255,80,170,1)}
+.pm.slam{animation:pmslam .5s cubic-bezier(.2,1.8,.4,1)}
+@keyframes pmslam{0%{transform:translate(-50%,-48%) scale(3);opacity:0}100%{transform:translate(-50%,-48%) scale(1);opacity:1}}
+.cell.hitpk,.rc.hitpk{animation:hitpk 1s ease-in-out infinite alternate}
+@keyframes hitpk{to{box-shadow:inset 0 0 0 3px #fff,0 0 26px 8px rgba(255,226,120,1)}}
+.marquee .mrow.pkv{box-shadow:0 0 0 2px #ffcf6e inset}.marquee .mrow.pkb{box-shadow:0 0 0 2px #c79bff inset}
+
+/* ---------- Binyamin the mad scientist ---------- */
+.host{position:fixed;z-index:31;right:max(4px,env(safe-area-inset-right));bottom:0;height:min(74vh,540px);width:auto;pointer-events:none;
+ transform:translateX(120%);opacity:0;transition:transform .45s cubic-bezier(.2,1.2,.4,1),opacity .3s;filter:drop-shadow(0 8px 18px rgba(0,0,0,.7))}
+.host.in{transform:none;opacity:1}
+.spk{position:fixed;z-index:32;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;pointer-events:none;
+ background:radial-gradient(closest-side,#fffbe6,#ffd560 45%,rgba(255,180,40,0));box-shadow:0 0 18px 6px rgba(255,214,110,.8);transition:transform .32s cubic-bezier(.4,.1,.6,1),opacity .32s}
+
+/* ---------- result card ---------- */
+.result .rbolt{display:flex!important;align-items:center;justify-content:center;gap:8px}.result .rbolt img{width:34px;height:34px;object-fit:contain}
+.saypill{position:fixed;z-index:60;left:50%;top:16%;transform:translate(-50%,-10px);opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;
+ background:rgba(11,9,8,.88);border:1px solid #C5A05A;border-radius:99px;padding:8px 22px;color:#ffe27a;font:800 20px Heebo,sans-serif;white-space:nowrap}
+.saypill.show{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- the shared bonus (landscape stage over the room) ---------- */
+.bonusbox{position:fixed;inset:0;z-index:45;display:flex;flex-direction:column;align-items:center;overflow:hidden;color:#fff0cf;direction:rtl;
+ background:#0b0705 url(img/roulette/room_bg.jpg) center/cover;padding:max(6px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) 6px max(10px,env(safe-area-inset-left))}
+.bonusbox::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(40,24,8,.55),rgba(5,3,2,.92));pointer-events:none}
+.bonusbox[hidden]{display:none}
+.bonusbox>*{position:relative;z-index:1}
+.vip-scene{background-image:url(img/zlm/range-background.webp)}
+.balls-scene{background-image:url(img/zlm/balls-stage_background.webp)}
+.bxh{display:flex;align-items:center;gap:10px;margin-top:2px}.bxh img{width:42px;height:42px;object-fit:contain}
+.bxh h2{margin:0;font:900 clamp(20px,4.2vh,34px) 'Frank Ruhl Libre',Heebo,serif;color:#ffe3a0;text-shadow:0 2px 6px #000}.bxh h2 span{font:800 .7em Inter,sans-serif;color:#f5e6c6;margin-inline-start:6px}
+.bmult{font:900 clamp(18px,4vh,30px) Inter,sans-serif;color:#1a0d00;background:linear-gradient(180deg,#fff6c9,#f2b84c);border-radius:99px;padding:0 12px;box-shadow:0 0 16px rgba(255,200,80,.9)}
+.binfo{margin:4px 0 2px;background:rgba(11,8,6,.82);border:1px solid #80602E;border-radius:99px;padding:4px 16px;font:700 clamp(12px,2.6vh,16px) Heebo,sans-serif}
+.btotal{margin-top:auto;margin-bottom:6px;background:rgba(11,8,6,.9);border:2px solid #d9b56f;border-radius:16px;padding:6px 22px;font:800 clamp(16px,3.4vh,24px) Heebo,sans-serif;box-shadow:0 0 30px rgba(217,181,111,.55);animation:btin .45s cubic-bezier(.2,1.5,.4,1)}
+.btotal b{font:900 1.35em Inter,sans-serif;color:#fff;text-shadow:0 0 16px #ffd46e}.btotal small{font:700 .7em Inter,sans-serif;color:#d9c49a}
+@keyframes btin{from{transform:scale(.6);opacity:0}}
+.bintro{flex:1;display:flex;align-items:center;justify-content:center;gap:4vw}
+.bintro img{height:min(68vh,460px);filter:drop-shadow(0 10px 22px #000);animation:bihost .6s cubic-bezier(.2,1.4,.4,1)}
+.bintro .bt{font:900 clamp(48px,16vh,120px) 'Frank Ruhl Libre',Heebo,serif;color:#ffe27a;text-shadow:0 0 30px rgba(255,200,80,.9),0 4px 0 #6b4e1e;animation:bibt .7s cubic-bezier(.2,1.8,.4,1)}
+@keyframes bihost{from{transform:translateX(-60%);opacity:0}}@keyframes bibt{from{transform:scale(2.4);opacity:0}}
+
+/* VIP range: five targets in a row */
+.targets{flex:1;min-height:0;display:flex;align-items:flex-end;justify-content:center;gap:1.4vw;width:min(100%,1100px);padding:4px 0}
+.target{position:relative;height:min(100%,62vh,calc((100vw - 90px) / 5 * 1.5));aspect-ratio:734/1100;flex:none;background:none;border:0;padding:0;overflow:visible;cursor:pointer}
+.target img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center bottom;pointer-events:none}
+.target .cover{z-index:4;transform-origin:bottom center}
+.target.selected .cover{filter:drop-shadow(0 0 6px #fff2a5) drop-shadow(0 0 10px gold)}
+.target.open .cover{animation:cover-fall .7s ease-in forwards}
+.target .person{z-index:1}
+.target .prize{position:absolute;bottom:16%;left:8%;width:84%;padding:8% 0;background:url(img/zlm/range-wood_sign_blank.webp) center/100% 100%;font:900 clamp(15px,3.6vh,26px) Inter,sans-serif;color:#fff6bd;z-index:2;text-align:center}
+.target.selected:not(.open)::before{content:"🎯";position:absolute;top:-6%;left:50%;transform:translateX(-50%);z-index:6;font-size:clamp(20px,4vh,32px)}
+.target.hit::after{content:'✦';position:absolute;top:28%;left:38%;z-index:6;font-size:44px;color:#fff1ac;text-shadow:0 0 12px gold}
+.target:not(.selected).open{opacity:.55}
+.target:disabled{cursor:default;opacity:1}.target.open:not(.selected):disabled{opacity:.55}
+.ph-choice .target:not(:disabled):hover .cover{filter:drop-shadow(0 0 5px #fff)}
+@keyframes cover-fall{to{transform:perspective(300px) rotateX(88deg) translateY(60%);opacity:0}}
+
+/* balls: cards on top, drum and host under them (landscape) */
+.bx{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1.1fr;grid-template-rows:auto 1fr;gap:6px 14px;width:min(100%,1000px);padding:4px 0}
+.bx-blacks{grid-column:1/-1;display:flex;justify-content:center;align-items:center;gap:10px;font:700 13px Heebo,sans-serif;color:#c9bba6}
+.bx-blacks i{width:clamp(20px,5vh,32px);aspect-ratio:1;border-radius:50%;border:2px solid #d9b56f88;background:#120d0a;box-shadow:inset 0 2px 6px #000}
+.bx-blacks i.lit{background:radial-gradient(circle at 35% 30%,#666,#000 60%);border-color:#e56b6f;box-shadow:0 0 10px #e56b6f}
+.bx-cards{display:flex;flex-direction:column;gap:6px;justify-content:center}
+.bx-card{position:relative;border-radius:12px;padding:4px 10px 6px;text-align:center;background:#120d0ae6;border:1px solid #ffffff22;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2px 10px}
+.bx-card.sel{border:2px solid #ffe2a2;box-shadow:0 0 14px #ffe2a288}
+.bx-card>small:first-child{font:700 13px Heebo,sans-serif}.bx-card>b{font:800 clamp(18px,4.4vh,28px) Inter,sans-serif;min-width:3.5em}
+.bx-bar{grid-column:1/-1;display:flex;gap:2px;direction:ltr}.bx-bar i{flex:1;height:6px;border-radius:2px;background:#ffffff1a}
+.bx-card .bx-max{font:700 10px Inter,sans-serif;color:#d9b56f;opacity:.85}
+.bx-mine{position:absolute;top:-8px;inset-inline-start:10px;font:800 10px Heebo,sans-serif;color:#1b0f06;background:#ffe2a2;border-radius:99px;padding:0 7px}
+.g>small,.g>b{color:#7fe08a}.g .bx-bar i.on{background:#3fb64f}.p>small,.p>b{color:#c79bff}.p .bx-bar i.on{background:#9b5de5}.o>small,.o>b{color:#ffb35c}.o .bx-bar i.on{background:#f08a24}
+.bx-stage{position:relative;min-height:0}
+.bx-drum{position:absolute;left:0;top:0;width:58%;height:78%}
+.bx-glass{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2;opacity:.92}
+.bx-swirl{position:absolute;left:20%;top:18%;width:60%;height:58%;border-radius:40%;overflow:hidden;z-index:1}
+.bx-swirl img{position:absolute;width:15%;left:50%;top:50%;translate:-50% -50%;filter:blur(.5px);animation:bxorb 2s linear infinite;animation-play-state:paused}
+.bx-swirl.on img{animation-play-state:running}
+@keyframes bxorb{from{transform:rotate(0) translateX(var(--r)) rotate(0)}to{transform:rotate(360deg) translateX(var(--r)) rotate(-360deg)}}
+.bx-host{position:absolute;right:-4%;bottom:0;height:100%;z-index:3;object-fit:contain}
+.bx-next{position:absolute;left:14%;bottom:0;width:34%;text-align:center;z-index:4}
+.bx-hole{width:clamp(64px,17vh,110px);aspect-ratio:1;margin:0 auto;border-radius:50%;background:radial-gradient(#3a281c,#120d0a);border:3px solid #d9b56f;box-shadow:0 0 24px #d9b56f99,inset 0 4px 12px #000;display:grid;place-items:center;position:relative}
+.bx-hole.black{border-color:#e56b6f;box-shadow:0 0 24px #e56b6f99,inset 0 4px 12px #000}
+.bx-hole img{width:76%;height:76%;object-fit:contain}.bx-hole img.pop{animation:bxpop .6s cubic-bezier(.3,1.6,.5,1)}@keyframes bxpop{from{transform:scale(.2) translateY(-80%)}}
+.bx-hole b{position:absolute;top:-6px;left:-6px;background:#e56b6f;color:#fff;border-radius:99px;padding:2px 7px;font:800 14px Inter,sans-serif}
+.bx-next small{display:block;margin-top:4px;font:700 12px Heebo,sans-serif;color:#c9bba6;background:rgba(11,8,6,.7);border-radius:99px}
+.ball-picker{position:absolute;inset:0;z-index:20;display:grid;place-items:center;padding:12px;background:#080503b8}
+.ball-picker-panel{width:min(100%,460px);border:1px solid #d1a95c;border-radius:18px;background:linear-gradient(#382718,#120c08);box-shadow:0 10px 35px #000d;padding:14px 10px;text-align:center}
+.ball-picker-panel h3{margin:0 0 10px;color:#ffe3a0;font:800 clamp(17px,4vh,22px) Heebo,sans-serif}
+.ball-choices{display:flex;justify-content:center;gap:8px}
+.ball-choice{display:grid;justify-items:center;gap:4px;width:30%;padding:6px 3px;background:#140d08;border:1px solid #95703a;border-radius:12px;color:#ffe2a2;font:700 14px Heebo,sans-serif;cursor:pointer}
+.ball-choice img{width:100%;max-width:min(88px,18vh);aspect-ratio:1;object-fit:contain}
+
+/* ---------- entrance card ---------- */
+.enter{position:fixed;inset:0;z-index:9000;display:grid;place-items:center;padding:12px;background:rgba(5,3,2,.9)}
+.enter[hidden]{display:none}
+.ebox{display:flex;align-items:stretch;width:min(920px,96vw);max-height:92vh;border:2px solid #C5A05A;border-radius:20px;overflow:hidden;background:#120c08;box-shadow:0 0 50px rgba(255,214,110,.35)}
+.ebox>img{width:44%;object-fit:cover;object-position:30% 30%;min-width:0}
+.etxt{flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;padding:clamp(12px,3vh,26px);direction:rtl;overflow:auto}
+.etxt h1{margin:0;font:900 clamp(22px,5vh,36px) 'Frank Ruhl Libre',Heebo,serif;color:#ffe27a;line-height:1.1}.etxt h1 span{color:#ff5aa8;font-family:Inter,sans-serif}
+.etxt p{margin:0;font:500 clamp(12px,2.6vh,16px)/1.45 Heebo,sans-serif;color:#efe3c6}.etxt b{color:#ffe2a2}
+.etxt .btn{margin-top:6px;height:48px;font-size:20px}
+.eback{color:#d9c49a;text-align:center;font:600 14px Heebo,sans-serif}
+@media (prefers-reduced-motion:reduce){.cell.grow .pk,.pm.slam,.bintro img,.bintro .bt,.cell.hitpk{animation:none}}
+
+/* pockets sit above the chips (the chips are still counted in the bet line) */
+.chiplayer{z-index:1}.cell.pocket,.rc.pocket{z-index:3}
+/* narrow phones: the friends button shows only its eye so the whole footer fits */
+@media (max-width:800px){#eyeBtn{width:40px;min-width:0;padding:0;overflow:hidden;white-space:nowrap;text-align:center;text-indent:0}footer.controls .btns{gap:4px}}
+@media (max-width:700px){footer.controls .btns .btn{padding-inline:7px;min-width:0}}
