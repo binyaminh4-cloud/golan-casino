@@ -1,6 +1,6 @@
 /* Golan Casino · Blackjack 3D (one player and Ms Fisher).
    Same table, chips and dealer as Roulette 3D; the rules and money are the classic solo blackjack on the server
-   (bj_deal / bj_action / bj_current, mode "classic", main bet only). ?preview plays locally with no money. */
+   (bj_deal / bj_action / bj_current, mode "classic", with side bets). ?preview plays locally with no money. */
 import * as THREE from "three";
 
 const $ = (id) => document.getElementById(id);
@@ -14,7 +14,12 @@ const preload = (name) => { try { SFX.fx("r3d/" + name + "_v2", { vol: 0 }); } c
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const H = 0.9, FW = 2.4, FD = 1.1, FR = 0.5;            // a blackjack table: rounded on the player's side
-const BET = { x: 0, z: 0.17 };                           // the betting circle in front of the player
+const BET = { x: 0, z: 0.17 };
+// side bets, as in the app's blackjack (each up to the main bet): Perfect Pairs, 21+3, Lucky Ladies, Buster
+const SIDES = [{ k: "pp", t: "PERFECT", t2: "PAIRS", x: -0.4, z: 0.12 }, { k: "t3", t: "21+3", t2: "", x: -0.21, z: 0.22 },
+  { k: "ll", t: "LUCKY", t2: "LADIES", x: 0.21, z: 0.22 }, { k: "bust", t: "BUSTER", t2: "BLACKJACK", x: 0.4, z: 0.12 }];
+const SPOT = { main: BET, ...Object.fromEntries(SIDES.map((x) => [x.k, x])) };
+const SIDE_NAME = { pp: "זוג מושלם", t3: "21+3", ll: "ליידיז מזל", bust: "באסטר" };                           // the betting circle in front of the player
 const CHIPS = [
   { v: 100, c: "white", side: "#d9d6cc" }, { v: 1000, c: "red", side: "#8e1414" }, { v: 10000, c: "blue", side: "#1b2f86" },
   { v: 100000, c: "green", side: "#145f2a" }, { v: 1000000, c: "black", side: "#151515" }, { v: 10000000, c: "purple", side: "#4c1d6b" }];
@@ -79,9 +84,13 @@ function drawFelt(cloth) {
   const [bx, by] = P(BET.x, BET.z);
   g.strokeStyle = cream; g.lineWidth = 6; g.beginPath(); g.arc(bx, by, 0.075 * PX, 0, Math.PI * 2); g.stroke();
   g.strokeStyle = gold; g.lineWidth = 3; g.beginPath(); g.arc(bx, by, 0.088 * PX, 0, Math.PI * 2); g.stroke();
+  for (const sd of SIDES) {
+    const [x, y] = P(sd.x, sd.z); g.strokeStyle = gold; g.lineWidth = 4; g.beginPath(); g.arc(x, y, 0.05 * PX, 0, Math.PI * 2); g.stroke();
+    g.fillStyle = cream; g.textAlign = "center"; g.textBaseline = "middle"; g.font = `800 ${sd.t2 ? 20 : 28}px Inter, sans-serif`;
+    if (sd.t2) { g.fillText(sd.t, x, y - 12); g.fillText(sd.t2, x, y + 12); } else g.fillText(sd.t, x, y);
+  }
   feltTex.needsUpdate = true;
 }
-
 drawFelt(null);
 { const im = new Image(); im.onload = () => { const c = document.createElement("canvas"); c.width = 512; c.height = 192; c.getContext("2d").drawImage(im, 0, 0, 512, 192); drawFelt(c); }; im.src = "img/r3d/felt.jpg?v=1"; }
 const feltGeo = new THREE.ShapeGeometry(rrectShape(FW, FD, FR), 24);
@@ -207,20 +216,25 @@ async function flip(c, code) {
 }
 
 // ---------- bet ----------
-let bet = 0, lastBet = 0, chipVal = CHIPS[1].v, balance = 0, busy = false, st = null;
-let betStack = null;
-function drawBet(amount, at = BET) {
-  if (betStack) { scene.remove(betStack); betStack = null; }
+let bets = { main: 0, pp: 0, t3: 0, ll: 0, bust: 0 }, lastBets = null, chipVal = CHIPS[1].v, balance = 0, busy = false, st = null;
+const stacks = {};
+function drawBet(k, amount) {
+  if (stacks[k]) { scene.remove(stacks[k]); delete stacks[k]; }
   if (!amount) return;
   const g = new THREE.Group(); let a = amount, i = 0;
   for (const c of [...CHIPS].reverse()) while (a >= c.v && i < 14) { const m = chipMesh(c.v); m.position.set(0, CHIP_T / 2 + i * CHIP_T, 0); m.rotation.y = i * 0.7; g.add(m); a -= c.v; i++; }
-  g.position.set(at.x, H, at.z); scene.add(g); betStack = g;
+  g.position.set(SPOT[k].x, H, SPOT[k].z); scene.add(g); stacks[k] = g;
 }
-const totalBet = () => bet;
-const areaCenter = () => new THREE.Vector3(BET.x, H, BET.z);
-function place(key, amt) { if (busy || st) return; bet += amt; drawBet(bet); sfx(() => SFX.chip()); showBar(); }
+const drawAll = () => { for (const k in bets) drawBet(k, bets[k]); };
+const totalBet = () => Object.values(bets).reduce((a, b) => a + b, 0);
+const areaCenter = (a) => new THREE.Vector3(SPOT[a.key].x, H, SPOT[a.key].z);
+function place(key, amt) {
+  if (busy || st) return;
+  if (key !== "main" && bets[key] + amt > bets.main) { say(bets.main ? "הימור צד עד גובה ההימור הראשי" : "קודם הימור בעיגול הגדול"); return; }
+  bets[key] += amt; drawBet(key, bets[key]); sfx(() => SFX.chip()); showBar();
+}
 function showBar() {
-  $("total").textContent = fmt(bet); $("deal").disabled = busy || !bet; $("clear").disabled = busy || !bet; $("repeat").disabled = busy || !lastBet || bet > 0;
+  const t = totalBet(); $("total").textContent = fmt(t); $("deal").disabled = busy || !bets.main; $("clear").disabled = busy || !t; $("repeat").disabled = busy || !lastBets || t > 0;
 }
 let sayT = 0;
 function say(t, ms = 2200) { const s = $("say"); s.textContent = t; s.classList.add("on"); clearTimeout(sayT); sayT = setTimeout(() => s.classList.remove("on"), ms); }
@@ -255,7 +269,7 @@ canvas.addEventListener("pointerdown", (e) => {
   const r = canvas.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
   ray.setFromCamera(ndc, camera); const hit = new THREE.Vector3();
   if (!ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), -H), hit)) return;
-  if (Math.hypot(hit.x - BET.x, hit.z - BET.z) < 0.16) reach({ key: "main" });
+  for (const [k, p] of Object.entries(SPOT)) if (Math.hypot(hit.x - p.x, hit.z - p.z) < (k === "main" ? 0.12 : 0.07)) { reach({ key: k }); break; }
 });
 CHIPS.forEach((c) => {
   const b = document.createElement("button"); b.type = "button"; b.className = "chip" + (c.v === chipVal ? " on" : ""); b.style.backgroundImage = `url(img/r3d/chip_${c.c}.png?v=1)`;
@@ -263,8 +277,8 @@ CHIPS.forEach((c) => {
   b.onclick = () => { chipVal = c.v; document.querySelectorAll(".chip").forEach((x) => x.classList.toggle("on", x === b)); sfx(() => SFX.chip()); };
   $("chips").appendChild(b);
 });
-$("clear").onclick = () => { bet = 0; drawBet(0); showBar(); };
-$("repeat").onclick = () => { if (lastBet && lastBet <= balance) { bet = lastBet; drawBet(bet); showBar(); } };
+$("clear").onclick = () => { for (const k in bets) bets[k] = 0; drawAll(); showBar(); };
+$("repeat").onclick = () => { if (!lastBets) return; const t = Object.values(lastBets).reduce((a, b) => a + b, 0); if (t > balance) { say("אין מספיק שקלים"); return; } bets = { ...lastBets }; drawAll(); showBar(); };
 
 // ---------- totals above the cards (HTML labels that follow the 3D points) ----------
 const labels = [];
@@ -274,11 +288,11 @@ function placeLabels() { for (const l of labels) { const p = l.pos.clone().proje
 
 // ---------- server (or the local preview engine) ----------
 function newRef() { return crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(); }
-function errText(e) { const m = (e && e.message) || ""; return /insufficient/.test(m) ? "אין מספיק שקלים." : /invalid_amount|max/.test(m) ? "הסכום מעל המקסימום שלך." : "תקלה בחיבור. נסו שוב."; }
+function errText(e) { const m = (e && e.message) || ""; return /insufficient/.test(m) ? "אין מספיק שקלים." : /invalid_side/.test(m) ? "הימור צד עד גובה ההימור הראשי." : /invalid_amount|max/.test(m) ? "הסכום מעל המקסימום שלך." : "תקלה בחיבור. נסו שוב."; }
 const P = PREVIEW ? previewEngine() : null;
-async function srvDeal(amount) {
-  if (P) return P.deal(amount);
-  const { data, error } = await db.rpc("bj_deal", { p_main: amount, p_pp: 0, p_t3: 0, p_ll: 0, p_bust: 0, p_ref: newRef(), p_mode: "classic", p_run: null });
+async function srvDeal(b) {
+  if (P) return P.deal(b);
+  const { data, error } = await db.rpc("bj_deal", { p_main: b.main, p_pp: b.pp, p_t3: b.t3, p_ll: b.ll, p_bust: b.bust, p_ref: newRef(), p_mode: "classic", p_run: null });
   if (error) throw error; return data;
 }
 async function srvAct(a) { if (P) return P.act(a); const { data, error } = await db.rpc("bj_action", { p_round: st.id, p_action: a }); if (error) throw error; return data; }
@@ -303,7 +317,7 @@ async function render(next) {
   }
   for (let h = 0; h < n; h++) for (let c = 0; c < (pCards[h] || []).length; c++) await fly(pCards[h][c], pPos(h, c, n), 220, { lift: 0.01 });
   for (let h = 0; h < n; h++) { pCards[h] ||= []; for (let c = pCards[h].length; c < next.hands[h].cards.length; c++) pCards[h].push(await dealTo(next.hands[h].cards[c], pPos(h, c, n))); }
-  if (n > 1 && betStack) drawBet(0);
+  if (n > 1) drawBet("main", 0);
   if (dCards[1] && !dCards[1].userData.code && next.dealer[1] !== "??") { await wait(300); await flip(dCards[1], next.dealer[1]); await wait(250); }
   for (let c = dCards.length; c < next.dealer.length; c++) { dCards.push(await dealTo(next.dealer[c], dPos(c))); await wait(250); }
   clearLabels();
@@ -327,14 +341,16 @@ async function finish(r) {
   else if (outs.every((o) => o === "push")) voice("push");
   else if (outs.every((o) => o === "bust")) voice("bust");
   else if (net < 0) voice("dealerwins");
-  const el = $("result"); el.innerHTML = net > 0 ? `<div class="w">ניצחת ${fmt(net)}</div>` : net < 0 ? `<div class="l">הפסדת ${fmt(-net)}</div>` : `<div class="l">תיקו</div>`;
+  const sides = Object.entries(r.result.side || {}).filter(([k, v]) => SIDE_NAME[k] && v && v !== 0).map(([k, v]) => `${SIDE_NAME[k]}${typeof v === "number" ? " " + v + ":1" : ""}`);
+  const el = $("result"); el.innerHTML = (net > 0 ? `<div class="w">ניצחת ${fmt(net)}</div>` : net < 0 ? `<div class="l">הפסדת ${fmt(-net)}</div>` : `<div class="l">תיקו</div>`)
+    + (sides.length ? `<div class="l">זכייה בצד: ${sides.join(" · ")}</div>` : "");
   el.hidden = false; if (net > 0) sfx(() => SFX.win(net >= Number(r.staked) * 2));
   if (net > 0 && net >= Number(r.staked) * 20) setTimeout(() => sfx(() => GC_BONUS("🃏 זכייה גדולה!", net, "")), 300);
   await wait(2600);
   el.hidden = true; clearLabels();
   for (const c of [...pCards.flat(), ...dCards]) { const to = new THREE.Vector3(-0.6, H + 0.05, -0.45); fly(c, to, 420).then(() => scene.remove(c)); }
-  pCards = []; dCards = []; drawBet(0); await wait(450);
-  lastBet = Number(r.main_bet) || lastBet; bet = 0; st = null; showBar(); voice("bets");
+  pCards = []; dCards = []; for (const k in bets) bets[k] = 0; drawAll(); await wait(450);
+  st = null; showBar(); voice("bets");
 }
 function showActs() {
   const playing = st && st.status !== "done";
@@ -343,16 +359,17 @@ function showActs() {
   showBar();
 }
 $("deal").onclick = async () => {
-  if (busy || !bet) return;
-  if (bet > balance) { say("אין מספיק שקלים"); return; }
+  if (busy || !bets.main) return;
+  if (totalBet() > balance) { say("אין מספיק שקלים"); return; }
   busy = true; showActs(); let d;
-  try { d = await srvDeal(bet); } catch (e) { busy = false; showActs(); say(errText(e), 3000); return; }
-  lastBet = bet; showBal(Number(d.balance)); await render(d);
+  try { d = await srvDeal(bets); } catch (e) { busy = false; showActs(); say(errText(e), 3000); return; }
+  lastBets = { ...bets }; showBal(Number(d.balance));
+  await render(d);
 };
 document.querySelectorAll("#acts .a").forEach((b) => b.onclick = async () => {
   if (busy || !st) return; busy = true; showActs(); let d;
   try { d = await srvAct(b.dataset.a); } catch (e) { busy = false; showActs(); say(errText(e), 3000); return; }
-  if (b.dataset.a === "double" && betStack) drawBet(bet * 2);
+  if (b.dataset.a === "double" && st && st.hands.length === 1) drawBet("main", bets.main * 2);
   await render(d);
 });
 
@@ -378,7 +395,7 @@ function previewEngine() {
   };
   const next = () => { while (r.active < r.hands.length && (tot(r.hands[r.active].cards) >= 21 || r.hands[r.active].done)) r.active++; if (r.active >= r.hands.length) settle(); };
   return {
-    deal(b) { balance -= b; r = { id: 1, status: "playing", hands: [{ cards: [draw(), draw()], bet: b }], dealer: [draw(), draw()], active: 0, staked: b, main_bet: b };
+    deal(bs) { const b = bs.main, side = bs.pp + bs.t3 + bs.ll + bs.bust; balance -= b + side; r = { id: 1, status: "playing", hands: [{ cards: [draw(), draw()], bet: b }], dealer: [draw(), draw()], active: 0, staked: b + side, main_bet: b };
       if (/force=bj/.test(location.search)) r.hands[0].cards = ["AS", "KH"];
       if (tot(r.hands[0].cards) === 21 || tot(r.dealer) === 21) settle(); return view(); },
     act(a) { const h = r.hands[r.active];
@@ -419,7 +436,7 @@ function frame(now) {
   $("enterGo").onclick = async () => {
     $("enter").hidden = true; dealerPlay("idle"); vThrow.load(); preload("bets"); setTimeout(() => voice("bets"), 900);
     ["blackjack", "dealerbust", "youwin", "dealerwins", "push", "insurance", "bust"].forEach(preload);
-    if (!PREVIEW) { const { data } = await db.rpc("bj_current"); if (data && data.status !== "done" && !data.table) { bet = Number(data.main_bet); drawBet(bet); await render(data); } }
+    if (!PREVIEW) { const { data } = await db.rpc("bj_current"); if (data && data.status !== "done" && !data.table) { bets.main = Number(data.main_bet); drawAll(); await render(data); } }
   };
   if (/[?&]go\b/.test(location.search)) $("enterGo").click();
 })();
