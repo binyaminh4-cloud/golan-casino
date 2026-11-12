@@ -89,7 +89,7 @@ function drawFelt(cloth) {
     if (a.fill) { g.fillStyle = ink[a.fill]; g.fillRect(x + 5, y + 5, w - 10, d - 10); }
     g.strokeStyle = "rgba(236,226,196,.92)"; g.lineWidth = 5; g.strokeRect(x, y, w, d);
     if (a.label === "RED" || a.label === "BLACK") continue;
-    const num = /^\d+$/.test(a.label), sz = num ? d * 0.5 : a.label === "2 to 1" ? d * 0.2 : d * 0.32;
+    const num = /^\d+$/.test(a.label), sz = num ? CH * PX * 0.5 : a.label === "2 to 1" ? d * 0.2 : d * 0.32;
     g.save(); g.translate(x + w / 2, y + d / 2); 
     g.fillStyle = "#f3ead2"; g.font = `${num ? 800 : 700} ${sz}px Inter, Heebo, sans-serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(a.label, 0, 2); g.restore();
   }
