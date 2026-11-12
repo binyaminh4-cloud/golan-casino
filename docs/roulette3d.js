@@ -8,7 +8,7 @@ import * as THREE from "three";
 const $ = (id) => document.getElementById(id);
 const PREVIEW = /[?#&]preview/.test(location.href);
 const LIVE = /[?&]live\b/.test(location.search);
-const LMODE = /[?&]mode=lightning/.test(location.search) ? "lightning" : "classic";   // lightning: lucky numbers with multipliers (server-drawn)   // live: the shared classic roulette (rl_live_*), friends beside you
+const LMODE = /[?&]mode=xxx/.test(location.search) ? "xxx" : /[?&]mode=lightning/.test(location.search) ? "lightning" : "classic";   // lightning: lucky numbers with multipliers (server-drawn)   // live: the shared classic roulette (rl_live_*), friends beside you
 const R = window.RLW;
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 const fmt = (n) => { n = Math.floor(Number(n) + 1e-6); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
@@ -430,7 +430,7 @@ async function liveFetch() {
       animRound = data.round;
       const total = [...sent.values()].reduce((a, b) => a + b, 0);
       for (const k of [...bets.keys()]) if (!sent.has(k)) { bets.delete(k); drawStack(k); }      // chips never sent don't play
-      if (srvNow() < data.close + 9000) (LMODE === "lightning" && data.lucky ? strike(data.lucky).then(() => wait(900)) : Promise.resolve()).then(() => playRound({ result: data.result, total, payout: Number(data.payout || 0), balance: Number(data.balance) }));
+      if (srvNow() < data.close + 9000) (LMODE !== "classic" && data.lucky ? strike(data.lucky).then(() => wait(900)) : Promise.resolve()).then(() => playRound({ result: data.result, total, payout: Number(data.payout || 0), balance: Number(data.balance) }));
     }
   } catch (e) { console.error(e); }
   fetching = false;
@@ -516,6 +516,6 @@ function frame(now) {
   showTotal();
   try { GC_LOADER.done(); } catch (e) {}
   $("enterGo").onclick = () => { preload("nomore"); $("enter").hidden = true; dealerPlay("idle"); preload("bets"); setTimeout(() => voice("bets"), 900); vThrow.load(); };
-  if (LIVE) { const t = LMODE === "lightning" ? "רולטת ברקים 3D לייב" : "רולטה 3D לייב"; document.querySelector(".top h1").textContent = t; document.title = t + " · גולן קזינו"; }
+  if (LIVE) { const t = LMODE === "xxx" ? "רולטת XXX 3D לייב" : LMODE === "lightning" ? "רולטת ברקים 3D לייב" : "רולטה 3D לייב"; document.querySelector(".top h1").textContent = t; document.title = t + " · גולן קזינו"; }
   if (/[?&]go\b/.test(location.search)) $("enterGo").click();
 })();
