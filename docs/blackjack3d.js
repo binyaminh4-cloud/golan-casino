@@ -32,7 +32,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.A
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0b0908);
 const camera = new THREE.PerspectiveCamera(56, 16 / 9, 0.05, 30);
-const EYE = new THREE.Vector3(0, 1.45, 0.78), LOOK_BET = new THREE.Vector3(0, 0.86, -0.08), LOOK_DEALER = new THREE.Vector3(0, 1.05, -1.0);
+const EYE = new THREE.Vector3(0, 1.45, 0.78), LOOK_BET = new THREE.Vector3(0, 0.86, -0.08), LOOK_DEALER = new THREE.Vector3(0, 1.28, -1.0);
 const LOOK = LOOK_BET.clone(); let lookTo = LOOK_BET;
 camera.position.copy(EYE); camera.lookAt(LOOK);
 
@@ -128,12 +128,15 @@ const vIdle = $("dealerIdle"), vThrow = $("dealerThrow");
 const vtIdle = new THREE.VideoTexture(vIdle), vtThrow = new THREE.VideoTexture(vThrow);
 [vtIdle, vtThrow].forEach((t) => { t.colorSpace = THREE.SRGBColorSpace; });
 const mask = document.createElement("canvas"); mask.width = mask.height = 256;
-{ const g = mask.getContext("2d"), gr = g.createRadialGradient(128, 118, 30, 128, 128, 150); gr.addColorStop(0, "#fff"); gr.addColorStop(0.62, "#fff"); gr.addColorStop(1, "#000");
-  g.fillStyle = gr; g.fillRect(0, 0, 256, 256); const lin = g.createLinearGradient(0, 0, 0, 256); lin.addColorStop(0.8, "rgba(0,0,0,0)"); g.fillStyle = lin; }
+{ // fade only the outer edges of the video, so her arms stay visible when she reaches to the side
+  const g = mask.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, 256, 256);
+  const lx = g.createLinearGradient(0, 0, 256, 0); lx.addColorStop(0, "#000"); lx.addColorStop(0.06, "#fff"); lx.addColorStop(0.94, "#fff"); lx.addColorStop(1, "#000");
+  g.globalCompositeOperation = "multiply"; g.fillStyle = lx; g.fillRect(0, 0, 256, 256);
+  const ly = g.createLinearGradient(0, 0, 0, 256); ly.addColorStop(0, "#000"); ly.addColorStop(0.08, "#fff"); ly.addColorStop(1, "#fff"); g.fillStyle = ly; g.fillRect(0, 0, 256, 256); }
 const dealerMat = new THREE.MeshBasicMaterial({ map: vtIdle, alphaMap: new THREE.CanvasTexture(mask), transparent: true, toneMapped: false, depthWrite: false });
 const DW = 1.3, DH = DW * 560 / 752;
 const dealer = new THREE.Mesh(new THREE.PlaneGeometry(DW, DH), dealerMat);
-dealer.position.set(0, 0.62 + DH / 2, -0.98); dealer.renderOrder = -1; scene.add(dealer);
+dealer.position.set(0, 0.8 + DH / 2, -0.98); dealer.renderOrder = -1; scene.add(dealer);   // her hands (the dealing motion) stay above the rail
 // warm out-of-focus lights of the casino floor, far behind her
 {
   const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);

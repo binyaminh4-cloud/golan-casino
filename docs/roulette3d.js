@@ -134,8 +134,11 @@ const vIdle = $("dealerIdle"), vThrow = $("dealerThrow");
 const vtIdle = new THREE.VideoTexture(vIdle), vtThrow = new THREE.VideoTexture(vThrow);
 [vtIdle, vtThrow].forEach((t) => { t.colorSpace = THREE.SRGBColorSpace; });
 const mask = document.createElement("canvas"); mask.width = mask.height = 256;
-{ const g = mask.getContext("2d"), gr = g.createRadialGradient(128, 118, 30, 128, 128, 150); gr.addColorStop(0, "#fff"); gr.addColorStop(0.62, "#fff"); gr.addColorStop(1, "#000");
-  g.fillStyle = gr; g.fillRect(0, 0, 256, 256); const lin = g.createLinearGradient(0, 0, 0, 256); lin.addColorStop(0.8, "rgba(0,0,0,0)"); g.fillStyle = lin; }
+{ // fade only the outer edges of the video, so her arms stay visible when she reaches to the side
+  const g = mask.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, 256, 256);
+  const lx = g.createLinearGradient(0, 0, 256, 0); lx.addColorStop(0, "#000"); lx.addColorStop(0.06, "#fff"); lx.addColorStop(0.94, "#fff"); lx.addColorStop(1, "#000");
+  g.globalCompositeOperation = "multiply"; g.fillStyle = lx; g.fillRect(0, 0, 256, 256);
+  const ly = g.createLinearGradient(0, 0, 0, 256); ly.addColorStop(0, "#000"); ly.addColorStop(0.08, "#fff"); ly.addColorStop(1, "#fff"); g.fillStyle = ly; g.fillRect(0, 0, 256, 256); }
 const dealerMat = new THREE.MeshBasicMaterial({ map: vtIdle, alphaMap: new THREE.CanvasTexture(mask), transparent: true, toneMapped: false, depthWrite: false });
 const DW = 1.3, DH = DW * 560 / 752;
 const dealer = new THREE.Mesh(new THREE.PlaneGeometry(DW, DH), dealerMat);
