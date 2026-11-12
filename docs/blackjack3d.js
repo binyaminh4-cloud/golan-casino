@@ -596,7 +596,7 @@ function frame(now) {
     if (!w.error) { balance = Number(w.data.balance); showBal(balance); }
   }
   showBar();
-  try { GC_LOADER.done(); } catch (e) {}
+  try { GC_LOADER.done(); } catch (e) {} try { GC_LOOKHINT(canvas, { side: true }); } catch (e) {}
   $("enterGo").onclick = async () => {
     $("enter").hidden = true; dealerPlay("idle"); vDeal.load(); vDeal.play().then(() => { vDeal.pause(); vDeal.currentTime = 0; }).catch(() => {}); preload("bets"); setTimeout(() => voice("bets"), 900);
     ["blackjack", "dealerbust", "youwin", "dealerwins", "push", "insurance", "bust"].forEach(preload);

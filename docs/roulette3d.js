@@ -193,12 +193,15 @@ function drawStack(key) {
   const el = document.createElement("div"); el.className = "stag num"; el.textContent = short(amt); document.body.appendChild(el); el._p = c.clone().setY(H + breakdown(amt).length * CHIP_T + 0.004); stackTags.set(key, el);
   return g;
 }
+function unsent() { let s = 0; for (const [k, v] of bets) s += Math.max(0, v - (sent.get(k) || 0)); return s; }
+let sendT = 0, sending = false;
+function autoSend() { clearTimeout(sendT); sendT = setTimeout(() => sending ? autoSend() : liveSend(), 600); }   // live: chips go to the server by themselves
 function totalBet() { let s = 0; for (const v of bets.values()) s += v; return s; }
-function showTotal() { if (LIVE) { $("spin").textContent = "שלח הימור"; } $("total").textContent = fmt(totalBet()); $("spin").disabled = busy || !bets.size || (LIVE && !PREVIEW && !(liveSt && liveSt.open && [...bets].some(([k, v]) => v > (sent.get(k) || 0)))); $("undo").disabled = busy || !undo.length; $("clear").disabled = busy || !bets.size; $("repeat").disabled = busy || !lastBets || bets.size > 0; }
+function showTotal() { if (LIVE) { $("spin").hidden = !PREVIEW; } $("total").textContent = fmt(totalBet()); $("spin").disabled = busy || !bets.size || (LIVE && !PREVIEW && !(liveSt && liveSt.open && [...bets].some(([k, v]) => v > (sent.get(k) || 0)))); $("undo").disabled = busy || !undo.length; $("clear").disabled = busy || !bets.size; $("repeat").disabled = busy || !lastBets || bets.size > 0; }
 function place(key, amt, anim = true) {
   if (busy) return;
-  if (totalBet() + amt > balance) { say("אין מספיק שקלים"); return; }
-  bets.set(key, (bets.get(key) || 0) + amt); undo.push([key, amt]);
+  if ((LIVE ? unsent() : totalBet()) + amt > balance) { say("אין מספיק שקלים"); return; }
+  bets.set(key, (bets.get(key) || 0) + amt); undo.push([key, amt]); if (LIVE && !PREVIEW) autoSend();
   const g = drawStack(key); sfx(() => SFX.chip());
   if (anim && g) {                            // the chip slides in from the player's side of the table
     const top = g.children.at(-1), to = top.position.clone(), from = new THREE.Vector3(EYE.x - g.position.x, 0.35, 0.75 - g.position.z);
@@ -261,7 +264,7 @@ function drawRack() {
 $("undo").onclick = () => { const u = undo.pop(); if (!u) return; const v = bets.get(u[0]) - u[1]; if (v > 0) bets.set(u[0], v); else bets.delete(u[0]); drawStack(u[0]); showTotal(); };
 $("clear").onclick = () => clearBets();
 $("repeat").onclick = () => { if (!lastBets) return; for (const [k, v] of lastBets) place(k, v, false); };
-function clearBets() { for (const k of [...bets.keys()]) { bets.delete(k); drawStack(k); } undo = []; showTotal(); }
+function clearBets() { for (const k of [...bets.keys()]) { const s0 = LIVE ? sent.get(k) || 0 : 0; if (s0) bets.set(k, s0); else bets.delete(k); drawStack(k); } undo = []; showTotal(); }   // live: chips already sent stay
 
 let sayT = 0;
 function say(t, ms = 2200) { const s = $("say"); s.textContent = t; s.classList.add("on"); clearTimeout(sayT); sayT = setTimeout(() => s.classList.remove("on"), ms); }
@@ -409,11 +412,11 @@ function liveClock() {
 async function liveSend() {
   const delta = []; for (const [k, v] of bets) { const d = v - (sent.get(k) || 0); if (d > 0) delta.push({ nums: k.split(",").map(Number), amt: d }); }
   if (!delta.length || !liveSt || !liveSt.open) return;
-  $("spin").disabled = true;
+  sending = true;
   try { const { data, error } = await db.rpc("rl_live_bet", { p_round: liveSt.round, p_mode: LMODE, p_bets: delta, p_ref: newRef() }); if (error) throw error;
-    for (const b of delta) { const k = b.nums.join(","); sent.set(k, (sent.get(k) || 0) + b.amt); } say("ההימור נשלח", 1500); if (data && data.balance != null) { balance = Number(data.balance); showBal(balance); } }
-  catch (e) { say(errText(e), 3000); }
-  showTotal(); liveFetch();
+    for (const b of delta) { const k = b.nums.join(","); sent.set(k, (sent.get(k) || 0) + b.amt); } undo = []; if (data && data.balance != null) { balance = Number(data.balance); showBal(balance); } }
+  catch (e) { say(errText(e), 3000); for (const [k] of bets) { const s0 = sent.get(k) || 0; if (s0) bets.set(k, s0); else bets.delete(k); drawStack(k); } undo = []; }
+  sending = false; showTotal(); liveFetch();
 }
 async function liveFetch() {
   if (fetching) return; fetching = true; lastFetch = Date.now();
@@ -529,7 +532,7 @@ function frame(now) {
     if (!w.error) { balance = Number(w.data.balance); showBal(balance); }
   }
   showTotal();
-  try { GC_LOADER.done(); } catch (e) {}
+  try { GC_LOADER.done(); } catch (e) {} try { GC_LOOKHINT(canvas, { side: LIVE }); } catch (e) {}
   $("enterGo").onclick = () => { preload("nomore"); $("enter").hidden = true; dealerPlay("idle"); preload("bets"); setTimeout(() => voice("bets"), 900); vThrow.load(); };
   if (LIVE) { const t = LMODE === "xxx" ? "רולטת XXX 3D לייב" : LMODE === "lightning" ? "רולטת ברקים 3D לייב" : "רולטה 3D לייב"; document.querySelector(".top h1").textContent = t; document.title = t + " · גולן קזינו"; }
   if (/[?&]go\b/.test(location.search)) $("enterGo").click();
