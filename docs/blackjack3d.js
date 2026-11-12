@@ -194,11 +194,10 @@ let pCards = [], dCards = [];
 // when her hand releases it (DEAL_RELEASE seconds into the clip). Without the clip (not made yet) she keeps the idle loop.
 const vDeal = document.createElement("video"); vDeal.src = "vid/r3d/fisher_deal.mp4?v=1"; vDeal.muted = true; vDeal.playsInline = true; vDeal.preload = "auto";
 const vtDeal = new THREE.VideoTexture(vDeal); vtDeal.colorSpace = THREE.SRGBColorSpace;
-let hasDeal = false; vDeal.addEventListener("loadeddata", () => { hasDeal = true; });
+const hasDeal = true;   // blackjack never uses the roulette throw clip (she holds a ball in it)
 const DEAL_RELEASE = 1.32;          // the clip is her first dealing motion, 1.6x faster; her hand is lowest at 2.1 s of the original
 vDeal.addEventListener("ended", () => dealerPlay("idle"));
 async function gesture() {
-  if (!hasDeal) return;
   vDeal.currentTime = 0; dealerMat.map = vtDeal; dealerMat.needsUpdate = true; vDeal.play().catch(() => {});
   await wait(DEAL_RELEASE * 1000);
 }
@@ -303,7 +302,7 @@ async function render(next) {
   const n = next.hands.length;
   if (!pCards.length && !dCards.length) {
     pCards = next.hands.map(() => []);
-    lookTo = LOOK_DEALER; if (!hasDeal) dealerPlay("throw"); await wait(500);
+    lookTo = LOOK_DEALER; await wait(400);
     setTimeout(() => { lookTo = LOOK_BET; }, hasDeal ? 3600 : 2600);
     pCards[0].push(await dealTo(next.hands[0].cards[0], pPos(0, 0, n)));
     dCards.push(await dealTo(next.dealer[0], dPos(0)));
@@ -434,7 +433,7 @@ function frame(now) {
   showBar();
   try { GC_LOADER.done(); } catch (e) {}
   $("enterGo").onclick = async () => {
-    $("enter").hidden = true; dealerPlay("idle"); vThrow.load(); preload("bets"); setTimeout(() => voice("bets"), 900);
+    $("enter").hidden = true; dealerPlay("idle"); vDeal.load(); vDeal.play().then(() => { vDeal.pause(); vDeal.currentTime = 0; }).catch(() => {}); preload("bets"); setTimeout(() => voice("bets"), 900);
     ["blackjack", "dealerbust", "youwin", "dealerwins", "push", "insurance", "bust"].forEach(preload);
     if (!PREVIEW) { const { data } = await db.rpc("bj_current"); if (data && data.status !== "done" && !data.table) { bets.main = Number(data.main_bet); drawAll(); await render(data); } }
   };
