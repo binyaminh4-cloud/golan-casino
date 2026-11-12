@@ -7,7 +7,8 @@ import * as THREE from "three";
 
 const $ = (id) => document.getElementById(id);
 const PREVIEW = /[?#&]preview/.test(location.href);
-const LIVE = /[?&]live\b/.test(location.search);   // live: the shared classic roulette (rl_live_*), friends beside you
+const LIVE = /[?&]live\b/.test(location.search);
+const LMODE = /[?&]mode=lightning/.test(location.search) ? "lightning" : "classic";   // lightning: lucky numbers with multipliers (server-drawn)   // live: the shared classic roulette (rl_live_*), friends beside you
 const R = window.RLW;
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 const fmt = (n) => { n = Math.floor(Number(n) + 1e-6); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
@@ -328,7 +329,7 @@ function settle(res) {
   if (res.payout > 0 && res.payout >= res.total * 20) setTimeout(() => sfx(() => GC_BONUS("🎰 זכייה גדולה!", res.payout, "על " + n)), 300);
   setTimeout(() => {
     $("result").hidden = true; dolly.visible = false;
-    for (const k of [...bets.keys()]) bets.delete(k); for (const [k, g] of stacks) scene.remove(g); stacks.clear(); for (const el of stackTags.values()) el.remove(); stackTags.clear(); undo = [];
+    for (const k of [...bets.keys()]) bets.delete(k); for (const [k, g] of stacks) scene.remove(g); stacks.clear(); for (const el of stackTags.values()) el.remove(); stackTags.clear(); undo = []; clearLucky();
     busy = false; $("bar").classList.remove("off"); showTotal(); if (!LIVE) voice("bets"); sent.clear(); drawOthers();
   }, 2600);
 }
@@ -409,7 +410,7 @@ async function liveSend() {
   const delta = []; for (const [k, v] of bets) { const d = v - (sent.get(k) || 0); if (d > 0) delta.push({ nums: k.split(",").map(Number), amt: d }); }
   if (!delta.length || !liveSt || !liveSt.open) return;
   $("spin").disabled = true;
-  try { const { data, error } = await db.rpc("rl_live_bet", { p_round: liveSt.round, p_mode: "classic", p_bets: delta, p_ref: newRef() }); if (error) throw error;
+  try { const { data, error } = await db.rpc("rl_live_bet", { p_round: liveSt.round, p_mode: LMODE, p_bets: delta, p_ref: newRef() }); if (error) throw error;
     for (const b of delta) { const k = b.nums.join(","); sent.set(k, (sent.get(k) || 0) + b.amt); } say("ההימור נשלח", 1500); if (data && data.balance != null) { balance = Number(data.balance); showBal(balance); } }
   catch (e) { say(errText(e), 3000); }
   showTotal(); liveFetch();
@@ -417,7 +418,7 @@ async function liveSend() {
 async function liveFetch() {
   if (fetching) return; fetching = true; lastFetch = Date.now();
   try {
-    const { data, error } = PREVIEW ? { data: fakeLive() } : await db.rpc("rl_live_state", { p_mode: "classic" });
+    const { data, error } = PREVIEW ? { data: fakeLive() } : await db.rpc("rl_live_state", { p_mode: LMODE });
     if (error) throw error;
     clockOff = data.now - Date.now();
     const newRound = !liveSt || liveSt.round !== data.round; liveSt = data;
@@ -429,7 +430,7 @@ async function liveFetch() {
       animRound = data.round;
       const total = [...sent.values()].reduce((a, b) => a + b, 0);
       for (const k of [...bets.keys()]) if (!sent.has(k)) { bets.delete(k); drawStack(k); }      // chips never sent don't play
-      if (srvNow() < data.close + 9000) playRound({ result: data.result, total, payout: Number(data.payout || 0), balance: Number(data.balance) });
+      if (srvNow() < data.close + 9000) (LMODE === "lightning" && data.lucky ? strike(data.lucky).then(() => wait(900)) : Promise.resolve()).then(() => playRound({ result: data.result, total, payout: Number(data.payout || 0), balance: Number(data.balance) }));
     }
   } catch (e) { console.error(e); }
   fetching = false;
@@ -442,8 +443,25 @@ setInterval(() => {
 let fakeT0 = Date.now();
 function fakeLive() { const t = Date.now() - fakeT0, open = t < 12000;
   return { now: Date.now(), round: 1, open, close: fakeT0 + 12000, end: fakeT0 + 60000, result: open ? null : 17, payout: 0, mine: [], balance,
-    players: [{ id: "a1", name: "אורי", total: 15000, payout: open ? null : 360000, bets: [{ nums: [17], amt: 10000 }, { nums: [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36], amt: 5000 }] },
+    lucky: open ? {} : { 17: 300, 5: 50, 23: 100 }, players: [{ id: "a1", name: "אורי", total: 15000, payout: open ? null : 360000, bets: [{ nums: [17], amt: 10000 }, { nums: [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36], amt: 5000 }] },
               { id: "b2", name: "דניאל", total: 100000, payout: open ? null : 0, bets: [{ nums: [0], amt: 100000 }] }] }; }
+
+// ---------- lightning: lucky numbers glow gold with their multiplier, a flash for each strike ----------
+const luckyG = new THREE.Group(); scene.add(luckyG); const luckyTags = [];
+async function strike(lucky) {
+  luckyG.clear(); luckyTags.splice(0).forEach((t) => t.remove());
+  const fl = document.createElement("div"); fl.className = "lflash"; document.body.appendChild(fl);
+  for (const [k, m] of Object.entries(lucky)) {
+    const a = AREAS.find((x) => x.key === String(k)); if (!a) continue;
+    const glow = new THREE.Mesh(new THREE.PlaneGeometry(a.w * 0.96, a.d * 0.96), new THREE.MeshBasicMaterial({ color: 0xffd04a, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }));
+    glow.rotation.x = -Math.PI / 2; const c = areaCenter(a); glow.position.set(c.x, H + 0.004, c.z); luckyG.add(glow);
+    const el = document.createElement("div"); el.className = "ltag num"; el.textContent = "×" + m; document.body.appendChild(el); el._p = c.clone().setY(H + 0.02); luckyTags.push(el);
+    fl.classList.remove("on"); void fl.offsetWidth; fl.classList.add("on"); sfx(() => SFX.fx("lightning", { vol: 0.6 }));
+    await wait(420);
+  }
+  setTimeout(() => fl.remove(), 600);
+}
+function clearLucky() { luckyG.clear(); luckyTags.splice(0).forEach((t) => t.remove()); }
 
 // ---------- render loop ----------
 function fit() {
@@ -478,6 +496,7 @@ function frame(now) {
   LOOK.lerp(lookTo, 1 - Math.pow(0.18, dt)); camera.position.copy(EYE);
   const L = LOOK.clone().lerp(LOOK_DEALER, lookTo === LOOK_DEALER ? 0 : u).sub(EYE).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw).add(EYE); L.y += Math.abs(yaw) * 0.45; camera.lookAt(L);
   renderer.render(scene, camera);
+  for (const el of luckyTags) { const q = el._p.clone().project(camera); el.style.left = (q.x + 1) / 2 * innerWidth + "px"; el.style.top = (1 - q.y) / 2 * innerHeight + "px"; }
   for (const el of stackTags.values()) { const q = el._p.clone().project(camera); el.style.left = (q.x + 1) / 2 * innerWidth + "px"; el.style.top = (1 - q.y) / 2 * innerHeight + "px"; }
   for (const l of betLabels) { const q = l.pos.clone().project(camera); l.el.style.left = (q.x + 1) / 2 * innerWidth + "px"; l.el.style.top = (1 - q.y) / 2 * innerHeight + "px"; l.el.style.display = q.z < 1 ? "" : "none"; }
 }
@@ -497,6 +516,6 @@ function frame(now) {
   showTotal();
   try { GC_LOADER.done(); } catch (e) {}
   $("enterGo").onclick = () => { preload("nomore"); $("enter").hidden = true; dealerPlay("idle"); preload("bets"); setTimeout(() => voice("bets"), 900); vThrow.load(); };
-  if (LIVE) { document.querySelector(".top h1").textContent = "רולטה 3D לייב"; document.title = "רולטה 3D לייב · גולן קזינו"; }
+  if (LIVE) { const t = LMODE === "lightning" ? "רולטת ברקים 3D לייב" : "רולטה 3D לייב"; document.querySelector(".top h1").textContent = t; document.title = t + " · גולן קזינו"; }
   if (/[?&]go\b/.test(location.search)) $("enterGo").click();
 })();

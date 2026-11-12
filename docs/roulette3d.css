@@ -59,3 +59,6 @@
 .wheelview:not([hidden]) ~ .result{top:16%;transform:translate(-50%,0)}
 .stag{position:fixed;z-index:13;transform:translate(-50%,-100%);padding:1px 7px;border-radius:99px;background:#0d0906e6;border:1px solid #c5a05a;font:800 12px Inter;color:#ffe7a8;pointer-events:none;white-space:nowrap}
 #scene~.stag{}
+.ltag{position:fixed;z-index:13;transform:translate(-50%,-50%);padding:2px 8px;border-radius:99px;background:linear-gradient(#ffe27a,#d18b00);color:#2a1500;font:900 14px Inter;box-shadow:0 0 14px #ffd04a;pointer-events:none}
+.lflash{position:fixed;inset:0;z-index:12;pointer-events:none;background:radial-gradient(#fff8 0,#ffe08a44 40%,#0000 70%);opacity:0}
+.lflash.on{animation:lfl .4s ease-out}@keyframes lfl{0%{opacity:1}100%{opacity:0}}
