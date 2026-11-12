@@ -190,7 +190,7 @@ function drawStack(key) {
   const a = AREAS.find((x) => x.key === key), g = new THREE.Group(), c = areaCenter(a);
   breakdown(amt).forEach((v, i) => { const m = chipMesh(v); m.position.set(0, CHIP_T / 2 + i * CHIP_T, 0); m.rotation.y = i * 0.7; g.add(m); });
   g.position.copy(c); scene.add(g); stacks.set(key, g);
-  const el = document.createElement("div"); el.className = "stag num"; el.textContent = short(amt); document.body.appendChild(el); el._p = c.clone().setY(H + 0.06); stackTags.set(key, el);
+  const el = document.createElement("div"); el.className = "stag num"; el.textContent = short(amt); document.body.appendChild(el); el._p = c.clone().setY(H + breakdown(amt).length * CHIP_T + 0.004); stackTags.set(key, el);
   return g;
 }
 function totalBet() { let s = 0; for (const v of bets.values()) s += v; return s; }
@@ -456,10 +456,25 @@ async function strike(lucky) {
     const glow = new THREE.Mesh(new THREE.PlaneGeometry(a.w * 0.96, a.d * 0.96), new THREE.MeshBasicMaterial({ color: 0xffd04a, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }));
     glow.rotation.x = -Math.PI / 2; const c = areaCenter(a); glow.position.set(c.x, H + 0.004, c.z); luckyG.add(glow);
     const el = document.createElement("div"); el.className = "ltag num"; el.textContent = "×" + m; document.body.appendChild(el); el._p = c.clone().setY(H + 0.02); luckyTags.push(el);
+    bolt(c, LMODE === "xxx" ? 0xff4fd8 : 0xbfe6ff);
     fl.classList.remove("on"); void fl.offsetWidth; fl.classList.add("on"); sfx(() => SFX.fx("lightning", { vol: 0.6 }));
     await wait(420);
   }
   setTimeout(() => fl.remove(), 600);
+}
+function bolt(to, color) {
+  const top = new THREE.Vector3(to.x + (Math.random() - 0.5) * 0.5, H + 1.1, to.z - 0.35), mk = () => {
+    const pts = []; const N = 14;
+    for (let i = 0; i <= N; i++) { const k = i / N, p = top.clone().lerp(to.clone().setY(H + 0.01), k); if (i && i < N) { p.x += (Math.random() - 0.5) * 0.09; p.z += (Math.random() - 0.5) * 0.06; } pts.push(p); }
+    return new THREE.CatmullRomCurve3(pts, false, "chordal"); };
+  const g = new THREE.Group();
+  const core = new THREE.Mesh(new THREE.TubeGeometry(mk(), 60, 0.012, 6), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+  const glow = new THREE.Mesh(new THREE.TubeGeometry(mk(), 60, 0.04, 6), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }));
+  const lt = new THREE.PointLight(color, 6, 1.6, 1.5); lt.position.copy(to).setY(H + 0.15);
+  g.add(core, glow, lt); scene.add(g);
+  const t1 = performance.now();
+  tweens.push((now) => { const k = (now - t1) / 800; const f = k < 0.6 ? (Math.random() < 0.7 ? 1 : 0.3) : Math.max(0, 1 - (k - 0.6) / 0.4);
+    core.material.opacity = f; glow.material.opacity = 0.55 * f; lt.intensity = 6 * f; if (k >= 1) { scene.remove(g); core.geometry.dispose(); glow.geometry.dispose(); return false; } return true; });
 }
 function clearLucky() { luckyG.clear(); luckyTags.splice(0).forEach((t) => t.remove()); }
 
