@@ -180,7 +180,20 @@ function fly(obj, to, ms, { lift = 0.06, spinZ = 0, flipTo = null } = {}) {
 const pPos = (h, i, n) => { const spread = n > 1 ? 0.26 : 0; const hx = BET.x + (h - (n - 1) / 2) * spread; return new THREE.Vector3(hx - 0.02 + i * 0.03, H + 0.002 + i * 0.0006, BET.z - 0.16 - i * 0.016); };
 const dPos = (i) => new THREE.Vector3(-0.09 + i * 0.09, H + 0.002 + i * 0.0006, -0.5);
 let pCards = [], dCards = [];
+// one dealing gesture per card: her hand comes to the shoe and slides the card forward; the 3D card leaves exactly
+// when her hand releases it (DEAL_RELEASE seconds into the clip). Without the clip (not made yet) she keeps the idle loop.
+const vDeal = document.createElement("video"); vDeal.src = "vid/r3d/fisher_deal.mp4?v=1"; vDeal.muted = true; vDeal.playsInline = true; vDeal.preload = "auto";
+const vtDeal = new THREE.VideoTexture(vDeal); vtDeal.colorSpace = THREE.SRGBColorSpace;
+let hasDeal = false; vDeal.addEventListener("loadeddata", () => { hasDeal = true; });
+const DEAL_RELEASE = 0.9;
+vDeal.addEventListener("ended", () => dealerPlay("idle"));
+async function gesture() {
+  if (!hasDeal) return;
+  vDeal.currentTime = 0; dealerMat.map = vtDeal; dealerMat.needsUpdate = true; vDeal.play().catch(() => {});
+  await wait(DEAL_RELEASE * 1000);
+}
 async function dealTo(code, pos, faceDown = false) {
+  await gesture();
   const c = cardMesh(faceDown ? null : code); c.position.copy(SHOE); c.rotation.set(-Math.PI / 2, 0, -0.4); scene.add(c);
   sfx(() => SFX.card ? SFX.card() : SFX.chip());
   await fly(c, pos, 330, { spinZ: (Math.random() - 0.5) * 0.06 });
@@ -275,7 +288,7 @@ async function render(next) {
   const n = next.hands.length;
   if (!pCards.length && !dCards.length) {
     pCards = next.hands.map(() => []);
-    lookTo = LOOK_DEALER; dealerPlay("throw"); await wait(500);
+    lookTo = LOOK_DEALER; if (!hasDeal) dealerPlay("throw"); await wait(500);
     pCards[0].push(await dealTo(next.hands[0].cards[0], pPos(0, 0, n)));
     dCards.push(await dealTo(next.dealer[0], dPos(0)));
     pCards[0].push(await dealTo(next.hands[0].cards[1], pPos(0, 1, n)));
