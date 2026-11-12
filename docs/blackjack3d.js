@@ -279,7 +279,7 @@ canvas.addEventListener("pointerdown", (e) => { drag = { x: e.clientX, y: e.clie
 canvas.addEventListener("pointermove", (e) => {
   if (!drag) return; const dy = e.clientY - drag.y, dx = e.clientX - drag.x;
   if (Math.abs(dy) > 8 || Math.abs(dx) > 8) drag.moved = true;
-  if (drag.moved) { userU = Math.max(0, Math.min(1, drag.u0 + dy / (innerHeight * 0.6))); userYaw = Math.max(-0.75, Math.min(0.75, drag.yaw0 + dx / innerWidth * 1.6)); userAt = performance.now(); }
+  if (drag.moved) { userU = Math.max(0, Math.min(1, drag.u0 + dy / (innerHeight * 0.6))); userYaw = Math.max(-0.95, Math.min(0.95, drag.yaw0 + dx / innerWidth * 1.6)); userAt = performance.now(); }
 });
 canvas.addEventListener("pointercancel", () => { drag = null; });
 canvas.addEventListener("pointerup", (e) => {
@@ -426,20 +426,27 @@ function previewEngine() {
       next(); return view(); } };
 }
 
-// ---------- test: a 3D player sitting in the seat to your right (for the live-table look) ----------
-// The model was seated in Blender (hands forward at 1.16 m, hips at 0.92 m); move it down so the hands rest on the felt.
-new GLTFLoader().load("img/r3d/player_suit.glb?v=1", (g) => {
-  const m = g.scene; m.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; } });
-  const seat = new THREE.Group(); seat.add(m);
-  // the model already faces -z (toward the dealer)
-  m.position.set(0, H + 0.03 - 1.16, 0);         // his hands are 0.42 m in front of him: they land on the felt
-  seat.position.set(1.32, 0, 0.42); seat.rotation.y = 0.95;     // on your right, turned toward the dealer
-  scene.add(seat);
-  // his own betting circle and stack, in front of him
+// ---------- test: a video player in the seat on your right (live-table look) ----------
+// A plane standing behind the rail on the right corner, turned toward the middle; the rail hides his lower body
+// and his hands sit where the felt starts. Edges fade into the dark like Ms Fisher.
+{
+  const v = document.createElement("video"); v.src = "vid/r3d/player1_idle_loop.mp4?v=1"; v.muted = true; v.loop = true; v.playsInline = true; v.preload = "auto";
+  const t = new THREE.VideoTexture(v); t.colorSpace = THREE.SRGBColorSpace;
+  const PW = 0.8, PH = PW * 496 / 864;
+  // key out the flat dark-brown background (#110401) so he can sit in front of the felt, not on a dark card
+  const mat = new THREE.ShaderMaterial({ uniforms: { map: { value: t } }, transparent: true, depthWrite: false,
+    vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+    fragmentShader: "uniform sampler2D map; varying vec2 vUv; void main(){ vec4 c = texture2D(map, vUv); vec3 s = c.rgb;" +
+      " float d = length(s - vec3(0.067, 0.016, 0.004)); float a = smoothstep(0.09, 0.17, d);" +
+      " a *= smoothstep(0.0, 0.04, vUv.x) * smoothstep(1.0, 0.96, vUv.x) * smoothstep(1.0, 0.95, vUv.y);" +
+      " gl_FragColor = vec4(s, a); }" });
+  const pl = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), mat);
+  pl.position.set(1.1, 0.8 + PH / 2, 0.48); pl.rotation.y = -1.25; pl.renderOrder = -1; scene.add(pl);
+  addEventListener("pointerdown", () => v.play().catch(() => {}), { once: true }); v.play().catch(() => {});
   const c = new THREE.Mesh(new THREE.RingGeometry(0.07, 0.078, 48), new THREE.MeshBasicMaterial({ color: 0xd6b06a }));
-  c.rotation.x = -Math.PI / 2; c.position.set(0.74, H + 0.002, 0.2); scene.add(c);
-  for (let i = 0; i < 4; i++) { const k = chipMesh(CHIPS[2].v); k.position.set(0.74, H + CHIP_T / 2 + i * CHIP_T, 0.2); scene.add(k); }
-}, undefined, (e) => console.warn("player model", e));
+  c.rotation.x = -Math.PI / 2; c.position.set(0.82, H + 0.002, 0.12); scene.add(c);
+  for (let i = 0; i < 4; i++) { const k = chipMesh(CHIPS[2].v); k.position.set(0.82, H + CHIP_T / 2 + i * CHIP_T, 0.12); scene.add(k); }
+}
 
 // ---------- render loop ----------
 let baseFov = 60;
