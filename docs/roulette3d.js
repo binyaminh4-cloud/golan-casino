@@ -13,8 +13,8 @@ const fmt = (n) => { n = Math.floor(Number(n) + 1e-6); const a = Math.abs(n); re
 const short = (v) => v >= 1e6 ? v / 1e6 + "M" : v >= 1e3 ? v / 1e3 + "K" : String(v);
 const sfx = (f) => { try { f(); } catch (e) {} };
 // Ms Fisher's voice: one clip per call (snd/r3d/n0..n36, bets, nomore), played at the effects volume
-const voice = (name) => { try { SFX.fx("r3d/" + name, { vol: 0.95 }); } catch (e) {} };
-const preload = (name) => { try { SFX.fx("r3d/" + name, { vol: 0 }); } catch (e) {} };   // sfx.js loads a file on first use
+const voice = (name) => { try { SFX.fx("r3d/" + name + "_v2", { vol: 0.95 }); } catch (e) {} };
+const preload = (name) => { try { SFX.fx("r3d/" + name + "_v2", { vol: 0 }); } catch (e) {} };   // sfx.js loads a file on first use
 
 // ---------- the table, in metres (x right, y up, z toward the player) ----------
 const H = 0.9;                                      // felt height
@@ -50,7 +50,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.A
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0b0908);
 const camera = new THREE.PerspectiveCamera(56, 16 / 9, 0.05, 30);
-const EYE = new THREE.Vector3(0.1, 1.6, 0.82), LOOK_BET = new THREE.Vector3(0.1, 0.9, -0.12), LOOK_DEALER = new THREE.Vector3(0.1, 1.3, -1.0);
+const EYE = new THREE.Vector3(0.1, 1.6, 0.82), LOOK_BET = new THREE.Vector3(0.1, 0.9, -0.12), LOOK_DEALER = new THREE.Vector3(0.1, 1.08, -1.0);
 const LOOK = LOOK_BET.clone(); let lookTo = LOOK_BET;
 camera.position.copy(EYE); camera.lookAt(LOOK);
 
@@ -193,7 +193,7 @@ let handAnim = null;
 function reach(a) {
   if (totalBet() + chipVal > balance) { say("אין מספיק שקלים"); return; }
   const c = areaCenter(a).project(camera), x = (c.x + 1) / 2 * innerWidth, y = (1 - c.y) / 2 * innerHeight;
-  const el = $("hand"), h = innerHeight * 0.62, w = h * 360 / 759, px = w * 0.531, py = h * 0.042;
+  const el = $("hand"), h = innerHeight * 0.52, w = h * 360 / 607, px = w * 0.497, py = h * 0.021;
   const tilt = Math.max(-22, Math.min(22, (x - innerWidth * 0.62) / innerWidth * 40));
   $("handChip").src = `img/r3d/chip_${CHIPS.find((k) => k.v === chipVal).c}.png?v=1`; $("handChip").classList.remove("drop");
   if (handAnim) handAnim.cancel();
@@ -263,7 +263,7 @@ async function spin() {
   try { res = await serverSpin(); } catch (e) { busy = false; showTotal(); $("bar").classList.remove("off"); say(errText(e), 3000); return; }
   lastBets = new Map(bets); showBal(res.balance - res.payout); preload("n" + res.result);
   say("No more bets", 1600); voice("nomore");
-  lookTo = LOOK_DEALER; dealerPlay("throw");
+  lookTo = LOOK_DEALER; await wait(1000); dealerPlay("throw");
   await wait(RELEASE * 1000);
   // to the wheel
   topView = false; $("topView").setAttribute("aria-pressed", "false"); $("topView").textContent = "מבט על";
@@ -327,7 +327,7 @@ function frame(now) {
     W.camera();
     return;
   }
-  LOOK.lerp(lookTo, 1 - Math.pow(0.02, dt)); camera.position.copy(EYE); camera.lookAt(LOOK);
+  LOOK.lerp(lookTo, 1 - Math.pow(0.18, dt)); camera.position.copy(EYE); camera.lookAt(LOOK);
   renderer.render(scene, camera);
 }
 
