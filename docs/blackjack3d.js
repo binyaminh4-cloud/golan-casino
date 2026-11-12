@@ -34,6 +34,11 @@ const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0b0908);
 const camera = new THREE.PerspectiveCamera(56, 16 / 9, 0.05, 30);
 const EYE = new THREE.Vector3(0, 1.45, 0.78), LOOK_BET = new THREE.Vector3(0, 0.86, -0.08), LOOK_DEALER = new THREE.Vector3(0, 1.28, -1.0);
 const LOOK = LOOK_BET.clone(); let lookTo = LOOK_BET;
+// camera: 0 = the table, 1 = the dealer. The game picks a view (autoU); dragging up/down overrides it,
+// and 3 s after the last touch it goes back to the game's view. Zoom = the side buttons.
+const LOOK_HOLE = new THREE.Vector3(0, 0.95, -0.4);       // her cards, when she turns her hidden card
+let autoU = 0, userU = null, userAt = 0, u = 0, zoom = 1;
+const setView = (v) => { autoU = v; };
 camera.position.copy(EYE); camera.lookAt(LOOK);
 
 scene.add(new THREE.HemisphereLight(0xffe2bc, 0x1a0c06, 0.55));
@@ -266,7 +271,16 @@ function reach(a) {
 
 // tap on the felt: the betting circle
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
-canvas.addEventListener("pointerdown", (e) => {
+let drag = null;
+canvas.addEventListener("pointerdown", (e) => { drag = { y: e.clientY, u0: userU ?? u, moved: false }; try { canvas.setPointerCapture(e.pointerId); } catch (x) {} });
+canvas.addEventListener("pointermove", (e) => {
+  if (!drag) return; const dy = e.clientY - drag.y;
+  if (Math.abs(dy) > 8) drag.moved = true;
+  if (drag.moved) { userU = Math.max(0, Math.min(1, drag.u0 + dy / (innerHeight * 0.6))); userAt = performance.now(); }
+});
+canvas.addEventListener("pointercancel", () => { drag = null; });
+canvas.addEventListener("pointerup", (e) => {
+  const d = drag; drag = null; if (!d || d.moved) { if (d) userAt = performance.now(); return; }
   if (busy || st || !$("enter").hidden) return;
   const r = canvas.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
   ray.setFromCamera(ndc, camera); const hit = new THREE.Vector3();
@@ -305,8 +319,8 @@ async function render(next) {
   const n = next.hands.length;
   if (!pCards.length && !dCards.length) {
     pCards = next.hands.map(() => []);
-    lookTo = LOOK_DEALER; await wait(400);
-    setTimeout(() => { lookTo = LOOK_BET; }, hasDeal ? 3600 : 2600);
+    setView(1); await wait(400);
+    setTimeout(() => setView(0), 3600);
     pCards[0].push(await dealTo(next.hands[0].cards[0], pPos(0, 0, n)));
     dCards.push(await dealTo(next.dealer[0], dPos(0)));
     pCards[0].push(await dealTo(next.hands[0].cards[1], pPos(0, 1, n)));
@@ -320,7 +334,7 @@ async function render(next) {
   for (let h = 0; h < n; h++) for (let c = 0; c < (pCards[h] || []).length; c++) await fly(pCards[h][c], pPos(h, c, n), 220, { lift: 0.01 });
   for (let h = 0; h < n; h++) { pCards[h] ||= []; for (let c = pCards[h].length; c < next.hands[h].cards.length; c++) pCards[h].push(await dealTo(next.hands[h].cards[c], pPos(h, c, n))); }
   if (n > 1) drawBet("main", 0);
-  if (dCards[1] && !dCards[1].userData.code && next.dealer[1] !== "??") { await wait(300); await flip(dCards[1], next.dealer[1]); await wait(250); }
+  if (dCards[1] && !dCards[1].userData.code && next.dealer[1] !== "??") { setView(0.45); await wait(500); await flip(dCards[1], next.dealer[1]); await wait(600); }
   for (let c = dCards.length; c < next.dealer.length; c++) { dCards.push(await dealTo(next.dealer[c], dPos(c))); await wait(250); }
   clearLabels();
   const OUT = { win: "ניצחון", blackjack: "בלאק ג׳ק!", push: "תיקו", lose: "הפסד", bust: "נשרף", surrender: "ויתור" };
@@ -334,7 +348,7 @@ async function render(next) {
   busy = false; showActs();
 }
 async function finish(r) {
-  lookTo = LOOK_BET;
+  setView(0);
   const net = Number(r.result.net), outs = r.result.hands.map((h) => h.outcome);
   showBal(balance);
   if (outs.length === 1 && outs[0] === "blackjack") voice("blackjack");
@@ -410,17 +424,24 @@ function previewEngine() {
 }
 
 // ---------- render loop ----------
+let baseFov = 60;
 function fit() {
   const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h;
-  const hfov = 80 * Math.PI / 180; camera.fov = Math.min(70, 2 * Math.atan(Math.tan(hfov / 2) / camera.aspect) * 180 / Math.PI); camera.updateProjectionMatrix();
+  const hfov = 80 * Math.PI / 180; baseFov = Math.min(70, 2 * Math.atan(Math.tan(hfov / 2) / camera.aspect) * 180 / Math.PI); camera.fov = baseFov / zoom; camera.updateProjectionMatrix();
 }
+$("zin").onclick = () => { zoom = Math.min(2.4, zoom * 1.3); };
+$("zout").onclick = () => { zoom = Math.max(1, zoom / 1.3); };
 addEventListener("resize", fit); fit();
 let last = performance.now();
 function frame(now) {
   requestAnimationFrame(frame);
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   for (let i = tweens.length - 1; i >= 0; i--) if (!tweens[i](now)) tweens.splice(i, 1);
-  LOOK.lerp(lookTo, 1 - Math.pow(0.18, dt)); camera.position.copy(EYE); camera.lookAt(LOOK);
+  if (userU !== null && !drag && now - userAt > 3000) userU = null;                 // back to the game's view
+  const want = userU ?? autoU; u += (want - u) * (1 - Math.pow(userU !== null ? 0.0001 : 0.15, dt));
+  const target = autoU > 0.3 && autoU < 0.7 && userU === null ? LOOK_HOLE : LOOK_BET.clone().lerp(LOOK_DEALER, u);
+  LOOK.lerp(target, 1 - Math.pow(0.05, dt)); camera.position.copy(EYE); camera.lookAt(LOOK);
+  const f = baseFov / zoom; if (Math.abs(camera.fov - f) > 0.05) { camera.fov += (f - camera.fov) * (1 - Math.pow(0.01, dt)); camera.updateProjectionMatrix(); }
   renderer.render(scene, camera); placeLabels();
 }
 
