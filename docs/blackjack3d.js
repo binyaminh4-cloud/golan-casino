@@ -222,7 +222,7 @@ function fly(obj, to, ms, { lift = 0.06, spinZ = 0, flipTo = null } = {}) {
   }));
 }
 const pPos = (h, i, n) => { const spread = n > 1 ? 0.32 : 0; const hx = BET.x + (h - (n - 1) / 2) * spread; return new THREE.Vector3(hx - 0.04 + i * 0.07, H + 0.002 + i * 0.0006, BET.z - 0.2 - i * 0.012); };
-const dPos = (i) => new THREE.Vector3(-0.1 + i * 0.11, H + 0.002 + i * 0.0006, -0.5);
+const dPos = (i) => new THREE.Vector3(-0.1 + i * 0.11, H + 0.002 + i * 0.0006, -0.32);
 let pCards = [], dCards = [];
 // one dealing gesture per card: her hand comes to the shoe and slides the card forward; the 3D card leaves exactly
 // when her hand releases it (DEAL_RELEASE seconds into the clip). Without the clip (not made yet) she keeps the idle loop.
