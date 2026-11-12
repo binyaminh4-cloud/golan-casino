@@ -448,7 +448,7 @@ function videoSeat({ idle, win, x, z, rotY, w }) {
       " a *= smoothstep(0.0, 0.04, vUv.x) * smoothstep(1.0, 0.96, vUv.x) * smoothstep(1.0, 0.95, vUv.y);" +
       " gl_FragColor = vec4(s, a); }" });
   const h = w * 496 / 864, pl = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
-  pl.position.set(x, 0.86 + h / 2, z); pl.rotation.y = rotY; pl.renderOrder = -1; scene.add(pl);
+  pl.position.set(x, 0.97 + h / 2, z); pl.rotation.y = rotY; pl.renderOrder = -1; scene.add(pl);
   const seat = { vi, vw, mat, ti, tw,
     win() { vw.currentTime = 0; mat.uniforms.map.value = tw; vw.play().catch(() => {}); },
     idle() { mat.uniforms.map.value = ti; vi.play().catch(() => {}); } };
@@ -458,9 +458,9 @@ function videoSeat({ idle, win, x, z, rotY, w }) {
 }
 // two characters (filmed for one side each); a player gets one at random (stable per user); if both side players
 // need the same side, the second one is mirrored onto the other side.
-const CHARS = [{ idle: "vid/r3d/player1_idle_loop.mp4?v=1", win: "vid/r3d/player1_win.mp4?v=1", side: 1, w: 0.8 },
-               { idle: "vid/r3d/player2_idle_loop.mp4?v=1", win: "vid/r3d/player2_win.mp4?v=1", side: -1, w: 0.72 }];
-const SLOT = { [1]: { x: 1.02, z: 0.42, rotY: -1.35, bet: new THREE.Vector3(0.8, H, 0.12) }, [-1]: { x: -1.02, z: 0.42, rotY: 1.35, bet: new THREE.Vector3(-0.8, H, 0.12) } };
+const CHARS = [{ idle: "vid/r3d/player1_idle_loop.mp4?v=1", win: "vid/r3d/player1_win.mp4?v=1", side: 1, w: 0.62 },
+               { idle: "vid/r3d/player2_idle_loop.mp4?v=1", win: "vid/r3d/player2_win.mp4?v=1", side: -1, w: 0.56 }];
+const SLOT = { [1]: { x: 1.2, z: 0.12, rotY: -1.15, bet: new THREE.Vector3(0.78, H, 0.05) }, [-1]: { x: -1.2, z: 0.12, rotY: 1.15, bet: new THREE.Vector3(-0.78, H, 0.05) } };
 const charOf = (id) => { let h = 0; for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h % CHARS.length; };
 const slotSeat = {};                                  // side -> { key, seat }
 function seatAt(side, ci) {
@@ -549,7 +549,7 @@ function frame(now) {
   const want = userU ?? autoU; u += (want - u) * (1 - Math.pow(userU !== null ? 0.0001 : 0.15, dt));
   const target = autoU > 0.3 && autoU < 0.7 && userU === null ? LOOK_HOLE : LOOK_BET.clone().lerp(LOOK_DEALER, u);
   LOOK.lerp(target, 1 - Math.pow(0.05, dt)); yaw += (userYaw - yaw) * (1 - Math.pow(0.002, dt));
-  camera.position.copy(EYE); const L = LOOK.clone().sub(EYE).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw).add(EYE); camera.lookAt(L);
+  camera.position.copy(EYE); const L = LOOK.clone().sub(EYE).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw).add(EYE); L.y += Math.abs(yaw) * 0.45; camera.lookAt(L);   // looking to a side lifts the view to the player's face
   const f = baseFov / zoom; if (Math.abs(camera.fov - f) > 0.05) { camera.fov += (f - camera.fov) * (1 - Math.pow(0.01, dt)); camera.updateProjectionMatrix(); }
   renderer.render(scene, camera); placeLabels(); for (const l of betLabels) { const q = l.pos.clone().project(camera); l.el.style.left = (q.x + 1) / 2 * innerWidth + "px"; l.el.style.top = (1 - q.y) / 2 * innerHeight + "px"; l.el.style.display = q.z < 1 ? "" : "none"; }
 }
