@@ -319,8 +319,8 @@ function frame(now) {
 let lastLift = 0, prevLift = 0, lastTick = 0; let spinRes = null, marks = {}, ME_URL = null;
 function setCine(on) {
   cine = on; const c = $("cine");
-  if (on) { c.hidden = false; c.appendChild(host); requestAnimationFrame(() => c.classList.add("on")); drawLuckyList(); }
-  else { $("luckyList").hidden = true; if ($("potList")) $("potList").hidden = true; c.classList.remove("on"); $("wheelSlot").appendChild(host); setTimeout(() => { if (!cine) c.hidden = true; }, 500); }
+  if (on) { c.hidden = false; c.appendChild(host); requestAnimationFrame(() => c.classList.add("on")); drawLuckyList(); if (S) potList(S.pockets, true); }
+  else { $("luckyList").hidden = true; potList(null, false); c.classList.remove("on"); $("wheelSlot").appendChild(host); setTimeout(() => { if (!cine) c.hidden = true; }, 500); }
   layoutWheel();
 }
 
@@ -564,12 +564,12 @@ function accept(d) {
   clockOff = Date.parse(d.server_time) - Date.now();
   const newRound = !S || S.id !== d.id;
   S = d;
-  potList(d.pockets, ["grow", "spin"].includes(d.phase));
+  potList(d.pockets, cine && ["grow", "spin"].includes(d.phase));   // only in the wheel close-up
   liveSt = { round: d.id, open: d.phase === "betting" && srvNow() < Date.parse(d.deadline), start: Date.parse(d.phase_at), close: d.phase === "betting" ? Date.parse(d.deadline) : Date.parse(d.phase_at),
              players: d.players, present: d.present, result: d.phase === "summary" ? d.result : null };
   if (newRound) {
     if (doneRound !== null || spunRound !== null) { busy = false; }
-    if (d.phase === "betting") { $("winTicker") && ($("winTicker").hidden = true); if (!busy) { const m = new Map(); for (const b of d.mine) { const k = b.nums.join(","); m.set(k, (m.get(k) || 0) + b.amt); } sent = m; bets = new Map([...m, ...[...bets].filter(([k]) => !m.has(k))]); } }
+    if (d.phase === "betting") { $("winTicker") && ($("winTicker").hidden = true); if (!busy) { const m = new Map(); for (const b of d.mine) { const k = b.nums.join(","); m.set(k, (m.get(k) || 0) + b.amt); } if (bets.size && !m.size) lastBets = new Map(bets); sent = m; bets = new Map(m); undoStack.length = 0; drawChips(); } }   // a new round starts empty (auto-play refills it)
     if (d.phase === "betting") { clearPockets(); $("bonusBox").hidden = true; bonusKey = ""; }
   }
   if (!plan && !cine && (d.phase === "betting" || doneRound === d.id)) { balance = d.balance; showBal(balance); }
