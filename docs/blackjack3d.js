@@ -43,7 +43,8 @@ const LOOK = LOOK_BET.clone(); let lookTo = LOOK_BET;
 if (/[?&]dbg=/.test(location.search)) { const v = location.search.match(/dbg=([-\d.,]+)/)[1].split(",").map(Number); EYE.set(v[0], v[1], v[2]); }
 // camera: 0 = the table, 1 = the dealer. The game picks a view (autoU); dragging up/down overrides it,
 // and 3 s after the last touch it goes back to the game's view. Zoom = the side buttons.
-const LOOK_HOLE = new THREE.Vector3(0, 0.95, -0.4);       // her cards, when she turns her hidden card
+const LOOK_HOLE = new THREE.Vector3(0, 0.95, -0.4);
+const LOOK_DOWN = new THREE.Vector3(0, 0.82, 0.22);       // dragging up past the table view: down onto the betting circles       // her cards, when she turns her hidden card
 let autoU = 0, userU = null, userAt = 0, u = 0, zoom = 1, userYaw = 0, yaw = 0;   // yaw: drag sideways to look at the players beside you
 const setView = (v) => { autoU = v; };
 camera.position.copy(EYE); camera.lookAt(LOOK);
@@ -290,7 +291,7 @@ canvas.addEventListener("pointerdown", (e) => { drag = { x: e.clientX, y: e.clie
 canvas.addEventListener("pointermove", (e) => {
   if (!drag) return; const dy = e.clientY - drag.y, dx = e.clientX - drag.x;
   if (Math.abs(dy) > 8 || Math.abs(dx) > 8) drag.moved = true;
-  if (drag.moved) { userU = Math.max(0, Math.min(1, drag.u0 + dy / (innerHeight * 0.6))); userYaw = Math.max(-0.95, Math.min(0.95, drag.yaw0 + dx / innerWidth * 1.6)); userAt = performance.now(); }
+  if (drag.moved) { userU = Math.max(-1, Math.min(1, drag.u0 + dy / (innerHeight * 0.6))); userYaw = Math.max(-0.95, Math.min(0.95, drag.yaw0 + dx / innerWidth * 1.6)); userAt = performance.now(); }
 });
 canvas.addEventListener("pointercancel", () => { drag = null; });
 canvas.addEventListener("pointerup", (e) => {
@@ -565,7 +566,7 @@ function frame(now) {
   for (let i = tweens.length - 1; i >= 0; i--) if (!tweens[i](now)) tweens.splice(i, 1);
   if (userU !== null && !drag && now - userAt > 3000) { userU = null; userYaw = 0; }    // back to the game's view
   const want = userU ?? autoU; u += (want - u) * (1 - Math.pow(userU !== null ? 0.0001 : 0.15, dt));
-  const target = autoU > 0.3 && autoU < 0.7 && userU === null ? LOOK_HOLE : LOOK_BET.clone().lerp(LOOK_DEALER, u);
+  const target = autoU > 0.3 && autoU < 0.7 && userU === null ? LOOK_HOLE : (u < 0 ? LOOK_BET.clone().lerp(LOOK_DOWN, -u) : LOOK_BET.clone().lerp(LOOK_DEALER, u));
   LOOK.lerp(target, 1 - Math.pow(0.05, dt)); yaw += (userYaw - yaw) * (1 - Math.pow(0.002, dt));
   camera.position.copy(EYE); const L = LOOK.clone().sub(EYE).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw).add(EYE); L.y += Math.abs(yaw) * 0.45; camera.lookAt(L);   // looking to a side lifts the view to the player's face
   const f = baseFov / zoom; if (Math.abs(camera.fov - f) > 0.05) { camera.fov += (f - camera.fov) * (1 - Math.pow(0.01, dt)); camera.updateProjectionMatrix(); }
