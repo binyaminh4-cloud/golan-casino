@@ -2,7 +2,6 @@
    Same table, chips and dealer as Roulette 3D; the rules and money are the classic solo blackjack on the server
    (bj_deal / bj_action / bj_current, mode "classic", with side bets). ?preview plays locally with no money. */
 import * as THREE from "three";
-import { GLTFLoader } from "./vendor/three/addons/loaders/GLTFLoader.js";
 
 const $ = (id) => document.getElementById(id);
 const PREVIEW = /[?#&]preview/.test(location.href);
@@ -426,26 +425,36 @@ function previewEngine() {
       next(); return view(); } };
 }
 
-// ---------- test: a video player in the seat on your right (live-table look) ----------
-// A plane standing behind the rail on the right corner, turned toward the middle; the rail hides his lower body
-// and his hands sit where the felt starts. Edges fade into the dark like Ms Fisher.
-{
-  const v = document.createElement("video"); v.src = "vid/r3d/player1_idle_loop.mp4?v=1"; v.muted = true; v.loop = true; v.playsInline = true; v.preload = "auto";
-  const t = new THREE.VideoTexture(v); t.colorSpace = THREE.SRGBColorSpace;
-  const PW = 0.8, PH = PW * 496 / 864;
-  // key out the flat dark-brown background (#110401) so he can sit in front of the felt, not on a dark card
-  const mat = new THREE.ShaderMaterial({ uniforms: { map: { value: t } }, transparent: true, depthWrite: false,
+// ---------- video players beside you (preview of the live table): right = player 1, left = player 2 ----------
+// Each is a plane behind the rail, turned toward the middle; the flat dark background is keyed out in the shader.
+// idle loops; win plays once and returns to idle. (?side=win plays the win clips, for testing)
+const SEATS = [];
+function videoSeat({ idle, win, x, z, rotY, w }) {
+  const mk = (src, loop) => { const v = document.createElement("video"); v.src = src; v.muted = true; v.loop = loop; v.playsInline = true; v.preload = "auto"; return v; };
+  const vi = mk(idle, true), vw = mk(win, false);
+  const ti = new THREE.VideoTexture(vi), tw = new THREE.VideoTexture(vw); ti.colorSpace = tw.colorSpace = THREE.SRGBColorSpace;
+  const mat = new THREE.ShaderMaterial({ uniforms: { map: { value: ti } }, transparent: true, depthWrite: false,
     vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
     fragmentShader: "uniform sampler2D map; varying vec2 vUv; void main(){ vec4 c = texture2D(map, vUv); vec3 s = c.rgb;" +
-      " float d = length(s - vec3(0.067, 0.016, 0.004)); float a = smoothstep(0.09, 0.17, d);" +
+      " float d = length(s - vec3(0.075, 0.022, 0.012)); float a = smoothstep(0.09, 0.17, d);" +
       " a *= smoothstep(0.0, 0.04, vUv.x) * smoothstep(1.0, 0.96, vUv.x) * smoothstep(1.0, 0.95, vUv.y);" +
       " gl_FragColor = vec4(s, a); }" });
-  const pl = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), mat);
-  pl.position.set(1.1, 0.8 + PH / 2, 0.48); pl.rotation.y = -1.25; pl.renderOrder = -1; scene.add(pl);
-  addEventListener("pointerdown", () => v.play().catch(() => {}), { once: true }); v.play().catch(() => {});
+  const h = w * 496 / 864, pl = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
+  pl.position.set(x, 0.86 + h / 2, z); pl.rotation.y = rotY; pl.renderOrder = -1; scene.add(pl);
+  const seat = { vi, vw, mat, ti, tw,
+    win() { vw.currentTime = 0; mat.uniforms.map.value = tw; vw.play().catch(() => {}); },
+    idle() { mat.uniforms.map.value = ti; vi.play().catch(() => {}); } };
+  vw.addEventListener("ended", () => seat.idle());
+  seat.idle(); addEventListener("pointerdown", () => { vi.play().catch(() => {}); }, { once: true });
+  SEATS.push(seat); return seat;
+}
+videoSeat({ idle: "vid/r3d/player1_idle_loop.mp4?v=1", win: "vid/r3d/player1_win.mp4?v=1", x: 1.02, z: 0.42, rotY: -1.35, w: 0.8 });
+videoSeat({ idle: "vid/r3d/player2_idle_loop.mp4?v=1", win: "vid/r3d/player2_win.mp4?v=1", x: -1.02, z: 0.42, rotY: 1.35, w: 0.72 });
+if (/[?&]side=win/.test(location.search)) setTimeout(() => SEATS.forEach((s) => s.win()), 1500);
+for (const sx of [0.8, -0.8]) {
   const c = new THREE.Mesh(new THREE.RingGeometry(0.07, 0.078, 48), new THREE.MeshBasicMaterial({ color: 0xd6b06a }));
-  c.rotation.x = -Math.PI / 2; c.position.set(0.82, H + 0.002, 0.12); scene.add(c);
-  for (let i = 0; i < 4; i++) { const k = chipMesh(CHIPS[2].v); k.position.set(0.82, H + CHIP_T / 2 + i * CHIP_T, 0.12); scene.add(k); }
+  c.rotation.x = -Math.PI / 2; c.position.set(sx, H + 0.002, 0.12); scene.add(c);
+  for (let i = 0; i < 4; i++) { const k = chipMesh(CHIPS[2].v); k.position.set(sx, H + CHIP_T / 2 + i * CHIP_T, 0.12); scene.add(k); }
 }
 
 // ---------- render loop ----------
