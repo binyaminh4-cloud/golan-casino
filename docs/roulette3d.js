@@ -7,6 +7,7 @@ import * as THREE from "three";
 
 const $ = (id) => document.getElementById(id);
 const PREVIEW = /[?#&]preview/.test(location.href);
+const LIVE = /[?&]live\b/.test(location.search);   // live: the shared classic roulette (rl_live_*), friends beside you
 const R = window.RLW;
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 const fmt = (n) => { n = Math.floor(Number(n) + 1e-6); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
@@ -177,7 +178,7 @@ function drawStack(key) {
   g.position.copy(c); scene.add(g); stacks.set(key, g); return g;
 }
 function totalBet() { let s = 0; for (const v of bets.values()) s += v; return s; }
-function showTotal() { $("total").textContent = fmt(totalBet()); $("spin").disabled = busy || !bets.size; $("undo").disabled = busy || !undo.length; $("clear").disabled = busy || !bets.size; $("repeat").disabled = busy || !lastBets || bets.size > 0; }
+function showTotal() { if (LIVE) { $("spin").textContent = "שלח הימור"; } $("total").textContent = fmt(totalBet()); $("spin").disabled = busy || !bets.size || (LIVE && !PREVIEW && !(liveSt && liveSt.open && [...bets].some(([k, v]) => v > (sent.get(k) || 0)))); $("undo").disabled = busy || !undo.length; $("clear").disabled = busy || !bets.size; $("repeat").disabled = busy || !lastBets || bets.size > 0; }
 function place(key, amt, anim = true) {
   if (busy) return;
   if (totalBet() + amt > balance) { say("אין מספיק שקלים"); return; }
@@ -213,14 +214,19 @@ function reach(a) {
 
 // tap on the felt -> the area under the finger
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
-canvas.addEventListener("pointerdown", (e) => {
-  if (busy || !$("enter").hidden) return;
+let drag = null, userYaw = 0, yaw = 0, userAt = 0;
+canvas.addEventListener("pointerdown", (e) => { if (LIVE) { drag = { x: e.clientX, yaw0: userYaw, moved: false }; try { canvas.setPointerCapture(e.pointerId); } catch (x) {} } else tapAt(e); });
+canvas.addEventListener("pointermove", (e) => { if (!drag) return; const dx = e.clientX - drag.x; if (Math.abs(dx) > 10) drag.moved = true;
+  if (drag.moved) { userYaw = Math.max(-0.9, Math.min(0.9, drag.yaw0 + dx / innerWidth * 1.6)); userAt = performance.now(); } });
+canvas.addEventListener("pointerup", (e) => { const d = drag; drag = null; if (d && !d.moved) tapAt(e); });
+function tapAt(e) {
+  if (busy || !$("enter").hidden || (LIVE && liveSt && !liveSt.open)) return;
   const r = canvas.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
   ray.setFromCamera(ndc, camera);
   const hit = new THREE.Vector3(); if (!ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), -H), hit)) return;
   const a = AREAS.find((a) => hit.x >= a.x && hit.x < a.x + a.w && hit.z >= a.z && hit.z < a.z + a.d);
   if (a) reach(a);
-});
+}
 
 // ---------- bottom bar ----------
 CHIPS.forEach((c, i) => {
@@ -264,6 +270,10 @@ async function spin() {
   busy = true; showTotal(); $("bar").classList.add("off");
   let res;
   try { res = await serverSpin(); } catch (e) { busy = false; showTotal(); $("bar").classList.remove("off"); say(errText(e), 3000); return; }
+  await playRound(res);
+}
+async function playRound(res) {
+  busy = true; showTotal(); $("bar").classList.add("off");
   lastBets = new Map(bets); showBal(res.balance - res.payout); preload("n" + res.result);
   say("No more bets", 1600); voice("nomore");
   lookTo = LOOK_DEALER; await wait(1000); dealerPlay("throw");
@@ -297,11 +307,120 @@ function settle(res) {
   setTimeout(() => {
     $("result").hidden = true; dolly.visible = false;
     for (const k of [...bets.keys()]) bets.delete(k); for (const [k, g] of stacks) scene.remove(g); stacks.clear(); undo = [];
-    busy = false; $("bar").classList.remove("off"); showTotal(); voice("bets");
+    busy = false; $("bar").classList.remove("off"); showTotal(); if (!LIVE) voice("bets"); sent.clear(); drawOthers();
   }, 2600);
 }
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-$("spin").onclick = spin;
+$("spin").onclick = () => LIVE && !PREVIEW ? liveSend() : spin();
+
+// ---------- the live table ----------
+const H_ = H;
+const SEATS = [];
+function videoSeat({ idle, win, x, z, rotY, w }) {
+  const mk = (src, loop) => { const v = document.createElement("video"); v.src = src; v.muted = true; v.loop = loop; v.playsInline = true; v.preload = "auto"; return v; };
+  const vi = mk(idle, true), vw = mk(win, false);
+  const ti = new THREE.VideoTexture(vi), tw = new THREE.VideoTexture(vw); ti.colorSpace = tw.colorSpace = THREE.SRGBColorSpace;
+  const mat = new THREE.ShaderMaterial({ uniforms: { map: { value: ti } }, transparent: true, depthWrite: false,
+    vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+    fragmentShader: "uniform sampler2D map; varying vec2 vUv; void main(){ vec4 c = texture2D(map, vUv); vec3 s = c.rgb;" +
+      " float d = length(s - vec3(0.075, 0.022, 0.012)); float a = smoothstep(0.09, 0.17, d);" +
+      " a *= smoothstep(0.0, 0.04, vUv.x) * smoothstep(1.0, 0.96, vUv.x) * smoothstep(1.0, 0.95, vUv.y);" +
+      " gl_FragColor = vec4(s, a); }" });
+  const h = w * 496 / 864, pl = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
+  pl.position.set(x, 0.97 + h / 2, z); pl.rotation.y = rotY; pl.renderOrder = -1; scene.add(pl);
+  const seat = { vi, vw, mat, ti, tw,
+    win() { vw.currentTime = 0; mat.uniforms.map.value = tw; vw.play().catch(() => {}); },
+    idle() { mat.uniforms.map.value = ti; vi.play().catch(() => {}); } };
+  vw.addEventListener("ended", () => seat.idle());
+  seat.idle(); addEventListener("pointerdown", () => { vi.play().catch(() => {}); }, { once: true });
+  seat.mesh = pl; SEATS.push(seat); return seat;
+}
+// two characters (filmed for one side each); a player gets one at random (stable per user); if both side players
+// need the same side, the second one is mirrored onto the other side.
+const CHARS = [{ idle: "vid/r3d/player1_idle_loop.mp4?v=1", win: "vid/r3d/player1_win.mp4?v=1", side: 1, w: 0.62 },
+               { idle: "vid/r3d/player2_idle_loop.mp4?v=1", win: "vid/r3d/player2_win.mp4?v=1", side: -1, w: 0.56 }];
+const charOf = (id) => { let h = 0; for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h % CHARS.length; };
+const slotSeat = {};                                  // side -> { key, seat }
+function seatAt(side, ci) {
+  const key = ci + ":" + side, cur = slotSeat[side];
+  if (cur && cur.key === key) return cur.seat;
+  if (cur) { scene.remove(cur.seat.mesh); cur.seat.vi.pause(); cur.seat.vw.pause(); }
+  const c = CHARS[ci], sl = SLOT[side], seat = videoSeat({ idle: c.idle, win: c.win, x: sl.x, z: sl.z, rotY: sl.rotY, w: c.w });
+  if (c.side !== side) seat.mesh.scale.x = -1;        // mirrored onto the other side
+  slotSeat[side] = { key, seat }; return seat;
+}
+function clearSeat(side) { const cur = slotSeat[side]; if (cur) { scene.remove(cur.seat.mesh); cur.seat.vi.pause(); cur.seat.vw.pause(); delete slotSeat[side]; } }
+
+const SLOT = { [1]: { x: 1.42, z: 0.02, rotY: -1.3, bet: new THREE.Vector3(0.95, H, 0.05) }, [-1]: { x: -1.42, z: 0.02, rotY: 1.3, bet: new THREE.Vector3(-0.95, H, 0.05) } };
+let liveSt = null, clockOff = 0, fetching = false, lastFetch = 0, animRound = null, nmbRound = null, winShown = {};
+const sent = new Map();                    // key -> amount the server already has
+const othersG = new THREE.Group(); scene.add(othersG);
+const betLabels = [];
+function betLabel(text, pos) { const el = document.createElement("div"); el.className = "tot num"; el.textContent = text; document.body.appendChild(el); betLabels.push({ el, pos }); }
+const srvNow = () => Date.now() + clockOff;
+let MY_ID = null;
+function drawOthers() {
+  othersG.clear(); betLabels.splice(0).forEach((l) => l.el.remove());
+  if (!LIVE || !liveSt) return;
+  const others = (liveSt.players || []).filter((p) => p.id !== MY_ID).slice(0, 2);
+  const sides = []; for (const p of others) { let sd = CHARS[charOf(p.id)].side; if (sides.includes(sd)) sd = -sd; sides.push(sd); }
+  for (const sd of [1, -1]) if (!sides.includes(sd)) clearSeat(sd);
+  others.forEach((p, k) => {
+    const sd = sides[k], seat = seatAt(sd, charOf(p.id)), sl = SLOT[sd];
+    // their chips on the layout (small stacks, one per area they played)
+    const per = {}; for (const b of p.bets || []) { const key = b.nums.join(","); per[key] = (per[key] || 0) + Number(b.amt); }
+    for (const [key, amt] of Object.entries(per)) { const a = AREAS.find((x) => x.key === key); if (!a) continue; const c = areaCenter(a);
+      let v = amt, i = 0; for (const ch of [...CHIPS].reverse()) while (v >= ch.v && i < 6) { const m = chipMesh(ch.v); m.position.set(c.x + sd * 0.025, H + CHIP_T / 2 + i * CHIP_T, c.z + 0.02); m.scale.setScalar(0.8); othersG.add(m); v -= ch.v; i++; } }
+    const won = p.payout != null && Number(p.payout) > 0;
+    betLabel(`${p.name} · ${fmt(p.total)}${p.payout != null ? (won ? " · זכה " + fmt(p.payout) : " · הפסיד") : ""}`, sl.bet);
+    if (won && winShown[p.id] !== liveSt.round) { winShown[p.id] = liveSt.round; seat.win(); }
+  });
+}
+function liveClock() {
+  if (!LIVE || !liveSt) return; const s2 = $("say"), t = srvNow();
+  if (t < liveSt.close) { const left = Math.ceil((liveSt.close - t) / 1000); s2.textContent = `הימורים פתוחים · ${left}`; s2.classList.add("on"); }
+  else if (!busy) { s2.textContent = "אין עוד הימורים"; s2.classList.add("on"); }
+  if (t >= liveSt.close && nmbRound !== liveSt.round && t < liveSt.close + 3000) { nmbRound = liveSt.round; voice("nomore"); }
+}
+async function liveSend() {
+  const delta = []; for (const [k, v] of bets) { const d = v - (sent.get(k) || 0); if (d > 0) delta.push({ nums: k.split(",").map(Number), amt: d }); }
+  if (!delta.length || !liveSt || !liveSt.open) return;
+  $("spin").disabled = true;
+  try { const { data, error } = await db.rpc("rl_live_bet", { p_round: liveSt.round, p_mode: "classic", p_bets: delta, p_ref: newRef() }); if (error) throw error;
+    for (const b of delta) { const k = b.nums.join(","); sent.set(k, (sent.get(k) || 0) + b.amt); } say("ההימור נשלח", 1500); if (data && data.balance != null) { balance = Number(data.balance); showBal(balance); } }
+  catch (e) { say(errText(e), 3000); }
+  showTotal(); liveFetch();
+}
+async function liveFetch() {
+  if (fetching) return; fetching = true; lastFetch = Date.now();
+  try {
+    const { data, error } = PREVIEW ? { data: fakeLive() } : await db.rpc("rl_live_state", { p_mode: "classic" });
+    if (error) throw error;
+    clockOff = data.now - Date.now();
+    const newRound = !liveSt || liveSt.round !== data.round; liveSt = data;
+    if (newRound && !busy) { const m = new Map(); for (const b of data.mine || []) { const k = b.nums.join(","); m.set(k, (m.get(k) || 0) + Number(b.amt)); }
+      sent.clear(); for (const [k, v] of m) sent.set(k, v); if (m.size) { bets.clear(); for (const [k, v] of m) { bets.set(k, v); drawStack(k); } } showTotal(); }
+    if (!busy) { balance = Number(data.balance); showBal(balance); }
+    drawOthers();
+    if (!data.open && data.result !== null && animRound !== data.round) {
+      animRound = data.round;
+      const total = [...sent.values()].reduce((a, b) => a + b, 0);
+      for (const k of [...bets.keys()]) if (!sent.has(k)) { bets.delete(k); drawStack(k); }      // chips never sent don't play
+      if (srvNow() < data.close + 9000) playRound({ result: data.result, total, payout: Number(data.payout || 0), balance: Number(data.balance) });
+    }
+  } catch (e) { console.error(e); }
+  fetching = false;
+}
+setInterval(() => {
+  if (!LIVE || document.hidden || !$("enter").hidden) return; liveClock();
+  const t = srvNow(), due = !liveSt || t >= liveSt.end || (liveSt.open && t >= liveSt.close + 200) || (!liveSt.open && liveSt.result === null);
+  if (due ? Date.now() - lastFetch > 700 : Date.now() - lastFetch > 2500) liveFetch();
+}, 250);
+let fakeT0 = Date.now();
+function fakeLive() { const t = Date.now() - fakeT0, open = t < 12000;
+  return { now: Date.now(), round: 1, open, close: fakeT0 + 12000, end: fakeT0 + 60000, result: open ? null : 17, payout: 0, mine: [], balance,
+    players: [{ id: "a1", name: "אורי", total: 15000, payout: open ? null : 360000, bets: [{ nums: [17], amt: 10000 }, { nums: [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36], amt: 5000 }] },
+              { id: "b2", name: "דניאל", total: 100000, payout: open ? null : 0, bets: [{ nums: [0], amt: 100000 }] }] }; }
 
 // ---------- render loop ----------
 function fit() {
@@ -330,8 +449,12 @@ function frame(now) {
     W.camera();
     return;
   }
-  LOOK.lerp(lookTo, 1 - Math.pow(0.18, dt)); camera.position.copy(EYE); camera.lookAt(LOOK);
+  if (!drag && now - userAt > 3000) userYaw = 0;
+  yaw += (userYaw - yaw) * (1 - Math.pow(0.002, dt));
+  LOOK.lerp(lookTo, 1 - Math.pow(0.18, dt)); camera.position.copy(EYE);
+  const L = LOOK.clone().sub(EYE).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw).add(EYE); L.y += Math.abs(yaw) * 0.45; camera.lookAt(L);
   renderer.render(scene, camera);
+  for (const l of betLabels) { const q = l.pos.clone().project(camera); l.el.style.left = (q.x + 1) / 2 * innerWidth + "px"; l.el.style.top = (1 - q.y) / 2 * innerHeight + "px"; l.el.style.display = q.z < 1 ? "" : "none"; }
 }
 
 // ---------- start ----------
@@ -342,11 +465,13 @@ function frame(now) {
   else {
     const { data: { session } } = await db.auth.getSession();
     if (!session) { location.href = "./"; return; }
+    MY_ID = session.user.id;
     const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single();
     if (!w.error) { balance = Number(w.data.balance); showBal(balance); }
   }
   showTotal();
   try { GC_LOADER.done(); } catch (e) {}
   $("enterGo").onclick = () => { preload("nomore"); $("enter").hidden = true; dealerPlay("idle"); preload("bets"); setTimeout(() => voice("bets"), 900); vThrow.load(); };
+  if (LIVE) { document.querySelector(".top h1").textContent = "רולטה 3D לייב"; document.title = "רולטה 3D לייב · גולן קזינו"; }
   if (/[?&]go\b/.test(location.search)) $("enterGo").click();
 })();
