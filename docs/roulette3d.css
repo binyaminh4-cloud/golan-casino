@@ -57,3 +57,5 @@
 .hand .hchip{width:27%;height:auto;left:36%;top:-6.5%;transform:scaleY(.62);transition:opacity .12s}
 .hand .hchip.drop{opacity:0}
 .wheelview:not([hidden]) ~ .result{top:16%;transform:translate(-50%,0)}
+.stag{position:fixed;z-index:13;transform:translate(-50%,-100%);padding:1px 7px;border-radius:99px;background:#0d0906e6;border:1px solid #c5a05a;font:800 12px Inter;color:#ffe7a8;pointer-events:none;white-space:nowrap}
+#scene~.stag{}

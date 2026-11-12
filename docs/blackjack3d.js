@@ -8,7 +8,7 @@ const PREVIEW = /[?#&]preview/.test(location.href);
 const LIVE = /[?&]live\b/.test(location.search), TABLE_NO = 2;   // live: the shared table (bjt_*), table 2 = the 3D table
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 const fmt = (n) => { n = Math.floor(Number(n) + 1e-6); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
-const short = (v) => v >= 1e6 ? v / 1e6 + "M" : v >= 1e3 ? v / 1e3 + "K" : String(v);
+const short = (v) => v >= 1e12 ? v / 1e12 + "T" : v >= 1e9 ? v / 1e9 + "B" : v >= 1e6 ? v / 1e6 + "M" : v >= 1e3 ? v / 1e3 + "K" : String(v);
 const sfx = (f) => { try { f(); } catch (e) {} };
 const voice = (name) => { try { SFX.fx("r3d/" + name + "_v2", { vol: 0.95 }); } catch (e) {} };
 const preload = (name) => { try { SFX.fx("r3d/" + name + "_v2", { vol: 0 }); } catch (e) {} };
@@ -22,9 +22,13 @@ const SIDES = [{ k: "pp", t: "PERFECT", t2: "PAIRS", x: -0.4, z: 0.12 }, { k: "t
   { k: "ll", t: "LUCKY", t2: "LADIES", x: 0.21, z: 0.22 }, { k: "bust", t: "BUSTER", t2: "BLACKJACK", x: 0.4, z: 0.12 }];
 const SPOT = { main: BET, ...Object.fromEntries(SIDES.map((x) => [x.k, x])) };
 const SIDE_NAME = { pp: "זוג מושלם", t3: "21+3", ll: "ליידיז מזל", bust: "באסטר" };                           // the betting circle in front of the player
-const CHIPS = [
-  { v: 100, c: "white", side: "#d9d6cc" }, { v: 1000, c: "red", side: "#8e1414" }, { v: 10000, c: "blue", side: "#1b2f86" },
-  { v: 100000, c: "green", side: "#145f2a" }, { v: 1000000, c: "black", side: "#151515" }, { v: 10000000, c: "purple", side: "#4c1d6b" }];
+// chips follow the wallet like the other tables: the same series (×5/×4 steps), a chip shows once the wallet holds
+// 20× its value, 6 on screen. Colours cycle through the six photographed chips; the value is printed on the chip.
+const CHIP_V = [5, 25, 100, 500, ...[1e3, 1e6, 1e9].flatMap((m) => [1, 5, 25, 100, 500].map((c) => c * m)), 1e12, 5e12];
+const CHIP_LOOK = [{ c: "white", side: "#d9d6cc" }, { c: "red", side: "#8e1414" }, { c: "blue", side: "#1b2f86" },
+  { c: "green", side: "#145f2a" }, { c: "black", side: "#151515" }, { c: "purple", side: "#4c1d6b" }];
+const ALL_CHIPS = CHIP_V.map((v, i) => ({ v, ...CHIP_LOOK[i % 6] }));
+let CHIPS = ALL_CHIPS.slice(2, 8);
 
 // ---------- renderer and scene ----------
 const canvas = $("scene");
@@ -119,15 +123,22 @@ felt.rotation.x = -Math.PI / 2; felt.position.y = H; felt.receiveShadow = true; 
 }
 
 // ---------- chips ----------
-const chipTop = {}, chipSide = {};
-CHIPS.forEach((c) => {
-  const t = loader.load(`img/r3d/chip_${c.c}.png?v=1`); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
-  chipTop[c.v] = new THREE.MeshStandardMaterial({ map: t, roughness: 0.55 });
-  chipSide[c.v] = new THREE.MeshStandardMaterial({ color: c.side, roughness: 0.6 });
-});
+const chipMats = {}, chipImg = {};
+const lookOf = (v) => ALL_CHIPS.find((c) => c.v === v) || ALL_CHIPS[0];
+function chipMat(v) {
+  if (chipMats[v]) return chipMats[v];
+  const L = lookOf(v), cv = document.createElement("canvas"); cv.width = cv.height = 256;
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+  const paint = (im) => { const g = cv.getContext("2d"); g.clearRect(0, 0, 256, 256); if (im) g.drawImage(im, 0, 0, 256, 256);
+    g.fillStyle = "rgba(10,8,6,.55)"; g.beginPath(); g.arc(128, 128, 62, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "#fff"; g.font = "900 " + (short(v).length > 3 ? 54 : 66) + "px Inter, Arial, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(short(v), 128, 132); t.needsUpdate = true; };
+  if (!chipImg[L.c]) { chipImg[L.c] = new Image(); chipImg[L.c].src = `img/r3d/chip_${L.c}.png?v=1`; }
+  const im = chipImg[L.c]; if (im.complete && im.naturalWidth) paint(im); else { paint(null); im.addEventListener("load", () => paint(im)); }
+  return (chipMats[v] = [new THREE.MeshStandardMaterial({ color: L.side, roughness: 0.6 }), new THREE.MeshStandardMaterial({ map: t, roughness: 0.55, transparent: true })]);
+}
 const CHIP_R = 0.021, CHIP_T = 0.0036;
 const chipGeo = new THREE.CylinderGeometry(CHIP_R, CHIP_R, CHIP_T, 40);
-function chipMesh(v) { const m = new THREE.Mesh(chipGeo, [chipSide[v], chipTop[v], chipSide[v]]); m.castShadow = true; return m; }
+function chipMesh(v) { const [sd, tp] = chipMat(v); const m = new THREE.Mesh(chipGeo, [sd, tp, sd]); m.castShadow = true; return m; }
 // the dealer's float: stacks of every colour, behind the layout
 CHIPS.forEach((c, i) => { for (let k = 0; k < 14; k++) { const m = chipMesh(c.v); m.position.set(-0.66 + i * 0.05, H + CHIP_T / 2 + k * CHIP_T, -0.4); scene.add(m); } });
 
@@ -232,7 +243,7 @@ function drawBet(k, amount) {
   if (stacks[k]) { scene.remove(stacks[k]); delete stacks[k]; }
   if (!amount) return;
   const g = new THREE.Group(); let a = amount, i = 0;
-  for (const c of [...CHIPS].reverse()) while (a >= c.v && i < 14) { const m = chipMesh(c.v); m.position.set(0, CHIP_T / 2 + i * CHIP_T, 0); m.rotation.y = i * 0.7; g.add(m); a -= c.v; i++; }
+  for (const c of [...ALL_CHIPS].reverse()) while (a >= c.v && i < 14) { const m = chipMesh(c.v); m.position.set(0, CHIP_T / 2 + i * CHIP_T, 0); m.rotation.y = i * 0.7; g.add(m); a -= c.v; i++; }
   g.position.set(SPOT[k].x, H, SPOT[k].z); scene.add(g); stacks[k] = g;
 }
 const drawAll = () => { for (const k in bets) drawBet(k, bets[k]); try { drawOthers(); } catch (e) {} };
@@ -248,7 +259,7 @@ function showBar() {
 }
 let sayT = 0;
 function say(t, ms = 2200) { const s = $("say"); s.textContent = t; s.classList.add("on"); clearTimeout(sayT); sayT = setTimeout(() => s.classList.remove("on"), ms); }
-function showBal(v) { $("bal").textContent = fmt(v); }
+function showBal(v) { $("bal").textContent = fmt(v); drawRack(); }
 
 // the hand: rises from the bottom of the screen to the area, lets the chip go, and goes back
 let handAnim = null;
@@ -257,7 +268,7 @@ function reach(a) {
   const c = areaCenter(a).project(camera), x = (c.x + 1) / 2 * innerWidth, y = (1 - c.y) / 2 * innerHeight;
   const el = $("hand"), h = innerHeight * 0.52, w = h * 360 / 607, px = w * 0.497, py = h * 0.021;
   const tilt = Math.max(-22, Math.min(22, (x - innerWidth * 0.62) / innerWidth * 40));
-  $("handChip").src = `img/r3d/chip_${CHIPS.find((k) => k.v === chipVal).c}.png?v=1`; $("handChip").classList.remove("drop");
+  $("handChip").src = `img/r3d/chip_${lookOf(chipVal).c}.png?v=1`; $("handChip").classList.remove("drop");
   if (handAnim) handAnim.cancel();
   el.hidden = false; el.style.left = (x - px) + "px"; el.style.top = (y - py) + "px";
   const key = a.key, amt = chipVal;
@@ -290,12 +301,19 @@ canvas.addEventListener("pointerup", (e) => {
   if (!ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), -H), hit)) return;
   for (const [k, p] of Object.entries(SPOT)) if (Math.hypot(hit.x - p.x, hit.z - p.z) < (k === "main" ? 0.12 : 0.07)) { reach({ key: k }); break; }
 });
-CHIPS.forEach((c) => {
-  const b = document.createElement("button"); b.type = "button"; b.className = "chip" + (c.v === chipVal ? " on" : ""); b.style.backgroundImage = `url(img/r3d/chip_${c.c}.png?v=1)`;
-  b.setAttribute("aria-label", "צ׳יפ " + fmt(c.v)); b.innerHTML = `<span>${short(c.v)}</span>`;
-  b.onclick = () => { chipVal = c.v; document.querySelectorAll(".chip").forEach((x) => x.classList.toggle("on", x === b)); sfx(() => SFX.chip()); };
-  $("chips").appendChild(b);
-});
+let rackKey = "";
+function drawRack() {
+  const ok = ALL_CHIPS.filter((c, i) => i < 6 || c.v * 20 <= balance), show = ok.slice(-6), k = show.map((c) => c.v).join(",");
+  if (k === rackKey) return; rackKey = k; CHIPS = show;
+  if (!show.some((c) => c.v === chipVal)) chipVal = show[Math.min(2, show.length - 1)].v;
+  $("chips").innerHTML = "";
+  show.forEach((c) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "chip" + (c.v === chipVal ? " on" : ""); b.style.backgroundImage = `url(img/r3d/chip_${c.c}.png?v=1)`;
+    b.setAttribute("aria-label", "צ׳יפ " + fmt(c.v)); b.innerHTML = `<span>${short(c.v)}</span>`;
+    b.onclick = () => { chipVal = c.v; document.querySelectorAll(".chip").forEach((x) => x.classList.toggle("on", x === b)); sfx(() => SFX.chip()); };
+    $("chips").appendChild(b);
+  });
+}
 $("clear").onclick = () => { for (const k in bets) bets[k] = 0; drawAll(); showBar(); };
 $("repeat").onclick = () => { if (!lastBets) return; const t = Object.values(lastBets).reduce((a, b) => a + b, 0); if (t > balance) { say("אין מספיק שקלים"); return; } bets = { ...lastBets }; drawAll(); showBar(); };
 
@@ -490,7 +508,7 @@ function drawOthers() {
   others.forEach((p, k) => {
     const sd = sides[k], seat = seatAt(sd, charOf(p.id)), sl = SLOT[sd];
     let a = Number(p.bet) + Object.values(p.side || {}).reduce((x, y) => x + Number(y || 0), 0), i = 0;
-    for (const c of [...CHIPS].reverse()) while (a >= c.v && i < 12) { const m = chipMesh(c.v); m.position.set(sl.bet.x, H + CHIP_T / 2 + i * CHIP_T, sl.bet.z); othersG.add(m); a -= c.v; i++; }
+    for (const c of [...ALL_CHIPS].reverse()) while (a >= c.v && i < 12) { const m = chipMesh(c.v); m.position.set(sl.bet.x, H + CHIP_T / 2 + i * CHIP_T, sl.bet.z); othersG.add(m); a -= c.v; i++; }
     const ring = new THREE.Mesh(new THREE.RingGeometry(0.07, 0.078, 48), new THREE.MeshBasicMaterial({ color: 0xd6b06a })); ring.rotation.x = -Math.PI / 2; ring.position.set(sl.bet.x, H + 0.002, sl.bet.z); othersG.add(ring);
     (p.hands || []).forEach((h, hi) => h.cards.forEach((cd, ci) => {
       const m = cardMesh(cd); m.position.set(sl.bet.x - sd * (0.02 + ci * 0.03 + hi * 0.12), H + 0.002 + ci * 0.0006, sl.bet.z - 0.17 - ci * 0.016); m.rotation.z = sd * 0.35; othersG.add(m); }));

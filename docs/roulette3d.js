@@ -11,7 +11,7 @@ const LIVE = /[?&]live\b/.test(location.search);   // live: the shared classic r
 const R = window.RLW;
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 const fmt = (n) => { n = Math.floor(Number(n) + 1e-6); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
-const short = (v) => v >= 1e6 ? v / 1e6 + "M" : v >= 1e3 ? v / 1e3 + "K" : String(v);
+const short = (v) => v >= 1e12 ? v / 1e12 + "T" : v >= 1e9 ? v / 1e9 + "B" : v >= 1e6 ? v / 1e6 + "M" : v >= 1e3 ? v / 1e3 + "K" : String(v);
 const sfx = (f) => { try { f(); } catch (e) {} };
 // Ms Fisher's voice: one clip per call (snd/r3d/n0..n36, bets, nomore), played at the effects volume
 const voice = (name) => { try { SFX.fx("r3d/" + name + "_v2", { vol: 0.95 }); } catch (e) {} };
@@ -23,9 +23,13 @@ const FW = 2.7, FD = 1.1, FR = 0.18;                // felt size and corner radi
 const X0 = -0.62, CW = 0.12, CH = 0.115, ZF = -0.36; // first number column left edge, cell size, far edge of the number grid
 const REDS = new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]);
 const colorOf = (n) => n === 0 ? "green" : REDS.has(n) ? "red" : "black";
-const CHIPS = [
-  { v: 100, c: "white", side: "#d9d6cc" }, { v: 1000, c: "red", side: "#8e1414" }, { v: 10000, c: "blue", side: "#1b2f86" },
-  { v: 100000, c: "green", side: "#145f2a" }, { v: 1000000, c: "black", side: "#151515" }, { v: 10000000, c: "purple", side: "#4c1d6b" }];
+// chips follow the wallet like the other tables: the same series (×5/×4 steps), a chip shows once the wallet holds
+// 20× its value, 6 on screen. Colours cycle through the six photographed chips; the value is printed on the chip.
+const CHIP_V = [5, 25, 100, 500, ...[1e3, 1e6, 1e9].flatMap((m) => [1, 5, 25, 100, 500].map((c) => c * m)), 1e12, 5e12];
+const CHIP_LOOK = [{ c: "white", side: "#d9d6cc" }, { c: "red", side: "#8e1414" }, { c: "blue", side: "#1b2f86" },
+  { c: "green", side: "#145f2a" }, { c: "black", side: "#151515" }, { c: "purple", side: "#4c1d6b" }];
+const ALL_CHIPS = CHIP_V.map((v, i) => ({ v, ...CHIP_LOOK[i % 6] }));
+let CHIPS = ALL_CHIPS.slice(2, 8);
 
 // every betting area: key (server nums), rectangle on the felt, label
 const AREAS = [];
@@ -118,15 +122,22 @@ felt.rotation.x = -Math.PI / 2; felt.position.y = H; felt.receiveShadow = true; 
 }
 
 // ---------- chips ----------
-const chipTop = {}, chipSide = {};
-CHIPS.forEach((c) => {
-  const t = loader.load(`img/r3d/chip_${c.c}.png?v=1`); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
-  chipTop[c.v] = new THREE.MeshStandardMaterial({ map: t, roughness: 0.55 });
-  chipSide[c.v] = new THREE.MeshStandardMaterial({ color: c.side, roughness: 0.6 });
-});
+const chipMats = {}, chipImg = {};
+const lookOf = (v) => ALL_CHIPS.find((c) => c.v === v) || ALL_CHIPS[0];
+function chipMat(v) {
+  if (chipMats[v]) return chipMats[v];
+  const L = lookOf(v), cv = document.createElement("canvas"); cv.width = cv.height = 256;
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+  const paint = (im) => { const g = cv.getContext("2d"); g.clearRect(0, 0, 256, 256); if (im) g.drawImage(im, 0, 0, 256, 256);
+    g.fillStyle = "rgba(10,8,6,.55)"; g.beginPath(); g.arc(128, 128, 62, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "#fff"; g.font = "900 " + (short(v).length > 3 ? 54 : 66) + "px Inter, Arial, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(short(v), 128, 132); t.needsUpdate = true; };
+  if (!chipImg[L.c]) { chipImg[L.c] = new Image(); chipImg[L.c].src = `img/r3d/chip_${L.c}.png?v=1`; }
+  const im = chipImg[L.c]; if (im.complete && im.naturalWidth) paint(im); else { paint(null); im.addEventListener("load", () => paint(im)); }
+  return (chipMats[v] = [new THREE.MeshStandardMaterial({ color: L.side, roughness: 0.6 }), new THREE.MeshStandardMaterial({ map: t, roughness: 0.55, transparent: true })]);
+}
 const CHIP_R = 0.021, CHIP_T = 0.0036;
 const chipGeo = new THREE.CylinderGeometry(CHIP_R, CHIP_R, CHIP_T, 40);
-function chipMesh(v) { const m = new THREE.Mesh(chipGeo, [chipSide[v], chipTop[v], chipSide[v]]); m.castShadow = true; return m; }
+function chipMesh(v) { const [sd, tp] = chipMat(v); const m = new THREE.Mesh(chipGeo, [sd, tp, sd]); m.castShadow = true; return m; }
 // the dealer's float: stacks of every colour, behind the layout
 CHIPS.forEach((c, i) => { for (let k = 0; k < 14; k++) { const m = chipMesh(c.v); m.position.set(-0.34 + i * 0.05, H + CHIP_T / 2 + k * CHIP_T, -0.47); scene.add(m); } });
 
@@ -168,14 +179,18 @@ vThrow.addEventListener("ended", () => dealerPlay("idle"));
 const bets = new Map();                 // key -> amount
 const stacks = new Map();               // key -> THREE.Group
 let undo = [], lastBets = null, chipVal = CHIPS[1].v, busy = false, balance = 0;
-function breakdown(amount) { const out = []; let a = amount; for (const c of [...CHIPS].reverse()) while (a >= c.v && out.length < 12) { out.push(c.v); a -= c.v; } if (!out.length) out.push(CHIPS[0].v); return out.reverse(); }
+function breakdown(amount) { const out = []; let a = amount; for (const c of [...ALL_CHIPS].reverse()) while (a >= c.v && out.length < 12) { out.push(c.v); a -= c.v; } if (!out.length) out.push(CHIPS[0].v); return out.reverse(); }
 function areaCenter(a) { return new THREE.Vector3(a.x + a.w / 2, H, a.z + a.d / 2); }
+const stackTags = new Map();               // key -> HTML label with the amount on that area
 function drawStack(key) {
   const old = stacks.get(key); if (old) scene.remove(old);
+  const tg = stackTags.get(key); if (tg) { tg.remove(); stackTags.delete(key); }
   const amt = bets.get(key); if (!amt) { stacks.delete(key); return; }
   const a = AREAS.find((x) => x.key === key), g = new THREE.Group(), c = areaCenter(a);
   breakdown(amt).forEach((v, i) => { const m = chipMesh(v); m.position.set(0, CHIP_T / 2 + i * CHIP_T, 0); m.rotation.y = i * 0.7; g.add(m); });
-  g.position.copy(c); scene.add(g); stacks.set(key, g); return g;
+  g.position.copy(c); scene.add(g); stacks.set(key, g);
+  const el = document.createElement("div"); el.className = "stag num"; el.textContent = short(amt); document.body.appendChild(el); el._p = c.clone().setY(H + 0.06); stackTags.set(key, el);
+  return g;
 }
 function totalBet() { let s = 0; for (const v of bets.values()) s += v; return s; }
 function showTotal() { if (LIVE) { $("spin").textContent = "שלח הימור"; } $("total").textContent = fmt(totalBet()); $("spin").disabled = busy || !bets.size || (LIVE && !PREVIEW && !(liveSt && liveSt.open && [...bets].some(([k, v]) => v > (sent.get(k) || 0)))); $("undo").disabled = busy || !undo.length; $("clear").disabled = busy || !bets.size; $("repeat").disabled = busy || !lastBets || bets.size > 0; }
@@ -199,7 +214,7 @@ function reach(a) {
   const c = areaCenter(a).project(camera), x = (c.x + 1) / 2 * innerWidth, y = (1 - c.y) / 2 * innerHeight;
   const el = $("hand"), h = innerHeight * 0.52, w = h * 360 / 607, px = w * 0.497, py = h * 0.021;
   const tilt = Math.max(-22, Math.min(22, (x - innerWidth * 0.62) / innerWidth * 40));
-  $("handChip").src = `img/r3d/chip_${CHIPS.find((k) => k.v === chipVal).c}.png?v=1`; $("handChip").classList.remove("drop");
+  $("handChip").src = `img/r3d/chip_${lookOf(chipVal).c}.png?v=1`; $("handChip").classList.remove("drop");
   if (handAnim) handAnim.cancel();
   el.hidden = false; el.style.left = (x - px) + "px"; el.style.top = (y - py) + "px";
   const key = a.key, amt = chipVal;
@@ -214,10 +229,10 @@ function reach(a) {
 
 // tap on the felt -> the area under the finger
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
-let drag = null, userYaw = 0, yaw = 0, userAt = 0;
-canvas.addEventListener("pointerdown", (e) => { if (LIVE) { drag = { x: e.clientX, yaw0: userYaw, moved: false }; try { canvas.setPointerCapture(e.pointerId); } catch (x) {} } else tapAt(e); });
-canvas.addEventListener("pointermove", (e) => { if (!drag) return; const dx = e.clientX - drag.x; if (Math.abs(dx) > 10) drag.moved = true;
-  if (drag.moved) { userYaw = Math.max(-0.9, Math.min(0.9, drag.yaw0 + dx / innerWidth * 1.6)); userAt = performance.now(); } });
+let drag = null, userYaw = 0, yaw = 0, userAt = 0, userU = null, u = 0;   // drag: sideways = the friends, up/down = Ms Fisher
+canvas.addEventListener("pointerdown", (e) => { drag = { x: e.clientX, y: e.clientY, yaw0: userYaw, u0: userU ?? 0, moved: false }; try { canvas.setPointerCapture(e.pointerId); } catch (x) {} });
+canvas.addEventListener("pointermove", (e) => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (Math.abs(dx) > 10 || Math.abs(dy) > 10) drag.moved = true;
+  if (drag.moved) { if (LIVE) userYaw = Math.max(-0.9, Math.min(0.9, drag.yaw0 + dx / innerWidth * 1.6)); userU = Math.max(0, Math.min(1, drag.u0 + dy / (innerHeight * 0.6))); userAt = performance.now(); } });
 canvas.addEventListener("pointerup", (e) => { const d = drag; drag = null; if (d && !d.moved) tapAt(e); });
 function tapAt(e) {
   if (busy || !$("enter").hidden || (LIVE && liveSt && !liveSt.open)) return;
@@ -229,12 +244,19 @@ function tapAt(e) {
 }
 
 // ---------- bottom bar ----------
-CHIPS.forEach((c, i) => {
-  const b = document.createElement("button"); b.type = "button"; b.className = "chip" + (c.v === chipVal ? " on" : ""); b.style.backgroundImage = `url(img/r3d/chip_${c.c}.png?v=1)`;
-  b.setAttribute("aria-label", "צ׳יפ " + fmt(c.v)); b.innerHTML = `<span>${short(c.v)}</span>`;
-  b.onclick = () => { chipVal = c.v; document.querySelectorAll(".chip").forEach((x) => x.classList.toggle("on", x === b)); sfx(() => SFX.chip()); };
-  $("chips").appendChild(b);
-});
+let rackKey = "";
+function drawRack() {
+  const ok = ALL_CHIPS.filter((c, i) => i < 6 || c.v * 20 <= balance), show = ok.slice(-6), k = show.map((c) => c.v).join(",");
+  if (k === rackKey) return; rackKey = k; CHIPS = show;
+  if (!show.some((c) => c.v === chipVal)) chipVal = show[Math.min(2, show.length - 1)].v;
+  $("chips").innerHTML = "";
+  show.forEach((c) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "chip" + (c.v === chipVal ? " on" : ""); b.style.backgroundImage = `url(img/r3d/chip_${c.c}.png?v=1)`;
+    b.setAttribute("aria-label", "צ׳יפ " + fmt(c.v)); b.innerHTML = `<span>${short(c.v)}</span>`;
+    b.onclick = () => { chipVal = c.v; document.querySelectorAll(".chip").forEach((x) => x.classList.toggle("on", x === b)); sfx(() => SFX.chip()); };
+    $("chips").appendChild(b);
+  });
+}
 $("undo").onclick = () => { const u = undo.pop(); if (!u) return; const v = bets.get(u[0]) - u[1]; if (v > 0) bets.set(u[0], v); else bets.delete(u[0]); drawStack(u[0]); showTotal(); };
 $("clear").onclick = () => clearBets();
 $("repeat").onclick = () => { if (!lastBets) return; for (const [k, v] of lastBets) place(k, v, false); };
@@ -242,7 +264,7 @@ function clearBets() { for (const k of [...bets.keys()]) { bets.delete(k); drawS
 
 let sayT = 0;
 function say(t, ms = 2200) { const s = $("say"); s.textContent = t; s.classList.add("on"); clearTimeout(sayT); sayT = setTimeout(() => s.classList.remove("on"), ms); }
-function showBal(v) { $("bal").textContent = fmt(v); }
+function showBal(v) { $("bal").textContent = fmt(v); drawRack(); }
 
 // ---------- the wheel: the same 3D wheel as the roulette, full screen while the ball runs ----------
 let W = null, plan = null, t0 = 0, topView = false;
@@ -291,7 +313,7 @@ async function playRound(res) {
 let dropped = false;
 function showResult(res) {
   const n = res.result, c = colorOf(n), el = $("result");
-  el.innerHTML = `<div class="n ${c} num">${n}</div>${res.payout > 0 ? `<div class="w">זכית ${fmt(res.payout)}</div>` : `<div class="l">${c === "red" ? "אדום" : c === "black" ? "שחור" : "ירוק"}</div>`}`;
+  el.innerHTML = `<div class="n ${c} num">${n}</div>${res.payout > 0 ? `<div class="w">זכית ${fmt(res.payout)}</div>` : res.total > 0 ? `<div class="l">${c === "red" ? "אדום" : c === "black" ? "שחור" : "ירוק"} · לא זכית הפעם (${fmt(res.total)})</div>` : `<div class="l">${c === "red" ? "אדום" : c === "black" ? "שחור" : "ירוק"}</div>`}`;
   el.hidden = false; voice("n" + n); if (res.payout > 0) sfx(() => SFX.win(res.payout >= res.total * 5));
 }
 let dolly = null;
@@ -306,7 +328,7 @@ function settle(res) {
   if (res.payout > 0 && res.payout >= res.total * 20) setTimeout(() => sfx(() => GC_BONUS("🎰 זכייה גדולה!", res.payout, "על " + n)), 300);
   setTimeout(() => {
     $("result").hidden = true; dolly.visible = false;
-    for (const k of [...bets.keys()]) bets.delete(k); for (const [k, g] of stacks) scene.remove(g); stacks.clear(); undo = [];
+    for (const k of [...bets.keys()]) bets.delete(k); for (const [k, g] of stacks) scene.remove(g); stacks.clear(); for (const el of stackTags.values()) el.remove(); stackTags.clear(); undo = [];
     busy = false; $("bar").classList.remove("off"); showTotal(); if (!LIVE) voice("bets"); sent.clear(); drawOthers();
   }, 2600);
 }
@@ -370,7 +392,7 @@ function drawOthers() {
     // their chips on the layout (small stacks, one per area they played)
     const per = {}; for (const b of p.bets || []) { const key = b.nums.join(","); per[key] = (per[key] || 0) + Number(b.amt); }
     for (const [key, amt] of Object.entries(per)) { const a = AREAS.find((x) => x.key === key); if (!a) continue; const c = areaCenter(a);
-      let v = amt, i = 0; for (const ch of [...CHIPS].reverse()) while (v >= ch.v && i < 6) { const m = chipMesh(ch.v); m.position.set(c.x + sd * 0.025, H + CHIP_T / 2 + i * CHIP_T, c.z + 0.02); m.scale.setScalar(0.8); othersG.add(m); v -= ch.v; i++; } }
+      let v = amt, i = 0; for (const ch of [...ALL_CHIPS].reverse()) while (v >= ch.v && i < 6) { const m = chipMesh(ch.v); m.position.set(c.x + sd * 0.025, H + CHIP_T / 2 + i * CHIP_T, c.z + 0.02); m.scale.setScalar(0.8); othersG.add(m); v -= ch.v; i++; } }
     const won = p.payout != null && Number(p.payout) > 0;
     betLabel(`${p.name} · ${fmt(p.total)}${p.payout != null ? (won ? " · זכה " + fmt(p.payout) : " · הפסיד") : ""}`, sl.bet);
     if (won && winShown[p.id] !== liveSt.round) { winShown[p.id] = liveSt.round; seat.win(); }
@@ -379,6 +401,7 @@ function drawOthers() {
 function liveClock() {
   if (!LIVE || !liveSt) return; const s2 = $("say"), t = srvNow();
   if (t < liveSt.close) { const left = Math.ceil((liveSt.close - t) / 1000); s2.textContent = `הימורים פתוחים · ${left}`; s2.classList.add("on"); }
+  else if (!busy && liveSt.result !== null) { const left = Math.max(0, Math.ceil((liveSt.end - t) / 1000)); s2.textContent = `סיבוב חדש בעוד ${left}`; s2.classList.add("on"); }
   else if (!busy) { s2.textContent = "אין עוד הימורים"; s2.classList.add("on"); }
   if (t >= liveSt.close && nmbRound !== liveSt.round && t < liveSt.close + 3000) { nmbRound = liveSt.round; voice("nomore"); }
 }
@@ -449,11 +472,13 @@ function frame(now) {
     W.camera();
     return;
   }
-  if (!drag && now - userAt > 3000) userYaw = 0;
+  if (!drag && now - userAt > 3000) { userYaw = 0; userU = null; }
+  u += ((userU ?? 0) - u) * (1 - Math.pow(0.002, dt));
   yaw += (userYaw - yaw) * (1 - Math.pow(0.002, dt));
   LOOK.lerp(lookTo, 1 - Math.pow(0.18, dt)); camera.position.copy(EYE);
-  const L = LOOK.clone().sub(EYE).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw).add(EYE); L.y += Math.abs(yaw) * 0.45; camera.lookAt(L);
+  const L = LOOK.clone().lerp(LOOK_DEALER, lookTo === LOOK_DEALER ? 0 : u).sub(EYE).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw).add(EYE); L.y += Math.abs(yaw) * 0.45; camera.lookAt(L);
   renderer.render(scene, camera);
+  for (const el of stackTags.values()) { const q = el._p.clone().project(camera); el.style.left = (q.x + 1) / 2 * innerWidth + "px"; el.style.top = (1 - q.y) / 2 * innerHeight + "px"; }
   for (const l of betLabels) { const q = l.pos.clone().project(camera); l.el.style.left = (q.x + 1) / 2 * innerWidth + "px"; l.el.style.top = (1 - q.y) / 2 * innerHeight + "px"; l.el.style.display = q.z < 1 ? "" : "none"; }
 }
 

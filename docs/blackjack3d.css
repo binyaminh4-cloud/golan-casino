@@ -64,3 +64,5 @@
 .tot.win{border-color:#7fe39a;color:#b6ffc8}.tot.lose{border-color:#e06a6a;color:#ffb3b3}
 .zoom{position:fixed;z-index:20;left:max(10px,env(safe-area-inset-left));top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px}
 .zoom .btn{width:48px;height:48px;padding:0;font-size:24px;border-radius:50%}
+.stag{position:fixed;z-index:13;transform:translate(-50%,-100%);padding:1px 7px;border-radius:99px;background:#0d0906e6;border:1px solid #c5a05a;font:800 12px Inter;color:#ffe7a8;pointer-events:none;white-space:nowrap}
+#scene~.stag{}
