@@ -165,7 +165,7 @@ async function refresh0() {
 const FAV = {};
 const FAVN = { roulette: "רולטה", lightning_roulette: "רולטת הברק", xxx_roulette: "רולטת XXX", blackjack: "בלאק ג׳ק", poker: "פוקר", slots: "מכונות מזל",
   fortune_slots: "מכונת האטרף", fortune: "מכונת האטרף", dragons: "דרקוני הגולן", wild_west: "המערב הפרוע", kinneret: "על האש בכינרת", pachinko: "מכונת השירותים",
-  protein_miner: "שולה החלבון", ido_fishing: "גלגל הדגים של עידו", ido_chicken: "עידו חוצה את הכביש", tower: "מגדל הכסף", ido_air: "עידו באוויר", fisher90: "פישר בדקה ה־90", aterf_roulette: "רולטת האטרף", roulette3d: "רולטה 3D" };
+  protein_miner: "שולה החלבון", ido_fishing: "גלגל הדגים של עידו", ido_chicken: "עידו חוצה את הכביש", tower: "מגדל הכסף", ido_air: "עידו באוויר", fisher90: "פישר בדקה ה־90", aterf_roulette: "רולטת האטרף", roulette3d: "רולטה 3D", blackjack3d: "בלאק ג׳ק 3D" };
 function favName(g) { return FAVN[g] || g; }
 
 boot();
@@ -173,7 +173,7 @@ boot();
 const TILE = { "blackjack.html": "blackjack", "blackjack.html?table=1": "bj_together", "blackjack.html?mode=lightning": "bj_fisher", "roulette.html": "roulette",
   "roulette.html?mode=lightning": "roulette_lightning", "roulette.html?mode=xxx": "roulette_xxx", "roulette.html?mode=xxx&skin=fish": "roulette_fish", "slots.html": "slots",
   "slots.html?m=fortune": "fortune", "poker.html": "poker", "poker.html?bots=1": "poker", "jobs.html": "jobs", "fishing.html": "fishing", "fisher90.html": "fisher90", "protein.html": "protein",
-  "pachinko.html": "pachinko", "kinneret.html": "kinneret", "wildwest.html": "wildwest", "dragons.html": "dragons", "chicken.html": "chicken", "tower.html": "tower", "ido_air.html": "ido_air", "aterf.html": "aterf", "roulette3d.html": "r3d" };
+  "pachinko.html": "pachinko", "kinneret.html": "kinneret", "wildwest.html": "wildwest", "dragons.html": "dragons", "chicken.html": "chicken", "tower.html": "tower", "ido_air.html": "ido_air", "aterf.html": "aterf", "roulette3d.html": "r3d", "blackjack3d.html": "bj3d" };
 document.querySelectorAll(".games .game[href]").forEach((g) => { const t = TILE[g.getAttribute("href")]; if (t) { g.classList.add("art"); g.style.setProperty("--art", `url(img/tiles/tile_${t}.webp)`); } });
 // what's new: once per release, after the sound question and the guide are out of the way
 (async function whatsNew() {

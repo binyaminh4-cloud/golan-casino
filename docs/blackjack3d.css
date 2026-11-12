@@ -1,0 +1,64 @@
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#0a0807;color:#f6ead2;font:15px Heebo,Arial,sans-serif;-webkit-tap-highlight-color:transparent;user-select:none}
+.num{font-family:Inter,sans-serif;font-variant-numeric:tabular-nums}
+#scene{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;display:block;touch-action:none}
+.top{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:max(6px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 6px max(12px,env(safe-area-inset-left));
+  background:linear-gradient(#000c,#0000);pointer-events:none}
+.top>*{pointer-events:auto}
+.top h1{margin:0;font:900 20px Heebo;color:#f1d69a;letter-spacing:.5px;text-shadow:0 2px 6px #000}
+.back{color:#e6cf9b;text-decoration:none;font-weight:700;padding:6px 12px;border:1px solid #c5a05a88;border-radius:99px;background:#0d0906cc}
+.wallet{padding:6px 14px;border:1px solid #c5a05a;border-radius:99px;background:#0d0906d9;font-size:13px;color:#d9c49a}
+.wallet b{color:#ffe7a8;font-size:16px;margin-inline-start:6px}
+.bar{position:fixed;left:50%;bottom:max(8px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:20;display:flex;align-items:center;gap:14px;
+  padding:8px 14px;border-radius:22px;background:linear-gradient(#1d140dee,#0c0806f2);border:1px solid #c5a05a;box-shadow:0 10px 30px #000c;direction:ltr;
+  transition:transform .35s,opacity .35s;max-width:calc(100vw - 16px)}
+.bar.off{transform:translate(-50%,140%);opacity:0;pointer-events:none}
+.chips{display:flex;gap:6px}
+.chip{width:50px;height:50px;border-radius:50%;border:none;padding:0;background:center/cover no-repeat;cursor:pointer;position:relative;box-shadow:0 3px 6px #000a;transition:transform .15s}
+.chip span{position:absolute;inset:0;display:grid;place-items:center;font:900 12px Inter;color:#fff;text-shadow:0 1px 2px #000,0 0 4px #000}
+.chip.on{transform:translateY(-7px) scale(1.08);box-shadow:0 0 0 3px #ffd77a,0 6px 14px #000}
+.mid{display:flex;flex-direction:column;align-items:center;min-width:90px;direction:rtl}
+.mid span{font-size:11px;color:#b9a78a}.mid b{font-size:18px;color:#ffe7a8}
+.acts{display:flex;gap:6px}
+.btn{font:800 15px Heebo;color:#f6e3b8;background:linear-gradient(#3a2a1b,#1a120b);border:1px solid #a98448;border-radius:14px;padding:10px 14px;cursor:pointer;min-height:44px}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.gold{background:linear-gradient(#f3d38a,#b88a3a);color:#2a1a08;border-color:#ffe7a8;font-size:17px;padding:10px 22px;box-shadow:0 0 18px #f3d38a66}
+.say{position:fixed;left:50%;top:22%;transform:translate(-50%,-10px);z-index:25;padding:10px 22px;border-radius:99px;background:#0d0906e6;border:1px solid #c5a05a;
+  font:800 18px Heebo;color:#ffe7a8;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;white-space:nowrap}
+.say.on{opacity:1;transform:translate(-50%,0)}
+.wheelview{position:fixed;inset:0;z-index:15;background:radial-gradient(ellipse at 50% 55%,#2a1a10,#070504 70%);animation:wvin .5s ease-out}
+.wheelview[hidden]{display:none}
+@keyframes wvin{from{opacity:0;transform:scale(1.08)}}
+.wheelhost{position:absolute;inset:0}
+.wheelhost canvas{width:100%!important;height:100%!important;display:block}
+.topbtn{position:absolute;z-index:3;left:50%;bottom:max(14px,env(safe-area-inset-bottom));transform:translateX(-50%)}
+.topbtn[aria-pressed="true"]{background:linear-gradient(#f3d38a,#b88a3a);color:#2a1a08}
+.result{position:fixed;left:50%;top:44%;transform:translate(-50%,-50%);z-index:30;min-width:220px;text-align:center;padding:16px 28px 14px;border-radius:22px;
+  background:#0d0906f0;border:2px solid #f1d69a;box-shadow:0 0 40px #000,0 0 30px #f1d69a55;animation:rin .45s cubic-bezier(.2,1.5,.4,1)}
+.result[hidden]{display:none}
+@keyframes rin{from{transform:translate(-50%,-50%) scale(.5);opacity:0}}
+.result .n{width:86px;height:86px;margin:0 auto 6px;border-radius:50%;display:grid;place-items:center;font:900 42px Inter;color:#fff;border:3px solid #f1d69a}
+.result .n.red{background:#b0141f}.result .n.black{background:#161312}.result .n.green{background:#0f7a3c}
+.result .w{font:900 22px Heebo;color:#9ef0b4}.result .l{font:700 16px Heebo;color:#d9c49a}
+.enter{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:12px;background:#050302ee}
+.enter[hidden]{display:none}
+.ebox{display:flex;width:min(900px,96vw);max-height:92vh;border:2px solid #c5a05a;border-radius:20px;overflow:hidden;background:#120c08;box-shadow:0 0 50px #ffd66e44}
+.ebox>img{width:42%;object-fit:cover;object-position:50% 20%;min-width:0}
+.etxt{flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;padding:clamp(12px,3vh,26px);overflow:auto}
+.etxt h2{margin:0;font:900 28px Heebo;color:#f1d69a}.etxt p{margin:0;line-height:1.55;color:#eadcc0}
+.eback{color:#d9c49a;text-align:center;font:600 14px Heebo}
+@media (max-height:430px){.chip{width:42px;height:42px}.btn{padding:8px 11px;font-size:14px;min-height:40px}.btn.gold{padding:8px 16px}.bar{gap:10px;padding:6px 10px}.top h1{font-size:17px}}
+@media (max-width:700px){.chips{gap:4px}.chip{width:38px;height:38px}.mid{min-width:70px}}
+
+/* the player's own hand reaching to the table (an image above the 3D scene) */
+.hand{position:fixed;left:0;top:0;z-index:21;pointer-events:none;height:52vh;aspect-ratio:360/607;transform-origin:50% 2%;will-change:transform;filter:drop-shadow(0 18px 18px #000a)}
+.hand[hidden]{display:none}
+.hand img{position:absolute;left:0;top:0;width:100%;height:100%}
+.hand .hchip{width:27%;height:auto;left:36%;top:-6.5%;transform:scaleY(.62);transition:opacity .12s}
+.hand .hchip.drop{opacity:0}
+.wheelview:not([hidden]) ~ .result{top:16%;transform:translate(-50%,0)}
+
+/* blackjack */
+#acts .a[hidden]{display:none}
+.tot{position:fixed;z-index:14;transform:translate(-50%,-50%);padding:4px 12px;border-radius:99px;background:#0d0906e6;border:1px solid #c5a05a;font:800 16px Inter;color:#ffe7a8;pointer-events:none;white-space:nowrap}
+.tot.win{border-color:#7fe39a;color:#b6ffc8}.tot.lose{border-color:#e06a6a;color:#ffb3b3}
