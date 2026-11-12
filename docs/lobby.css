@@ -520,5 +520,5 @@ body:not(.gpage) #lobbyView .lb li .w{grid-column:3;grid-row:2;justify-self:end;
 
 #lobbyView .game[data-poster="aterf"]{--poster:url(img/lobby2/poster_aterf.webp?v=2)}
 
-#lobbyView .game[data-poster="r3d"]{--poster:url(img/lobby2/poster_r3d.webp)}
-#lobbyView .game[data-poster="bj3d"]{--poster:url(img/lobby2/poster_bj3d.webp)}
+#lobbyView .game[data-poster="r3d"]{--poster:url(img/lobby2/poster_r3d.webp?v=2)}
+#lobbyView .game[data-poster="bj3d"]{--poster:url(img/lobby2/poster_bj3d.webp?v=2)}
