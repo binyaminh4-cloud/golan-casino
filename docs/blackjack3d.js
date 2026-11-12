@@ -178,11 +178,22 @@ function dealerPlay(which) {
 vThrow.addEventListener("ended", () => dealerPlay("idle"));
 
 // ---------- cards ----------
-const CARD_W = 0.084, CARD_H = 0.118;
+const CARD_W = 0.125, CARD_H = 0.175;
 const cardGeo = new THREE.PlaneGeometry(CARD_W, CARD_H);
 const backTex = loader.load("cards3/back.webp?v=1"); backTex.colorSpace = THREE.SRGBColorSpace; backTex.anisotropy = 8;
 const faceTex = {};
-function faceOf(c) { if (!faceTex[c]) { const t = loader.load(`cards3/${c}.webp?v=1`); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; faceTex[c] = t; } return faceTex[c]; }
+// card faces drawn in code for readability from across the table: a huge rank and suit, the same in both corners
+function faceOf(c) {
+  if (faceTex[c]) return faceTex[c];
+  const cv = document.createElement("canvas"); cv.width = 256; cv.height = 360; const g = cv.getContext("2d");
+  const rank = c[0] === "T" ? "10" : c[0], suit = { S: "♠", H: "♥", D: "♦", C: "♣" }[c[1]], col = "HD".includes(c[1]) ? "#c8102e" : "#111";
+  g.fillStyle = "#fffdf6"; g.beginPath(); g.roundRect(4, 4, 248, 352, 22); g.fill(); g.strokeStyle = "#c5a05a"; g.lineWidth = 5; g.stroke();
+  g.fillStyle = col; g.textAlign = "center"; g.textBaseline = "middle";
+  g.font = `900 ${rank === "10" ? 92 : 110}px Inter, Arial, sans-serif`; g.fillText(rank, 74, 80);
+  g.font = "84px Arial, sans-serif"; g.fillText(suit, 74, 168);
+  g.font = "160px Arial, sans-serif"; g.fillText(suit, 170, 262);
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return (faceTex[c] = t);
+}
 const SHOE = new THREE.Vector3(0.62, H + 0.09, -0.42);
 const HAND_OUT = new THREE.Vector3(-0.28, H + 0.06, -0.6);   // where her hand leaves the card in the dealing clip
 { // the shoe: a dark box with a gold lip, on the dealer's right
@@ -210,8 +221,8 @@ function fly(obj, to, ms, { lift = 0.06, spinZ = 0, flipTo = null } = {}) {
     if (k >= 1) { res(); return false; } return true;
   }));
 }
-const pPos = (h, i, n) => { const spread = n > 1 ? 0.26 : 0; const hx = BET.x + (h - (n - 1) / 2) * spread; return new THREE.Vector3(hx - 0.02 + i * 0.03, H + 0.002 + i * 0.0006, BET.z - 0.16 - i * 0.016); };
-const dPos = (i) => new THREE.Vector3(-0.09 + i * 0.09, H + 0.002 + i * 0.0006, -0.5);
+const pPos = (h, i, n) => { const spread = n > 1 ? 0.32 : 0; const hx = BET.x + (h - (n - 1) / 2) * spread; return new THREE.Vector3(hx - 0.04 + i * 0.07, H + 0.002 + i * 0.0006, BET.z - 0.2 - i * 0.012); };
+const dPos = (i) => new THREE.Vector3(-0.1 + i * 0.11, H + 0.002 + i * 0.0006, -0.5);
 let pCards = [], dCards = [];
 // one dealing gesture per card: her hand comes to the shoe and slides the card forward; the 3D card leaves exactly
 // when her hand releases it (DEAL_RELEASE seconds into the clip). Without the clip (not made yet) she keeps the idle loop.
@@ -362,9 +373,9 @@ async function render(next) {
   const OUT = { win: "ניצחון", blackjack: "בלאק ג׳ק!", push: "תיקו", lose: "הפסד", bust: "נשרף", surrender: "ויתור" };
   next.hands.forEach((h, i) => {
     const o = next.result?.hands?.[i]?.outcome, cls = o === "win" || o === "blackjack" ? "win" : o && o !== "push" ? "lose" : "";
-    label(o ? `${h.total} · ${OUT[o]}` : (n > 1 && next.status !== "done" && i === next.active ? "▶ " : "") + h.total, pPos(i, 0, n).add(new THREE.Vector3(-0.1, 0, 0)), cls);
+    label(o ? `${h.total} · ${OUT[o]}` : (n > 1 && next.status !== "done" && i === next.active ? "▶ " : "") + h.total, pPos(i, 0, n).add(new THREE.Vector3(-0.13, 0, 0)), cls);
   });
-  label(next.dealer_total, dPos(0).add(new THREE.Vector3(-0.1, 0, 0)));
+  label(next.dealer_total, dPos(0).add(new THREE.Vector3(-0.14, 0, 0)));
   st = next; if (next.balance != null) { balance = Number(next.balance); }
   if (next.status === "done") await finish(next); else if (next.actions?.includes("insurance")) voice("insurance");
   busy = false; showActs();
@@ -501,7 +512,7 @@ function betLabel(text, pos) { const el = document.createElement("div"); el.clas
 function clearBetLabels() { betLabels.splice(0).forEach((l) => l.el.remove()); }
 function drawOthers() {
   othersG.clear(); clearBetLabels();
-  if (bets.main && !(LIVE && T && T.my_bet && !st)) betLabel(fmt(totalBet()), new THREE.Vector3(BET.x, H, BET.z - 0.11));
+  if (bets.main && !(LIVE && T && T.my_bet && !st)) betLabel(fmt(totalBet()), new THREE.Vector3(BET.x, H, BET.z + 0.12));
   if (!T) return;
   const me = T.me && T.me.user_id, others = T.players.filter((p) => p.id !== MY_ID).slice(0, 2);
   const sides = []; for (const p of others) { let sd = CHARS[charOf(p.id)].side; if (sides.includes(sd)) sd = -sd; sides.push(sd); }
@@ -512,7 +523,7 @@ function drawOthers() {
     for (const c of [...ALL_CHIPS].reverse()) while (a >= c.v && i < 12) { const m = chipMesh(c.v); m.position.set(sl.bet.x, H + CHIP_T / 2 + i * CHIP_T, sl.bet.z); othersG.add(m); a -= c.v; i++; }
     const ring = new THREE.Mesh(new THREE.RingGeometry(0.07, 0.078, 48), new THREE.MeshBasicMaterial({ color: 0xd6b06a })); ring.rotation.x = -Math.PI / 2; ring.position.set(sl.bet.x, H + 0.002, sl.bet.z); othersG.add(ring);
     (p.hands || []).forEach((h, hi) => h.cards.forEach((cd, ci) => {
-      const m = cardMesh(cd); m.position.set(sl.bet.x - sd * (0.02 + ci * 0.03 + hi * 0.12), H + 0.002 + ci * 0.0006, sl.bet.z - 0.17 - ci * 0.016); m.rotation.z = sd * 0.35; othersG.add(m); }));
+      const m = cardMesh(cd); m.position.set(sl.bet.x - sd * (0.03 + ci * 0.07 + hi * 0.2), H + 0.002 + ci * 0.0006, sl.bet.z - 0.2 - ci * 0.012); m.rotation.z = sd * 0.35; othersG.add(m); }));
     const o = p.out && p.out[0] && p.out[0].outcome, OUT = { win: "ניצחון", blackjack: "בלאק ג׳ק!", push: "תיקו", lose: "הפסד", bust: "נשרף", surrender: "ויתור" };
     const tot = p.hands && p.hands[0] ? p.hands[0].total : "";
     betLabel(`${p.name} · ${fmt(p.bet)}${tot !== "" ? " · " + tot : ""}${o ? " · " + OUT[o] : p.status === "waiting" ? " · עומד ✓" : ""}`, sl.bet.clone().add(new THREE.Vector3(0, 0, 0.13)));
