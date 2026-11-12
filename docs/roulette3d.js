@@ -15,8 +15,8 @@ const fmt = (n) => { n = Math.floor(Number(n) + 1e-6); const a = Math.abs(n); re
 const short = (v) => v >= 1e12 ? v / 1e12 + "T" : v >= 1e9 ? v / 1e9 + "B" : v >= 1e6 ? v / 1e6 + "M" : v >= 1e3 ? v / 1e3 + "K" : String(v);
 const sfx = (f) => { try { f(); } catch (e) {} };
 // Ms Fisher's voice: one clip per call (snd/r3d/n0..n36, bets, nomore), played at the effects volume
-const voice = (name) => { try { SFX.fx("r3d/" + name + "_v2", { vol: 0.95 }); } catch (e) {} };
-const preload = (name) => { try { SFX.fx("r3d/" + name + "_v2", { vol: 0 }); } catch (e) {} };   // sfx.js loads a file on first use
+const voice = (name) => { try { SFX.fx("r3d/" + name + (/^n\d+$/.test(name) ? "_v3" : "_v2"), { vol: 0.95 }); } catch (e) {} };
+const preload = (name) => { try { SFX.fx("r3d/" + name + (/^n\d+$/.test(name) ? "_v3" : "_v2"), { vol: 0 }); } catch (e) {} };   // sfx.js loads a file on first use
 
 // ---------- the table, in metres (x right, y up, z toward the player) ----------
 const H = 0.9;                                      // felt height
