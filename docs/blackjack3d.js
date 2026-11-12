@@ -2,6 +2,7 @@
    Same table, chips and dealer as Roulette 3D; the rules and money are the classic solo blackjack on the server
    (bj_deal / bj_action / bj_current, mode "classic", with side bets). ?preview plays locally with no money. */
 import * as THREE from "three";
+import { GLTFLoader } from "./vendor/three/addons/loaders/GLTFLoader.js";
 
 const $ = (id) => document.getElementById(id);
 const PREVIEW = /[?#&]preview/.test(location.href);
@@ -15,6 +16,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const H = 0.9, FW = 2.4, FD = 1.1, FR = 0.5;            // a blackjack table: rounded on the player's side
 const BET = { x: 0, z: 0.17 };
+if (/[?&]yaw=/.test(location.search)) setTimeout(() => { userYaw = +location.search.match(/yaw=(-?[\d.]+)/)[1]; userAt = performance.now() + 1e9; }, 100);
 // side bets, as in the app's blackjack (each up to the main bet): Perfect Pairs, 21+3, Lucky Ladies, Buster
 const SIDES = [{ k: "pp", t: "PERFECT", t2: "PAIRS", x: -0.4, z: 0.12 }, { k: "t3", t: "21+3", t2: "", x: -0.21, z: 0.22 },
   { k: "ll", t: "LUCKY", t2: "LADIES", x: 0.21, z: 0.22 }, { k: "bust", t: "BUSTER", t2: "BLACKJACK", x: 0.4, z: 0.12 }];
@@ -34,10 +36,11 @@ const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0b0908);
 const camera = new THREE.PerspectiveCamera(56, 16 / 9, 0.05, 30);
 const EYE = new THREE.Vector3(0, 1.45, 0.78), LOOK_BET = new THREE.Vector3(0, 0.86, -0.08), LOOK_DEALER = new THREE.Vector3(0, 1.28, -1.0);
 const LOOK = LOOK_BET.clone(); let lookTo = LOOK_BET;
+if (/[?&]dbg=/.test(location.search)) { const v = location.search.match(/dbg=([-\d.,]+)/)[1].split(",").map(Number); EYE.set(v[0], v[1], v[2]); }
 // camera: 0 = the table, 1 = the dealer. The game picks a view (autoU); dragging up/down overrides it,
 // and 3 s after the last touch it goes back to the game's view. Zoom = the side buttons.
 const LOOK_HOLE = new THREE.Vector3(0, 0.95, -0.4);       // her cards, when she turns her hidden card
-let autoU = 0, userU = null, userAt = 0, u = 0, zoom = 1;
+let autoU = 0, userU = null, userAt = 0, u = 0, zoom = 1, userYaw = 0, yaw = 0;   // yaw: drag sideways to look at the players beside you
 const setView = (v) => { autoU = v; };
 camera.position.copy(EYE); camera.lookAt(LOOK);
 
@@ -272,11 +275,11 @@ function reach(a) {
 // tap on the felt: the betting circle
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 let drag = null;
-canvas.addEventListener("pointerdown", (e) => { drag = { y: e.clientY, u0: userU ?? u, moved: false }; try { canvas.setPointerCapture(e.pointerId); } catch (x) {} });
+canvas.addEventListener("pointerdown", (e) => { drag = { x: e.clientX, y: e.clientY, u0: userU ?? u, yaw0: userYaw, moved: false }; try { canvas.setPointerCapture(e.pointerId); } catch (x) {} });
 canvas.addEventListener("pointermove", (e) => {
-  if (!drag) return; const dy = e.clientY - drag.y;
-  if (Math.abs(dy) > 8) drag.moved = true;
-  if (drag.moved) { userU = Math.max(0, Math.min(1, drag.u0 + dy / (innerHeight * 0.6))); userAt = performance.now(); }
+  if (!drag) return; const dy = e.clientY - drag.y, dx = e.clientX - drag.x;
+  if (Math.abs(dy) > 8 || Math.abs(dx) > 8) drag.moved = true;
+  if (drag.moved) { userU = Math.max(0, Math.min(1, drag.u0 + dy / (innerHeight * 0.6))); userYaw = Math.max(-0.75, Math.min(0.75, drag.yaw0 + dx / innerWidth * 1.6)); userAt = performance.now(); }
 });
 canvas.addEventListener("pointercancel", () => { drag = null; });
 canvas.addEventListener("pointerup", (e) => {
@@ -423,6 +426,21 @@ function previewEngine() {
       next(); return view(); } };
 }
 
+// ---------- test: a 3D player sitting in the seat to your right (for the live-table look) ----------
+// The model was seated in Blender (hands forward at 1.16 m, hips at 0.92 m); move it down so the hands rest on the felt.
+new GLTFLoader().load("img/r3d/player_suit.glb?v=1", (g) => {
+  const m = g.scene; m.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; } });
+  const seat = new THREE.Group(); seat.add(m);
+  // the model already faces -z (toward the dealer)
+  m.position.set(0, H + 0.03 - 1.16, 0);         // his hands are 0.42 m in front of him: they land on the felt
+  seat.position.set(1.32, 0, 0.42); seat.rotation.y = 0.95;     // on your right, turned toward the dealer
+  scene.add(seat);
+  // his own betting circle and stack, in front of him
+  const c = new THREE.Mesh(new THREE.RingGeometry(0.07, 0.078, 48), new THREE.MeshBasicMaterial({ color: 0xd6b06a }));
+  c.rotation.x = -Math.PI / 2; c.position.set(0.74, H + 0.002, 0.2); scene.add(c);
+  for (let i = 0; i < 4; i++) { const k = chipMesh(CHIPS[2].v); k.position.set(0.74, H + CHIP_T / 2 + i * CHIP_T, 0.2); scene.add(k); }
+}, undefined, (e) => console.warn("player model", e));
+
 // ---------- render loop ----------
 let baseFov = 60;
 function fit() {
@@ -437,10 +455,11 @@ function frame(now) {
   requestAnimationFrame(frame);
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   for (let i = tweens.length - 1; i >= 0; i--) if (!tweens[i](now)) tweens.splice(i, 1);
-  if (userU !== null && !drag && now - userAt > 3000) userU = null;                 // back to the game's view
+  if (userU !== null && !drag && now - userAt > 3000) { userU = null; userYaw = 0; }    // back to the game's view
   const want = userU ?? autoU; u += (want - u) * (1 - Math.pow(userU !== null ? 0.0001 : 0.15, dt));
   const target = autoU > 0.3 && autoU < 0.7 && userU === null ? LOOK_HOLE : LOOK_BET.clone().lerp(LOOK_DEALER, u);
-  LOOK.lerp(target, 1 - Math.pow(0.05, dt)); camera.position.copy(EYE); camera.lookAt(LOOK);
+  LOOK.lerp(target, 1 - Math.pow(0.05, dt)); yaw += (userYaw - yaw) * (1 - Math.pow(0.002, dt));
+  camera.position.copy(EYE); const L = LOOK.clone().sub(EYE).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw).add(EYE); camera.lookAt(L);
   const f = baseFov / zoom; if (Math.abs(camera.fov - f) > 0.05) { camera.fov += (f - camera.fov) * (1 - Math.pow(0.01, dt)); camera.updateProjectionMatrix(); }
   renderer.render(scene, camera); placeLabels();
 }
