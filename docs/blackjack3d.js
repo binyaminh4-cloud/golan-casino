@@ -5,6 +5,7 @@ import * as THREE from "three";
 
 const $ = (id) => document.getElementById(id);
 const PREVIEW = /[?#&]preview/.test(location.href);
+const LIVE = /[?&]live\b/.test(location.search), TABLE_NO = 2;   // live: the shared table (bjt_*), table 2 = the 3D table
 const db = PREVIEW ? null : supabase.createClient(GC_CONFIG.supabaseUrl, GC_CONFIG.supabaseKey);
 const fmt = (n) => { n = Math.floor(Number(n) + 1e-6); const a = Math.abs(n); return a >= 1e9 ? "₪" + +(n / 1e9).toFixed(2) + "B" : a >= 1e6 ? "₪" + +(n / 1e6).toFixed(2) + "M" : "₪" + n.toLocaleString("en-US"); };
 const short = (v) => v >= 1e6 ? v / 1e6 + "M" : v >= 1e3 ? v / 1e3 + "K" : String(v);
@@ -234,16 +235,16 @@ function drawBet(k, amount) {
   for (const c of [...CHIPS].reverse()) while (a >= c.v && i < 14) { const m = chipMesh(c.v); m.position.set(0, CHIP_T / 2 + i * CHIP_T, 0); m.rotation.y = i * 0.7; g.add(m); a -= c.v; i++; }
   g.position.set(SPOT[k].x, H, SPOT[k].z); scene.add(g); stacks[k] = g;
 }
-const drawAll = () => { for (const k in bets) drawBet(k, bets[k]); };
+const drawAll = () => { for (const k in bets) drawBet(k, bets[k]); try { drawOthers(); } catch (e) {} };
 const totalBet = () => Object.values(bets).reduce((a, b) => a + b, 0);
 const areaCenter = (a) => new THREE.Vector3(SPOT[a.key].x, H, SPOT[a.key].z);
 function place(key, amt) {
-  if (busy || st) return;
+  if (busy || st || (LIVE && !PREVIEW && T && T.my_bet)) return;
   if (key !== "main" && bets[key] + amt > bets.main) { say(bets.main ? "הימור צד עד גובה ההימור הראשי" : "קודם הימור בעיגול הגדול"); return; }
-  bets[key] += amt; drawBet(key, bets[key]); sfx(() => SFX.chip()); showBar();
+  bets[key] += amt; drawBet(key, bets[key]); sfx(() => SFX.chip()); showBar(); drawOthers();
 }
 function showBar() {
-  const t = totalBet(); $("total").textContent = fmt(t); $("deal").disabled = busy || !bets.main; $("clear").disabled = busy || !t; $("repeat").disabled = busy || !lastBets || t > 0;
+  const t = totalBet(); $("total").textContent = fmt(t); $("deal").disabled = busy || !bets.main || (LIVE && !PREVIEW && !canBetLive()); $("clear").disabled = busy || !t; $("repeat").disabled = busy || !lastBets || t > 0;
 }
 let sayT = 0;
 function say(t, ms = 2200) { const s = $("say"); s.textContent = t; s.classList.add("on"); clearTimeout(sayT); sayT = setTimeout(() => s.classList.remove("on"), ms); }
@@ -368,7 +369,7 @@ async function finish(r) {
   el.hidden = true; clearLabels();
   for (const c of [...pCards.flat(), ...dCards]) { const to = new THREE.Vector3(-0.6, H + 0.05, -0.45); fly(c, to, 420).then(() => scene.remove(c)); }
   pCards = []; dCards = []; for (const k in bets) bets[k] = 0; drawAll(); await wait(450);
-  st = null; showBar(); voice("bets");
+  st = null; showBar(); if (!LIVE) voice("bets");
 }
 function showActs() {
   const playing = st && st.status !== "done";
@@ -379,6 +380,13 @@ function showActs() {
 $("deal").onclick = async () => {
   if (busy || !bets.main) return;
   if (totalBet() > balance) { say("אין מספיק שקלים"); return; }
+  if (LIVE && !PREVIEW) {
+    if (!canBetLive()) { say("ההימורים סגורים, מחכים לסיבוב הבא"); return; }
+    busy = true; showActs(); let d2;
+    try { const { data, error } = await db.rpc("bjt_bet", { p_t: TABLE_NO, p_main: bets.main, p_pp: bets.pp, p_t3: bets.t3, p_ll: bets.ll, p_bust: bets.bust, p_ref: newRef() }); if (error) throw error; d2 = data; }
+    catch (e) { busy = false; showActs(); say(errText(e), 3000); return; }
+    lastBets = { ...bets }; busy = false; await tApply(d2); return;
+  }
   busy = true; showActs(); let d;
   try { d = await srvDeal(bets); } catch (e) { busy = false; showActs(); say(errText(e), 3000); return; }
   lastBets = { ...bets }; showBal(Number(d.balance));
@@ -446,16 +454,82 @@ function videoSeat({ idle, win, x, z, rotY, w }) {
     idle() { mat.uniforms.map.value = ti; vi.play().catch(() => {}); } };
   vw.addEventListener("ended", () => seat.idle());
   seat.idle(); addEventListener("pointerdown", () => { vi.play().catch(() => {}); }, { once: true });
-  SEATS.push(seat); return seat;
+  seat.mesh = pl; SEATS.push(seat); return seat;
 }
-videoSeat({ idle: "vid/r3d/player1_idle_loop.mp4?v=1", win: "vid/r3d/player1_win.mp4?v=1", x: 1.02, z: 0.42, rotY: -1.35, w: 0.8 });
-videoSeat({ idle: "vid/r3d/player2_idle_loop.mp4?v=1", win: "vid/r3d/player2_win.mp4?v=1", x: -1.02, z: 0.42, rotY: 1.35, w: 0.72 });
-if (/[?&]side=win/.test(location.search)) setTimeout(() => SEATS.forEach((s) => s.win()), 1500);
-for (const sx of [0.8, -0.8]) {
-  const c = new THREE.Mesh(new THREE.RingGeometry(0.07, 0.078, 48), new THREE.MeshBasicMaterial({ color: 0xd6b06a }));
-  c.rotation.x = -Math.PI / 2; c.position.set(sx, H + 0.002, 0.12); scene.add(c);
-  for (let i = 0; i < 4; i++) { const k = chipMesh(CHIPS[2].v); k.position.set(sx, H + CHIP_T / 2 + i * CHIP_T, 0.12); scene.add(k); }
+// two characters (filmed for one side each); a player gets one at random (stable per user); if both side players
+// need the same side, the second one is mirrored onto the other side.
+const CHARS = [{ idle: "vid/r3d/player1_idle_loop.mp4?v=1", win: "vid/r3d/player1_win.mp4?v=1", side: 1, w: 0.8 },
+               { idle: "vid/r3d/player2_idle_loop.mp4?v=1", win: "vid/r3d/player2_win.mp4?v=1", side: -1, w: 0.72 }];
+const SLOT = { [1]: { x: 1.02, z: 0.42, rotY: -1.35, bet: new THREE.Vector3(0.8, H, 0.12) }, [-1]: { x: -1.02, z: 0.42, rotY: 1.35, bet: new THREE.Vector3(-0.8, H, 0.12) } };
+const charOf = (id) => { let h = 0; for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h % CHARS.length; };
+const slotSeat = {};                                  // side -> { key, seat }
+function seatAt(side, ci) {
+  const key = ci + ":" + side, cur = slotSeat[side];
+  if (cur && cur.key === key) return cur.seat;
+  if (cur) { scene.remove(cur.seat.mesh); cur.seat.vi.pause(); cur.seat.vw.pause(); }
+  const c = CHARS[ci], sl = SLOT[side], seat = videoSeat({ idle: c.idle, win: c.win, x: sl.x, z: sl.z, rotY: sl.rotY, w: c.w });
+  if (c.side !== side) seat.mesh.scale.x = -1;        // mirrored onto the other side
+  slotSeat[side] = { key, seat }; return seat;
 }
+function clearSeat(side) { const cur = slotSeat[side]; if (cur) { scene.remove(cur.seat.mesh); cur.seat.vi.pause(); cur.seat.vw.pause(); delete slotSeat[side]; } }
+if (!LIVE && PREVIEW && /[?&]seats\b/.test(location.search)) { seatAt(1, 0); seatAt(-1, 1); }
+
+// ---------- the live table: poll bjt_state, bet with bjt_bet, play my hand with bj_action, draw the two players beside me ----------
+let T = null, tBusy = false, doneId = null, othersG = new THREE.Group(), winShown = {};
+scene.add(othersG);
+const betLabels = [];
+function betLabel(text, pos) { const el = document.createElement("div"); el.className = "tot num"; el.textContent = text; document.body.appendChild(el); betLabels.push({ el, pos }); }
+function clearBetLabels() { betLabels.splice(0).forEach((l) => l.el.remove()); }
+function drawOthers() {
+  othersG.clear(); clearBetLabels();
+  if (bets.main && !(LIVE && T && T.my_bet && !st)) betLabel(fmt(totalBet()), new THREE.Vector3(BET.x, H, BET.z - 0.11));
+  if (!T) return;
+  const me = T.me && T.me.user_id, others = T.players.filter((p) => p.id !== MY_ID).slice(0, 2);
+  const sides = []; for (const p of others) { let sd = CHARS[charOf(p.id)].side; if (sides.includes(sd)) sd = -sd; sides.push(sd); }
+  for (const sd of [1, -1]) if (!sides.includes(sd)) clearSeat(sd);
+  others.forEach((p, k) => {
+    const sd = sides[k], seat = seatAt(sd, charOf(p.id)), sl = SLOT[sd];
+    let a = Number(p.bet) + Object.values(p.side || {}).reduce((x, y) => x + Number(y || 0), 0), i = 0;
+    for (const c of [...CHIPS].reverse()) while (a >= c.v && i < 12) { const m = chipMesh(c.v); m.position.set(sl.bet.x, H + CHIP_T / 2 + i * CHIP_T, sl.bet.z); othersG.add(m); a -= c.v; i++; }
+    const ring = new THREE.Mesh(new THREE.RingGeometry(0.07, 0.078, 48), new THREE.MeshBasicMaterial({ color: 0xd6b06a })); ring.rotation.x = -Math.PI / 2; ring.position.set(sl.bet.x, H + 0.002, sl.bet.z); othersG.add(ring);
+    (p.hands || []).forEach((h, hi) => h.cards.forEach((cd, ci) => {
+      const m = cardMesh(cd); m.position.set(sl.bet.x - sd * (0.02 + ci * 0.03 + hi * 0.12), H + 0.002 + ci * 0.0006, sl.bet.z - 0.17 - ci * 0.016); m.rotation.z = sd * 0.35; othersG.add(m); }));
+    const o = p.out && p.out[0] && p.out[0].outcome, OUT = { win: "ניצחון", blackjack: "בלאק ג׳ק!", push: "תיקו", lose: "הפסד", bust: "נשרף", surrender: "ויתור" };
+    const tot = p.hands && p.hands[0] ? p.hands[0].total : "";
+    betLabel(`${p.name} · ${fmt(p.bet)}${tot !== "" ? " · " + tot : ""}${o ? " · " + OUT[o] : p.status === "waiting" ? " · עומד ✓" : ""}`, sl.bet.clone().add(new THREE.Vector3(0, 0, 0.13)));
+    if (Number(p.net) > 0 && winShown[p.id] !== T.round) { winShown[p.id] = T.round; seat.win(); }
+  });
+  if (!T.me && T.dealer && T.dealer.length && !dCards.length) T.dealer.forEach((cd, i) => { const m = cardMesh(cd === "??" ? null : cd); m.position.copy(dPos(i)); othersG.add(m); });
+}
+let MY_ID = null;
+async function tApply(d) {
+  if (!d) return; d._t = Date.now(); T = d; balance = Number(d.balance); if (!busy) showBal(balance);
+  const m = d.me;
+  if (m && !busy && m.id !== doneId) {
+    if (!st || st.id !== m.id) { if (!bets.main && d.my_bet) { bets.main = Number(d.my_bet.main); drawAll(); } await render(m); }
+    else if (st.status !== m.status || st.dealer.length !== m.dealer.length || JSON.stringify(st.hands) !== JSON.stringify(m.hands)) await render(m);
+    if (m.status === "done") doneId = m.id;
+  }
+  drawOthers(); showActs();
+}
+async function tPoll() {
+  if (tBusy || document.hidden || !$("enter").hidden) return; tBusy = true;
+  try { const { data, error } = PREVIEW ? { data: fakeT() } : await db.rpc("bjt_state", { p_t: TABLE_NO }); if (!error) await tApply(data); } catch (e) {}
+  tBusy = false;
+}
+function canBetLive() { return LIVE && T && T.phase === "betting" && !T.my_bet; }
+setInterval(() => {                                    // the betting clock in the message pill
+  if (!LIVE || !T) return; const s2 = $("say");
+  if (T.phase === "betting" && T.bet_until) { const left = Math.max(0, Math.ceil((T.bet_until - (Date.now() + (T.now - T._t))) / 1000));
+    s2.textContent = T.my_bet ? `ההימור נשלח · מחלקים בעוד ${left}` : `הימורים נסגרים בעוד ${left}`; s2.classList.add("on"); }
+  else if (T.phase === "betting" && !T.bet_until) { s2.textContent = "מחכים להימור הראשון"; s2.classList.add("on"); }
+  else s2.classList.remove("on");
+}, 250);
+// preview: two friends with cards so the live table can be looked at without a login
+let fakeN = 0;
+function fakeT() { fakeN++; return { round: 1, phase: "playing", now: Date.now(), bet_until: null, dealer: ["KH", "??"], balance, me: null, my_bet: null,
+  players: [{ id: "a1", name: "אורי", bet: 10000, side: {}, status: "playing", net: fakeN > 3 ? 10000 : null, hands: [{ cards: ["9S", "TD"], total: 19 }], out: fakeN > 3 ? [{ outcome: "win" }] : null },
+            { id: "b2", name: "דניאל", bet: 100000, side: {}, status: "waiting", hands: [{ cards: ["AS", "7C"], total: 18 }] }] }; }
 
 // ---------- render loop ----------
 let baseFov = 60;
@@ -477,15 +551,17 @@ function frame(now) {
   LOOK.lerp(target, 1 - Math.pow(0.05, dt)); yaw += (userYaw - yaw) * (1 - Math.pow(0.002, dt));
   camera.position.copy(EYE); const L = LOOK.clone().sub(EYE).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw).add(EYE); camera.lookAt(L);
   const f = baseFov / zoom; if (Math.abs(camera.fov - f) > 0.05) { camera.fov += (f - camera.fov) * (1 - Math.pow(0.01, dt)); camera.updateProjectionMatrix(); }
-  renderer.render(scene, camera); placeLabels();
+  renderer.render(scene, camera); placeLabels(); for (const l of betLabels) { const q = l.pos.clone().project(camera); l.el.style.left = (q.x + 1) / 2 * innerWidth + "px"; l.el.style.top = (1 - q.y) / 2 * innerHeight + "px"; l.el.style.display = q.z < 1 ? "" : "none"; }
 }
 
 (async function boot() {
   requestAnimationFrame(frame);
+  if (LIVE) { $("deal").textContent = "שלח הימור"; document.querySelector(".top h1").textContent = "בלאק ג׳ק 3D לייב"; document.title = "בלאק ג׳ק 3D לייב · גולן קזינו"; }
   if (PREVIEW) { balance = 50000000; showBal(balance); }
   else {
     const { data: { session } } = await db.auth.getSession();
     if (!session) { location.href = "./"; return; }
+    MY_ID = session.user.id;
     const w = await db.from("wallets").select("balance").eq("user_id", session.user.id).single();
     if (!w.error) { balance = Number(w.data.balance); showBal(balance); }
   }
@@ -494,7 +570,8 @@ function frame(now) {
   $("enterGo").onclick = async () => {
     $("enter").hidden = true; dealerPlay("idle"); vDeal.load(); vDeal.play().then(() => { vDeal.pause(); vDeal.currentTime = 0; }).catch(() => {}); preload("bets"); setTimeout(() => voice("bets"), 900);
     ["blackjack", "dealerbust", "youwin", "dealerwins", "push", "insurance", "bust"].forEach(preload);
-    if (!PREVIEW) { const { data } = await db.rpc("bj_current"); if (data && data.status !== "done" && !data.table) { bets.main = Number(data.main_bet); drawAll(); await render(data); } }
+    if (LIVE) { tPoll(); setInterval(tPoll, 2000); document.addEventListener("visibilitychange", () => { if (!document.hidden) tPoll(); }); }
+    else if (!PREVIEW) { const { data } = await db.rpc("bj_current"); if (data && data.status !== "done" && !data.table) { bets.main = Number(data.main_bet); drawAll(); await render(data); } }
   };
   if (/[?&]go\b/.test(location.search)) $("enterGo").click();
 })();
