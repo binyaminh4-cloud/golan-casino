@@ -152,6 +152,7 @@ const backTex = loader.load("cards3/back.webp?v=1"); backTex.colorSpace = THREE.
 const faceTex = {};
 function faceOf(c) { if (!faceTex[c]) { const t = loader.load(`cards3/${c}.webp?v=1`); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; faceTex[c] = t; } return faceTex[c]; }
 const SHOE = new THREE.Vector3(0.62, H + 0.09, -0.42);
+const HAND_OUT = new THREE.Vector3(-0.28, H + 0.06, -0.6);   // where her hand leaves the card in the dealing clip
 { // the shoe: a dark box with a gold lip, on the dealer's right
   const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.08, 0.2), new THREE.MeshStandardMaterial({ color: 0x15100c, roughness: 0.4 }));
   shoe.position.set(0.66, H + 0.04, -0.46); shoe.rotation.y = -0.4; shoe.castShadow = true; scene.add(shoe);
@@ -185,7 +186,7 @@ let pCards = [], dCards = [];
 const vDeal = document.createElement("video"); vDeal.src = "vid/r3d/fisher_deal.mp4?v=1"; vDeal.muted = true; vDeal.playsInline = true; vDeal.preload = "auto";
 const vtDeal = new THREE.VideoTexture(vDeal); vtDeal.colorSpace = THREE.SRGBColorSpace;
 let hasDeal = false; vDeal.addEventListener("loadeddata", () => { hasDeal = true; });
-const DEAL_RELEASE = 0.9;
+const DEAL_RELEASE = 1.32;          // the clip is her first dealing motion, 1.6x faster; her hand is lowest at 2.1 s of the original
 vDeal.addEventListener("ended", () => dealerPlay("idle"));
 async function gesture() {
   if (!hasDeal) return;
@@ -194,7 +195,7 @@ async function gesture() {
 }
 async function dealTo(code, pos, faceDown = false) {
   await gesture();
-  const c = cardMesh(faceDown ? null : code); c.position.copy(SHOE); c.rotation.set(-Math.PI / 2, 0, -0.4); scene.add(c);
+  const c = cardMesh(faceDown ? null : code); c.position.copy(hasDeal ? HAND_OUT : SHOE); c.rotation.set(-Math.PI / 2, 0, hasDeal ? 0.3 : -0.4); scene.add(c);
   sfx(() => SFX.card ? SFX.card() : SFX.chip());
   await fly(c, pos, 330, { spinZ: (Math.random() - 0.5) * 0.06 });
   return c;
@@ -289,11 +290,11 @@ async function render(next) {
   if (!pCards.length && !dCards.length) {
     pCards = next.hands.map(() => []);
     lookTo = LOOK_DEALER; if (!hasDeal) dealerPlay("throw"); await wait(500);
+    setTimeout(() => { lookTo = LOOK_BET; }, hasDeal ? 3600 : 2600);
     pCards[0].push(await dealTo(next.hands[0].cards[0], pPos(0, 0, n)));
     dCards.push(await dealTo(next.dealer[0], dPos(0)));
     pCards[0].push(await dealTo(next.hands[0].cards[1], pPos(0, 1, n)));
     dCards.push(await dealTo(null, dPos(1), true));
-    lookTo = LOOK_BET;
   }
   // a split: the second card moves to the new hand
   while (pCards.length < n) {
