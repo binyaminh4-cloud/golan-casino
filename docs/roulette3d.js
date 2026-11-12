@@ -306,12 +306,12 @@ async function playRound(res) {
   await wait(RELEASE * 1000);
   // to the wheel
   topView = false; $("topView").setAttribute("aria-pressed", "false"); $("topView").textContent = "מבט על";
-  $("wheelView").hidden = false; W.cam = { z: 1, tilt: 48, fx: 600, fy: 600, az: 0 };
+  $("wheelView").hidden = false; luckyLists(true); try { window.__lhBye && window.__lhBye(); } catch (e) {} W.cam = { z: 1, tilt: 48, fx: 600, fy: 600, az: 0 };
   plan = R.plan(res.result, W.rotor); t0 = performance.now(); sfx(() => SFX.roll(R.T.hit + 0.6)); dropped = false;
   await wait((R.T.settle + 1.6) * 1000);
   showResult(res);
   await wait(1700);
-  $("wheelView").hidden = true; plan = null; lookTo = LOOK_BET; LOOK.copy(LOOK_BET);
+  $("wheelView").hidden = true; luckyLists(false); LUCKY = {}; plan = null; lookTo = LOOK_BET; LOOK.copy(LOOK_BET);
   settle(res);
 }
 let dropped = false;
@@ -451,7 +451,9 @@ function fakeLive() { const t = Date.now() - fakeT0, open = t < 12000;
 
 // ---------- lightning: lucky numbers glow gold with their multiplier, a flash for each strike ----------
 const luckyG = new THREE.Group(); scene.add(luckyG); const luckyTags = [];
+let LUCKY = {};
 async function strike(lucky) {
+  LUCKY = lucky || {};
   luckyG.clear(); luckyTags.splice(0).forEach((t) => t.remove());
   const fl = document.createElement("div"); fl.className = "lflash"; document.body.appendChild(fl);
   for (const [k, m] of Object.entries(lucky)) {
@@ -532,8 +534,31 @@ function frame(now) {
     if (!w.error) { balance = Number(w.data.balance); showBal(balance); }
   }
   showTotal();
-  try { GC_LOADER.done(); } catch (e) {} try { GC_LOOKHINT(canvas, { side: LIVE }); } catch (e) {}
+  try { GC_LOADER.done(); } catch (e) {} try { window.__lhBye = GC_LOOKHINT(canvas, { side: LIVE }); } catch (e) {}
   $("enterGo").onclick = () => { preload("nomore"); $("enter").hidden = true; dealerPlay("idle"); preload("bets"); setTimeout(() => voice("bets"), 900); vThrow.load(); };
   if (LIVE) { const t = LMODE === "xxx" ? "רולטת XXX 3D לייב" : LMODE === "lightning" ? "רולטת ברקים 3D לייב" : "רולטה 3D לייב"; document.querySelector(".top h1").textContent = t; document.title = t + " · גולן קזינו"; }
   if (/[?&]go\b/.test(location.search)) $("enterGo").click();
 })();
+
+// wheel close-up in lightning / xxx: the lightning numbers on the right, who would win what on the left (like the 2D lightning roulettes)
+function luckyLists(on) {
+  for (const id of ["luckyList", "potList"]) { let el = $(id); if (!el) { el = document.createElement("aside"); el.id = id; el.className = "luckylist" + (id === "potList" ? " potlist" : ""); $("wheelView").appendChild(el); } el.hidden = true; }
+  const e = Object.entries(LUCKY); if (!on || !e.length) return;
+  const L = $("luckyList"), mine = new Set([...bets.keys()].filter((k) => !k.includes(",")));
+  e.sort((a, b) => b[1] - a[1]);
+  L.innerHTML = `<div class="ll-h">${LMODE === "xxx" ? "⚡ כפולות" : "⚡ ברקים"}</div>` + e.map(([n, m], i) =>
+    `<div class="ll-row ${R.color(+n)}${mine.has(n) ? " mine" : ""}" style="animation-delay:${i * 0.12}s"><span class="ll-n num">${n}</span><b class="ll-m num${m >= 1000 ? " mega" : ""}">${m}x</b></div>`).join("");
+  L.hidden = false;
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const players = liveSt && (liveSt.players || []).length ? liveSt.players : [{ name: "אני", me: true, bets: [...bets].map(([k, v]) => ({ nums: k.split(",").map(Number), amt: v })) }];
+  const rows = [];
+  for (const [n, m] of e) for (const p of players) {
+    const win = (p.bets || []).filter((b) => b.nums.includes(+n)).reduce((sum, b) => sum + (b.nums.length === 1 ? Number(b.amt) * (m + 1) : Math.floor(Number(b.amt) * 36 / b.nums.length)), 0);
+    if (win > 0) rows.push({ n, name: p.name, win, me: p.me });
+  }
+  rows.sort((a, b) => b.win - a.win); if (!rows.length) return;
+  const P = $("potList");
+  P.innerHTML = '<div class="ll-h">💰 זכייה צפויה</div>' + rows.slice(0, 10).map((r, i) =>
+    `<div class="pt-row${r.me ? " mine" : ""}" style="animation-delay:${i * 0.1}s"><span class="ll-n num ${R.color(+r.n)}">${r.n}</span><span class="pt-nm">${esc(r.name)}</span><b class="num">${fmt(r.win)}</b></div>`).join("");
+  P.hidden = false;
+}
