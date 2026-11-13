@@ -357,11 +357,27 @@ function potList(P, show) {
   let L = $("bonusPot");
   if (!L) { L = document.createElement("div"); L.id = "bonusPot"; L.className = "pot"; L.hidden = true; document.body.appendChild(L); }
   const e = Object.entries(P || {}).filter(([, p]) => POT_TOP[p.t]);
-  if (!show || !e.length) { L.hidden = true; return; }
+  if (!show || !e.length) { L.hidden = true; winList(null); return; }
   e.sort((a, b) => b[1].m - a[1].m);
   L.innerHTML = '<div class="pot-h">🎯 בונוסים בסיבוב</div>' + e.map(([k, p]) =>
     `<div class="pot-row ${p.t}${p.m > 1 ? " mult" : ""}"><img src="${PK_IMG[p.t]}" alt=""><span class="pot-n num">${k}</span><span class="pot-name">${BONUS_NAME[p.t]}</span><b class="pot-m num">${p.m > 1 ? "×" + p.m : ""}</b><b class="pot-x num">עד ×${Math.min(10000, POT_TOP[p.t] * p.m)}</b></div>`).join("");
   L.hidden = false;
+  winList(P);
+}
+// close-up only: who could win what on each bonus number (straight bets on it × the bonus top)
+function winList(P) {
+  let W = $("winPot"); if (!W) { W = document.createElement("div"); W.id = "winPot"; W.className = "pot winpot"; W.hidden = true; document.body.appendChild(W); }
+  W.hidden = true; if (!P) return;
+  const players = liveSt && (liveSt.players || []).length ? liveSt.players : [{ id: MY_ID, name: "אני", bets: [...bets].map(([k, v]) => ({ nums: k.split(",").map(Number), amt: v })) }];
+  const rows = [];
+  for (const [k, p] of Object.entries(P)) { if (!POT_TOP[p.t]) continue; const top = Math.min(10000, POT_TOP[p.t] * p.m);
+    for (const pl of players) { const amt = (pl.bets || []).filter((b) => b.nums.length === 1 && b.nums[0] === +k).reduce((a, b) => a + Number(b.amt), 0);
+      if (amt > 0) rows.push({ k, t: p.t, name: pl.name, win: amt * top, me: pl.id === MY_ID }); } }
+  if (!rows.length) return;
+  rows.sort((a, b) => b.win - a.win);
+  W.innerHTML = '<div class="pot-h">💰 זכייה אפשרית (עד)</div>' + rows.slice(0, 8).map((r) =>
+    `<div class="wp-row${r.me ? " me" : ""}"><img src="${PK_IMG[r.t]}" alt=""><span class="pot-n num">${r.k}</span><span class="wp-nm">${esc(r.name)}</span><b class="num" dir="ltr">${fmt(r.win)}</b></div>`).join("");
+  W.hidden = false;
 }
 function drawPockets() { for (const [k, p] of Object.entries(POCKETS)) markPocket(k, p, "still"); }
 function clearPockets() { POCKETS = {}; board.querySelectorAll(".pocket").forEach((c) => { c.classList.remove("pocket", "pk-vip", "pk-balls", "grow", "hitpk"); c.querySelectorAll(".pk,.pm").forEach((x) => x.remove()); }); }

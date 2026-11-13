@@ -126,7 +126,7 @@
 .etxt h1{font-size:clamp(24px,7vw,32px);line-height:1.2}
 }
 /* potential table during the spin (copied from the lightning list): bonus pockets and their best possible payout */
-.pot{position:fixed;top:calc(64px + env(safe-area-inset-top));inset-inline-start:max(8px,env(safe-area-inset-left));z-index:26;width:min(214px,36vw);padding:6px 8px 7px;border:1px solid #d1a95c;border-radius:12px;background:#0b0705e6;box-shadow:0 6px 18px #000a;pointer-events:none;direction:rtl;font:700 12px Heebo,sans-serif;color:#fff0cf}
+.pot{position:fixed;top:calc(64px + env(safe-area-inset-top));inset-inline-start:max(8px,env(safe-area-inset-left));z-index:45;width:min(214px,36vw);padding:6px 8px 7px;border:1px solid #d1a95c;border-radius:12px;background:#0b0705e6;box-shadow:0 6px 18px #000a;pointer-events:none;direction:rtl;font:700 12px Heebo,sans-serif;color:#fff0cf}
 .pot[hidden]{display:none}
 .pot-h{font:800 13px Heebo,sans-serif;color:#ffd77a;margin-bottom:4px}
 .pot-row{display:grid;grid-template-columns:24px auto 1fr auto;align-items:center;gap:4px 6px;padding:3px 2px;border-top:1px solid #ffffff1a}
@@ -145,3 +145,8 @@
 .bxclock b{position:relative;font:800 24px Inter,sans-serif;color:#F1D69A;line-height:1;margin-top:-6px}
 .bxclock small{position:absolute;bottom:10px;font:600 10px Heebo,sans-serif;color:#B9AA94}
 .bxclock.hurry .fg{stroke:#e5484d}.bxclock.hurry b{color:#ff6b6f;animation:hit .5s ease-in-out infinite alternate}
+
+.winpot{inset-inline-start:auto;inset-inline-end:max(8px,env(safe-area-inset-left))}
+.wp-row{display:grid;grid-template-columns:22px 22px 1fr auto;gap:6px;align-items:center;padding:3px 0;border-top:1px solid #d1a95c33}
+.wp-row img{width:22px;height:22px;object-fit:contain}.wp-row b{color:#ffe27a;white-space:nowrap}
+.wp-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wp-row.me .wp-nm{color:#ffe27a}
