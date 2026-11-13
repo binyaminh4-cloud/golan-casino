@@ -73,7 +73,7 @@ $("loginForm").addEventListener("submit", async (e) => {
       m.includes("code_locked") ? "יותר מדי ניסיונות. בקש מבנימין קוד חדש." :
       m.includes("username_taken") ? "שם המשתמש הזה כבר תפוס." :
       m.includes("no_user") ? "לא מצאנו משתמש בשם הזה. בדוק את השם, או בקש קוד מבנימין." :
-      m.includes("bad_password") ? "הסיסמה לא נכונה. שכחת? בקש מבנימין קוד חדש." :
+      m.includes("bad_password") ? "שם המשתמש או הסיסמה לא נכונים. שכחת? בקש מבנימין קוד חדש." :
       "הכניסה נכשלה. נסה שוב בעוד רגע.", true);
   } finally { $("loginBtn").disabled = false; }
 });

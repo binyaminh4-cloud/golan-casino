@@ -21,7 +21,11 @@ select t_assert((select count(*) from auth.identities i join auth.users u on u.i
 select t_assert((select username='dani' and nickname='dani' from profiles p join auth.users u on u.id=p.id where u.email=(select em from e)), 'profile with username');
 select t_assert((select w.balance from wallets w join auth.users u on u.id=w.user_id where u.email=(select em from e)) = (select starting_balance from app_settings), 'starting balance granted');
 select t_assert(login_email('DANI') = (select em from e), 'login by username finds address');
-select t_assert(t_raises(format($$select redeem_code('dani',%L,'secret2')$$,(select c from k)), 'bad_code'), 'code is single use');
+select t_assert(redeem_code('dani',(select c from k),'secret2') is null, 'code is single use (looks like a wrong code)');
+select t_assert(redeem_code('nobody-here','123456','secret1') is null, 'unknown username looks like a wrong code');
+select t_assert(login_email('nobody-here') ~ '^m[0-9a-f]{32}@members\.golan-casino\.app$', 'unknown username gets a same-shaped address');
+select t_assert(login_email('nobody-here') = login_email(' Nobody-Here '), 'fake address is stable');
+select t_assert(login_email('nobody-here') <> login_email('someone-else'), 'fake address differs per username');
 -- reset for existing member
 select t_as((select id from profiles where is_admin limit 1));
 create temp table k2 as select admin_issue_code('dani') c;
