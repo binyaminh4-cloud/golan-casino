@@ -263,7 +263,7 @@ body:has(#lobbyView:not([hidden]))::before{background:linear-gradient(180deg,rgb
 #lobbyView .lx-nav [data-nav=jobs] i{background-image:url(img/lobby2/ic_jobs.png)}
 #lobbyView .lx-nav [data-nav=more] i{background-image:url(img/lobby2/ic_more.png)}
 #lobbyView .lx-nav [data-nav=lb] i{background-image:url(img/lobby2/ic_coins.png)}
-#lobbyView .lx-bal img{content:url(img/lobby2/ic_coins.png);width:24px;height:24px}
+#lobbyView .lx-bal img{width:24px;height:24px}
 #lobbyView .gfr::after{inset:0!important;border-width:16px!important;border-image:url(img/lobby2/frame_gold.png) 40 / 16px stretch!important}
 #lobbyView .notice.gfr::after,#lobbyView .lb.gfr::after,#lobbyView .lx-jobs.gfr::after{border-image:url(img/lobby2/frame_gold_wide.png) 40 60 / 16px 22px stretch!important}
 #lobbyView .notice{background:linear-gradient(to left,rgba(10,7,5,.92) 0,rgba(10,7,5,.75) 38%,rgba(10,7,5,0) 62%),url(img/lobby2/banner_welcome.webp) left center/cover no-repeat,#140e0a!important}
