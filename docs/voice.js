@@ -36,6 +36,8 @@
   const setBtn = () => { btn.classList.toggle("on", state === "on"); btn.classList.toggle("busy", state === "joining"); btn.textContent = state === "on" && muted ? "🔇" : "🎙"; };
   const msg = (t) => { $msg.textContent = t || ""; $msg.hidden = !t; };
 
+  const CLOSED = "הצ׳אט הקולי סגור עד תחילת החודש הבא (נגמרו הדקות החינמיות).";
+  let tickT = 0;
   const loadLib = () => loading || (loading = new Promise((res, rej) => {
     if (window.DailyIframe) return res();
     const s = document.createElement("script"); s.src = "https://unpkg.com/@daily-co/daily-js"; s.onload = res; s.onerror = () => { loading = null; rej(new Error("lib")); };
@@ -69,9 +71,12 @@
     if (/REPLACE-ME/.test(ROOM)) { panel.hidden = false; panelOpen = true; msg("הצ׳אט הקולי עדיין לא מוגדר (חסר קישור לחדר)."); return; }
     state = "joining"; setBtn(); msg("מתחבר…"); panel.hidden = false; panelOpen = true;
     try {
+      // monthly cap (Daily bills past 10,000 free minutes): closed, or no answer from the server = no voice
+      const st = await db.rpc("voice_status");
+      if (st.error || !st.data || !st.data.open) { msg(st.error ? "לא הצלחנו להתחבר. נסה שוב." : CLOSED); cleanup(true); try { localStorage.removeItem(KEY); } catch (e) {} return; }
       await loadLib();
       call = window.DailyIframe.createCallObject({ audioSource: true, videoSource: false, subscribeToTracksAutomatically: true });
-      call.on("joined-meeting", () => { state = "on"; muted = false; try { localStorage.setItem(KEY, "1"); } catch (e) {} setBtn(); msg(""); drawList(); });
+      call.on("joined-meeting", () => { state = "on"; muted = false; try { localStorage.setItem(KEY, "1"); } catch (e) {} setBtn(); msg(""); drawList(); tick(); clearInterval(tickT); tickT = setInterval(tick, 60000); });
       call.on("participant-joined", drawList);
       call.on("participant-updated", (e) => { drawList(); });
       call.on("participant-left", (e) => { if (e && e.participant) detach(e.participant.session_id); drawList(); });
@@ -87,7 +92,11 @@
     }
   }
 
+  async function tick() {
+    try { const { data, error } = await db.rpc("voice_tick"); if (!error && data && !data.open) { leave(); panel.hidden = false; panelOpen = true; msg(CLOSED); } } catch (e) {}
+  }
   function cleanup(keepPanel) {
+    clearInterval(tickT);
     audios.forEach((a, id) => detach(id));
     if (call) { try { call.destroy(); } catch (e) {} call = null; }
     state = "off"; muted = false; setBtn(); drawList();
