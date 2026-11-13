@@ -40,7 +40,7 @@
   let tickT = 0;
   const loadLib = () => loading || (loading = new Promise((res, rej) => {
     if (window.DailyIframe) return res();
-    const s = document.createElement("script"); s.src = "https://unpkg.com/@daily-co/daily-js"; s.onload = res; s.onerror = () => { loading = null; rej(new Error("lib")); };
+    const s = document.createElement("script"); s.src = "https://unpkg.com/@daily-co/daily-js@0.89.1/dist/daily.js"; s.onload = res; s.onerror = () => { loading = null; rej(new Error("lib")); };
     document.head.appendChild(s);
   }));
 
