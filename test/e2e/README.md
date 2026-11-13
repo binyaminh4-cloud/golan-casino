@@ -25,6 +25,6 @@ Exit code is 0 only if everything passed.
 - 3D pages draw slowly without a GPU: use `waitForFunction`, never a fixed sleep. Use a real mouse click (`page.mouse`), not `page.click`, on pages that animate.
 - Every bug Binyamin finds = a new test that catches it.
 - A test that fails sometimes goes into `quarantine.json` with the reason (it is then listed in each run, not run).
-- Known real bugs (a file the page asks for that is missing) are listed in `KNOWN_MISSING` in `lib.cjs`, with an Issue. Remove the line when fixed.
+- Known real bugs (a file the page asks for that is missing) are listed in `KNOWN_MISSING` in `lib.cjs` so everything else stays green. Open an Issue for each, and remove the line when it is fixed.
 
-`qa.js` and `mock_supabase.js` are older helpers (layout check on every device); `mock_supabase.js` is also used by the live roulette test.
+`errlog_e2e.js` (Issue #9), `qa.js` and `mock_supabase.js` are older, separate helpers (`errlog_e2e.js` needs its own `python3 -m http.server`; `qa.js` = layout check on every device); `mock_supabase.js` is also used by the live roulette test. The old ones are not part of `run.cjs`.

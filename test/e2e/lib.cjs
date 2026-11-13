@@ -34,7 +34,7 @@ async function launch() {
   try { return await chromium.launch({ channel: "chrome", args }); } catch (e) { return await chromium.launch({ args }); }
 }
 
-// Known real bugs: files the pages ask for that are not in the repo. Listed here (and in an Issue) so the set stays green
+// Known real bugs: files the pages ask for that are not in the repo. Listed here so the set stays green (report each one as an Issue)
 // for everything else; remove the line when the file is added. Anything NOT on this list that returns 404 fails the test.
 const KNOWN_MISSING = [
   "snd/r3d/nomore_v2.mp3",   // roulette 3D "no more bets" voice - never committed (silent in the game)

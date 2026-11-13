@@ -4,7 +4,7 @@ const fs = require("fs"), path = require("path");
 const { DOCS, newPage, waitLoaded, assert } = require("../lib.cjs");
 
 // Shared scripts mention "preview" for every page, so they do not count as a page's own preview mode.
-const SHARED = /^(loader|sfx|chat|guide|voice|landscape|portrait|config|lobby-ui|app|install|version|sw)\b/;
+const SHARED = /^(loader|errlog|sfx|chat|guide|voice|landscape|portrait|config|lobby-ui|app|install|version|sw)\b/;
 const PREVIEW_RE = /[?#&]preview|has\(["']preview["']\)|get\(["']preview["']\)/;
 
 function discover() {
