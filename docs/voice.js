@@ -74,6 +74,10 @@
       // monthly cap (Daily bills past 10,000 free minutes): closed, or no answer from the server = no voice
       const st = await db.rpc("voice_status");
       if (st.error || !st.data || !st.data.open) { msg(st.error ? "לא הצלחנו להתחבר. נסה שוב." : CLOSED); cleanup(true); try { localStorage.removeItem(KEY); } catch (e) {} return; }
+      // private room: a ticket from our server (signed-in member + cap open). No ticket = no voice.
+      const tk = await db.functions.invoke("voice-token", { body: {} });
+      const token = tk && tk.data && tk.data.token;
+      if (!token) { const closed = tk && tk.data && tk.data.reason === "cap_reached"; msg(closed ? CLOSED : "לא הצלחנו להתחבר. נסה שוב."); cleanup(true); try { localStorage.removeItem(KEY); } catch (e) {} return; }
       await loadLib();
       call = window.DailyIframe.createCallObject({ audioSource: true, videoSource: false, subscribeToTracksAutomatically: true });
       call.on("joined-meeting", () => { state = "on"; muted = false; try { localStorage.setItem(KEY, "1"); } catch (e) {} setBtn(); msg(""); drawList(); tick(); clearInterval(tickT); tickT = setInterval(tick, 60000); });
@@ -85,7 +89,7 @@
       call.on("active-speaker-change", (e) => { window.__gcVoiceSpeaker = e && e.activeSpeaker && e.activeSpeaker.peerId; drawList(); });
       call.on("left-meeting", () => cleanup());
       call.on("error", (e) => { msg("שגיאה בחיבור הקולי. נסה שוב."); cleanup(true); });
-      await call.join({ url: ROOM, userName: await myName(), startVideoOff: true, startAudioOff: false });
+      await call.join({ url: ROOM, token, userName: await myName(), startVideoOff: true, startAudioOff: false });
     } catch (e) {
       msg(/Permission|NotAllowed|denied/i.test(String(e && e.message)) ? "צריך לאשר גישה למיקרופון בדפדפן." : "לא הצלחנו להתחבר. נסה שוב.");
       cleanup(true);
