@@ -12,8 +12,8 @@ const QUARANTINE = JSON.parse(fs.readFileSync(path.join(__dirname, "quarantine.j
 fs.mkdirSync(SHOTS, { recursive: true });
 
 (async () => {
-  const smoke = require("./tests/smoke.cjs"), games = require("./tests/games.cjs"), boards = require("./tests/boards.cjs");
-  const all = [...smoke.tests, ...games.tests, ...boards.tests].filter((t) => !ONLY || t.name.includes(ONLY));
+  const smoke = require("./tests/smoke.cjs"), games = require("./tests/games.cjs"), boards = require("./tests/boards.cjs"), ads = require("./tests/ads.cjs");
+  const all = [...smoke.tests, ...games.tests, ...boards.tests, ...ads.tests].filter((t) => !ONLY || t.name.includes(ONLY));
   const run = all.filter((t) => !QUARANTINE[t.name]), skipped = all.filter((t) => QUARANTINE[t.name]);
   const { base, close } = await startServer(), browser = await launch();
   const results = new Map(); let failed = 0;
