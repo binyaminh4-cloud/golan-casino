@@ -173,15 +173,19 @@
   window.GC_CHAT = { toggle, room: ROOM };
 })();
 
-// out of money ("אין מספיק…" shows up anywhere): offer the friends' ads once in a while
-(function adNudge(){ if (/ads\.html$/.test(location.pathname)) return; let last = 0;
+// out of money ("אין מספיק…" shows up anywhere): offer the friends' ads once in a while.
+// Never inside a challenge (?ch=): there the chips are challenge chips, not wallet money. The ✕ is its own big button, outside the link.
+(function adNudge(){ if (/ads\.html$/.test(location.pathname) || /[?&]ch=/.test(location.search)) return; let last = 0;
   const show = () => { if (Date.now() - last < 60000 || document.getElementById("adNudge")) return; last = Date.now();
-    const a = document.createElement("a"); a.id = "adNudge"; a.href = "ads.html";
-    a.innerHTML = "🎬 נגמר הכסף? צפה בפרסומת וקבל עד ₪100M <b style='margin-inline-start:8px'>✕</b>";
-    a.style.cssText = "position:fixed;z-index:99999;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);background:linear-gradient(#f6d77a,#c9952f);color:#1a1208;font:800 15px Heebo,sans-serif;text-decoration:none;border-radius:14px;padding:12px 16px;box-shadow:0 4px 18px rgba(0,0,0,.6);direction:rtl;white-space:nowrap";
-    a.querySelector("b").onclick = (e) => { e.preventDefault(); e.stopPropagation(); a.remove(); };
-    document.body.appendChild(a); setTimeout(() => a.remove(), 9000); };
+    const w = document.createElement("div"); w.id = "adNudge";
+    w.style.cssText = "position:fixed;z-index:99999;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;align-items:stretch;background:linear-gradient(#f6d77a,#c9952f);color:#1a1208;font:800 15px Heebo,sans-serif;border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,.6);direction:rtl;white-space:nowrap;overflow:hidden";
+    const a = document.createElement("a"); a.href = "ads.html"; a.textContent = "🎬 נגמר הכסף? צפה בפרסומת וקבל עד ₪100M"; a.style.cssText = "color:inherit;text-decoration:none;padding:12px 14px";
+    const x = document.createElement("button"); x.type = "button"; x.textContent = "✕"; x.setAttribute("aria-label", "סגור");
+    x.style.cssText = "min-width:48px;border:0;border-inline-end:1px solid #1a120844;background:#0002;color:inherit;font:900 18px Heebo,sans-serif;cursor:pointer";
+    const close = (e) => { e.preventDefault(); e.stopPropagation(); w.remove(); }; x.onclick = close; x.addEventListener("pointerdown", (e) => e.stopPropagation());
+    w.append(x, a); document.body.appendChild(w); setTimeout(() => w.remove(), 9000); };
   new MutationObserver((ms) => { const hit = (n) => { const t = n && n.textContent; return t && t.length < 400 && /אין מספיק|אין בבנק יתרה/.test(t); };
-    for (const m of ms) { if (hit(m.target) || [...m.addedNodes].some(hit)) { show(); return; } } })
+    for (const m of ms) { if (w0(m.target) ) continue; if (hit(m.target) || [...m.addedNodes].some(hit)) { show(); return; } } })
     .observe(document.documentElement, { subtree: true, childList: true, characterData: true });
+  const w0 = (n) => { const e = n && (n.nodeType === 1 ? n : n.parentElement); return !!(e && e.closest && e.closest("#adNudge")); };
 })();
