@@ -3,8 +3,8 @@
    are real geometry; lacquer and chrome reflect an environment map. The number ring and the 37 pockets are
    drawn in code from RLW.ORDER, so order and colours cannot drift. Motion comes from RLW.plan (shared with
    the tests): we only map (angle, radius, lift) onto the 3D surfaces. Units: 1200-px wheel space, scaled k. */
-import * as THREE from "three";
-import { RoomEnvironment } from "./vendor/three/RoomEnvironment.js";
+import * as THREE from "./vendor/three/three.module.min.js";   // by path: iPhones before iOS 16.4 have no import maps
+import { RoomEnvironment } from "./vendor/three/RoomEnvironment.js?v=2";
 
 const R = window.RLW, G = R.G, k = 1 / 600;
 const P = (r, y) => new THREE.Vector2(r * k, y * k);

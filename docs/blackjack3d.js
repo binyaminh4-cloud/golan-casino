@@ -1,7 +1,7 @@
 /* Golan Casino · Blackjack 3D (one player and Ms Fisher).
    Same table, chips and dealer as Roulette 3D; the rules and money are the classic solo blackjack on the server
    (bj_deal / bj_action / bj_current, mode "classic", with side bets). ?preview plays locally with no money. */
-import * as THREE from "three";
+import * as THREE from "./vendor/three/three.module.min.js";   // by path: iPhones before iOS 16.4 have no import maps
 
 const $ = (id) => document.getElementById(id);
 const PREVIEW = /[?#&]preview/.test(location.href);
@@ -603,5 +603,7 @@ function frame(now) {
     if (LIVE) { tPoll(); setInterval(tPoll, 2000); document.addEventListener("visibilitychange", () => { if (!document.hidden) tPoll(); }); }
     else if (!PREVIEW) { const { data } = await db.rpc("bj_current"); if (data && data.status !== "done" && !data.table) { bets.main = Number(data.main_bet); drawAll(); await render(data); } }
   };
-  if (/[?&]go\b/.test(location.search)) $("enterGo").click();
+  window.__gameReady = 1;
+  if (window.__enterWanted) { const b = $("enterGo"); b.disabled = false; b.textContent = "לשולחן"; addEventListener("pointerdown", () => { vIdle.play().catch(() => {}); }, { once: true }); b.click(); }   // tapped while loading (the video may need one more tap to start)
+  else if (/[?&]go\b/.test(location.search)) $("enterGo").click();
 })();
