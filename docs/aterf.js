@@ -233,8 +233,17 @@ board.addEventListener("pointermove", (e) => {
   board.querySelectorAll(".cell").forEach((c) => c.classList.toggle("hl", c.dataset.n !== undefined ? set.has(c.dataset.n) : c.dataset.k === "0" && set.has("0")));
 });
 board.addEventListener("pointerleave", () => board.querySelectorAll(".hl").forEach((c) => c.classList.remove("hl")));
-function setView(v) { document.body.classList.toggle("race", v === "race"); setTimeout(() => { lastBox = ""; relayout(); }, 60); VIEW = v; $("viewTable").setAttribute("aria-pressed", v === "table"); $("viewRace").setAttribute("aria-pressed", v === "race");
-  $("nbrBox").hidden = v !== "race"; drawBoard(); }
+let viewT = 0;
+function setView(v) {                 // the board fades out, switches and fades back in (no jump)
+  if (v === VIEW) return;
+  $("viewTable").setAttribute("aria-pressed", v === "table"); $("viewRace").setAttribute("aria-pressed", v === "race");
+  board.style.transition = "opacity .18s ease, transform .18s ease"; board.style.opacity = "0"; board.style.transform = "scale(.98)";
+  clearTimeout(viewT); viewT = setTimeout(() => {
+    document.body.classList.toggle("race", v === "race"); VIEW = v; $("nbrBox").hidden = v !== "race"; drawBoard();
+    setTimeout(() => { lastBox = ""; relayout(); }, 60);
+    requestAnimationFrame(() => { board.style.transition = "opacity .24s ease, transform .24s ease"; board.style.opacity = ""; board.style.transform = ""; });
+  }, 180);
+}
 $("viewTable").onclick = () => setView("table"); $("viewRace").onclick = () => setView("race");
 $("nMinus").onclick = () => { NB = Math.max(0, NB - 1); $("nVal").textContent = NB; };
 $("nPlus").onclick = () => { NB = Math.min(4, NB + 1); $("nVal").textContent = NB; };

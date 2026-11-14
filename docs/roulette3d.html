@@ -7,7 +7,7 @@
 <title>רולטה 3D · גולן קזינו</title>
 <link rel="icon" href="img/brand/favicon.png?v=2">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&family=Inter:wght@700;800;900&display=swap">
-<link rel="stylesheet" href="roulette3d.css?v=6">
+<link rel="stylesheet" href="roulette3d.css?v=1794659045">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=8"></script>
 <script src="landscape.js?v=1"></script>
@@ -42,6 +42,10 @@
   <button type="button" id="topView" class="btn topbtn" aria-pressed="false">מבט על</button>
 </div>
 
+<div class="views" id="views">
+  <button type="button" id="viewBtn" class="btn vbtn" aria-pressed="false">לוח שכנים</button>
+  <div class="nbr" id="nbr" hidden><button type="button" class="btn" id="nMinus" aria-label="פחות שכנים">−</button><span>שכנים <b id="nVal" class="num">2</b></span><button type="button" class="btn" id="nPlus" aria-label="יותר שכנים">+</button></div>
+</div>
 <div id="result" class="result" hidden></div>
 
 <div id="enter" class="enter">
@@ -66,6 +70,6 @@
 <script src="rl_wheel.js?v=3"></script>
 <script type="module" src="rl_wheel3d.js?v=1794646654"></script>
 <script src="look_hint.js?v=4"></script>
-<script type="module" src="roulette3d.js?v=1794646654"></script>
+<script type="module" src="roulette3d.js?v=1794659045"></script>
 </body>
 </html>
