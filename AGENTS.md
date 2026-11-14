@@ -25,6 +25,7 @@ A private, satirical casino for a group of friends. **Play money only.** UI lang
 - **Chat announcements:** wins only at ×200 the bet or more; bonus buys at ×3 the price or more.
 - **Test users** (nickname starting with `test` / `בדיקה`, see `gc_is_test`) never get prizes, rankings or bot names.
 - **Ido** (`docs/guide.js`, `GC_STEPS`) explains every game; update his texts when a game's rules change.
+- **Game order on the games page (`#gamesBox` in `docs/index.html`):** newest on the right, oldest on the left (RTL: the first `<a class="game">` in each category is the rightmost, the one players see on entering). A new game goes at the **start** of its category block, and its href goes at the top of `NEWEST` in `docs/lobby-ui.js`. Git dates are not reliable for order (history was squashed); ask the owner when unsure.
 - Humorous texts shown to players need the owner's approval.
 - Never handle or reveal passwords; never bypass auth.
 
