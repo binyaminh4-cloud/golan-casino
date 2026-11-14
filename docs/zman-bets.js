@@ -4,7 +4,7 @@
  const allowed=new Set(['one','yoav','range','vip','balls',...['f','i','b'].flatMap(p=>[0,1,2,3].map(i=>p+i))]);
  function layout(raw){const out={};if(!raw||typeof raw!=='object'||Array.isArray(raw))return out;for(const [k,v]of Object.entries(raw))if(allowed.has(k)&&/^[1-9]\d*$/.test(String(v)))out[k]=BigInt(v).toString();return out;}
  function sum(raw){return Object.values(layout(raw)).reduce((n,v)=>n+BigInt(v),0n);}
- function rack(balance){balance=BigInt(balance||0);return values.filter((v,i)=>i<7||v*20n<=balance).slice(-7).map(String);}
+ function rack(balance){balance=BigInt(balance||0);const ok=values.filter((v,i)=>v<=balance&&(i<7||v*20n<=balance));return (ok.length?ok:[values[0]]).slice(-7).map(String);}
  class AutoPlan{
   constructor(){this.stop();this.rounds=new Set();}
   arm(count,raw){if(![10,25,50,100,Infinity].includes(count)||sum(raw)<=0n)throw Error('invalid_auto_plan');this.remaining=count;this.template=layout(raw);this.rounds.clear();}

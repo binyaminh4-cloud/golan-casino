@@ -112,7 +112,7 @@ const sentSum = () => [...sent.values()].reduce((s, v) => s + v, 0);
 const maxBet = () => stepMax(balance + sentSum());   // fixed for the whole round: chips already sent still count as yours (same rule as the server)
 let chipKey = "";
 function drawChipRack() {
-  const ok = CHIPS.filter(([v], i) => i < 7 || v * 20 <= balance), show = ok.slice(-7), k = show.map(([v]) => v).join(",");
+  const ok = CHIPS.filter(([v], i) => v <= balance && (i < 7 || v * 20 <= balance)), show = (ok.length ? ok : CHIPS.slice(0, 1)).slice(-7), k = show.map(([v]) => v).join(",");
   if (k === chipKey) return; chipKey = k;
   if (!show.some(([v]) => v === chipVal)) chipVal = show[Math.min(2, show.length - 1)][0];
   $("chips").innerHTML = show.map(([v, c]) => `<button class="chip ${c}${v >= 25000 ? " big" : ""}" data-v="${v}" aria-pressed="${v === chipVal}">${chipLabel(v)}</button>`).join("");
