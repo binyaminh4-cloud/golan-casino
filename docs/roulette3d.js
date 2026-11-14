@@ -3,7 +3,7 @@
    Rules and money are the classic private roulette on the server (rl_spin, mode "classic"): the result is drawn
    on the server before the dealer throws, and the 3D wheel (rl_wheel3d.js) is solved backwards to land on it.
    ?preview plays locally without a login (no money). */
-import * as THREE from "three";
+import * as THREE from "./vendor/three/three.module.min.js";   // by path: iPhones before iOS 16.4 have no import maps
 
 const $ = (id) => document.getElementById(id);
 const PREVIEW = /[?#&]preview/.test(location.href);
@@ -537,7 +537,9 @@ function frame(now) {
   try { GC_LOADER.done(); } catch (e) {} try { window.__lhBye = GC_LOOKHINT(canvas, { side: LIVE }); } catch (e) {}
   $("enterGo").onclick = () => { preload("nomore"); $("enter").hidden = true; dealerPlay("idle"); preload("bets"); setTimeout(() => voice("bets"), 900); vThrow.load(); };
   if (LIVE) { const t = LMODE === "xxx" ? "רולטת XXX 3D לייב" : LMODE === "lightning" ? "רולטת ברקים 3D לייב" : "רולטה 3D לייב"; document.querySelector(".top h1").textContent = t; document.title = t + " · גולן קזינו"; }
-  if (/[?&]go\b/.test(location.search)) $("enterGo").click();
+  window.__gameReady = 1;
+  if (window.__enterWanted) { const b = $("enterGo"); b.disabled = false; b.textContent = "לשולחן"; addEventListener("pointerdown", () => { vIdle.play().catch(() => {}); }, { once: true }); b.click(); }   // tapped while loading (the video may need one more tap to start)
+  else if (/[?&]go\b/.test(location.search)) $("enterGo").click();
 })();
 
 // wheel close-up in lightning / xxx: the lightning numbers on the right, who would win what on the left (like the 2D lightning roulettes)
