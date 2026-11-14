@@ -48,6 +48,59 @@ const OUT = [["1-18", range(1, 18)], ["EVEN", range(1, 36).filter((n) => n % 2 =
 OUT.forEach(([l, nums], i) => area(nums, X0 + i * 2 * CW, ZF + 4 * CH, 2 * CW, CH, l, l === "RED" ? "red" : l === "BLACK" ? "black" : null));
 const pays = (a) => 36 / a.nums.length;               // total return per unit staked (stake included), classic wheel
 
+// ---------- splits and corners: a tap on the line between two numbers, or where four meet ----------
+const numAt = (c, r) => c * 3 + (2 - r) + 1;          // column c (0..11), row r counted from the far side (0..2)
+const gridC = (n) => { const a = AREAS.find((x) => x.key === String(n)); return { x: a.x + a.w / 2, z: a.z + a.d / 2 }; };
+function gridCenter(key) {                               // where the chips of a bet sit on the regular layout
+  const a = AREAS.find((x) => x.key === key); if (a) return { x: a.x + a.w / 2, z: a.z + a.d / 2 };
+  const nums = key.split(",").map(Number), nz = nums.filter((n) => n > 0).map(gridC);
+  const x = nz.reduce((s, q) => s + q.x, 0) / nz.length, z = nz.reduce((s, q) => s + q.z, 0) / nz.length;
+  return nums.includes(0) ? { x: X0, z } : { x, z };
+}
+function gridBet(x, z) {                                 // the bet a tap at (x, z) on the number grid means, or null
+  const cu = (x - X0) / CW, rw = (z - ZF) / CH, T = 0.24;
+  if (rw < 0 || rw >= 3 || cu < -T || cu >= 12) return null;
+  const r = Math.floor(rw), c = Math.floor(cu), C = Math.round(cu), Rw = Math.round(rw);
+  const nearC = Math.abs(cu - C) < T && C <= 11, nearR = Math.abs(rw - Rw) < T && Rw >= 1 && Rw <= 2;
+  const key = (a) => a.sort((p, q) => p - q).join(",");
+  if (nearC && C === 0) return key([0, numAt(0, r)]);
+  if (nearC && nearR) return key([numAt(C - 1, Rw - 1), numAt(C, Rw - 1), numAt(C - 1, Rw), numAt(C, Rw)]);
+  if (nearC) return key([numAt(C - 1, r), numAt(C, r)]);
+  if (nearR) return key([numAt(c, Rw - 1), numAt(c, Rw)]);
+  return c >= 0 ? String(numAt(c, r)) : null;
+}
+
+// ---------- the neighbours board (racetrack): the 37 numbers in wheel order around a stadium, and the named sections ----------
+const RB = { x0: X0 - CW - 0.03, x1: X0 + 13 * CW + 0.03, z0: ZF - 0.03, z1: ZF + 5 * CH + 0.03 };
+const RCX = (RB.x0 + RB.x1) / 2, RCZ = (RB.z0 + RB.z1) / 2, RCELL = 0.088, RR = (RB.z1 - RB.z0) / 2 - 0.062, RLS = RB.x1 - RB.x0 - 0.124 - 2 * RR;
+function racePos(k) {                                    // 0 sits at the middle of the right-hand curve
+  const P = 2 * RLS + 2 * Math.PI * RR, x0 = RCX - RLS / 2, z0 = RCZ - RR;
+  let s = ((RLS + Math.PI * RR / 2 + (k * P) / 37) % P + P) % P;
+  if (s < RLS) return { x: x0 + s, z: z0 };
+  s -= RLS; if (s < Math.PI * RR) { const a = s / RR; return { x: x0 + RLS + RR * Math.sin(a), z: z0 + RR - RR * Math.cos(a) }; }
+  s -= Math.PI * RR; if (s < RLS) return { x: x0 + RLS - s, z: z0 + 2 * RR };
+  s -= RLS; const a = s / RR; return { x: x0 - RR * Math.sin(a), z: z0 + RR + RR * Math.cos(a) };
+}
+const RACE = {}; R.ORDER.forEach((n, k) => { RACE[n] = racePos(k); });
+const ANNOUNCED = {
+  tiers: { name: "טייר", fr: "Tiers du cylindre", bets: [["5,8", 1], ["10,11", 1], ["13,16", 1], ["23,24", 1], ["27,30", 1], ["33,36", 1]] },
+  orphelins: { name: "אורפלן", fr: "Orphelins", bets: [["1", 1], ["6,9", 1], ["14,17", 1], ["17,20", 1], ["31,34", 1]] },
+  voisins: { name: "וואזן", fr: "Voisins du zéro", bets: [["0,2,3", 2], ["4,7", 1], ["12,15", 1], ["18,21", 1], ["19,22", 1], ["25,26,28,29", 2], ["32,35", 1]] },
+  zero: { name: "זרו", fr: "Jeu zéro", bets: [["0,3", 1], ["12,15", 1], ["26", 1], ["32,35", 1]] },
+};
+const ZONES = Object.keys(ANNOUNCED).map((z, i) => { const w = RLS / 4, zz = RCZ - RR + RCELL / 2 + 0.018;
+  return { z, x: RCX - RLS / 2 + i * w + 0.006, zt: zz, w: w - 0.012, d: 2 * (RCZ - zz) }; });
+let NB = 2; try { NB = Math.max(0, Math.min(4, +(localStorage.getItem("gc_r3d_nb") ?? 2))); } catch (e) {}
+const neighbours = (n) => { const i = R.ORDER.indexOf(n), out = []; for (let d = -NB; d <= NB; d++) out.push(R.ORDER[(i + d + 37) % 37]); return out; };
+function raceBet(x, z) {                                 // a number (with its neighbours) or a named section
+  let best = null, bd = (RCELL * 0.62) ** 2;
+  for (const n of R.ORDER) { const q = RACE[n], d = (q.x - x) ** 2 + (q.z - z) ** 2; if (d < bd) { bd = d; best = n; } }
+  if (best !== null) return { at: RACE[best], nums: neighbours(best), list: neighbours(best).map((n) => [String(n), 1]) };
+  const zn = ZONES.find((q) => x >= q.x && x < q.x + q.w && z >= q.zt && z < q.zt + q.d);
+  if (zn) return { at: { x: zn.x + zn.w / 2, z: RCZ }, nums: [...new Set(ANNOUNCED[zn.z].bets.flatMap(([k]) => k.split(",").map(Number)))], list: ANNOUNCED[zn.z].bets };
+  return null;
+}
+
 // ---------- renderer and scene ----------
 const canvas = $("scene");
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
@@ -84,10 +137,36 @@ skirt.rotation.x = -Math.PI / 2; skirt.position.y = H - 0.84; scene.add(skirt);
 const PX = 1400 / FD;                                  // canvas pixels per metre
 const feltCanvas = document.createElement("canvas"); feltCanvas.width = Math.round(FW * PX); feltCanvas.height = Math.round(FD * PX);
 const feltTex = new THREE.CanvasTexture(feltCanvas); feltTex.colorSpace = THREE.SRGBColorSpace; feltTex.anisotropy = 16;
-function drawFelt(cloth) {
-  const g = feltCanvas.getContext("2d"), W = feltCanvas.width, D = feltCanvas.height;
+function clothUnder(g, cloth, W, D) {
   g.fillStyle = "#0b3a1d"; g.fillRect(0, 0, W, D);
   if (cloth) { for (let x = 0; x < W; x += cloth.width) for (let y = 0; y < D; y += cloth.height) g.drawImage(cloth, x, y); g.fillStyle = "rgba(4,20,10,.42)"; g.fillRect(0, 0, W, D); }
+}
+const raceCanvas = document.createElement("canvas"); raceCanvas.width = feltCanvas.width; raceCanvas.height = feltCanvas.height;
+const raceTex = new THREE.CanvasTexture(raceCanvas); raceTex.colorSpace = THREE.SRGBColorSpace; raceTex.anisotropy = 16;
+function drawRace(cloth) {
+  const g = raceCanvas.getContext("2d"), W = raceCanvas.width, D = raceCanvas.height;
+  clothUnder(g, cloth, W, D);
+  const P = (x, z) => [(x + FW / 2) * PX, (z + FD / 2) * PX];
+  const ink = { red: "rgba(128,6,12,.93)", black: "rgba(8,8,8,.86)", green: "rgba(10,90,40,.85)" };
+  const stadium = (inset) => { const [ax, ay] = P(RCX - RLS / 2, RCZ), r = (RR + inset) * PX, L = RLS * PX;
+    g.beginPath(); g.moveTo(ax, ay - r); g.lineTo(ax + L, ay - r); g.arc(ax + L, ay, r, -Math.PI / 2, Math.PI / 2); g.lineTo(ax, ay + r); g.arc(ax, ay, r, Math.PI / 2, Math.PI * 1.5); g.closePath(); };
+  stadium(0); g.strokeStyle = "rgba(0,0,0,.28)"; g.lineWidth = (RCELL + 0.016) * PX; g.stroke();
+  g.strokeStyle = "rgba(236,226,196,.92)"; g.lineWidth = 5; stadium(RCELL / 2 + 0.008); g.stroke(); stadium(-RCELL / 2 - 0.008); g.stroke();
+  for (const n of R.ORDER) { const [x, y] = P(RACE[n].x, RACE[n].z), rad = (RCELL / 2) * PX;
+    g.beginPath(); g.arc(x, y, rad, 0, Math.PI * 2); g.fillStyle = ink[colorOf(n)]; g.fill(); g.strokeStyle = "rgba(236,226,196,.85)"; g.lineWidth = 3; g.stroke();
+    g.fillStyle = "#f3ead2"; g.font = `800 ${rad * 0.95}px Inter, Heebo, sans-serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(String(n), x, y + 2); }
+  for (const q of ZONES) { const [x, y] = P(q.x, q.zt), w = q.w * PX, d = q.d * PX;
+    g.fillStyle = "rgba(0,0,0,.18)"; g.fillRect(x, y, w, d); g.strokeStyle = "rgba(236,226,196,.75)"; g.lineWidth = 4; g.strokeRect(x, y, w, d);
+    const fit = (t, wt, max) => { g.font = `${wt} ${max}px Heebo, Inter, sans-serif`; const m = g.measureText(t).width; return Math.min(max, max * (w * 0.84) / m); };
+    g.fillStyle = "#f3ead2"; g.textAlign = "center"; g.textBaseline = "middle"; g.direction = "rtl";
+    g.font = `800 ${fit(ANNOUNCED[q.z].name, 800, d * 0.24)}px Heebo, sans-serif`; g.fillText(ANNOUNCED[q.z].name, x + w / 2, y + d * 0.42);
+    g.direction = "ltr"; g.fillStyle = "rgba(243,234,210,.7)"; g.font = `600 ${fit(ANNOUNCED[q.z].fr, 600, d * 0.11)}px Inter, sans-serif`; g.fillText(ANNOUNCED[q.z].fr, x + w / 2, y + d * 0.7); }
+  const [bx, by] = P(RB.x0, RB.z0); g.strokeStyle = "rgba(214,176,106,.85)"; g.lineWidth = 4; g.strokeRect(bx, by, (RB.x1 - RB.x0) * PX, (RB.z1 - RB.z0) * PX);
+  raceTex.needsUpdate = true;
+}
+function drawFelt(cloth) {
+  const g = feltCanvas.getContext("2d"), W = feltCanvas.width, D = feltCanvas.height;
+  clothUnder(g, cloth, W, D); drawRace(cloth);
   const P = (x, z) => [(x + FW / 2) * PX, (z + FD / 2) * PX];
   const ink = { red: "rgba(128,6,12,.93)", black: "rgba(8,8,8,.86)", green: "rgba(10,90,40,.75)" };
   for (const a of AREAS) {
@@ -109,6 +188,9 @@ const feltGeo = new THREE.ShapeGeometry(rrectShape(FW, FD, FR), 24);
 { const uv = feltGeo.attributes.uv, pos = feltGeo.attributes.position; for (let i = 0; i < uv.count; i++) uv.setXY(i, pos.getX(i) / FW + 0.5, pos.getY(i) / FD + 0.5); }
 const felt = new THREE.Mesh(feltGeo, new THREE.MeshStandardMaterial({ map: feltTex, roughness: 0.97, metalness: 0 }));
 felt.rotation.x = -Math.PI / 2; felt.position.y = H; felt.receiveShadow = true; scene.add(felt);
+// the neighbours board lies on top of the regular layout and fades in over it (same cloth below, so only the printing changes)
+const raceMat = new THREE.MeshStandardMaterial({ map: raceTex, roughness: 0.97, metalness: 0, transparent: true, opacity: 0, depthWrite: false });
+const raceFelt = new THREE.Mesh(feltGeo, raceMat); raceFelt.rotation.x = -Math.PI / 2; raceFelt.position.y = H + 0.0006; raceFelt.receiveShadow = true; raceFelt.visible = false; scene.add(raceFelt);
 // (after the rotation the shape's +y is the far side, which is the top of the canvas: the default uv already matches)
 
 // padded leather armrest around the felt
@@ -176,6 +258,45 @@ function dealerPlay(which) {
 }
 vThrow.addEventListener("ended", () => dealerPlay("idle"));
 
+// ---------- the two boards: VIEW "table" (regular) or "race" (neighbours); vb runs 0..1 between them ----------
+let VIEW = "table", vb = 0, vbFrom = 0, vbT0 = 0;
+try { if (localStorage.getItem("gc_r3d_view") === "race") { VIEW = "race"; vb = 1; } } catch (e) {}
+const PINS = new Set();                 // objects (3D or HTML tags) that sit on a bet; single numbers move to the racetrack, the rest fade out there
+function pin(o, key, off = { x: 0, z: 0 }) {
+  const g = gridCenter(key), r = /^\d+$/.test(key) ? RACE[+key] : null;
+  (o.userData || (o.userData = {})).pin = { gx: g.x + off.x, gz: g.z + off.z, rx: r ? r.x + off.x : null, rz: r ? r.z + off.z : null };
+  PINS.add(o); placePin(o); return o;
+}
+function placePin(o) {
+  const p = o.userData.pin, k = p.rx === null ? Math.max(0, 1 - vb * 1.6) : 1;
+  const x = p.rx === null ? p.gx : p.gx + (p.rx - p.gx) * vb, z = p.rx === null ? p.gz : p.gz + (p.rz - p.gz) * vb;
+  o.userData.k = k;
+  if (o.isObject3D) { o.position.x = x; o.position.z = z; o.scale.setScalar((o.userData.s || 1) * (o.userData.t ?? 1) * k); o.visible = k > 0.01; }
+  else { o._p.x = x; o._p.z = z; o.style.opacity = k; }
+}
+function applyView() {
+  raceMat.opacity = vb; raceFelt.visible = vb > 0.002;
+  for (const o of PINS) { if (o.isObject3D ? !o.parent : !o.isConnected) { PINS.delete(o); continue; } placePin(o); }
+}
+const keyPos = (key) => { const g = gridCenter(key), r = /^\d+$/.test(key) && VIEW === "race" ? RACE[+key] : null; return r || g; };
+function setView(v) {
+  if (v === VIEW || busy) return;
+  VIEW = v; vbFrom = vb; vbT0 = performance.now(); try { localStorage.setItem("gc_r3d_view", v); } catch (e) {}
+  viewUi(); sfx(() => SFX.chip());
+}
+function viewUi() { const b = $("viewBtn"); if (!b) return; b.textContent = VIEW === "race" ? "לוח רגיל" : "לוח שכנים"; b.setAttribute("aria-pressed", VIEW === "race"); $("nbr").hidden = VIEW !== "race"; $("nVal").textContent = NB; }
+function viewTick(now) {                // called every frame: eases the boards and everything pinned to them
+  const to = VIEW === "race" ? 1 : 0; if (vb === to && !vbT0) return;
+  const k = Math.min(1, (now - vbT0) / 550), e = k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2;
+  vb = vbFrom + (to - vbFrom) * e; if (k >= 1) { vb = to; vbT0 = 0; } applyView();
+}
+// a short glow on the numbers a racetrack bet covers
+function glowNums(nums) {
+  for (const n of nums) { const q = RACE[n], m = new THREE.Mesh(new THREE.CircleGeometry(RCELL / 2, 32), new THREE.MeshBasicMaterial({ color: 0xffd36a, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false }));
+    m.rotation.x = -Math.PI / 2; m.position.set(q.x, H + 0.002, q.z); scene.add(m); const t1 = performance.now();
+    tweens.push((now) => { const kk = Math.min(1, (now - t1) / 700); m.material.opacity = 0.6 * (1 - kk); if (kk >= 1) { scene.remove(m); m.geometry.dispose(); m.material.dispose(); } return kk < 1; }); }
+}
+
 // ---------- bets on the felt ----------
 const bets = new Map();                 // key -> amount
 const stacks = new Map();               // key -> THREE.Group
@@ -187,10 +308,10 @@ function drawStack(key) {
   const old = stacks.get(key); if (old) scene.remove(old);
   const tg = stackTags.get(key); if (tg) { tg.remove(); stackTags.delete(key); }
   const amt = bets.get(key); if (!amt) { stacks.delete(key); return; }
-  const a = AREAS.find((x) => x.key === key), g = new THREE.Group(), c = areaCenter(a);
+  const g = new THREE.Group(), c0 = gridCenter(key), c = new THREE.Vector3(c0.x, H, c0.z);
   breakdown(amt).forEach((v, i) => { const m = chipMesh(v); m.position.set(0, CHIP_T / 2 + i * CHIP_T, 0); m.rotation.y = i * 0.7; g.add(m); });
-  g.position.copy(c); scene.add(g); stacks.set(key, g);
-  const el = document.createElement("div"); el.className = "stag num"; el.textContent = short(amt); document.body.appendChild(el); el._p = c.clone().setY(H + breakdown(amt).length * CHIP_T + 0.004); stackTags.set(key, el);
+  g.position.copy(c); scene.add(g); stacks.set(key, g); pin(g, key);
+  const el = document.createElement("div"); el.className = "stag num"; el.textContent = short(amt); document.body.appendChild(el); el._p = c.clone().setY(H + breakdown(amt).length * CHIP_T + 0.004); stackTags.set(key, el); pin(el, key);
   return g;
 }
 function unsent() { let s = 0; for (const [k, v] of bets) s += Math.max(0, v - (sent.get(k) || 0)); return s; }
@@ -198,10 +319,10 @@ let sendT = 0, sending = false;
 function autoSend() { clearTimeout(sendT); sendT = setTimeout(() => sending ? autoSend() : liveSend(), 600); }   // live: chips go to the server by themselves
 function totalBet() { let s = 0; for (const v of bets.values()) s += v; return s; }
 function showTotal() { if (LIVE) { $("spin").hidden = !PREVIEW; } $("total").textContent = fmt(totalBet()); $("spin").disabled = busy || !bets.size || (LIVE && !PREVIEW && !(liveSt && liveSt.open && [...bets].some(([k, v]) => v > (sent.get(k) || 0)))); $("undo").disabled = busy || !undo.length; $("clear").disabled = busy || !bets.size; $("repeat").disabled = busy || !lastBets || bets.size > 0; }
-function place(key, amt, anim = true) {
+function place(key, amt, anim = true, track = true) {
   if (busy) return;
   if ((LIVE ? unsent() : totalBet()) + amt > balance) { say("אין מספיק שקלים"); return; }
-  bets.set(key, (bets.get(key) || 0) + amt); undo.push([key, amt]); if (LIVE && !PREVIEW) autoSend();
+  bets.set(key, (bets.get(key) || 0) + amt); if (track) undo.push([key, amt]); if (LIVE && !PREVIEW) autoSend();
   const g = drawStack(key); sfx(() => SFX.chip());
   if (anim && g) {                            // the chip slides in from the player's side of the table
     const top = g.children.at(-1), to = top.position.clone(), from = new THREE.Vector3(EYE.x - g.position.x, 0.35, 0.75 - g.position.z);
@@ -213,21 +334,24 @@ function place(key, amt, anim = true) {
 const tweens = [];
 // the hand: rises from the bottom of the screen to the area, lets the chip go, and goes back
 let handAnim = null;
-function reach(a) {
-  if (totalBet() + chipVal > balance) { say("אין מספיק שקלים"); return; }
-  const c = areaCenter(a).project(camera), x = (c.x + 1) / 2 * innerWidth, y = (1 - c.y) / 2 * innerHeight;
+function reach(list, at) {           // list: [[key, amount]]; the hand goes to `at` and drops them all (one undo step)
+  const sum = list.reduce((s, [, v]) => s + v, 0);
+  if ((LIVE ? unsent() : totalBet()) + sum > balance) { say("אין מספיק שקלים"); return; }
+  const c = new THREE.Vector3(at.x, H, at.z).project(camera), x = (c.x + 1) / 2 * innerWidth, y = (1 - c.y) / 2 * innerHeight;
   const el = $("hand"), h = innerHeight * 0.52, w = h * 360 / 607, px = w * 0.497, py = h * 0.021;
   const tilt = Math.max(-22, Math.min(22, (x - innerWidth * 0.62) / innerWidth * 40));
   $("handChip").src = `img/r3d/chip_${lookOf(chipVal).c}.png?v=1`; $("handChip").classList.remove("drop");
   if (handAnim) handAnim.cancel();
   el.hidden = false; el.style.left = (x - px) + "px"; el.style.top = (y - py) + "px";
-  const key = a.key, amt = chipVal;
+
   handAnim = el.animate([
     { transform: `translate(${innerWidth * 0.25 - x}px, ${innerHeight}px) rotate(${tilt}deg)`, easing: "cubic-bezier(.2,.8,.3,1)" },
     { transform: `translate(0,0) rotate(${tilt}deg)`, offset: 0.45 },
     { transform: `translate(0,-4px) rotate(${tilt}deg)`, offset: 0.6, easing: "cubic-bezier(.5,0,.8,.4)" },
     { transform: `translate(${(innerWidth * 0.25 - x) * 0.5}px, ${innerHeight}px) rotate(${tilt}deg)` }], { duration: 640 });
-  setTimeout(() => { $("handChip").classList.add("drop"); place(key, amt, false); }, 300);
+  setTimeout(() => { $("handChip").classList.add("drop");
+    if (list.length === 1) place(list[0][0], list[0][1], false);
+    else { for (const [k, v] of list) place(k, v, false, false); undo.push(list.map(([k, v]) => [k, v])); } }, 300);
   handAnim.onfinish = () => { el.hidden = true; handAnim = null; };
 }
 
@@ -243,8 +367,10 @@ function tapAt(e) {
   const r = canvas.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
   ray.setFromCamera(ndc, camera);
   const hit = new THREE.Vector3(); if (!ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), -H), hit)) return;
+  if (VIEW === "race") { const rb = raceBet(hit.x, hit.z); if (rb) { glowNums(rb.nums); reach(rb.list.map(([k, m]) => [k, m * chipVal]), rb.at); } return; }
   const a = AREAS.find((a) => hit.x >= a.x && hit.x < a.x + a.w && hit.z >= a.z && hit.z < a.z + a.d);
-  if (a) reach(a);
+  const key = gridBet(hit.x, hit.z) || (a && a.key);
+  if (key) reach([[key, chipVal]], keyPos(key));
 }
 
 // ---------- bottom bar ----------
@@ -261,7 +387,11 @@ function drawRack() {
     $("chips").appendChild(b);
   });
 }
-$("undo").onclick = () => { const u = undo.pop(); if (!u) return; const v = bets.get(u[0]) - u[1]; if (v > 0) bets.set(u[0], v); else bets.delete(u[0]); drawStack(u[0]); showTotal(); };
+$("undo").onclick = () => { const u = undo.pop(); if (!u) return; for (const [k, a] of Array.isArray(u[0]) ? u : [u]) { const v = (bets.get(k) || 0) - a; if (v > 0) bets.set(k, v); else bets.delete(k); drawStack(k); } showTotal(); };
+$("viewBtn").onclick = () => setView(VIEW === "race" ? "table" : "race");
+const setNB = (d) => { NB = Math.max(0, Math.min(4, NB + d)); try { localStorage.setItem("gc_r3d_nb", NB); } catch (e) {} viewUi(); };
+$("nMinus").onclick = () => setNB(-1); $("nPlus").onclick = () => setNB(1);
+viewUi();
 $("clear").onclick = () => clearBets();
 $("repeat").onclick = () => { if (!lastBets) return; for (const [k, v] of lastBets) place(k, v, false); };
 function clearBets() { for (const k of [...bets.keys()]) { const s0 = LIVE ? sent.get(k) || 0 : 0; if (s0) bets.set(k, s0); else bets.delete(k); drawStack(k); } undo = []; showTotal(); }   // live: chips already sent stay
@@ -324,14 +454,13 @@ let dolly = null;
 function settle(res) {
   const n = res.result;
   // the dolly on the winning number, losing chips leave the felt, winning stacks stay a moment
-  const a = AREAS.find((x) => x.key === String(n));
   if (!dolly) { dolly = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.022, 0.07, 24), new THREE.MeshPhysicalMaterial({ color: 0xf6f2ff, roughness: 0.05, transmission: 0.6, thickness: 0.02, metalness: 0 })); dolly.castShadow = true; scene.add(dolly); }
-  const p = areaCenter(a); dolly.position.set(p.x, H + 0.035, p.z); dolly.visible = true;
-  for (const [k, g] of stacks) { const won = k.split(",").map(Number).includes(n); if (!won) { const t1 = performance.now(), y0 = g.position.y; tweens.push((now) => { const kk = Math.min(1, (now - t1) / 600); g.position.y = y0 + kk * 0.05; g.position.z -= 0.012; g.scale.setScalar(1 - kk); return kk < 1; }); } }
+  dolly.position.y = H + 0.035; dolly.userData.t = 1; pin(dolly, String(n)); dolly.visible = true;
+  for (const [k, g] of stacks) { const won = k.split(",").map(Number).includes(n); if (!won) { const t1 = performance.now(), y0 = g.position.y; tweens.push((now) => { const kk = Math.min(1, (now - t1) / 600); g.position.y = y0 + kk * 0.05; g.position.z -= 0.012; g.userData.t = 1 - kk; g.scale.setScalar((1 - kk) * (g.userData.k ?? 1)); return kk < 1; }); } }
   balance = res.balance; showBal(balance);
   if (res.payout > 0 && res.payout >= res.total * 20) setTimeout(() => sfx(() => GC_BONUS("🎰 זכייה גדולה!", res.payout, "על " + n)), 300);
   setTimeout(() => {
-    $("result").hidden = true; dolly.visible = false;
+    $("result").hidden = true; dolly.visible = false; PINS.delete(dolly);
     for (const k of [...bets.keys()]) bets.delete(k); for (const [k, g] of stacks) scene.remove(g); stacks.clear(); for (const el of stackTags.values()) el.remove(); stackTags.clear(); undo = []; clearLucky();
     busy = false; $("bar").classList.remove("off"); showTotal(); if (!LIVE) voice("bets"); sent.clear(); drawOthers();
   }, 2600);
@@ -395,8 +524,8 @@ function drawOthers() {
     const sd = sides[k], seat = seatAt(sd, charOf(p.id)), sl = SLOT[sd];
     // their chips on the layout (small stacks, one per area they played)
     const per = {}; for (const b of p.bets || []) { const key = b.nums.join(","); per[key] = (per[key] || 0) + Number(b.amt); }
-    for (const [key, amt] of Object.entries(per)) { const a = AREAS.find((x) => x.key === key); if (!a) continue; const c = areaCenter(a);
-      let v = amt, i = 0; for (const ch of [...ALL_CHIPS].reverse()) while (v >= ch.v && i < 6) { const m = chipMesh(ch.v); m.position.set(c.x + sd * 0.025, H + CHIP_T / 2 + i * CHIP_T, c.z + 0.02); m.scale.setScalar(0.8); othersG.add(m); v -= ch.v; i++; } }
+    for (const [key, amt] of Object.entries(per)) {
+      let v = amt, i = 0; for (const ch of [...ALL_CHIPS].reverse()) while (v >= ch.v && i < 6) { const m = chipMesh(ch.v); m.position.y = H + CHIP_T / 2 + i * CHIP_T; m.userData.s = 0.8; othersG.add(m); pin(m, key, { x: sd * 0.025, z: 0.02 }); v -= ch.v; i++; } }
     const won = p.payout != null && Number(p.payout) > 0;
     betLabel(`${p.name} · ${fmt(p.total)}${p.payout != null ? (won ? " · זכה " + fmt(p.payout) : " · הפסיד") : ""}`, sl.bet);
     if (won && winShown[p.id] !== liveSt.round) { winShown[p.id] = liveSt.round; seat.win(); }
@@ -457,10 +586,10 @@ async function strike(lucky) {
   luckyG.clear(); luckyTags.splice(0).forEach((t) => t.remove());
   const fl = document.createElement("div"); fl.className = "lflash"; document.body.appendChild(fl);
   for (const [k, m] of Object.entries(lucky)) {
-    const a = AREAS.find((x) => x.key === String(k)); if (!a) continue;
-    const glow = new THREE.Mesh(new THREE.PlaneGeometry(a.w * 0.96, a.d * 0.96), new THREE.MeshBasicMaterial({ color: 0xffd04a, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }));
-    glow.rotation.x = -Math.PI / 2; const c = areaCenter(a); glow.position.set(c.x, H + 0.004, c.z); luckyG.add(glow);
-    const el = document.createElement("div"); el.className = "ltag num"; el.textContent = "×" + m; document.body.appendChild(el); el._p = c.clone().setY(H + 0.02); luckyTags.push(el);
+    const glow = new THREE.Mesh(new THREE.PlaneGeometry(CW * 0.96, CH * 0.96), new THREE.MeshBasicMaterial({ color: 0xffd04a, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }));
+    const q = keyPos(String(k)), c = new THREE.Vector3(q.x, H, q.z);
+    glow.rotation.x = -Math.PI / 2; glow.position.y = H + 0.004; luckyG.add(glow); pin(glow, String(k));
+    const el = document.createElement("div"); el.className = "ltag num"; el.textContent = "×" + m; document.body.appendChild(el); el._p = c.clone().setY(H + 0.02); luckyTags.push(el); pin(el, String(k));
     bolt(c, LMODE === "xxx" ? 0xff4fd8 : 0xbfe6ff);
     fl.classList.remove("on"); void fl.offsetWidth; fl.classList.add("on"); sfx(() => SFX.fx("lightning", { vol: 0.6 }));
     await wait(420);
@@ -513,6 +642,7 @@ function frame(now) {
   if (!drag && now - userAt > 3000) { userYaw = 0; userU = null; }
   u += ((userU ?? 0) - u) * (1 - Math.pow(0.002, dt));
   yaw += (userYaw - yaw) * (1 - Math.pow(0.002, dt));
+  viewTick(now);
   LOOK.lerp(lookTo, 1 - Math.pow(0.18, dt)); camera.position.copy(EYE);
   const L = LOOK.clone().lerp(LOOK_DEALER, lookTo === LOOK_DEALER ? 0 : u).sub(EYE).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw).add(EYE); L.y += Math.abs(yaw) * 0.45; camera.lookAt(L);
   renderer.render(scene, camera);
@@ -537,6 +667,9 @@ function frame(now) {
   try { GC_LOADER.done(); } catch (e) {} try { window.__lhBye = GC_LOOKHINT(canvas, { side: LIVE }); } catch (e) {}
   $("enterGo").onclick = () => { preload("nomore"); $("enter").hidden = true; dealerPlay("idle"); preload("bets"); setTimeout(() => voice("bets"), 900); vThrow.load(); };
   if (LIVE) { const t = LMODE === "xxx" ? "רולטת XXX 3D לייב" : LMODE === "lightning" ? "רולטת ברקים 3D לייב" : "רולטה 3D לייב"; document.querySelector(".top h1").textContent = t; document.title = t + " · גולן קזינו"; }
+  try { raceFelt.visible = true; renderer.compile(scene, camera); renderer.initTexture(raceTex); } catch (e) {}   // ready on the GPU now, so the first switch does not stutter
+  applyView(); window.__r3d = { bets, get view() { return VIEW; }, get vb() { return vb; }, setView, gridBet, raceBet, RACE, gridCenter,
+    toScreen: (x, z) => { const q = new THREE.Vector3(x, H, z).project(camera), r = canvas.getBoundingClientRect(); return { x: r.left + (q.x + 1) / 2 * r.width, y: r.top + (1 - q.y) / 2 * r.height }; } };
   window.__gameReady = 1;
   if (window.__enterWanted) { const b = $("enterGo"); b.disabled = false; b.textContent = "לשולחן"; addEventListener("pointerdown", () => { vIdle.play().catch(() => {}); }, { once: true }); b.click(); }   // tapped while loading (the video may need one more tap to start)
   else if (/[?&]go\b/.test(location.search)) $("enterGo").click();

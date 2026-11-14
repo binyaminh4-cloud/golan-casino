@@ -85,3 +85,11 @@
 .pt-row .ll-n{min-width:26px;text-align:center;border-radius:6px;padding:1px 4px}.pt-row .ll-n.red{background:#b3162a}.pt-row .ll-n.black{background:#1a1a1a}.pt-row .ll-n.green{background:#1d7a3e}
 .pt-row b{color:#ffe27a}.pt-row.mine{outline:1px solid #F1D69A;border-radius:6px}
 .pt-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px}
+
+/* switch between the regular layout and the neighbours board (racetrack); hidden while the wheel is up */
+.views{position:fixed;z-index:20;left:max(12px,env(safe-area-inset-left));top:max(58px,calc(env(safe-area-inset-top) + 52px));display:flex;align-items:center;gap:8px}
+.wheelview:not([hidden]) ~ .views,.bar.off ~ .views{opacity:0;pointer-events:none}
+.views{transition:opacity .3s}
+.vbtn[aria-pressed="true"]{background:linear-gradient(#f3d38a,#b88a3a);color:#2a1a08}
+.nbr{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:14px;background:#0d0906d9;border:1px solid #c5a05a88;font:700 13px Heebo;color:#d9c49a}
+.nbr[hidden]{display:none}.nbr .btn{min-height:34px;padding:4px 12px}.vbtn{min-height:40px;padding:6px 14px;font-size:14px}.nbr b{color:#ffe7a8;font-size:15px}
