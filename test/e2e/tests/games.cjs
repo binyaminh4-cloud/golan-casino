@@ -133,4 +133,43 @@ tests.push({
   },
 });
 
+// ---- Bug from a player's screen recording (14.11): the "to the table" button on the 3D tables did nothing ----
+// (a) phones without import-map support (iPhone before iOS 16.4): the game script never ran. Simulated by removing the import map from the page.
+// (b) a tap before the game finished loading was lost. Simulated by delaying three.js and tapping early.
+const entered = (page) => page.waitForFunction(() => { const e = document.getElementById("enter"); return !e || e.hidden; }, null, { timeout: 60000, polling: 250 });
+for (const [game, file] of [["roulette3d", "roulette3d.html"], ["blackjack3d", "blackjack3d.html"]]) {
+  tests.push({
+    name: `${game}: enter works without import maps (old iPhone)`,
+    timeout: 120000,
+    async run({ browser, base, shots }) {
+      const page = await newPage(browser, base, { mock: false });
+      try {
+        await page.route("**/" + file + "*", async (r) => { const resp = await r.fetch(); r.fulfill({ response: resp, body: (await resp.text()).replace(/<script type="importmap">[\s\S]*?<\/script>/, "") }); });
+        await page.goto(base + file + "?preview", { waitUntil: "domcontentloaded" });
+        await waitLoaded(page, 60000);
+        await clickAt(page, "#enterGo");
+        await entered(page);
+        await shot(page, shots, game + "-no-importmap");
+        assert(!page.errors.length, page.errors.slice(0, 3).join(" | "));
+      } finally { await page.closeAll(); }
+    },
+  });
+  tests.push({
+    name: `${game}: a tap before loading finished still enters`,
+    timeout: 120000,
+    async run({ browser, base }) {
+      const page = await newPage(browser, base, { mock: false });
+      try {
+        await page.route("**/vendor/three/three.module.min.js*", async (r) => { await new Promise((ok) => setTimeout(ok, 4000)); r.fallback(); });
+        await page.goto(base + file + "?preview", { waitUntil: "commit" });          // do not wait for the scripts
+        await page.waitForSelector("#enterGo", { state: "attached" });
+        const early = await page.evaluate(() => { document.getElementById("enterGo").click(); return !window.__gameReady; });   // the loader still covers the page; the tap must not be lost
+        assert(early, "the test tapped too late (the game was already loaded)");
+        await entered(page);
+        assert(!page.errors.length, page.errors.slice(0, 3).join(" | "));
+      } finally { await page.closeAll(); }
+    },
+  });
+}
+
 module.exports = { tests };
