@@ -109,10 +109,11 @@ function clearHits() { document.querySelectorAll(".sym.hit").forEach((t) => t.cl
 // Preserve the nearest affordable spin when the wallet falls below a step.
 let rackKey = "";
 function drawRack(bal) {
-  const maxLine = Math.max(1, Math.floor(bal / 5));
-  const totals = GC_SLOT_LADDER(5, maxLine * 5).filter(v => v % 5 === 0);
-  const ok = totals.map(v => v / 5), free = FREE_LEFT > 0;
-  if (!busy && !free && lineBet > maxLine) lineBet = GC_SLOT_SELECT(totals, lineBet * 5) / 5;
+  // same rule as the other games: a total is offered only if 20 × total ≤ wallet (the first 6 are always shown)
+  const totals = GC_SLOT_REGULAR(5, bal).filter((v, i) => v % 5 === 0 && (i < 6 || v * 20 <= bal));
+  const totalsOk = totals.length ? totals : [5];
+  const ok = totalsOk.map(v => v / 5), free = FREE_LEFT > 0;
+  if (!busy && !free && lineBet * 5 > totalsOk[totalsOk.length - 1]) lineBet = GC_SLOT_SELECT(totalsOk, lineBet * 5) / 5;
   const chosen = ok.indexOf(lineBet), start = Math.max(0, Math.min(chosen - 3, ok.length - 7));
   const show = ok.slice(start, start + 7), k = show.join(",") + ":" + lineBet;
   $("total").textContent = fmt(lineBet * 5);
