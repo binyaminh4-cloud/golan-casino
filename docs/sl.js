@@ -114,8 +114,10 @@ function drawRack(bal) {
   const totalsOk = totals.length ? totals : [5];
   const ok = totalsOk.map(v => v / 5), free = FREE_LEFT > 0;
   if (!busy && !free && lineBet * 5 > totalsOk[totalsOk.length - 1]) lineBet = GC_SLOT_SELECT(totalsOk, lineBet * 5) / 5;
-  const chosen = ok.indexOf(lineBet), start = Math.max(0, Math.min(chosen - 3, ok.length - 7));
-  const show = ok.slice(start, start + 7), k = show.join(",") + ":" + lineBet;
+  // like the other games: show the 7 highest allowed chips; a bet below them moves up to the lowest one shown
+  const show = ok.slice(-7);
+  if (!busy && !free && lineBet < show[0]) lineBet = show[0];
+  const k = show.join(",") + ":" + lineBet;
   $("total").textContent = fmt(lineBet * 5);
   if (k === rackKey) return; rackKey = k;
   const lab = (t) => String(fmt(t)).slice(1).replace(/,000$/, "K");
