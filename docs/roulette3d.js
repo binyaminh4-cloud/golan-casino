@@ -110,6 +110,7 @@ renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadow
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0b0908);
 const camera = new THREE.PerspectiveCamera(56, 16 / 9, 0.05, 30);
 const EYE = new THREE.Vector3(0.1, 1.6, 0.82), LOOK_BET = new THREE.Vector3(0.1, 0.9, -0.12), LOOK_DEALER = new THREE.Vector3(0.1, 1.08, -1.0);
+const EYE_TOP = new THREE.Vector3(0.1, 2.4, -0.1), LOOK_TOP = new THREE.Vector3(0.1, H, -0.13);   // straight above the board (a small z offset keeps the camera's up direction valid)
 const LOOK = LOOK_BET.clone(); let lookTo = LOOK_BET;
 camera.position.copy(EYE); camera.lookAt(LOOK);
 
@@ -360,7 +361,7 @@ const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 let drag = null, userYaw = 0, yaw = 0, userAt = 0, userU = null, u = 0;   // drag: sideways = the friends, up/down = Ms Fisher
 canvas.addEventListener("pointerdown", (e) => { drag = { x: e.clientX, y: e.clientY, yaw0: userYaw, u0: userU ?? 0, moved: false }; try { canvas.setPointerCapture(e.pointerId); } catch (x) {} });
 canvas.addEventListener("pointermove", (e) => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (Math.abs(dx) > 10 || Math.abs(dy) > 10) drag.moved = true;
-  if (drag.moved) { if (LIVE) userYaw = Math.max(-0.9, Math.min(0.9, drag.yaw0 + dx / innerWidth * 1.6)); userU = Math.max(0, Math.min(1, drag.u0 + dy / (innerHeight * 0.6))); userAt = performance.now(); } });
+  if (drag.moved) { if (LIVE) userYaw = Math.max(-0.9, Math.min(0.9, drag.yaw0 + dx / innerWidth * 1.6)); userU = Math.max(-1, Math.min(1, drag.u0 + dy / (innerHeight * 0.6))); userAt = performance.now(); } });
 canvas.addEventListener("pointerup", (e) => { const d = drag; drag = null; if (d && !d.moved) tapAt(e); });
 function tapAt(e) {
   if (busy || !$("enter").hidden || (LIVE && liveSt && !liveSt.open)) return;
@@ -639,12 +640,13 @@ function frame(now) {
     W.camera();
     return;
   }
-  if (!drag && now - userAt > 3000) { userYaw = 0; userU = null; }
+  if (!drag && now - userAt > 3000) { userYaw = 0; if (!(userU < 0)) userU = null; }   // the view from above stays until the player drags back
   u += ((userU ?? 0) - u) * (1 - Math.pow(0.002, dt));
   yaw += (userYaw - yaw) * (1 - Math.pow(0.002, dt));
   viewTick(now);
-  LOOK.lerp(lookTo, 1 - Math.pow(0.18, dt)); camera.position.copy(EYE);
-  const L = LOOK.clone().lerp(LOOK_DEALER, lookTo === LOOK_DEALER ? 0 : u).sub(EYE).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw).add(EYE); L.y += Math.abs(yaw) * 0.45; camera.lookAt(L);
+  LOOK.lerp(lookTo, 1 - Math.pow(0.18, dt));
+  const up = lookTo === LOOK_DEALER ? 0 : Math.max(0, -u), eye = EYE.clone().lerp(EYE_TOP, up); camera.position.copy(eye);   // drag up = rise toward the view straight down
+  const L = LOOK.clone().lerp(LOOK_DEALER, lookTo === LOOK_DEALER ? 0 : Math.max(0, u)).lerp(LOOK_TOP, up).sub(eye).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw * (1 - up)).add(eye); L.y += Math.abs(yaw) * 0.45 * (1 - up); camera.lookAt(L);
   renderer.render(scene, camera);
   for (const el of luckyTags) { const q = el._p.clone().project(camera); el.style.left = (q.x + 1) / 2 * innerWidth + "px"; el.style.top = (1 - q.y) / 2 * innerHeight + "px"; }
   for (const el of stackTags.values()) { const q = el._p.clone().project(camera); el.style.left = (q.x + 1) / 2 * innerWidth + "px"; el.style.top = (1 - q.y) / 2 * innerHeight + "px"; }
@@ -668,7 +670,7 @@ function frame(now) {
   $("enterGo").onclick = () => { preload("nomore"); $("enter").hidden = true; dealerPlay("idle"); preload("bets"); setTimeout(() => voice("bets"), 900); vThrow.load(); };
   if (LIVE) { const t = LMODE === "xxx" ? "רולטת XXX 3D לייב" : LMODE === "lightning" ? "רולטת ברקים 3D לייב" : "רולטה 3D לייב"; document.querySelector(".top h1").textContent = t; document.title = t + " · גולן קזינו"; }
   try { raceFelt.visible = true; renderer.compile(scene, camera); renderer.initTexture(raceTex); } catch (e) {}   // ready on the GPU now, so the first switch does not stutter
-  applyView(); window.__r3d = { bets, get view() { return VIEW; }, get vb() { return vb; }, setView, gridBet, raceBet, RACE, gridCenter,
+  applyView(); window.__r3d = { bets, get view() { return VIEW; }, get vb() { return vb; }, get camY() { return camera.position.y; }, setView, gridBet, raceBet, RACE, gridCenter,
     toScreen: (x, z) => { const q = new THREE.Vector3(x, H, z).project(camera), r = canvas.getBoundingClientRect(); return { x: r.left + (q.x + 1) / 2 * r.width, y: r.top + (1 - q.y) / 2 * r.height }; } };
   window.__gameReady = 1;
   if (window.__enterWanted) { const b = $("enterGo"); b.disabled = false; b.textContent = "לשולחן"; addEventListener("pointerdown", () => { vIdle.play().catch(() => {}); }, { once: true }); b.click(); }   // tapped while loading (the video may need one more tap to start)

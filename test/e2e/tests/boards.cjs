@@ -64,4 +64,27 @@ tests.push({
   },
 });
 
+tests.push({
+  name: "roulette3d: drag up gives the view straight down at the board, and a chip can still be placed",
+  timeout: 150000,
+  async run({ browser, base, shots }) {
+    const page = await newPage(browser, base, { mock: false });
+    try {
+      await page.goto(base + "roulette3d.html?preview", { waitUntil: "domcontentloaded" });
+      await waitLoaded(page, 60000); await enter(page);
+      await page.waitForFunction(() => window.__r3d, null, { timeout: 60000 });
+      const y0 = await page.evaluate(() => window.__r3d.camY);
+      await page.mouse.move(400, 300); await page.mouse.down(); await page.mouse.move(400, 40, { steps: 12 });
+      await page.waitForFunction((y) => window.__r3d.camY > y + 0.6, y0, { timeout: 20000, polling: 100 });
+      await page.waitForTimeout(3600);                 // the view from above must stay while the finger is down and after the old 3 s timeout
+      assert(await page.evaluate((y) => window.__r3d.camY > y + 0.6, y0), "the view from above came back by itself");
+      await page.mouse.up();
+      await shot(page, shots, "roulette3d-topview");
+      const s = await page.evaluate(() => window.__r3d.toScreen(-0.62 + 0.12 * 4.5, -0.36 + 0.115 * 1.5));
+      await page.mouse.click(s.x, s.y);
+      await page.waitForFunction(() => window.__r3d.bets.size >= 1, null, { timeout: 20000, polling: 100 });
+    } finally { await page.closeAll(); }
+  },
+});
+
 module.exports = { tests };
