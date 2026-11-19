@@ -26,6 +26,7 @@
 .say{position:fixed;left:50%;top:22%;transform:translate(-50%,-10px);z-index:25;padding:10px 22px;border-radius:99px;background:#0d0906e6;border:1px solid #c5a05a;
   font:800 18px Heebo;color:#ffe7a8;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;white-space:nowrap}
 .say.on{opacity:1;transform:translate(-50%,0)}
+.say.side{left:auto;right:3%;top:20%;transform:translateX(10px);font-size:24px}.say.side.on{transform:none}   /* "No more bets": beside the dealer, not on her face */
 .wheelview{position:fixed;inset:0;z-index:15;background:radial-gradient(ellipse at 50% 55%,#2a1a10,#070504 70%);animation:wvin .5s ease-out}
 .wheelview[hidden]{display:none}
 @keyframes wvin{from{opacity:0;transform:scale(1.08)}}

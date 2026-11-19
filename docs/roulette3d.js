@@ -398,7 +398,7 @@ $("repeat").onclick = () => { if (!lastBets) return; for (const [k, v] of lastBe
 function clearBets() { for (const k of [...bets.keys()]) { const s0 = LIVE ? sent.get(k) || 0 : 0; if (s0) bets.set(k, s0); else bets.delete(k); drawStack(k); } undo = []; showTotal(); }   // live: chips already sent stay
 
 let sayT = 0;
-function say(t, ms = 2200) { const s = $("say"); s.textContent = t; s.classList.add("on"); clearTimeout(sayT); sayT = setTimeout(() => s.classList.remove("on"), ms); }
+function say(t, ms = 2200, side = false) { const s = $("say"); s.textContent = t; s.classList.toggle("side", side); s.classList.add("on"); clearTimeout(sayT); sayT = setTimeout(() => s.classList.remove("on"), ms); }
 function showBal(v) { $("bal").textContent = fmt(v); drawRack(); }
 
 // ---------- the wheel: the same 3D wheel as the roulette, full screen while the ball runs ----------
@@ -432,7 +432,7 @@ async function spin() {
 async function playRound(res) {
   busy = true; showTotal(); $("bar").classList.add("off");
   lastBets = new Map(bets); showBal(res.balance - res.payout); preload("n" + res.result);
-  say("No more bets", 1600); voice("nomore");
+  say("No more bets", 1600, true); voice("nomore");
   lookTo = LOOK_DEALER; await wait(1000); dealerPlay("throw");
   await wait(RELEASE * 1000);
   // to the wheel
@@ -597,19 +597,69 @@ async function strike(lucky) {
   }
   setTimeout(() => fl.remove(), 600);
 }
+// a real-looking bolt: jagged main channel (midpoint displacement), forked branches, a few re-strikes that re-draw the path,
+// a white-hot core inside two coloured glow layers, a flash at the impact, sparks bouncing on the felt and a scorch glow.
+const BOLT_GLOW = (() => { const c = document.createElement("canvas"); c.width = c.height = 128; const g = c.getContext("2d"), r = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  r.addColorStop(0, "rgba(255,255,255,1)"); r.addColorStop(0.25, "rgba(255,255,255,.55)"); r.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = r; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); })();
+function boltPath(a, b, rough, depth) {   // jagged line from a to b
+  let pts = [a.clone(), b.clone()];
+  for (let d = 0; d < depth; d++) { const out = [pts[0]];
+    for (let i = 1; i < pts.length; i++) { const p = pts[i - 1], q = pts[i], m = p.clone().lerp(q, 0.4 + Math.random() * 0.2), len = p.distanceTo(q);
+      m.x += (Math.random() - 0.5) * len * rough; m.z += (Math.random() - 0.5) * len * rough * 0.7; m.y += (Math.random() - 0.5) * len * rough * 0.3; out.push(m, q); }
+    pts = out; rough *= 0.92; }
+  return pts;
+}
+function boltTubes(pts, r, color, list, g) {   // one channel = core + inner glow + outer glow, straight segments keep it sharp
+  const curve = new THREE.CurvePath(); for (let i = 1; i < pts.length; i++) curve.add(new THREE.LineCurve3(pts[i - 1], pts[i]));
+  const n = pts.length * 2;
+  for (const [rr, col, op] of [[r, 0xffffff, 1], [r * 2.6, color, 0.75], [r * 7, color, 0.22]]) {
+    const m = new THREE.Mesh(new THREE.TubeGeometry(curve, n, rr, 5), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false }));
+    m.userData.op = op; g.add(m); list.push(m); }
+}
 function bolt(to, color) {
-  const top = new THREE.Vector3(to.x + (Math.random() - 0.5) * 0.5, H + 1.1, to.z - 0.35), mk = () => {
-    const pts = []; const N = 14;
-    for (let i = 0; i <= N; i++) { const k = i / N, p = top.clone().lerp(to.clone().setY(H + 0.01), k); if (i && i < N) { p.x += (Math.random() - 0.5) * 0.09; p.z += (Math.random() - 0.5) * 0.06; } pts.push(p); }
-    return new THREE.CatmullRomCurve3(pts, false, "chordal"); };
-  const g = new THREE.Group();
-  const core = new THREE.Mesh(new THREE.TubeGeometry(mk(), 60, 0.012, 6), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
-  const glow = new THREE.Mesh(new THREE.TubeGeometry(mk(), 60, 0.04, 6), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }));
-  const lt = new THREE.PointLight(color, 6, 1.6, 1.5); lt.position.copy(to).setY(H + 0.15);
-  g.add(core, glow, lt); scene.add(g);
-  const t1 = performance.now();
-  tweens.push((now) => { const k = (now - t1) / 800; const f = k < 0.6 ? (Math.random() < 0.7 ? 1 : 0.3) : Math.max(0, 1 - (k - 0.6) / 0.4);
-    core.material.opacity = f; glow.material.opacity = 0.55 * f; lt.intensity = 6 * f; if (k >= 1) { scene.remove(g); core.geometry.dispose(); glow.geometry.dispose(); return false; } return true; });
+  const end = to.clone().setY(H + 0.005), top = new THREE.Vector3(to.x + (Math.random() - 0.5) * 0.7, H + 1.5, to.z - 0.45 - Math.random() * 0.2);
+  const g = new THREE.Group(); scene.add(g);
+  let parts = [];
+  const build = () => {   // a new path on every re-strike, like a real flicker
+    for (const m of parts) { g.remove(m); m.geometry.dispose(); m.material.dispose(); } parts = [];
+    const main = boltPath(top, end, 0.55, 6); boltTubes(main, 0.006, color, parts, g);
+    for (let i = 2; i < main.length - 6; i++) if (Math.random() < 0.16) {   // forks: thinner, go sideways and fade before the felt
+      const a = main[i], dir = end.clone().sub(a), b = a.clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.5, -dir.length() * (0.25 + Math.random() * 0.35), (Math.random() - 0.5) * 0.3));
+      boltTubes(boltPath(a, b, 0.6, 4), 0.0025, color, parts, g);
+      if (Math.random() < 0.4) { const c = b.clone(), d = c.clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.25, -0.12, (Math.random() - 0.5) * 0.15)); boltTubes(boltPath(c, d, 0.6, 3), 0.0015, color, parts, g); }
+    }
+  };
+  build();
+  const flash = new THREE.Sprite(new THREE.SpriteMaterial({ map: BOLT_GLOW, color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+  flash.position.copy(end).setY(H + 0.03); flash.scale.setScalar(0.7); g.add(flash);
+  const core = new THREE.Sprite(new THREE.SpriteMaterial({ map: BOLT_GLOW, color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+  core.position.copy(flash.position); core.scale.setScalar(0.22); g.add(core);
+  const scorch = new THREE.Mesh(new THREE.CircleGeometry(0.09, 24), new THREE.MeshBasicMaterial({ map: BOLT_GLOW, color, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }));
+  scorch.rotation.x = -Math.PI / 2; scorch.position.copy(end).setY(H + 0.003); g.add(scorch);
+  const lt = new THREE.PointLight(color, 14, 2.4, 1.4); lt.position.copy(end).setY(H + 0.25); g.add(lt);
+  const sky = new THREE.PointLight(color, 5, 4, 1.2); sky.position.copy(top); g.add(sky);
+  const N = 40, sp = new Float32Array(N * 3), vel = [];   // sparks
+  for (let i = 0; i < N; i++) { sp.set([end.x, end.y + 0.01, end.z], i * 3); const a = Math.random() * Math.PI * 2, v = 0.4 + Math.random() * 1.1; vel.push(new THREE.Vector3(Math.cos(a) * v, 0.6 + Math.random() * 1.4, Math.sin(a) * v)); }
+  const sg = new THREE.BufferGeometry(); sg.setAttribute("position", new THREE.BufferAttribute(sp, 3));
+  const sparks = new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xfff4d6, size: 0.014, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); g.add(sparks);
+  const t1 = performance.now(), strikes = [0, 0.13, 0.27, 0.42].map((t) => t + Math.random() * 0.04); let si = 1, prev = t1;
+  tweens.push((now) => {
+    const t = (now - t1) / 1000, dt = Math.min(0.05, (now - prev) / 1000); prev = now;
+    if (si < strikes.length && t >= strikes[si]) { si++; build(); }
+    const since = t - strikes[si - 1], hot = Math.max(0, 1 - since / 0.11);                 // each strike flares then dims
+    const life = t < 0.55 ? 1 : Math.max(0, 1 - (t - 0.55) / 0.45);
+    const f = (0.35 + 0.65 * hot) * life * (Math.random() < 0.15 ? 0.5 : 1);
+    for (const m of parts) m.material.opacity = m.userData.op * f;
+    flash.material.opacity = f; flash.scale.setScalar(0.5 + 0.5 * hot); core.material.opacity = f;
+    lt.intensity = 14 * f; sky.intensity = 5 * f * hot;
+    scorch.material.opacity = 0.9 * Math.max(0, 1 - t / 1.4);
+    const pa = sg.attributes.position.array;
+    for (let i = 0; i < N; i++) { const v = vel[i]; v.y -= 4.5 * dt; pa[i * 3] += v.x * dt; pa[i * 3 + 1] += v.y * dt; pa[i * 3 + 2] += v.z * dt;
+      if (pa[i * 3 + 1] < H + 0.003) { pa[i * 3 + 1] = H + 0.003; v.y *= -0.35; v.x *= 0.6; v.z *= 0.6; } }
+    sg.attributes.position.needsUpdate = true; sparks.material.opacity = Math.max(0, 1 - t / 1.1);
+    if (t >= 1.4) { scene.remove(g); for (const m of parts) { m.geometry.dispose(); m.material.dispose(); } sg.dispose(); scorch.geometry.dispose(); return false; }
+    return true;
+  });
 }
 function clearLucky() { luckyG.clear(); luckyTags.splice(0).forEach((t) => t.remove()); }
 
@@ -670,7 +720,7 @@ function frame(now) {
   $("enterGo").onclick = () => { preload("nomore"); $("enter").hidden = true; dealerPlay("idle"); preload("bets"); setTimeout(() => voice("bets"), 900); vThrow.load(); };
   if (LIVE) { const t = LMODE === "xxx" ? "רולטת XXX 3D לייב" : LMODE === "lightning" ? "רולטת ברקים 3D לייב" : "רולטה 3D לייב"; document.querySelector(".top h1").textContent = t; document.title = t + " · גולן קזינו"; }
   try { raceFelt.visible = true; renderer.compile(scene, camera); renderer.initTexture(raceTex); } catch (e) {}   // ready on the GPU now, so the first switch does not stutter
-  applyView(); window.__r3d = { bets, get view() { return VIEW; }, get vb() { return vb; }, get camY() { return camera.position.y; }, setView, gridBet, raceBet, RACE, gridCenter,
+  applyView(); window.__r3d = { bets, get view() { return VIEW; }, get vb() { return vb; }, get camY() { return camera.position.y; }, strike, say, setView, gridBet, raceBet, RACE, gridCenter,
     toScreen: (x, z) => { const q = new THREE.Vector3(x, H, z).project(camera), r = canvas.getBoundingClientRect(); return { x: r.left + (q.x + 1) / 2 * r.width, y: r.top + (1 - q.y) / 2 * r.height }; } };
   window.__gameReady = 1;
   if (window.__enterWanted) { const b = $("enterGo"); b.disabled = false; b.textContent = "לשולחן"; addEventListener("pointerdown", () => { vIdle.play().catch(() => {}); }, { once: true }); b.click(); }   // tapped while loading (the video may need one more tap to start)
