@@ -23,6 +23,7 @@ A private, satirical casino for a group of friends. **Play money only.** UI lang
   On iPad everything is landscape.
 - **Sound:** shared helpers in `docs/sfx.js` (`SFX.*`, `SFX.fx("file")` for files in `docs/snd/`). Music ≈ 20%, effects ≈ 80%.
 - **Chat announcements:** wins only at ×200 the bet or more; bonus buys at ×3 the price or more.
+- **Launch check (mandatory, every new game and every new version of a game — 3D, live, lightning):** the server function that pays must call `chat_sys('lobby', ...)` for a win of ×200 the bet or more (bonus buy: ×3 the price). A new version does not inherit the old one's announcement. Prove it with a local SQL test that forces a ×200 win (row in `chat_messages`) and a ×199 win (no row) — see `test/chat_200x_tests.sql`. **Do not launch until this test passes.**
 - **Test users** (nickname starting with `test` / `בדיקה`, see `gc_is_test`) never get prizes, rankings or bot names.
 - **Ido** (`docs/guide.js`, `GC_STEPS`) explains every game; update his texts when a game's rules change.
 - **Game order on the games page (`#gamesBox` in `docs/index.html`):** newest on the right, oldest on the left (RTL: the first `<a class="game">` in each category is the rightmost, the one players see on entering). A new game goes at the **start** of its category block, and its href goes at the top of `NEWEST` in `docs/lobby-ui.js`. Git dates are not reliable for order (history was squashed); ask the owner when unsure.
