@@ -21,7 +21,7 @@ tests.push({
       await waitLoaded(page, 60000);
       await enter(page);
       // wait for a betting window with enough time left (the mock server cycles every 48 s, open 25 s)
-      await page.waitForFunction(() => { const m = /הימורים פתוחים · (\d+)/.exec(document.getElementById("say").textContent || ""); return m && +m[1] >= 10; }, null, { timeout: 90000, polling: 250 });
+      await page.waitForFunction(() => { const c = document.getElementById("clock"); return c && !c.hidden && +c.textContent >= 10; }, null, { timeout: 90000, polling: 250 });
       assert(!(await visible(page, "#spin")), "the send button (#spin) is visible in live mode");
       const hit = await tapUntil(page, "#scene", async () => (await moneyOf(page, "#total")) > 0);
       assert(hit, "could not place a chip on the table (#total stayed 0)");
