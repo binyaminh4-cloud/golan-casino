@@ -94,3 +94,7 @@
 .vbtn[aria-pressed="true"]{background:linear-gradient(#f3d38a,#b88a3a);color:#2a1a08}
 .nbr{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:14px;background:#0d0906d9;border:1px solid #c5a05a88;font:700 13px Heebo;color:#d9c49a}
 .nbr[hidden]{display:none}.nbr .btn{min-height:34px;padding:4px 12px}.vbtn{min-height:40px;padding:6px 14px;font-size:14px}.nbr b{color:#ffe7a8;font-size:15px}
+
+.top h1{display:flex;align-items:center;gap:8px}
+.clock{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 6px;border-radius:99px;border:1px solid #c5a05a;background:#0d0906e6;font:800 15px Inter;color:#ffe7a8}
+.clock[hidden]{display:none}.clock.low{color:#ff8a7a;border-color:#ff8a7a}

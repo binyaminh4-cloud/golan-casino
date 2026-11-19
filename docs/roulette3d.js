@@ -534,7 +534,8 @@ function drawOthers() {
 }
 function liveClock() {
   if (!LIVE || !liveSt) return; const s2 = $("say"), t = srvNow();
-  if (t < liveSt.close) { const left = Math.ceil((liveSt.close - t) / 1000); s2.textContent = `הימורים פתוחים · ${left}`; s2.classList.add("on"); }
+  const ck = $("clock"); ck.hidden = !(t < liveSt.close);   // betting open: only a small countdown beside the title, nothing over the dealer
+  if (t < liveSt.close) { const left = Math.ceil((liveSt.close - t) / 1000); ck.textContent = left; ck.classList.toggle("low", left <= 5); if (s2.classList.contains("on") && /^(סיבוב חדש|אין עוד)/.test(s2.textContent)) s2.classList.remove("on"); }
   else if (!busy && liveSt.result !== null) { const left = Math.max(0, Math.ceil((liveSt.end - t) / 1000)); s2.textContent = `סיבוב חדש בעוד ${left}`; s2.classList.add("on"); }
   else if (!busy) { s2.textContent = "אין עוד הימורים"; s2.classList.add("on"); }
   if (t >= liveSt.close && nmbRound !== liveSt.round && t < liveSt.close + 3000) { nmbRound = liveSt.round; voice("nomore"); }
@@ -718,7 +719,7 @@ function frame(now) {
   showTotal();
   try { GC_LOADER.done(); } catch (e) {} try { window.__lhBye = GC_LOOKHINT(canvas, { side: LIVE }); } catch (e) {}
   $("enterGo").onclick = () => { preload("nomore"); $("enter").hidden = true; dealerPlay("idle"); preload("bets"); setTimeout(() => voice("bets"), 900); vThrow.load(); };
-  if (LIVE) { const t = LMODE === "xxx" ? "רולטת XXX 3D לייב" : LMODE === "lightning" ? "רולטת ברקים 3D לייב" : "רולטה 3D לייב"; document.querySelector(".top h1").textContent = t; document.title = t + " · גולן קזינו"; }
+  if (LIVE) { const t = LMODE === "xxx" ? "רולטת XXX 3D לייב" : LMODE === "lightning" ? "רולטת ברקים 3D לייב" : "רולטה 3D לייב"; document.querySelector(".top h1").lastChild.textContent = t; document.title = t + " · גולן קזינו"; }
   try { raceFelt.visible = true; renderer.compile(scene, camera); renderer.initTexture(raceTex); } catch (e) {}   // ready on the GPU now, so the first switch does not stutter
   applyView(); window.__r3d = { bets, get view() { return VIEW; }, get vb() { return vb; }, get camY() { return camera.position.y; }, strike, say, setView, gridBet, raceBet, RACE, gridCenter,
     toScreen: (x, z) => { const q = new THREE.Vector3(x, H, z).project(camera), r = canvas.getBoundingClientRect(); return { x: r.left + (q.x + 1) / 2 * r.width, y: r.top + (1 - q.y) / 2 * r.height }; } };
